@@ -1,0 +1,23 @@
+{
+  "name": "the-bureau",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc && vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "element-vir": "^26.0.0",
+    "lucide-static": "^0.460.0",
+    "theme-vir": "^28.0.0",
+    "vira": "^31.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "typescript": "^5.4.0",
+    "vite": "^5.2.0",
+    "vite-plugin-pwa": "^0.20.0"
+  }
+}

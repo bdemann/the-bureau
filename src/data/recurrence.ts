@@ -1,0 +1,301 @@
+// ─────────────────────────────────────────────────────────────────────────────
+// Recurrence engine — pure functions, no I/O.
+// Computes period boundaries, advances tasks across recurrence boundaries,
+// and resets state at period rollover.
+// ─────────────────────────────────────────────────────────────────────────────
+
+import type {RecurrenceCadence, RecurrenceConfig, Task} from './types.js';
+import {isMultiplePerPeriodCadence} from './types.js';
+import {startOfDay} from './storage.js';
+
+// ── Period boundary computation ─────────────────────────────────────────────
+
+export interface Period {
+    /** ms timestamp at the start (00:00 local) of the period. */
+    start: number;
+    /** ms timestamp at the END (23:59:59.999 local) of the last day of the period. */
+    end: number;
+    /** Whole days in the period (inclusive). */
+    lengthDays: number;
+}
+
+/**
+ * Period containing the given reference date for a cadence.
+ * Weeks are Sunday → Saturday (matching JS getDay()).
+ * Months / quarters / years follow the calendar.
+ */
+export function getCurrentPeriod(
+    cadence: RecurrenceCadence,
+    referenceDate: Date | number,
+): Period {
+    const ref = new Date(referenceDate);
+    ref.setHours(0, 0, 0, 0);
+
+    if (cadence === 'daily' || cadence === 'multiple_per_day') {
+        const start = new Date(ref);
+        const end = endOfDay(new Date(ref));
+        return makePeriod(start, end);
+    }
+
+    if (cadence === 'weekly' || cadence === 'multiple_per_week') {
+        const start = new Date(ref);
+        start.setDate(start.getDate() - start.getDay()); // back up to Sunday
+        const end = endOfDay(addDays(start, 6));
+        return makePeriod(start, end);
+    }
+
+    if (cadence === 'monthly' || cadence === 'multiple_per_month') {
+        const start = new Date(ref.getFullYear(), ref.getMonth(), 1);
+        const end = endOfDay(new Date(ref.getFullYear(), ref.getMonth() + 1, 0));
+        return makePeriod(start, end);
+    }
+
+    if (cadence === 'quarterly' || cadence === 'multiple_per_quarter') {
+        const qStartMonth = Math.floor(ref.getMonth() / 3) * 3;
+        const start = new Date(ref.getFullYear(), qStartMonth, 1);
+        const end = endOfDay(new Date(ref.getFullYear(), qStartMonth + 3, 0));
+        return makePeriod(start, end);
+    }
+
+    // yearly / multiple_per_year
+    const start = new Date(ref.getFullYear(), 0, 1);
+    const end = endOfDay(new Date(ref.getFullYear(), 11, 31));
+    return makePeriod(start, end);
+}
+
+function makePeriod(start: Date, end: Date): Period {
+    const lengthMs = endOfDay(end).getTime() - startOfDay(start).getTime();
+    const lengthDays = Math.round(lengthMs / 86_400_000);
+    return {start: start.getTime(), end: end.getTime(), lengthDays};
+}
+
+// ── Suggested-date computation ──────────────────────────────────────────────
+
+/**
+ * Pick the next suggested date for a recurring task once the current period
+ * is complete. Honours fixed vs. rolling mode.
+ *
+ * @param task        the recurring task
+ * @param completedAt when the task was completed
+ * @param nextPeriod  the upcoming period (after the current one closes)
+ */
+export function getNextSuggestedDate(
+    task: Task,
+    completedAt: Date,
+    nextPeriod: Period,
+): Date {
+    const cfg = task.recurrence;
+    if (!cfg) return new Date(nextPeriod.start);
+
+    if (cfg.scheduleMode === 'rolling') {
+        return addCadenceLength(completedAt, cfg.cadence);
+    }
+
+    // Fixed mode — keep relative position within the period.
+    if (cfg.cadence === 'weekly' || cfg.cadence === 'multiple_per_week') {
+        const dow = cfg.hardDayOfWeek ?? (task.suggestedDate
+            ? new Date(task.suggestedDate).getDay()
+            : 0);
+        const d = new Date(nextPeriod.start);
+        d.setDate(d.getDate() + dow);
+        return d;
+    }
+    if (cfg.cadence === 'monthly' || cfg.cadence === 'multiple_per_month') {
+        const dom = cfg.hardDayOfMonth ?? (task.suggestedDate
+            ? new Date(task.suggestedDate).getDate()
+            : 1);
+        const start = new Date(nextPeriod.start);
+        const lastDay = new Date(start.getFullYear(), start.getMonth() + 1, 0).getDate();
+        return new Date(start.getFullYear(), start.getMonth(), Math.min(dom, lastDay));
+    }
+    if (cfg.cadence === 'quarterly' || cfg.cadence === 'multiple_per_quarter') {
+        // Preserve "month-within-quarter and day-of-month" of the current
+        // suggestedDate, clamped to the new quarter.
+        const ref = task.suggestedDate ? new Date(task.suggestedDate) : new Date(nextPeriod.start);
+        const monthOffset = ref.getMonth() % 3;
+        const dom = ref.getDate();
+        const start = new Date(nextPeriod.start);
+        const target = new Date(start.getFullYear(), start.getMonth() + monthOffset, 1);
+        const lastDay = new Date(target.getFullYear(), target.getMonth() + 1, 0).getDate();
+        return new Date(target.getFullYear(), target.getMonth(), Math.min(dom, lastDay));
+    }
+    if (cfg.cadence === 'yearly' || cfg.cadence === 'multiple_per_year') {
+        const ref = task.suggestedDate ? new Date(task.suggestedDate) : new Date(nextPeriod.start);
+        const start = new Date(nextPeriod.start);
+        return new Date(start.getFullYear(), ref.getMonth(), ref.getDate());
+    }
+    // daily / multiple_per_day
+    return new Date(nextPeriod.start);
+}
+
+// ── Advance to next period ──────────────────────────────────────────────────
+
+/**
+ * Given a recurring task that has just been "completed for the period," return
+ * the same task with state advanced to the next period:
+ *   - completionsThisPeriod = 0
+ *   - snoozeCount / snoozedUntil reset
+ *   - completedAt = null
+ *   - currentPeriodStart, suggestedDate, windowDeadline, windowLengthDays
+ *     recomputed for the next period
+ *
+ * For one-time tasks (recurrence === null) this is a no-op other than
+ * recording completedAt — the caller should handle that separately.
+ */
+export function advanceRecurrence(task: Task, completedAt: Date): Task {
+    if (!task.recurrence) {
+        return {...task, completedAt: completedAt.getTime()};
+    }
+
+    const currentPeriod = getCurrentPeriod(task.recurrence.cadence, completedAt);
+    const nextPeriodRef = new Date(currentPeriod.end + 1); // first ms of next period
+    const nextPeriod = getCurrentPeriod(task.recurrence.cadence, nextPeriodRef);
+    const nextSuggested = getNextSuggestedDate(task, completedAt, nextPeriod);
+
+    return {
+        ...task,
+        completionsThisPeriod: 0,
+        snoozeCount: 0,
+        snoozedUntil: null,
+        completedAt: null,
+        currentPeriodStart: nextPeriod.start,
+        suggestedDate: startOfDay(nextSuggested).getTime(),
+        windowDeadline: task.windowType === 'flexible' ? nextPeriod.end : null,
+        windowLengthDays: nextPeriod.lengthDays,
+    };
+}
+
+/**
+ * If today is past the current period's end, the task hasn't been completed
+ * for that period — return a fresh task in the *new* (current) period.
+ * Used at app startup so stale tasks roll forward without manual intervention.
+ *
+ * If the task is one-time, returns it unchanged.
+ * If the task already has currentPeriodStart in or after today's period, returns unchanged.
+ */
+export function rolloverIfNeeded(task: Task, today: Date): Task {
+    if (!task.recurrence) return task;
+
+    const todayPeriod = getCurrentPeriod(task.recurrence.cadence, today);
+
+    // No period set yet — initialise.
+    if (task.currentPeriodStart === null) {
+        return {
+            ...task,
+            currentPeriodStart: todayPeriod.start,
+            windowDeadline: task.windowType === 'flexible' ? todayPeriod.end : task.windowDeadline,
+            windowLengthDays: todayPeriod.lengthDays,
+            suggestedDate: task.suggestedDate ?? todayPeriod.start,
+        };
+    }
+
+    // Same period as before — nothing to do.
+    if (task.currentPeriodStart >= todayPeriod.start) return task;
+
+    // Period rolled over while task was incomplete — reset.
+    const nextSuggested = getNextSuggestedDate(task, today, todayPeriod);
+    return {
+        ...task,
+        completionsThisPeriod: 0,
+        snoozeCount: 0,
+        snoozedUntil: null,
+        completedAt: null,
+        currentPeriodStart: todayPeriod.start,
+        suggestedDate: startOfDay(nextSuggested).getTime(),
+        windowDeadline: task.windowType === 'flexible' ? todayPeriod.end : null,
+        windowLengthDays: todayPeriod.lengthDays,
+    };
+}
+
+// ── Initial period setup for a new recurring task ───────────────────────────
+
+/**
+ * Compute the starting state for a brand-new recurring task. Used by the
+ * task-creation form so a new task lands in a sensible period immediately.
+ */
+export function initialiseRecurrence(
+    base: Pick<Task, 'windowType' | 'suggestedDate'>,
+    recurrence: RecurrenceConfig,
+    today: Date,
+): {
+    currentPeriodStart: number;
+    suggestedDate: number;
+    windowDeadline: number | null;
+    windowLengthDays: number;
+} {
+    const period = getCurrentPeriod(recurrence.cadence, today);
+    const suggested = base.suggestedDate ?? deriveInitialSuggested(recurrence, period);
+    return {
+        currentPeriodStart: period.start,
+        suggestedDate: startOfDay(new Date(suggested)).getTime(),
+        windowDeadline: base.windowType === 'flexible' ? period.end : null,
+        windowLengthDays: period.lengthDays,
+    };
+}
+
+function deriveInitialSuggested(cfg: RecurrenceConfig, period: Period): number {
+    if (cfg.cadence === 'weekly' || cfg.cadence === 'multiple_per_week') {
+        if (cfg.hardDayOfWeek !== undefined) {
+            const d = new Date(period.start);
+            d.setDate(d.getDate() + cfg.hardDayOfWeek);
+            return d.getTime();
+        }
+    }
+    if (cfg.cadence === 'monthly' || cfg.cadence === 'multiple_per_month') {
+        if (cfg.hardDayOfMonth !== undefined) {
+            const start = new Date(period.start);
+            const lastDay = new Date(start.getFullYear(), start.getMonth() + 1, 0).getDate();
+            const dom = Math.min(cfg.hardDayOfMonth, lastDay);
+            return new Date(start.getFullYear(), start.getMonth(), dom).getTime();
+        }
+    }
+    return period.start;
+}
+
+// ── Multiple-per-period helpers ─────────────────────────────────────────────
+
+export function isMultiplePerPeriod(task: Task): boolean {
+    return !!task.recurrence
+        && task.recurrence.frequencyPerPeriod > 1
+        && isMultiplePerPeriodCadence(task.recurrence.cadence);
+}
+
+// ── Internal date helpers ───────────────────────────────────────────────────
+
+function endOfDay(d: Date): Date {
+    const r = new Date(d);
+    r.setHours(23, 59, 59, 999);
+    return r;
+}
+
+function addDays(d: Date, n: number): Date {
+    const r = new Date(d);
+    r.setDate(r.getDate() + n);
+    return r;
+}
+
+function addCadenceLength(d: Date, cadence: RecurrenceCadence): Date {
+    const r = new Date(d);
+    switch (cadence) {
+        case 'daily':
+        case 'multiple_per_day':
+            r.setDate(r.getDate() + 1);
+            return r;
+        case 'weekly':
+        case 'multiple_per_week':
+            r.setDate(r.getDate() + 7);
+            return r;
+        case 'monthly':
+        case 'multiple_per_month':
+            r.setMonth(r.getMonth() + 1);
+            return r;
+        case 'quarterly':
+        case 'multiple_per_quarter':
+            r.setMonth(r.getMonth() + 3);
+            return r;
+        case 'yearly':
+        case 'multiple_per_year':
+            r.setFullYear(r.getFullYear() + 1);
+            return r;
+    }
+}

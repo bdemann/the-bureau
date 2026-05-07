@@ -1,0 +1,430 @@
+import {assign, css, defineElementNoInputs, html, listen} from 'element-vir';
+import {ViraButton, ViraColorVariant, ViraEmphasis, ViraSize} from 'vira';
+import type {AppState, AppView, ConsequenceTier, DialogueEntry, Project, Task} from '../data/types.js';
+import {
+    generateId,
+    getTodayString,
+    isTaskOverdue,
+    loadState,
+    saveState,
+} from '../data/storage.js';
+import {advanceRecurrence, isMultiplePerPeriod, rolloverIfNeeded} from '../data/recurrence.js';
+import {getDialogueFor} from '../data/dialogues.js';
+import {BureauHeaderElement} from './bureau-header.element.js';
+import {CharacterDialogueElement} from './character-dialogue.element.js';
+import {DailyViewElement} from './daily-view.element.js';
+import {DashboardViewElement} from './dashboard-view.element.js';
+import {ProjectDetailElement} from './project-detail.element.js';
+
+// ─────────────────────────────────────────────────────────────────────────────
+// BureauAppElement — Root element. Owns all state.
+// All state changes flow through here. Children communicate via events up.
+// Phase 2: top-level routing is Daily / Operations / Project.
+// ─────────────────────────────────────────────────────────────────────────────
+
+function bootstrap(): AppState {
+    const loaded = loadState();
+
+    // Roll any recurring tasks forward whose period elapsed while we were away.
+    const today = new Date();
+    const tasks = loaded.tasks.map(t => rolloverIfNeeded(t, today));
+
+    // Detect a new day → push the day-start dialogue.
+    const todayStr = getTodayString();
+    let dialogueQueue = loaded.dialogueQueue;
+    let lastActiveDate = loaded.lastActiveDate;
+    if (loaded.lastActiveDate !== todayStr) {
+        const dayLine = getDialogueFor('day_start', false);
+        const dayEntry: DialogueEntry = {
+            id: generateId(),
+            character: dayLine.character,
+            message: dayLine.message,
+            timestamp: Date.now(),
+            dismissed: false,
+        };
+        dialogueQueue = [dayEntry, ...loaded.dialogueQueue.slice(0, 9)];
+        lastActiveDate = todayStr;
+    }
+
+    const next: AppState = {...loaded, tasks, dialogueQueue, lastActiveDate};
+    saveState(next);
+    return next;
+}
+
+export const BureauAppElement = defineElementNoInputs({
+    tagName: 'bureau-app',
+
+    styles: css`
+        :host {
+            display: block;
+            min-height: 100vh;
+            background-color: #F5EFE0;
+            background-image:
+                radial-gradient(ellipse at 0% 100%, rgba(184,134,11,0.03) 0%, transparent 60%),
+                radial-gradient(ellipse at 100% 0%, rgba(196,30,58,0.03) 0%, transparent 60%);
+        }
+
+        .app-shell {
+            max-width: 640px;
+            margin: 0 auto;
+            padding-bottom: 60px;
+        }
+
+        .top-tabs {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 6px;
+            padding: 8px 16px 4px;
+        }
+        .top-tabs ${ViraButton} { width: 100%; }
+
+        .empty-msg {
+            padding: 40px;
+            text-align: center;
+            font-family: 'Special Elite', serif;
+            color: #6B6B6B;
+        }
+    `,
+
+    stateInitStatic: {
+        app: bootstrap(),
+    },
+
+    render({state, updateState}) {
+        const appState = state.app;
+        const {view, selectedProjectId, dialogueQueue, patriotScore, completionStreak} = appState;
+
+        const currentDialogue = dialogueQueue.find(d => !d.dismissed) ?? null;
+        const selectedProject = selectedProjectId
+            ? appState.projects.find(p => p.id === selectedProjectId) ?? null
+            : null;
+
+        // ── State helpers ──────────────────────────────────────────────────────
+
+        function commit(updates: Partial<AppState>): void {
+            const next = {...appState, ...updates} as AppState;
+            saveState(next);
+            updateState({app: next});
+        }
+
+        function pushDialogue(character: 'director' | 'agent', message: string): void {
+            const entry: DialogueEntry = {
+                id: generateId(),
+                character,
+                message,
+                timestamp: Date.now(),
+                dismissed: false,
+            };
+            const last = appState.dialogueQueue[0];
+            if (last && last.message === message) return;
+            commit({dialogueQueue: [entry, ...appState.dialogueQueue.slice(0, 9)]});
+        }
+
+        function triggerDialogue(
+            trigger: Parameters<typeof getDialogueFor>[0],
+            preferDirector = false,
+        ): void {
+            const line = getDialogueFor(trigger, preferDirector);
+            pushDialogue(line.character, line.message);
+        }
+
+        // ── Event handlers ─────────────────────────────────────────────────────
+
+        function onTaskCompleted(taskId: string): void {
+            const target = appState.tasks.find(t => t.id === taskId);
+            if (!target) return;
+
+            const now = new Date();
+            const tasks = appState.tasks.map(t => {
+                if (t.id !== taskId) return t;
+
+                // Multiple-per-period: bump count, reset snooze. The period
+                // doesn't roll over on the Nth completion — that happens at
+                // the next period boundary via rolloverIfNeeded() on startup.
+                // The urgency engine treats count >= target as "complete for
+                // this period," so the task hides correctly until rollover.
+                if (isMultiplePerPeriod(t)) {
+                    return {
+                        ...t,
+                        completionsThisPeriod: t.completionsThisPeriod + 1,
+                        snoozeCount: 0,
+                        snoozedUntil: null,
+                    };
+                }
+
+                // Standard recurring: advance to next period.
+                if (t.recurrence) {
+                    return advanceRecurrence(t, now);
+                }
+
+                // One-time: mark complete.
+                return {
+                    ...t,
+                    completedAt: now.getTime(),
+                    snoozeCount: 0,
+                    snoozedUntil: null,
+                };
+            });
+
+            const tier = (target.consequenceTier ?? 3) as ConsequenceTier;
+            const reward = tierCompletionReward(tier);
+            const newScore = Math.min(200, patriotScore + reward);
+            const newStreak = completionStreak + 1;
+
+            commit({tasks, patriotScore: newScore, completionStreak: newStreak});
+
+            const preferDirector = Math.random() < 0.25;
+            triggerDialogue('task_completed', preferDirector);
+
+            if (newStreak > 0 && newStreak % 5 === 0) {
+                setTimeout(() => triggerDialogue('streak'), 400);
+            }
+            if (newScore >= 150 && patriotScore < 150) {
+                setTimeout(() => triggerDialogue('score_high'), 800);
+            }
+        }
+
+        function onTaskSnoozed(taskId: string): void {
+            const task = appState.tasks.find(t => t.id === taskId);
+            if (!task) return;
+
+            // Hard-date tasks: cannot snooze past the date.
+            if (task.windowType === 'hard'
+                && task.suggestedDate !== null
+                && task.suggestedDate <= Date.now()) {
+                return;
+            }
+
+            const newSnoozeCount = task.snoozeCount + 1;
+            let snoozedUntil = Date.now() + 24 * 60 * 60 * 1000;
+            if (task.windowType === 'hard' && task.suggestedDate !== null) {
+                snoozedUntil = Math.min(snoozedUntil, task.suggestedDate);
+            }
+
+            const tier = task.consequenceTier as ConsequenceTier;
+            const penalty = Math.min(snoozePenalty(tier) * newSnoozeCount, 30);
+            const newScore = Math.max(0, patriotScore - penalty);
+
+            const tasks = appState.tasks.map(t =>
+                t.id === taskId
+                    ? {...t, snoozeCount: newSnoozeCount, snoozedUntil}
+                    : t,
+            );
+            commit({tasks, patriotScore: newScore});
+
+            // Tier-aware dialogue escalation: tier 1 escalates faster.
+            const escalation = computeSnoozeDialogue(tier, newSnoozeCount);
+            if (escalation) {
+                triggerDialogue(escalation.trigger, escalation.preferDirector);
+            }
+
+            if (newScore < 40 && patriotScore >= 40) {
+                setTimeout(() => triggerDialogue('score_low', true), 600);
+            }
+        }
+
+        function onTaskUnSnoozed(taskId: string): void {
+            const tasks = appState.tasks.map(t =>
+                t.id === taskId ? {...t, snoozedUntil: null} : t,
+            );
+            commit({tasks});
+        }
+
+        function onTaskAdded(task: Task): void {
+            commit({tasks: [...appState.tasks, task]});
+            if (Math.random() < 0.6) {
+                triggerDialogue('task_added', false);
+            }
+        }
+
+        function onProjectAdded(project: Project): void {
+            commit({projects: [...appState.projects, project]});
+        }
+
+        function onProjectSelected(projectId: string): void {
+            const projectTasks = appState.tasks.filter(t => t.projectId === projectId);
+            const overdue = projectTasks.filter(t => isTaskOverdue(t));
+            commit({view: 'project', selectedProjectId: projectId});
+            if (overdue.length > 0) {
+                const preferDirector = overdue.length >= 3;
+                setTimeout(() => triggerDialogue('task_overdue', preferDirector), 300);
+            }
+        }
+
+        function setView(next: AppView): void {
+            commit({view: next, selectedProjectId: null});
+        }
+
+        function onBack(): void {
+            commit({view: 'operations', selectedProjectId: null});
+        }
+
+        function onDismissDialogue(): void {
+            const dialogueQueue = appState.dialogueQueue.map((d, i) =>
+                i === 0 ? {...d, dismissed: true} : d,
+            );
+            commit({dialogueQueue});
+        }
+
+        // ── Render ─────────────────────────────────────────────────────────────
+
+        const showTabs = view !== 'project';
+
+        return html`
+            <div class="app-shell">
+                <${BureauHeaderElement}
+                    ${assign(BureauHeaderElement, {
+                        patriotScore,
+                        streak: completionStreak,
+                        onBack: view === 'project' ? onBack : null,
+                        projectName: selectedProject?.name ?? null,
+                    })}
+                ></${BureauHeaderElement}>
+
+                ${showTabs
+                    ? html`
+                        <div class="top-tabs">
+                            <${ViraButton}
+                                ${assign(ViraButton, {
+                                    text: 'Daily',
+                                    color: ViraColorVariant.Info,
+                                    buttonEmphasis: view === 'daily'
+                                        ? ViraEmphasis.Standard
+                                        : ViraEmphasis.Subtle,
+                                    buttonSize: ViraSize.Small,
+                                })}
+                                @click=${() => setView('daily')}
+                            ></${ViraButton}>
+                            <${ViraButton}
+                                ${assign(ViraButton, {
+                                    text: 'Operations',
+                                    color: ViraColorVariant.Info,
+                                    buttonEmphasis: view === 'operations'
+                                        ? ViraEmphasis.Standard
+                                        : ViraEmphasis.Subtle,
+                                    buttonSize: ViraSize.Small,
+                                })}
+                                @click=${() => setView('operations')}
+                            ></${ViraButton}>
+                        </div>
+                      `
+                    : html``}
+
+                ${currentDialogue
+                    ? html`
+                        <${CharacterDialogueElement}
+                            ${assign(CharacterDialogueElement, {dialogue: currentDialogue})}
+                            ${listen(CharacterDialogueElement.events.dismissed, onDismissDialogue)}
+                        ></${CharacterDialogueElement}>
+                      `
+                    : html``}
+
+                ${view === 'daily'
+                    ? html`
+                        <${DailyViewElement}
+                            ${assign(DailyViewElement, {
+                                tasks: appState.tasks,
+                                projects: appState.projects,
+                            })}
+                            ${listen(DailyViewElement.events.taskCompleted, e =>
+                                onTaskCompleted(e.detail))}
+                            ${listen(DailyViewElement.events.taskSnoozed, e =>
+                                onTaskSnoozed(e.detail))}
+                            ${listen(DailyViewElement.events.taskUnSnoozed, e =>
+                                onTaskUnSnoozed(e.detail))}
+                        ></${DailyViewElement}>
+                      `
+                    : view === 'operations'
+                    ? html`
+                        <${DashboardViewElement}
+                            ${assign(DashboardViewElement, {
+                                projects: appState.projects,
+                                tasks: appState.tasks,
+                            })}
+                            ${listen(DashboardViewElement.events.projectSelected, e =>
+                                onProjectSelected(e.detail))}
+                            ${listen(DashboardViewElement.events.projectAdded, e =>
+                                onProjectAdded(e.detail))}
+                        ></${DashboardViewElement}>
+                      `
+                    : selectedProject
+                    ? html`
+                        <${ProjectDetailElement}
+                            ${assign(ProjectDetailElement, {
+                                project: selectedProject,
+                                tasks: appState.tasks.filter(
+                                    t => t.projectId === selectedProject.id,
+                                ),
+                            })}
+                            ${listen(ProjectDetailElement.events.taskCompleted, e =>
+                                onTaskCompleted(e.detail))}
+                            ${listen(ProjectDetailElement.events.taskSnoozed, e =>
+                                onTaskSnoozed(e.detail))}
+                            ${listen(ProjectDetailElement.events.taskUnSnoozed, e =>
+                                onTaskUnSnoozed(e.detail))}
+                            ${listen(ProjectDetailElement.events.taskAdded, e =>
+                                onTaskAdded(e.detail))}
+                            ${listen(ProjectDetailElement.events.back, onBack)}
+                        ></${ProjectDetailElement}>
+                      `
+                    : html`
+                        <p class="empty-msg">
+                            Operation not found. Return to dashboard.
+                        </p>
+                      `}
+            </div>
+        `;
+    },
+});
+
+// ── Helpers ─────────────────────────────────────────────────────────────────
+
+/** Score reward for completing a task at a given consequence tier. */
+function tierCompletionReward(tier: ConsequenceTier): number {
+    switch (tier) {
+        case 1: return 25; // hard consequence — biggest payoff
+        case 2: return 18;
+        case 3: return 12;
+        case 4: return 8;  // aspirational — modest reward, not nothing
+    }
+}
+
+/** Score penalty per snooze, scaled by tier. */
+function snoozePenalty(tier: ConsequenceTier): number {
+    switch (tier) {
+        case 1: return 8;
+        case 2: return 5;
+        case 3: return 3;
+        case 4: return 1;
+    }
+}
+
+/** Map (tier, snoozeCount) to the dialogue trigger to emit, if any. */
+function computeSnoozeDialogue(
+    tier: ConsequenceTier,
+    snoozeCount: number,
+): {trigger: 'task_snoozed_1' | 'task_snoozed_2_3' | 'task_snoozed_4_5' | 'task_snoozed_6plus';
+   preferDirector: boolean} | null {
+    if (tier === 1) {
+        if (snoozeCount >= 4) return {trigger: 'task_snoozed_6plus', preferDirector: true};
+        if (snoozeCount >= 2) return {trigger: 'task_snoozed_4_5', preferDirector: false};
+        if (snoozeCount >= 1) return {trigger: 'task_snoozed_2_3', preferDirector: false};
+    }
+    if (tier === 2) {
+        if (snoozeCount >= 6) return {trigger: 'task_snoozed_6plus', preferDirector: true};
+        if (snoozeCount >= 4) return {trigger: 'task_snoozed_4_5', preferDirector: false};
+        if (snoozeCount >= 2) return {trigger: 'task_snoozed_2_3', preferDirector: false};
+        if (snoozeCount >= 1) return {trigger: 'task_snoozed_1', preferDirector: false};
+    }
+    if (tier === 3) {
+        if (snoozeCount >= 8) return {trigger: 'task_snoozed_6plus', preferDirector: true};
+        if (snoozeCount >= 5) return {trigger: 'task_snoozed_4_5', preferDirector: false};
+        if (snoozeCount >= 3) return {trigger: 'task_snoozed_2_3', preferDirector: false};
+        if (snoozeCount >= 1) return {trigger: 'task_snoozed_1', preferDirector: false};
+    }
+    if (tier === 4) {
+        if (snoozeCount >= 10) return {trigger: 'task_snoozed_2_3', preferDirector: false};
+        if (snoozeCount >= 3)  return {trigger: 'task_snoozed_1', preferDirector: false};
+    }
+    return null;
+}

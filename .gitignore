@@ -1,0 +1,22 @@
+# Dependencies
+node_modules/
+
+# Build output
+dist/
+dev-dist/
+*.tsbuildinfo
+
+# Local reference checkouts (e.g., the Vira fork — used only for development)
+reference/
+
+# Environment / editor
+.env
+.env.local
+.DS_Store
+.vscode/
+.idea/
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
