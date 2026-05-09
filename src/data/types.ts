@@ -47,10 +47,18 @@ export interface RecurrenceConfig {
     /** 1 for standard cadences, N for multiple_per_X cadences. */
     frequencyPerPeriod: number;
     scheduleMode: ScheduleMode;
-    /** For weekly hard tasks, 0 = Sunday … 6 = Saturday. */
+    /**
+     * Anchor day-of-week for weekly cadence, or — combined with `ordinalWeek` —
+     * for monthly cadence. 0 = Sunday … 6 = Saturday.
+     */
     hardDayOfWeek?: number;
-    /** For monthly hard tasks, 1–31 (clamped to actual month length). */
+    /** Anchor day-of-month for monthly cadence (1–31, clamped to month length). */
     hardDayOfMonth?: number;
+    /**
+     * For monthly cadence with `hardDayOfWeek` set: which occurrence of that
+     * weekday in the month. 1 = 1st, 2 = 2nd, 3 = 3rd, 4 = 4th, -1 = last.
+     */
+    ordinalWeek?: 1 | 2 | 3 | 4 | -1;
 }
 
 // ── Consequence and band types ───────────────────────────────────────────────

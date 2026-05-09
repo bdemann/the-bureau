@@ -12,6 +12,7 @@ import {
 import type {
     ConsequenceTier,
     RecurrenceCadence,
+    RecurrenceConfig,
     ScheduleMode,
     Task,
     WindowType,
@@ -60,7 +61,16 @@ export const AddTaskDialogElement = defineElement<{
         frequencyPerPeriod: 2,
         scheduleMode: 'rolling' as ScheduleMode,
         windowType: 'flexible' as WindowType,
-        suggestedDate: '', // YYYY-MM-DD
+        suggestedDate: '',         // YYYY-MM-DD
+        // ── Recurrence anchor (only relevant when isRecurring=true) ──
+        /** 0–6 (Sun–Sat) for weekly, and for monthly when monthAnchorMode='ordinal'. */
+        dayOfWeek: 4,              // default Thursday
+        /** 1–31 for monthly when monthAnchorMode='dom'. */
+        dayOfMonth: 1,
+        /** 'dom' = day-of-month (e.g., 15th); 'ordinal' = Nth weekday (e.g., 3rd Thu). */
+        monthAnchorMode: 'dom' as 'dom' | 'ordinal',
+        /** 1|2|3|4|-1 for "1st/2nd/3rd/4th/last". */
+        ordinalWeek: 3 as 1 | 2 | 3 | 4 | -1,
     }),
 
     styles: css`
@@ -190,16 +200,49 @@ export const AddTaskDialogElement = defineElement<{
         }
 
         .grow { flex: 1; }
+
+        /* Day-of-week segmented picker (Sun..Sat) */
+        .dow-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 4px;
+        }
+        .dow-grid ${ViraButton} { width: 100%; }
+
+        /* Ordinal-week segmented picker (1st..4th, Last) */
+        .ord-grid {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 4px;
+        }
+        .ord-grid ${ViraButton} { width: 100%; }
+
+        /* Day-of-month numeric input (narrow) */
+        .dom-input { max-width: 8ch; }
+
+        .anchor-summary {
+            margin-top: 6px;
+            font-size: 0.72rem;
+            color: #6B6B6B;
+            font-family: 'Courier Prime', monospace;
+        }
     `,
 
     render({inputs, state, updateState, dispatch, events}) {
         if (!inputs.open) return html``;
 
-        const canSubmit = state.title.trim().length > 0
-            // Hard-date tasks must have a date
-            && (state.windowType !== 'hard' || state.suggestedDate.length > 0);
-
         const isMulti = state.isRecurring && isMultiplePerPeriodCadence(state.cadence);
+
+        // When recurring weekly/monthly the user picks an anchor (day-of-week or
+        // day-of-month / ordinal weekday) instead of a calendar date — the engine
+        // computes the first occurrence from there.
+        const usesWeeklyAnchor = state.isRecurring && state.cadence === 'weekly';
+        const usesMonthlyAnchor = state.isRecurring && state.cadence === 'monthly';
+        const usesAnchor = usesWeeklyAnchor || usesMonthlyAnchor;
+
+        const canSubmit = state.title.trim().length > 0
+            // Hard-date tasks need a date — unless an anchor implies one.
+            && (state.windowType !== 'hard' || usesAnchor || state.suggestedDate.length > 0);
 
         function submit(): void {
             if (!canSubmit) return;
@@ -216,16 +259,27 @@ export const AddTaskDialogElement = defineElement<{
             let windowLengthDays: number | null = null;
 
             if (state.isRecurring) {
-                recurrence = {
+                const cfg: RecurrenceConfig = {
                     cadence: state.cadence,
                     frequencyPerPeriod: isMultiplePerPeriodCadence(state.cadence)
                         ? Math.max(2, state.frequencyPerPeriod)
                         : 1,
                     scheduleMode: state.scheduleMode,
                 };
+                if (usesWeeklyAnchor) {
+                    cfg.hardDayOfWeek = state.dayOfWeek;
+                } else if (usesMonthlyAnchor) {
+                    if (state.monthAnchorMode === 'ordinal') {
+                        cfg.hardDayOfWeek = state.dayOfWeek;
+                        cfg.ordinalWeek = state.ordinalWeek;
+                    } else {
+                        cfg.hardDayOfMonth = state.dayOfMonth;
+                    }
+                }
+                recurrence = cfg;
                 const init = initialiseRecurrence(
-                    {windowType: state.windowType, suggestedDate: suggestedMs},
-                    recurrence,
+                    {windowType: state.windowType, suggestedDate: usesAnchor ? null : suggestedMs},
+                    cfg,
                     today,
                 );
                 currentPeriodStart = init.currentPeriodStart;
@@ -268,6 +322,10 @@ export const AddTaskDialogElement = defineElement<{
                 scheduleMode: 'rolling',
                 windowType: 'flexible',
                 suggestedDate: '',
+                dayOfWeek: 4,
+                dayOfMonth: 1,
+                monthAnchorMode: 'dom',
+                ordinalWeek: 3,
             });
         }
 
@@ -356,20 +414,22 @@ export const AddTaskDialogElement = defineElement<{
                         </div>
                     </div>
 
-                    <!-- Suggested / hard date -->
-                    <div class="field">
-                        <span class="field-label">
-                            ${state.windowType === 'hard'
-                                ? 'Date *'
-                                : 'Suggested Date (optional)'}
-                        </span>
-                        <input
-                            type="date"
-                            .value=${state.suggestedDate}
-                            @input=${(e: Event) =>
-                                updateState({suggestedDate: (e.target as HTMLInputElement).value})}
-                        />
-                    </div>
+                    <!-- Suggested / hard date — hidden when an anchor picker takes over -->
+                    ${usesAnchor ? html`` : html`
+                        <div class="field">
+                            <span class="field-label">
+                                ${state.windowType === 'hard'
+                                    ? 'Date *'
+                                    : 'Suggested Date (optional)'}
+                            </span>
+                            <input
+                                type="date"
+                                .value=${state.suggestedDate}
+                                @input=${(e: Event) =>
+                                    updateState({suggestedDate: (e.target as HTMLInputElement).value})}
+                            />
+                        </div>
+                    `}
 
                     <!-- Recurring toggle -->
                     <div class="recurring-row">
@@ -443,6 +503,120 @@ export const AddTaskDialogElement = defineElement<{
                                 ></${ViraButton}>
                             </div>
                         </div>
+
+                        <!-- Day-of-week anchor (weekly only) -->
+                        ${usesWeeklyAnchor ? html`
+                            <div class="field">
+                                <span class="field-label">Day of Week</span>
+                                <div class="dow-grid">
+                                    ${DAY_LABELS.map(d => html`
+                                        <${ViraButton.assign({
+                                            text: d.label,
+                                            color: ViraColorVariant.Info,
+                                            buttonEmphasis: state.dayOfWeek === d.value
+                                                ? ViraEmphasis.Standard
+                                                : ViraEmphasis.Subtle,
+                                            buttonSize: ViraSize.Small,
+                                        })}
+                                            @click=${() => updateState({dayOfWeek: d.value})}
+                                        ></${ViraButton}>
+                                    `)}
+                                </div>
+                                <div class="anchor-summary">
+                                    Every ${dayName(state.dayOfWeek)}, starting the next one.
+                                </div>
+                            </div>
+                        ` : html``}
+
+                        <!-- Monthly anchor (monthly only): day-of-month vs ordinal weekday -->
+                        ${usesMonthlyAnchor ? html`
+                            <div class="field">
+                                <span class="field-label">Anchor</span>
+                                <div class="seg">
+                                    <${ViraButton.assign({
+                                        text: 'Day of month',
+                                        color: ViraColorVariant.Info,
+                                        buttonEmphasis: state.monthAnchorMode === 'dom'
+                                            ? ViraEmphasis.Standard
+                                            : ViraEmphasis.Subtle,
+                                        buttonSize: ViraSize.Small,
+                                    })}
+                                        @click=${() => updateState({monthAnchorMode: 'dom'})}
+                                    ></${ViraButton}>
+                                    <${ViraButton.assign({
+                                        text: 'Nth weekday',
+                                        color: ViraColorVariant.Info,
+                                        buttonEmphasis: state.monthAnchorMode === 'ordinal'
+                                            ? ViraEmphasis.Standard
+                                            : ViraEmphasis.Subtle,
+                                        buttonSize: ViraSize.Small,
+                                    })}
+                                        @click=${() => updateState({monthAnchorMode: 'ordinal'})}
+                                    ></${ViraButton}>
+                                </div>
+                            </div>
+
+                            ${state.monthAnchorMode === 'dom' ? html`
+                                <div class="field">
+                                    <span class="field-label">Day of Month (1–31)</span>
+                                    <span class="dom-input">
+                                        <${ViraInput.assign({
+                                            value: String(state.dayOfMonth),
+                                            type: ViraInputType.Number,
+                                            placeholder: 'e.g. 15',
+                                        })}
+                                            ${listen(ViraInput.events.valueChange, e => {
+                                                const n = parseInt(e.detail, 10);
+                                                if (!Number.isNaN(n) && n >= 1 && n <= 31) {
+                                                    updateState({dayOfMonth: n});
+                                                }
+                                            })}
+                                        ></${ViraInput}>
+                                    </span>
+                                    <div class="anchor-summary">
+                                        The ${ordinalSuffix(state.dayOfMonth)} of each month.
+                                    </div>
+                                </div>
+                            ` : html`
+                                <div class="field">
+                                    <span class="field-label">Which Occurrence</span>
+                                    <div class="ord-grid">
+                                        ${ORDINAL_LABELS.map(o => html`
+                                            <${ViraButton.assign({
+                                                text: o.label,
+                                                color: ViraColorVariant.Info,
+                                                buttonEmphasis: state.ordinalWeek === o.value
+                                                    ? ViraEmphasis.Standard
+                                                    : ViraEmphasis.Subtle,
+                                                buttonSize: ViraSize.Small,
+                                            })}
+                                                @click=${() => updateState({ordinalWeek: o.value})}
+                                            ></${ViraButton}>
+                                        `)}
+                                    </div>
+                                </div>
+                                <div class="field">
+                                    <span class="field-label">Day of Week</span>
+                                    <div class="dow-grid">
+                                        ${DAY_LABELS.map(d => html`
+                                            <${ViraButton.assign({
+                                                text: d.label,
+                                                color: ViraColorVariant.Info,
+                                                buttonEmphasis: state.dayOfWeek === d.value
+                                                    ? ViraEmphasis.Standard
+                                                    : ViraEmphasis.Subtle,
+                                                buttonSize: ViraSize.Small,
+                                            })}
+                                                @click=${() => updateState({dayOfWeek: d.value})}
+                                            ></${ViraButton}>
+                                        `)}
+                                    </div>
+                                    <div class="anchor-summary">
+                                        The ${ordinalLabel(state.ordinalWeek)} ${dayName(state.dayOfWeek)} of each month.
+                                    </div>
+                                </div>
+                            `}
+                        ` : html``}
                     ` : html``}
 
                     <div class="actions">
@@ -478,6 +652,45 @@ function tierColor(tier: ConsequenceTier): ViraColorVariant {
         case 3: return ViraColorVariant.Info;
         case 4: return ViraColorVariant.Neutral;
     }
+}
+
+const DAY_LABELS: ReadonlyArray<{value: number; label: string}> = [
+    {value: 0, label: 'Sun'},
+    {value: 1, label: 'Mon'},
+    {value: 2, label: 'Tue'},
+    {value: 3, label: 'Wed'},
+    {value: 4, label: 'Thu'},
+    {value: 5, label: 'Fri'},
+    {value: 6, label: 'Sat'},
+];
+
+const ORDINAL_LABELS: ReadonlyArray<{value: 1 | 2 | 3 | 4 | -1; label: string}> = [
+    {value: 1,  label: '1st'},
+    {value: 2,  label: '2nd'},
+    {value: 3,  label: '3rd'},
+    {value: 4,  label: '4th'},
+    {value: -1, label: 'Last'},
+];
+
+function dayName(dow: number): string {
+    return ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'][dow] ?? '?';
+}
+
+function ordinalLabel(ord: 1 | 2 | 3 | 4 | -1): string {
+    if (ord === -1) return 'last';
+    if (ord === 1)  return '1st';
+    if (ord === 2)  return '2nd';
+    if (ord === 3)  return '3rd';
+    return '4th';
+}
+
+function ordinalSuffix(n: number): string {
+    const mod10 = n % 10;
+    const mod100 = n % 100;
+    if (mod10 === 1 && mod100 !== 11) return `${n}st`;
+    if (mod10 === 2 && mod100 !== 12) return `${n}nd`;
+    if (mod10 === 3 && mod100 !== 13) return `${n}rd`;
+    return `${n}th`;
 }
 
 /** Map consequence tier → legacy priority for backward compatibility. */

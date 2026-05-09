@@ -101,10 +101,15 @@ export function getNextSuggestedDate(
         return d;
     }
     if (cfg.cadence === 'monthly' || cfg.cadence === 'multiple_per_month') {
+        const start = new Date(nextPeriod.start);
+        // Ordinal weekday ("3rd Thursday of the month") wins if both fields set.
+        if (cfg.ordinalWeek !== undefined && cfg.hardDayOfWeek !== undefined) {
+            return nthWeekdayOfMonth(
+                start.getFullYear(), start.getMonth(), cfg.ordinalWeek, cfg.hardDayOfWeek);
+        }
         const dom = cfg.hardDayOfMonth ?? (task.suggestedDate
             ? new Date(task.suggestedDate).getDate()
             : 1);
-        const start = new Date(nextPeriod.start);
         const lastDay = new Date(start.getFullYear(), start.getMonth() + 1, 0).getDate();
         return new Date(start.getFullYear(), start.getMonth(), Math.min(dom, lastDay));
     }
@@ -224,7 +229,7 @@ export function initialiseRecurrence(
     windowLengthDays: number;
 } {
     const period = getCurrentPeriod(recurrence.cadence, today);
-    const suggested = base.suggestedDate ?? deriveInitialSuggested(recurrence, period);
+    const suggested = base.suggestedDate ?? deriveInitialSuggested(recurrence, period, today);
     return {
         currentPeriodStart: period.start,
         suggestedDate: startOfDay(new Date(suggested)).getTime(),
@@ -233,15 +238,25 @@ export function initialiseRecurrence(
     };
 }
 
-function deriveInitialSuggested(cfg: RecurrenceConfig, period: Period): number {
+function deriveInitialSuggested(cfg: RecurrenceConfig, period: Period, today: Date): number {
     if (cfg.cadence === 'weekly' || cfg.cadence === 'multiple_per_week') {
         if (cfg.hardDayOfWeek !== undefined) {
-            const d = new Date(period.start);
-            d.setDate(d.getDate() + cfg.hardDayOfWeek);
-            return d.getTime();
+            // Soonest occurrence today-or-later. Without this, the period.start
+            // anchor would yield last-week's Thursday for a task created Friday.
+            return nextOccurrenceOfWeekday(today, cfg.hardDayOfWeek).getTime();
         }
     }
     if (cfg.cadence === 'monthly' || cfg.cadence === 'multiple_per_month') {
+        // Ordinal weekday ("3rd Thursday of the month") — pick this month's
+        // occurrence if it hasn't passed, else next month's.
+        if (cfg.ordinalWeek !== undefined && cfg.hardDayOfWeek !== undefined) {
+            const todayMs = startOfDay(today).getTime();
+            const thisMonth = nthWeekdayOfMonth(
+                today.getFullYear(), today.getMonth(), cfg.ordinalWeek, cfg.hardDayOfWeek);
+            if (thisMonth.getTime() >= todayMs) return thisMonth.getTime();
+            return nthWeekdayOfMonth(
+                today.getFullYear(), today.getMonth() + 1, cfg.ordinalWeek, cfg.hardDayOfWeek).getTime();
+        }
         if (cfg.hardDayOfMonth !== undefined) {
             const start = new Date(period.start);
             const lastDay = new Date(start.getFullYear(), start.getMonth() + 1, 0).getDate();
@@ -272,6 +287,41 @@ function addDays(d: Date, n: number): Date {
     const r = new Date(d);
     r.setDate(r.getDate() + n);
     return r;
+}
+
+/**
+ * Earliest date >= `from` whose day-of-week matches `dow` (0 = Sun … 6 = Sat).
+ * If `from` already lands on `dow`, returns `from` (start-of-day).
+ */
+export function nextOccurrenceOfWeekday(from: Date, dow: number): Date {
+    const r = startOfDay(new Date(from));
+    const delta = (dow - r.getDay() + 7) % 7;
+    r.setDate(r.getDate() + delta);
+    return r;
+}
+
+/**
+ * The Nth occurrence of a given weekday in a given calendar month.
+ *   `ordinal`: 1, 2, 3, 4, or -1 (last)
+ *   `dow`: 0 = Sun … 6 = Sat
+ * `month` follows JS conventions (0 = Jan). Overflowing `month` wraps the year
+ * automatically (so `month + 1` is safe at year-end).
+ */
+export function nthWeekdayOfMonth(
+    year: number,
+    month: number,
+    ordinal: number,
+    dow: number,
+): Date {
+    if (ordinal === -1) {
+        const last = new Date(year, month + 1, 0); // last day of month
+        const back = (last.getDay() - dow + 7) % 7;
+        last.setDate(last.getDate() - back);
+        return last;
+    }
+    const first = new Date(year, month, 1);
+    const offset = (dow - first.getDay() + 7) % 7;
+    return new Date(year, month, 1 + offset + (ordinal - 1) * 7);
 }
 
 function addCadenceLength(d: Date, cadence: RecurrenceCadence): Date {

@@ -298,11 +298,17 @@ export const TaskItemElement = defineElement<{
 // ── Helpers ─────────────────────────────────────────────────────────────────
 
 function formatDueLabel(task: Task, overdue: boolean): string | null {
+    const pattern = formatRecurrencePattern(task);
     const due = task.suggestedDate ?? task.dueDate;
-    if (due === null) return null;
+    if (due === null) return pattern;
+
     const fmt = new Date(due).toLocaleDateString('en-US', {month: 'short', day: 'numeric'});
     if (task.windowType === 'hard') {
-        return overdue ? `⚠ MISSED — ${fmt}` : `Due ${fmt}`;
+        const base = overdue ? `⚠ MISSED — ${fmt}` : `Due ${fmt}`;
+        return pattern ? `${pattern} · next ${fmt}` : base;
+    }
+    if (pattern) {
+        return `${pattern} · next ${fmt}`;
     }
     if (task.windowDeadline !== null) {
         const deadline = new Date(task.windowDeadline)
@@ -310,4 +316,39 @@ function formatDueLabel(task: Task, overdue: boolean): string | null {
         return `Suggested ${fmt} · window ends ${deadline}`;
     }
     return `Suggested ${fmt}`;
+}
+
+/**
+ * "Every Thursday", "3rd Thursday of each month", "Day 15 of each month", or
+ * null if the task has no anchor (or isn't recurring).
+ */
+function formatRecurrencePattern(task: Task): string | null {
+    const cfg = task.recurrence;
+    if (!cfg) return null;
+
+    if (cfg.cadence === 'weekly' && cfg.hardDayOfWeek !== undefined) {
+        return `Every ${dayName(cfg.hardDayOfWeek)}`;
+    }
+    if (cfg.cadence === 'monthly') {
+        if (cfg.ordinalWeek !== undefined && cfg.hardDayOfWeek !== undefined) {
+            return `${ordinalLabel(cfg.ordinalWeek)} ${dayName(cfg.hardDayOfWeek)} of each month`;
+        }
+        if (cfg.hardDayOfMonth !== undefined) {
+            return `Day ${cfg.hardDayOfMonth} of each month`;
+        }
+    }
+    return null;
+}
+
+function dayName(dow: number): string {
+    return ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'][dow] ?? '?';
+}
+
+function ordinalLabel(ord: number): string {
+    if (ord === -1) return 'Last';
+    if (ord === 1)  return '1st';
+    if (ord === 2)  return '2nd';
+    if (ord === 3)  return '3rd';
+    if (ord === 4)  return '4th';
+    return `${ord}th`;
 }
