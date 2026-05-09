@@ -1,4 +1,4 @@
-# THE BUREAU
+# BUREAU OF CIVIC RESPONSIBILITY
 ### A Citizen Productivity Assessment
 
 > *"A true patriot does not delay. A true patriot does not make excuses. A true patriot completes their task list."*
@@ -30,7 +30,7 @@ npm run preview
 
 ## Characters
 
-**Director R. Harlan Briggs** — The Bureau's Productivity Commissioner. A career government man who views every snoozed task as a red flag in your permanent record. He speaks in red-bordered official notices and appears when things get bad.
+**Director R. Harlan Briggs** — Productivity Commissioner of the Bureau of Civic Responsibility. A career government man who views every snoozed task as a red flag in your permanent record. He speaks in red-bordered official notices and appears when things get bad.
 
 **Agent Henry "Hal" Whitaker** — Your assigned productivity coach. He's seen enough to know life is complicated, but he believes in you and wants to see you succeed — both because he cares, and because Briggs reviews his numbers too.
 
@@ -50,4 +50,4 @@ All data is stored in `localStorage` under the key `bureau_v1`. No backend. No a
 
 ## Install as PWA
 
-After running `npm run build` and serving the `dist/` folder over HTTPS, you can install The Bureau as a PWA from your browser's address bar or share sheet.
+After running `npm run build` and serving the `dist/` folder over HTTPS, you can install BCR as a PWA from your browser's address bar or share sheet.

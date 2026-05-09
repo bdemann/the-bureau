@@ -2,7 +2,7 @@ import {defineElement, css, html} from 'element-vir';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // BureauHeaderElement
-// Top bar: "THE BUREAU" logotype, patriot score, optional back button.
+// Top bar: B.C.R. logotype, patriot score, optional back button.
 // ─────────────────────────────────────────────────────────────────────────────
 
 export const BureauHeaderElement = defineElement<{
@@ -156,8 +156,8 @@ export const BureauHeaderElement = defineElement<{
                         : html`<div style="width:56px"></div>`}
 
                     <div class="wordmark">
-                        THE BUREAU
-                        <span class="sub">CITIZEN PRODUCTIVITY ASSESSMENT</span>
+                        B.C.R.
+                        <span class="sub">BUREAU OF CIVIC RESPONSIBILITY</span>
                     </div>
 
                     <div class="score-block" title="Patriot Score">

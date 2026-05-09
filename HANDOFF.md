@@ -1,4 +1,4 @@
-# THE BUREAU — Session Handoff Document
+# BCR — Session Handoff Document
 
 > This document is written for a new Claude session picking up Phase 2 development.
 > Read this, VISION.md, and scan the existing src/ files before writing any code.

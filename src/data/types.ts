@@ -1,5 +1,5 @@
 // ─────────────────────────────────────────────────────────────────────────────
-// Core domain types for THE BUREAU
+// Core domain types for BCR (Bureau of Civic Responsibility)
 // ─────────────────────────────────────────────────────────────────────────────
 
 export type Priority = 'low' | 'medium' | 'high' | 'critical';

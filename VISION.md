@@ -1,4 +1,4 @@
-# THE BUREAU — Vision & Design Document
+# BCR — Vision & Design Document
 
 > *"What does it actually mean to be the person I think I am?"*
 

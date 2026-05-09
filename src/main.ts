@@ -1,5 +1,5 @@
 // ─────────────────────────────────────────────────────────────────────────────
-// THE BUREAU — Entry point
+// BCR — Entry point
 // Import all elements to register them as custom elements, then swap the root
 // element to <urgency-test> when ?dev=urgency is present in the URL.
 // ─────────────────────────────────────────────────────────────────────────────
