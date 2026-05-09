@@ -1,11 +1,11 @@
 import type {Character} from './types.js';
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Character voice lines for Director R. Harlan Briggs and Agent Carmen Reyes
+// Character voice lines for Director R. Harlan Briggs and Agent Henry "Hal" Whitaker
 //
-// Briggs: Clipped. Accusatory. Patriotism-as-surveillance. Never truly warm.
-// Reyes:  Pragmatic. Genuinely invested. Knows the system is imperfect.
-//         She's on your side, but she's also got a file to maintain.
+// Briggs:    Clipped. Accusatory. Patriotism-as-surveillance. Never truly warm.
+// Whitaker:  Pragmatic. Genuinely invested. Knows the system is imperfect.
+//            He's on your side, but he's also got a file to maintain.
 // ─────────────────────────────────────────────────────────────────────────────
 
 export type DialogueTrigger =
@@ -49,7 +49,7 @@ export const DIALOGUES: readonly DialogueLine[] = [
             "Good. Getting it out of your head and into the system is half the battle.",
     },
 
-    // ── TASK COMPLETED — Agent Reyes ─────────────────────────────────────────
+    // ── TASK COMPLETED — Agent Whitaker ─────────────────────────────────────────
     {
         character: 'agent',
         trigger: 'task_completed',
@@ -98,7 +98,7 @@ export const DIALOGUES: readonly DialogueLine[] = [
             'Noted. The completion record is updated. Do not let this become the exception rather than the rule.',
     },
 
-    // ── SNOOZE ×1 — Agent Reyes ──────────────────────────────────────────────
+    // ── SNOOZE ×1 — Agent Whitaker ──────────────────────────────────────────────
     {
         character: 'agent',
         trigger: 'task_snoozed_1',
@@ -116,7 +116,7 @@ export const DIALOGUES: readonly DialogueLine[] = [
             "Okay. Tomorrow then. I'll have it back in front of you first thing.",
     },
 
-    // ── SNOOZE ×2–3 — Agent Reyes ────────────────────────────────────────────
+    // ── SNOOZE ×2–3 — Agent Whitaker ────────────────────────────────────────────
     {
         character: 'agent',
         trigger: 'task_snoozed_2_3',
@@ -142,7 +142,7 @@ export const DIALOGUES: readonly DialogueLine[] = [
             "You know I can see the snooze count, right? Briggs can too. Let's get ahead of this.",
     },
 
-    // ── SNOOZE ×4–5 — Agent Reyes (urgency escalates) ────────────────────────
+    // ── SNOOZE ×4–5 — Agent Whitaker (urgency escalates) ────────────────────────
     {
         character: 'agent',
         trigger: 'task_snoozed_4_5',
@@ -185,7 +185,7 @@ export const DIALOGUES: readonly DialogueLine[] = [
         character: 'director',
         trigger: 'task_snoozed_6plus',
         message:
-            "I will be monitoring your file personally until this item is resolved. Reyes has been notified of her failure to motivate you.",
+            "I will be monitoring your file personally until this item is resolved. Whitaker has been notified of his failure to motivate you.",
     },
     {
         character: 'director',
@@ -212,7 +212,7 @@ export const DIALOGUES: readonly DialogueLine[] = [
             "I have added an overdue notation to your file. This is not a small thing.",
     },
 
-    // ── TASK OVERDUE — Agent Reyes ────────────────────────────────────────────
+    // ── TASK OVERDUE — Agent Whitaker ────────────────────────────────────────────
     {
         character: 'agent',
         trigger: 'task_overdue',
@@ -272,7 +272,7 @@ export const DIALOGUES: readonly DialogueLine[] = [
             'Your current standing is acceptable. Do not interpret this as permission to relax.',
     },
 
-    // ── DAY START — Agent Reyes ───────────────────────────────────────────────
+    // ── DAY START — Agent Whitaker ───────────────────────────────────────────────
     {
         character: 'agent',
         trigger: 'day_start',

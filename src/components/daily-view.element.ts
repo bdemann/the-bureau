@@ -213,7 +213,7 @@ export const DailyViewElement = defineElement<{
 
         return html`
             ${renderBand('mandatory', {
-                emptyMessage: 'No mandatory tasks today. Agent Reyes approves.',
+                emptyMessage: 'No mandatory tasks today. Agent Whitaker approves.',
             })}
             ${renderBand('suggested')}
             ${renderBand('radar', {

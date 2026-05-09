@@ -32,7 +32,7 @@ npm run preview
 
 **Director R. Harlan Briggs** — The Bureau's Productivity Commissioner. A career government man who views every snoozed task as a red flag in your permanent record. He speaks in red-bordered official notices and appears when things get bad.
 
-**Agent Carmen Reyes** — Your assigned productivity coach. She's seen enough to know life is complicated, but she believes in you and wants to see you succeed — both because she cares, and because Briggs reviews her numbers too.
+**Agent Henry "Hal" Whitaker** — Your assigned productivity coach. He's seen enough to know life is complicated, but he believes in you and wants to see you succeed — both because he cares, and because Briggs reviews his numbers too.
 
 ## Snooze Severity System
 
@@ -41,7 +41,7 @@ npm run preview
 | 0 | None | Normal |
 | 1 | Warning | Yellow badge |
 | 2–3 | Caution | Orange badge, "Noted" |
-| 4–5 | Danger | Red badge, "FLAGGED" — Agent Reyes escalates |
+| 4–5 | Danger | Red badge, "FLAGGED" — Agent Whitaker escalates |
 | 6+ | Critical | "UNDER REVIEW" stamp — Director Briggs takes over |
 
 ## Data

@@ -12,7 +12,7 @@ A personal Progressive Web App task manager for one user (Benjamin). It is inten
 
 The app has a satirical "New Red Scare" theme. Two characters react to the user's task behavior:
 - **Director R. Harlan Briggs** — stern, accusatory government overseer. Appears when things go bad.
-- **Agent Carmen Reyes** — pragmatic, warm personal coach. The primary voice.
+- **Agent Henry "Hal" Whitaker** — pragmatic, warm personal coach. The primary voice.
 
 The visual style is retro propaganda poster: cream paper, deep red/navy accents, typewriter fonts, stamp effects.
 
@@ -413,7 +413,7 @@ The daily view is **cross-project** — it shows all tasks across all categories
 └─────────────────────────────────────────────────────┘
 ```
 
-**Empty state for MANDATORY:** "No mandatory tasks today. Agent Reyes approves."
+**Empty state for MANDATORY:** "No mandatory tasks today. Agent Whitaker approves."
 
 Each task card in the daily view should show:
 - Task title
@@ -507,7 +507,7 @@ In `bureau-app.element.ts`, the `onTaskCompleted` handler currently just sets `c
 
 ## Tone Reminder
 
-Agent Reyes sounds real. She's smart, warm, direct. She doesn't repeat herself. She uses specific details when she can. Briggs is a bit of a caricature but not incompetent — he genuinely believes in what he's doing, which is what makes him simultaneously funny and a little uncomfortable.
+Agent Whitaker sounds real. He's smart, warm, direct. He doesn't repeat himself. He uses specific details when he can. Briggs is a bit of a caricature but not incompetent — he genuinely believes in what he's doing, which is what makes him simultaneously funny and a little uncomfortable.
 
 The theme is window dressing on a genuinely useful personal productivity system. The functionality is the point.
 

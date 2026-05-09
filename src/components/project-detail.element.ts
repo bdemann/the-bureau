@@ -160,7 +160,7 @@ export const ProjectDetailElement = defineElement<{
                         <p>No active tasks in this operation.</p>
                         <p class="empty-quote">
                             "A cleared docket is not an idle one — it is a prepared one."<br />
-                            — Agent C. Reyes
+                            — Agent H. Whitaker
                         </p>
                     </div>
                   `

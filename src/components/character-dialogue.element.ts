@@ -3,9 +3,9 @@ import type {DialogueEntry} from '../data/types.js';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // CharacterDialogueElement
-// Renders a memo-style speech bubble from either Director Briggs or Agent Reyes.
-// Briggs = red/double-border, official notice aesthetic.
-// Reyes  = blue/single-border, internal memo aesthetic.
+// Renders a memo-style speech bubble from either Director Briggs or Agent Whitaker.
+// Briggs   = red/double-border, official notice aesthetic.
+// Whitaker = blue/single-border, internal memo aesthetic.
 // ─────────────────────────────────────────────────────────────────────────────
 
 export const CharacterDialogueElement = defineElement<{
@@ -52,7 +52,7 @@ export const CharacterDialogueElement = defineElement<{
             color: #FFB3B3;
         }
 
-        /* ── Agent Reyes: navy, single border ── */
+        /* ── Agent Whitaker: navy, single border ── */
         .memo.agent {
             border-color: #1B2A4A;
             background: #F5F8FF;
@@ -150,7 +150,7 @@ export const CharacterDialogueElement = defineElement<{
                     <span class="from-label">
                         ${isDirector
                             ? 'DIR. R.H. BRIGGS'
-                            : 'AGENT C. REYES'}
+                            : 'AGENT H. WHITAKER'}
                     </span>
                     <button
                         class="dismiss-btn"
@@ -165,7 +165,7 @@ export const CharacterDialogueElement = defineElement<{
                     <span class="character-name">
                         — ${isDirector
                             ? 'Director R. Harlan Briggs'
-                            : 'Agent Carmen Reyes'}
+                            : 'Agent Henry "Hal" Whitaker'}
                     </span>
                 </div>
             </div>

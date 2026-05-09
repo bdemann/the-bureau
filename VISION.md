@@ -12,7 +12,7 @@ Not what your boss assigned. Not what's overdue. But: if you tell someone you're
 
 This reframe matters because it changes the emotional relationship to the task list. These aren't items on a to-do list. They are the concrete expression of who you are. The Bureau exists to help you stay honest with yourself — not just to nag you about what you haven't done.
 
-The two characters exist in that tension. Director Briggs reduces everything to output and compliance. Agent Reyes understands that the point isn't perfect performance — it's genuine effort and honest accounting.
+The two characters exist in that tension. Director Briggs reduces everything to output and compliance. Agent Whitaker understands that the point isn't perfect performance — it's genuine effort and honest accounting.
 
 ---
 
@@ -164,7 +164,7 @@ The count resets when a task is completed. This is by design. The point is never
 | Task type | Snooze behavior |
 |-----------|----------------|
 | Hard-date | Cannot be snoozed past the hard date. Becomes overdue. |
-| Tier 1 consequence | Agent Reyes reacts at snooze 2; Briggs at snooze 4. High urgency. |
+| Tier 1 consequence | Agent Whitaker reacts at snooze 2; Briggs at snooze 4. High urgency. |
 | Tier 2–3 consequence | Standard visual escalation. |
 | Tier 4 / aspirational | Can be snoozed freely. Low pressure but counter still visible. |
 | Window task | "Snoozing" reschedules the *suggested date*, not the window deadline. |
@@ -174,7 +174,7 @@ The count resets when a task is completed. This is by design. The point is never
 - 0: Normal
 - 1: Yellow badge — "Snoozed ×1"
 - 2–3: Orange — "Snoozed ×2–3 — Noted"
-- 4–5: Red — "FLAGGED" — Agent Reyes is getting concerned
+- 4–5: Red — "FLAGGED" — Agent Whitaker is getting concerned
 - 6+: Deep red "UNDER REVIEW" — Director Briggs personally involved
 
 ---
@@ -247,7 +247,7 @@ Future approach:
 - Each category has its own sub-score
 - Global score is a weighted average across categories
 - Neglecting one category for a long time visibly affects the overall score
-- Director Briggs tracks the global number. Agent Reyes notices the pattern.
+- Director Briggs tracks the global number. Agent Whitaker notices the pattern.
 
 This is post-MVP, but the data model should be designed so it's addable later without a rewrite.
 
@@ -257,7 +257,7 @@ This is post-MVP, but the data model should be designed so it's addable later wi
 
 **Director R. Harlan Briggs** — He is not entirely wrong. Productivity does matter. Showing up does matter. His problem is that he reduces a human life to a compliance report. He appears when you are failing in ways that are actually serious, and his pressure, while uncomfortable, is not always unfair. He can be a bit of a caricature — that's part of the fun.
 
-**Agent Carmen Reyes** — She is your guide. She has seen the system up close and knows it is imperfect. She believes in you specifically and cares about outcomes, not optics. She will push back on Briggs when he overreaches, but she will also tell you the hard truth when you need to hear it. She is not a cheerleader — she is an honest advocate. She should feel real.
+**Agent Henry "Hal" Whitaker** — He is your guide. He has seen the system up close and knows it is imperfect. He believes in you specifically and cares about outcomes, not optics. He will push back on Briggs when he overreaches, but he will also tell you the hard truth when you need to hear it. He is not a cheerleader — he is an honest advocate. He should feel real.
 
 **Tonal goal:** Serious enough to take seriously, not so grim that it stops being fun. The premise is silly. The emotional experience should be genuine.
 
@@ -269,7 +269,7 @@ This is post-MVP, but the data model should be designed so it's addable later wi
 - [x] Project/category organization
 - [x] Task creation with priority
 - [x] Snooze system with visual degradation
-- [x] Character dialogue system (Briggs + Reyes)
+- [x] Character dialogue system (Briggs + Whitaker)
 - [x] Basic patriot score
 - [x] PWA shell + localStorage
 
@@ -288,7 +288,7 @@ This is post-MVP, but the data model should be designed so it's addable later wi
 ### Phase 3 — Refinement
 - [ ] Per-category health scores
 - [ ] Category-level neglect indicators on dashboard
-- [ ] Agent Reyes comments on category patterns, not just individual tasks
+- [ ] Agent Whitaker comments on category patterns, not just individual tasks
 - [ ] Task completion history / record
 - [ ] Stats view ("Quarterly Review" — Briggs style)
 - [ ] Import/export data
