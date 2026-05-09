@@ -53,7 +53,7 @@ export const AddTaskDialogElement = defineElement<{
     },
 
     state: () => ({
-        title: '',
+        titleValue: '',
         description: '',
         consequenceTier: 3 as ConsequenceTier,
         isRecurring: false,
@@ -240,7 +240,7 @@ export const AddTaskDialogElement = defineElement<{
         const usesMonthlyAnchor = state.isRecurring && state.cadence === 'monthly';
         const usesAnchor = usesWeeklyAnchor || usesMonthlyAnchor;
 
-        const canSubmit = state.title.trim().length > 0
+        const canSubmit = state.titleValue.trim().length > 0
             // Hard-date tasks need a date — unless an anchor implies one.
             && (state.windowType !== 'hard' || usesAnchor || state.suggestedDate.length > 0);
 
@@ -291,7 +291,7 @@ export const AddTaskDialogElement = defineElement<{
             const task: Task = {
                 id: generateId(),
                 projectId: inputs.projectId,
-                title: state.title.trim(),
+                title: state.titleValue.trim(),
                 description: state.description.trim(),
                 consequenceTier: state.consequenceTier,
                 windowType: state.windowType,
@@ -313,7 +313,7 @@ export const AddTaskDialogElement = defineElement<{
             dispatch(new events.taskSubmitted(task));
             // Reset
             updateState({
-                title: '',
+                titleValue: '',
                 description: '',
                 consequenceTier: 3,
                 isRecurring: false,
@@ -343,11 +343,11 @@ export const AddTaskDialogElement = defineElement<{
                     <div class="field">
                         <span class="field-label">Task Title *</span>
                         <${ViraInput.assign({
-                            value: state.title,
+                            value: state.titleValue,
                             placeholder: 'Describe the task clearly.',
                         })}
                             ${listen(ViraInput.events.valueChange, e =>
-                                updateState({title: e.detail}))}
+                                updateState({titleValue: e.detail}))}
                         ></${ViraInput}>
                     </div>
 
