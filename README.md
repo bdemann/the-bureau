@@ -1,5 +1,5 @@
-# BUREAU OF CIVIC RESPONSIBILITY
-### A Citizen Productivity Assessment
+# CLEAR
+### A citizen check-in for the Bureau of Civic Responsibility
 
 > *"A true patriot does not delay. A true patriot does not make excuses. A true patriot completes their task list."*
 > — Director R. Harlan Briggs, Productivity Division
@@ -50,4 +50,4 @@ All data is stored in `localStorage` under the key `bureau_v1`. No backend. No a
 
 ## Install as PWA
 
-After running `npm run build` and serving the `dist/` folder over HTTPS, you can install BCR as a PWA from your browser's address bar or share sheet.
+After running `npm run build` and serving the `dist/` folder over HTTPS, you can install Clear as a PWA from your browser's address bar or share sheet.

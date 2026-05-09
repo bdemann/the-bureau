@@ -14,9 +14,9 @@ export default defineConfig({
         VitePWA({
             registerType: 'autoUpdate',
             manifest: {
-                name: 'Bureau of Civic Responsibility',
-                short_name: 'BCR',
-                description: 'Citizen productivity assessment, on file with the BCR.',
+                name: 'BCR Clear',
+                short_name: 'Clear',
+                description: 'Clear your daily docket. Bureau of Civic Responsibility.',
                 theme_color: '#C41E3A',
                 background_color: '#F5EFE0',
                 display: 'standalone',
