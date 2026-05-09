@@ -1,4 +1,4 @@
-import {defineElementNoInputs, css, html} from 'element-vir';
+import {defineElement, css, html} from 'element-vir';
 import type {DailyBand, RecurrenceConfig, Task} from '../data/types.js';
 import {getDailyBand} from '../data/urgency.js';
 import {getCurrentPeriod} from '../data/recurrence.js';
@@ -13,7 +13,7 @@ import {getCurrentPeriod} from '../data/recurrence.js';
 // Use this to verify urgency.ts behaviour at a glance after edits.
 // ─────────────────────────────────────────────────────────────────────────────
 
-export const UrgencyTestElement = defineElementNoInputs({
+export const UrgencyTestElement = defineElement()({
     tagName: 'urgency-test',
 
     styles: css`

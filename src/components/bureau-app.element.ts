@@ -1,4 +1,4 @@
-import {assign, css, defineElementNoInputs, html, listen} from 'element-vir';
+import {css, defineElement, html, listen} from 'element-vir';
 import {ViraButton, ViraColorVariant, ViraEmphasis, ViraSize} from 'vira';
 import type {AppState, AppView, ConsequenceTier, DialogueEntry, Project, Task} from '../data/types.js';
 import {
@@ -51,7 +51,7 @@ function bootstrap(): AppState {
     return next;
 }
 
-export const BureauAppElement = defineElementNoInputs({
+export const BureauAppElement = defineElement()({
     tagName: 'bureau-app',
 
     styles: css`
@@ -86,9 +86,9 @@ export const BureauAppElement = defineElementNoInputs({
         }
     `,
 
-    stateInitStatic: {
+    state: () => ({
         app: bootstrap(),
-    },
+    }),
 
     render({state, updateState}) {
         const appState = state.app;
@@ -272,38 +272,35 @@ export const BureauAppElement = defineElementNoInputs({
 
         return html`
             <div class="app-shell">
-                <${BureauHeaderElement}
-                    ${assign(BureauHeaderElement, {
-                        patriotScore,
-                        streak: completionStreak,
-                        onBack: view === 'project' ? onBack : null,
-                        projectName: selectedProject?.name ?? null,
-                    })}
+                <${BureauHeaderElement.assign({
+                    patriotScore,
+                    streak: completionStreak,
+                    onBack: view === 'project' ? onBack : null,
+                    projectName: selectedProject?.name ?? null,
+                })}
                 ></${BureauHeaderElement}>
 
                 ${showTabs
                     ? html`
                         <div class="top-tabs">
-                            <${ViraButton}
-                                ${assign(ViraButton, {
-                                    text: 'Daily',
-                                    color: ViraColorVariant.Info,
-                                    buttonEmphasis: view === 'daily'
-                                        ? ViraEmphasis.Standard
-                                        : ViraEmphasis.Subtle,
-                                    buttonSize: ViraSize.Small,
-                                })}
+                            <${ViraButton.assign({
+                                text: 'Daily',
+                                color: ViraColorVariant.Info,
+                                buttonEmphasis: view === 'daily'
+                                    ? ViraEmphasis.Standard
+                                    : ViraEmphasis.Subtle,
+                                buttonSize: ViraSize.Small,
+                            })}
                                 @click=${() => setView('daily')}
                             ></${ViraButton}>
-                            <${ViraButton}
-                                ${assign(ViraButton, {
-                                    text: 'Operations',
-                                    color: ViraColorVariant.Info,
-                                    buttonEmphasis: view === 'operations'
-                                        ? ViraEmphasis.Standard
-                                        : ViraEmphasis.Subtle,
-                                    buttonSize: ViraSize.Small,
-                                })}
+                            <${ViraButton.assign({
+                                text: 'Operations',
+                                color: ViraColorVariant.Info,
+                                buttonEmphasis: view === 'operations'
+                                    ? ViraEmphasis.Standard
+                                    : ViraEmphasis.Subtle,
+                                buttonSize: ViraSize.Small,
+                            })}
                                 @click=${() => setView('operations')}
                             ></${ViraButton}>
                         </div>
@@ -312,8 +309,7 @@ export const BureauAppElement = defineElementNoInputs({
 
                 ${currentDialogue
                     ? html`
-                        <${CharacterDialogueElement}
-                            ${assign(CharacterDialogueElement, {dialogue: currentDialogue})}
+                        <${CharacterDialogueElement.assign({dialogue: currentDialogue})}
                             ${listen(CharacterDialogueElement.events.dismissed, onDismissDialogue)}
                         ></${CharacterDialogueElement}>
                       `
@@ -321,11 +317,10 @@ export const BureauAppElement = defineElementNoInputs({
 
                 ${view === 'daily'
                     ? html`
-                        <${DailyViewElement}
-                            ${assign(DailyViewElement, {
-                                tasks: appState.tasks,
-                                projects: appState.projects,
-                            })}
+                        <${DailyViewElement.assign({
+                            tasks: appState.tasks,
+                            projects: appState.projects,
+                        })}
                             ${listen(DailyViewElement.events.taskCompleted, e =>
                                 onTaskCompleted(e.detail))}
                             ${listen(DailyViewElement.events.taskSnoozed, e =>
@@ -336,11 +331,10 @@ export const BureauAppElement = defineElementNoInputs({
                       `
                     : view === 'operations'
                     ? html`
-                        <${DashboardViewElement}
-                            ${assign(DashboardViewElement, {
-                                projects: appState.projects,
-                                tasks: appState.tasks,
-                            })}
+                        <${DashboardViewElement.assign({
+                            projects: appState.projects,
+                            tasks: appState.tasks,
+                        })}
                             ${listen(DashboardViewElement.events.projectSelected, e =>
                                 onProjectSelected(e.detail))}
                             ${listen(DashboardViewElement.events.projectAdded, e =>
@@ -349,13 +343,12 @@ export const BureauAppElement = defineElementNoInputs({
                       `
                     : selectedProject
                     ? html`
-                        <${ProjectDetailElement}
-                            ${assign(ProjectDetailElement, {
-                                project: selectedProject,
-                                tasks: appState.tasks.filter(
-                                    t => t.projectId === selectedProject.id,
-                                ),
-                            })}
+                        <${ProjectDetailElement.assign({
+                            project: selectedProject,
+                            tasks: appState.tasks.filter(
+                                t => t.projectId === selectedProject.id,
+                            ),
+                        })}
                             ${listen(ProjectDetailElement.events.taskCompleted, e =>
                                 onTaskCompleted(e.detail))}
                             ${listen(ProjectDetailElement.events.taskSnoozed, e =>

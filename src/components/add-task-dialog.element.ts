@@ -1,4 +1,4 @@
-import {assign, css, defineElement, defineElementEvent, html, listen} from 'element-vir';
+import {css, defineElement, defineElementEvent, html, listen} from 'element-vir';
 import {
     ViraButton,
     ViraColorVariant,
@@ -51,7 +51,7 @@ export const AddTaskDialogElement = defineElement<{
         cancelled:     defineElementEvent<void>(),
     },
 
-    stateInitStatic: {
+    state: () => ({
         title: '',
         description: '',
         consequenceTier: 3 as ConsequenceTier,
@@ -61,7 +61,7 @@ export const AddTaskDialogElement = defineElement<{
         scheduleMode: 'rolling' as ScheduleMode,
         windowType: 'flexible' as WindowType,
         suggestedDate: '', // YYYY-MM-DD
-    },
+    }),
 
     styles: css`
         :host {
@@ -284,11 +284,10 @@ export const AddTaskDialogElement = defineElement<{
                     <!-- Title -->
                     <div class="field">
                         <span class="field-label">Task Title *</span>
-                        <${ViraInput}
-                            ${assign(ViraInput, {
-                                value: state.title,
-                                placeholder: 'Describe the task clearly.',
-                            })}
+                        <${ViraInput.assign({
+                            value: state.title,
+                            placeholder: 'Describe the task clearly.',
+                        })}
                             ${listen(ViraInput.events.valueChange, e =>
                                 updateState({title: e.detail}))}
                         ></${ViraInput}>
@@ -297,12 +296,11 @@ export const AddTaskDialogElement = defineElement<{
                     <!-- Description -->
                     <div class="field">
                         <span class="field-label">Details / Notes</span>
-                        <${ViraTextArea}
-                            ${assign(ViraTextArea, {
-                                value: state.description,
-                                placeholder: 'Additional context. Optional but encouraged.',
-                                rows: 3,
-                            })}
+                        <${ViraTextArea.assign({
+                            value: state.description,
+                            placeholder: 'Additional context. Optional but encouraged.',
+                            rows: 3,
+                        })}
                             ${listen(ViraTextArea.events.valueChange, e =>
                                 updateState({description: e.detail}))}
                         ></${ViraTextArea}>
@@ -313,15 +311,14 @@ export const AddTaskDialogElement = defineElement<{
                         <span class="field-label">Consequence Tier</span>
                         <div class="tier-grid">
                             ${([1, 2, 3, 4] as ConsequenceTier[]).map(t => html`
-                                <${ViraButton}
-                                    ${assign(ViraButton, {
-                                        text: `T${t}`,
-                                        color: tierColor(t),
-                                        buttonEmphasis: state.consequenceTier === t
-                                            ? ViraEmphasis.Standard
-                                            : ViraEmphasis.Subtle,
-                                        buttonSize: ViraSize.Small,
-                                    })}
+                                <${ViraButton.assign({
+                                    text: `T${t}`,
+                                    color: tierColor(t),
+                                    buttonEmphasis: state.consequenceTier === t
+                                        ? ViraEmphasis.Standard
+                                        : ViraEmphasis.Subtle,
+                                    buttonSize: ViraSize.Small,
+                                })}
                                     @click=${() => updateState({consequenceTier: t})}
                                 ></${ViraButton}>
                             `)}
@@ -336,26 +333,24 @@ export const AddTaskDialogElement = defineElement<{
                     <div class="field">
                         <span class="field-label">Timing Type</span>
                         <div class="seg">
-                            <${ViraButton}
-                                ${assign(ViraButton, {
-                                    text: 'Flexible window',
-                                    color: ViraColorVariant.Info,
-                                    buttonEmphasis: state.windowType === 'flexible'
-                                        ? ViraEmphasis.Standard
-                                        : ViraEmphasis.Subtle,
-                                    buttonSize: ViraSize.Small,
-                                })}
+                            <${ViraButton.assign({
+                                text: 'Flexible window',
+                                color: ViraColorVariant.Info,
+                                buttonEmphasis: state.windowType === 'flexible'
+                                    ? ViraEmphasis.Standard
+                                    : ViraEmphasis.Subtle,
+                                buttonSize: ViraSize.Small,
+                            })}
                                 @click=${() => updateState({windowType: 'flexible'})}
                             ></${ViraButton}>
-                            <${ViraButton}
-                                ${assign(ViraButton, {
-                                    text: 'Hard date',
-                                    color: ViraColorVariant.Warning,
-                                    buttonEmphasis: state.windowType === 'hard'
-                                        ? ViraEmphasis.Standard
-                                        : ViraEmphasis.Subtle,
-                                    buttonSize: ViraSize.Small,
-                                })}
+                            <${ViraButton.assign({
+                                text: 'Hard date',
+                                color: ViraColorVariant.Warning,
+                                buttonEmphasis: state.windowType === 'hard'
+                                    ? ViraEmphasis.Standard
+                                    : ViraEmphasis.Subtle,
+                                buttonSize: ViraSize.Small,
+                            })}
                                 @click=${() => updateState({windowType: 'hard'})}
                             ></${ViraButton}>
                         </div>
@@ -392,14 +387,13 @@ export const AddTaskDialogElement = defineElement<{
                         <!-- Cadence -->
                         <div class="field">
                             <span class="field-label">Cadence</span>
-                            <${ViraSelect}
-                                ${assign(ViraSelect, {
-                                    value: state.cadence,
-                                    options: ALL_CADENCES.map(c => ({
-                                        value: c,
-                                        label: cadenceLabel(c),
-                                    })),
-                                })}
+                            <${ViraSelect.assign({
+                                value: state.cadence,
+                                options: ALL_CADENCES.map(c => ({
+                                    value: c,
+                                    label: cadenceLabel(c),
+                                })),
+                            })}
                                 ${listen(ViraSelect.events.valueChange, e =>
                                     updateState({cadence: e.detail as RecurrenceCadence}))}
                             ></${ViraSelect}>
@@ -408,12 +402,11 @@ export const AddTaskDialogElement = defineElement<{
                         ${isMulti ? html`
                             <div class="field">
                                 <span class="field-label">Times per period</span>
-                                <${ViraInput}
-                                    ${assign(ViraInput, {
-                                        value: String(state.frequencyPerPeriod),
-                                        type: ViraInputType.Number,
-                                        placeholder: 'e.g. 3',
-                                    })}
+                                <${ViraInput.assign({
+                                    value: String(state.frequencyPerPeriod),
+                                    type: ViraInputType.Number,
+                                    placeholder: 'e.g. 3',
+                                })}
                                     ${listen(ViraInput.events.valueChange, e => {
                                         const n = parseInt(e.detail, 10);
                                         if (!Number.isNaN(n) && n >= 2 && n <= 99) {
@@ -428,26 +421,24 @@ export const AddTaskDialogElement = defineElement<{
                         <div class="field">
                             <span class="field-label">Schedule Mode</span>
                             <div class="seg">
-                                <${ViraButton}
-                                    ${assign(ViraButton, {
-                                        text: 'Rolling',
-                                        color: ViraColorVariant.Info,
-                                        buttonEmphasis: state.scheduleMode === 'rolling'
-                                            ? ViraEmphasis.Standard
-                                            : ViraEmphasis.Subtle,
-                                        buttonSize: ViraSize.Small,
-                                    })}
+                                <${ViraButton.assign({
+                                    text: 'Rolling',
+                                    color: ViraColorVariant.Info,
+                                    buttonEmphasis: state.scheduleMode === 'rolling'
+                                        ? ViraEmphasis.Standard
+                                        : ViraEmphasis.Subtle,
+                                    buttonSize: ViraSize.Small,
+                                })}
                                     @click=${() => updateState({scheduleMode: 'rolling'})}
                                 ></${ViraButton}>
-                                <${ViraButton}
-                                    ${assign(ViraButton, {
-                                        text: 'Fixed',
-                                        color: ViraColorVariant.Info,
-                                        buttonEmphasis: state.scheduleMode === 'fixed'
-                                            ? ViraEmphasis.Standard
-                                            : ViraEmphasis.Subtle,
-                                        buttonSize: ViraSize.Small,
-                                    })}
+                                <${ViraButton.assign({
+                                    text: 'Fixed',
+                                    color: ViraColorVariant.Info,
+                                    buttonEmphasis: state.scheduleMode === 'fixed'
+                                        ? ViraEmphasis.Standard
+                                        : ViraEmphasis.Subtle,
+                                    buttonSize: ViraSize.Small,
+                                })}
                                     @click=${() => updateState({scheduleMode: 'fixed'})}
                                 ></${ViraButton}>
                             </div>
@@ -455,21 +446,19 @@ export const AddTaskDialogElement = defineElement<{
                     ` : html``}
 
                     <div class="actions">
-                        <${ViraButton}
-                            ${assign(ViraButton, {
-                                text: 'Cancel',
-                                color: ViraColorVariant.Neutral,
-                                buttonEmphasis: ViraEmphasis.Subtle,
-                            })}
+                        <${ViraButton.assign({
+                            text: 'Cancel',
+                            color: ViraColorVariant.Neutral,
+                            buttonEmphasis: ViraEmphasis.Subtle,
+                        })}
                             @click=${() => dispatch(new events.cancelled())}
                         ></${ViraButton}>
                         <span class="grow">
-                            <${ViraButton}
-                                ${assign(ViraButton, {
-                                    text: 'FILE TASK',
-                                    color: ViraColorVariant.Info,
-                                    isDisabled: !canSubmit,
-                                })}
+                            <${ViraButton.assign({
+                                text: 'FILE TASK',
+                                color: ViraColorVariant.Info,
+                                isDisabled: !canSubmit,
+                            })}
                                 @click=${submit}
                             ></${ViraButton}>
                         </span>

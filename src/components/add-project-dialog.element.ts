@@ -25,11 +25,11 @@ export const AddProjectDialogElement = defineElement<{
         cancelled:        defineElementEvent<void>(),
     },
 
-    stateInitStatic: {
+    state: () => ({
         name: '',
         description: '',
         colorKey: 'navy' as ProjectColor,
-    },
+    }),
 
     styles: css`
         :host { display: block; }

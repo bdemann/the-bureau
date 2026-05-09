@@ -1,4 +1,4 @@
-import {defineElement, defineElementEvent, css, html, assign, listen} from 'element-vir';
+import {defineElement, defineElementEvent, css, html, listen} from 'element-vir';
 import type {Project, Task} from '../data/types.js';
 import {isTaskVisible, isTaskOverdue} from '../data/storage.js';
 import {TaskItemElement} from './task-item.element.js';
@@ -23,10 +23,10 @@ export const ProjectDetailElement = defineElement<{
         back:          defineElementEvent<void>(),
     },
 
-    stateInitStatic: {
+    state: () => ({
         addingTask: false,
         showCompleted: false,
-    },
+    }),
 
     styles: css`
         :host {
@@ -172,8 +172,7 @@ export const ProjectDetailElement = defineElement<{
                     <div class="task-list">
                         ${activeTasks.map(
                             task => html`
-                                <${TaskItemElement}
-                                    ${assign(TaskItemElement, {task})}
+                                <${TaskItemElement.assign({task})}
                                     ${listen(TaskItemElement.events.completed, e =>
                                         dispatch(new events.taskCompleted(e.detail)))}
                                     ${listen(TaskItemElement.events.snoozed, e =>
@@ -195,8 +194,7 @@ export const ProjectDetailElement = defineElement<{
                         <div class="task-list">
                             ${snoozedTasks.map(
                                 task => html`
-                                    <${TaskItemElement}
-                                        ${assign(TaskItemElement, {task})}
+                                    <${TaskItemElement.assign({task})}
                                         ${listen(TaskItemElement.events.completed, e =>
                                             dispatch(new events.taskCompleted(e.detail)))}
                                         ${listen(TaskItemElement.events.snoozed, e =>
@@ -237,8 +235,7 @@ export const ProjectDetailElement = defineElement<{
                                 ${completedTasks.map(
                                     task => html`
                                         <div class="completed-task">
-                                            <${TaskItemElement}
-                                                ${assign(TaskItemElement, {task})}
+                                            <${TaskItemElement.assign({task})}
                                                 ${listen(TaskItemElement.events.completed, e =>
                                                     dispatch(new events.taskCompleted(e.detail)))}
                                                 ${listen(TaskItemElement.events.snoozed, e =>
@@ -256,11 +253,10 @@ export const ProjectDetailElement = defineElement<{
                 : html``}
 
             <!-- Add task dialog -->
-            <${AddTaskDialogElement}
-                ${assign(AddTaskDialogElement, {
-                    projectId: project.id,
-                    open: state.addingTask,
-                })}
+            <${AddTaskDialogElement.assign({
+                projectId: project.id,
+                open: state.addingTask,
+            })}
                 ${listen(AddTaskDialogElement.events.taskSubmitted, e => {
                     dispatch(new events.taskAdded(e.detail));
                     updateState({addingTask: false});

@@ -2,6 +2,14 @@ import {defineConfig} from 'vite';
 import {VitePWA} from 'vite-plugin-pwa';
 
 export default defineConfig({
+    build: {
+        target: 'es2022',
+    },
+    optimizeDeps: {
+        esbuildOptions: {
+            target: 'es2022',
+        },
+    },
     plugins: [
         VitePWA({
             registerType: 'autoUpdate',

@@ -1,4 +1,4 @@
-import {assign, css, defineElement, defineElementEvent, html} from 'element-vir';
+import {css, defineElement, defineElementEvent, html} from 'element-vir';
 import {ViraButton, ViraColorVariant, ViraEmphasis, ViraSize} from 'vira';
 import type {ConsequenceTier, Task} from '../data/types.js';
 import {cadencePeriodWord, getSnoozeSeverity, tierShortLabel} from '../data/types.js';
@@ -254,8 +254,7 @@ export const TaskItemElement = defineElement<{
 
                     ${task.snoozeCount > 0
                         ? html`
-                            <${SnoozeIndicatorElement}
-                                ${assign(SnoozeIndicatorElement, {snoozeCount: task.snoozeCount})}
+                            <${SnoozeIndicatorElement.assign({snoozeCount: task.snoozeCount})}
                             ></${SnoozeIndicatorElement}>
                         `
                         : html``}
@@ -268,25 +267,23 @@ export const TaskItemElement = defineElement<{
                 <div class="task-actions">
                     ${currentlySnoozed
                         ? html`
-                            <${ViraButton}
-                                ${assign(ViraButton, {
-                                    text: 'Wake up',
-                                    color: ViraColorVariant.Info,
-                                    buttonEmphasis: ViraEmphasis.Subtle,
-                                    buttonSize: ViraSize.Small,
-                                })}
+                            <${ViraButton.assign({
+                                text: 'Wake up',
+                                color: ViraColorVariant.Info,
+                                buttonEmphasis: ViraEmphasis.Subtle,
+                                buttonSize: ViraSize.Small,
+                            })}
                                 @click=${() => dispatch(new events.unSnoozed(task.id))}
                             ></${ViraButton}>
                         `
                         : html`
-                            <${ViraButton}
-                                ${assign(ViraButton, {
-                                    text: canSnooze ? 'Snooze (+24h)' : 'Cannot snooze',
-                                    color: ViraColorVariant.Warning,
-                                    buttonEmphasis: ViraEmphasis.Subtle,
-                                    buttonSize: ViraSize.Small,
-                                    isDisabled: !canSnooze,
-                                })}
+                            <${ViraButton.assign({
+                                text: canSnooze ? 'Snooze (+24h)' : 'Cannot snooze',
+                                color: ViraColorVariant.Warning,
+                                buttonEmphasis: ViraEmphasis.Subtle,
+                                buttonSize: ViraSize.Small,
+                                isDisabled: !canSnooze,
+                            })}
                                 @click=${() => {
                                     if (canSnooze) dispatch(new events.snoozed(task.id));
                                 }}

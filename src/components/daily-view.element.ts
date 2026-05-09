@@ -1,4 +1,4 @@
-import {assign, css, defineElement, defineElementEvent, html, listen} from 'element-vir';
+import {css, defineElement, defineElementEvent, html, listen} from 'element-vir';
 import {ViraButton, ViraColorVariant, ViraEmphasis, ViraSize} from 'vira';
 import type {DailyBand, Project, Task} from '../data/types.js';
 import {bandLabel, bandSubtitle, getDailyBand} from '../data/urgency.js';
@@ -24,10 +24,10 @@ export const DailyViewElement = defineElement<{
         taskUnSnoozed: defineElementEvent<string>(),
     },
 
-    stateInitStatic: {
+    state: () => ({
         expandRadar:   false,
         expandBacklog: false,
-    },
+    }),
 
     styles: css`
         :host {
@@ -130,11 +130,10 @@ export const DailyViewElement = defineElement<{
         const renderTaskList = (tasks: Task[]) => html`
             <div class="task-list">
                 ${tasks.map(t => html`
-                    <${TaskItemElement}
-                        ${assign(TaskItemElement, {
-                            task: t,
-                            projectName: projectsById.get(t.projectId)?.name,
-                        })}
+                    <${TaskItemElement.assign({
+                        task: t,
+                        projectName: projectsById.get(t.projectId)?.name,
+                    })}
                         ${listen(TaskItemElement.events.completed, e =>
                             dispatch(new events.taskCompleted(e.detail)))}
                         ${listen(TaskItemElement.events.snoozed, e =>
@@ -181,13 +180,12 @@ export const DailyViewElement = defineElement<{
                         : showCollapsed
                             ? html`
                                 <div class="collapse-toggle">
-                                    <${ViraButton}
-                                        ${assign(ViraButton, {
-                                            text: `Show ${tasks.length}`,
-                                            color: ViraColorVariant.Neutral,
-                                            buttonEmphasis: ViraEmphasis.Subtle,
-                                            buttonSize: ViraSize.Small,
-                                        })}
+                                    <${ViraButton.assign({
+                                        text: `Show ${tasks.length}`,
+                                        color: ViraColorVariant.Neutral,
+                                        buttonEmphasis: ViraEmphasis.Subtle,
+                                        buttonSize: ViraSize.Small,
+                                    })}
                                         @click=${opts?.onToggle ?? (() => {})}
                                     ></${ViraButton}>
                                 </div>
@@ -197,13 +195,12 @@ export const DailyViewElement = defineElement<{
                                 ${opts?.collapsible && opts.expanded
                                     ? html`
                                         <div class="collapse-toggle">
-                                            <${ViraButton}
-                                                ${assign(ViraButton, {
-                                                    text: 'Hide',
-                                                    color: ViraColorVariant.Neutral,
-                                                    buttonEmphasis: ViraEmphasis.Subtle,
-                                                    buttonSize: ViraSize.Small,
-                                                })}
+                                            <${ViraButton.assign({
+                                                text: 'Hide',
+                                                color: ViraColorVariant.Neutral,
+                                                buttonEmphasis: ViraEmphasis.Subtle,
+                                                buttonSize: ViraSize.Small,
+                                            })}
                                                 @click=${opts?.onToggle ?? (() => {})}
                                             ></${ViraButton}>
                                         </div>

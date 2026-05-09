@@ -1,4 +1,4 @@
-import {defineElement, defineElementEvent, css, html, assign, listen} from 'element-vir';
+import {defineElement, defineElementEvent, css, html, listen} from 'element-vir';
 import type {Project, Task} from '../data/types.js';
 import {ProjectCardElement} from './project-card.element.js';
 import {AddProjectDialogElement} from './add-project-dialog.element.js';
@@ -21,9 +21,9 @@ export const DashboardViewElement = defineElement<{
         projectAdded:    defineElementEvent<Project>(),
     },
 
-    stateInitStatic: {
+    state: () => ({
         addingProject: false,
-    },
+    }),
 
     styles: css`
         :host {
@@ -184,11 +184,10 @@ export const DashboardViewElement = defineElement<{
                     <div class="project-grid">
                         ${projects.map(
                             project => html`
-                                <${ProjectCardElement}
-                                    ${assign(ProjectCardElement, {
-                                        project,
-                                        tasks: tasks.filter(t => t.projectId === project.id),
-                                    })}
+                                <${ProjectCardElement.assign({
+                                    project,
+                                    tasks: tasks.filter(t => t.projectId === project.id),
+                                })}
                                     ${listen(ProjectCardElement.events.selected, e =>
                                         dispatch(new events.projectSelected(e.detail)))}
                                 ></${ProjectCardElement}>
@@ -205,8 +204,7 @@ export const DashboardViewElement = defineElement<{
             </button>
 
             <!-- Add project dialog -->
-            <${AddProjectDialogElement}
-                ${assign(AddProjectDialogElement, {open: state.addingProject})}
+            <${AddProjectDialogElement.assign({open: state.addingProject})}
                 ${listen(AddProjectDialogElement.events.projectSubmitted, e => {
                     dispatch(new events.projectAdded(e.detail));
                     updateState({addingProject: false});
