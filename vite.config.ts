@@ -15,7 +15,7 @@ export default defineConfig({
             registerType: 'autoUpdate',
             manifest: {
                 name: 'BCR Clear',
-                short_name: 'Clear',
+                short_name: 'BCR Clear',
                 description: 'Clear your daily docket. Bureau of Civic Responsibility.',
                 theme_color: '#C41E3A',
                 background_color: '#F5EFE0',
