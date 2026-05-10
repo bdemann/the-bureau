@@ -50,6 +50,8 @@ export const AddProjectDialogElement = defineElement<{
             to   { opacity: 1; }
         }
 
+        :host *, :host *::before, :host *::after { box-sizing: border-box; }
+
         .sheet {
             background: #F5EFE0;
             width: 100%;
@@ -120,7 +122,7 @@ export const AddProjectDialogElement = defineElement<{
             transition: border-color 0.15s, transform 0.1s;
         }
 
-        .color-option:checked + .color-swatch {
+        .color-swatch.selected {
             border-color: #2C2C2C;
             transform: scale(1.1);
         }
@@ -224,7 +226,7 @@ export const AddProjectDialogElement = defineElement<{
                                         />
                                         <label
                                             for="c-${opt.key}"
-                                            class="color-swatch"
+                                            class="color-swatch ${state.colorKey === opt.key ? 'selected' : ''}"
                                             style="background:${opt.swatch}"
                                             title="${opt.label}"
                                         ></label>
