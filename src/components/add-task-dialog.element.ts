@@ -523,7 +523,10 @@ export const AddTaskDialogElement = defineElement<{
                                     `)}
                                 </div>
                                 <div class="anchor-summary">
-                                    Every ${dayName(state.dayOfWeek)}, starting the next one.
+                                    Every ${dayName(state.dayOfWeek)}, starting
+                                    ${new Date().getDay() === state.dayOfWeek
+                                        ? 'today'
+                                        : 'the next one'}.
                                 </div>
                             </div>
                         ` : html``}
