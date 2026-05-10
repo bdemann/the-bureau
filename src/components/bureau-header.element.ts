@@ -171,7 +171,7 @@ export const BureauHeaderElement = defineElement<{
                 ${projectName
                     ? html`
                         <div class="breadcrumb">
-                            DASHBOARD &rsaquo;
+                            OPERATIONS &rsaquo;
                             <span class="project-name">${projectName.toUpperCase()}</span>
                         </div>
                     `
