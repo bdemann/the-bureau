@@ -163,7 +163,7 @@ export const BureauHeaderElement = defineElement<{
                     <div class="score-block" title="Patriot Score">
                         <span class="score-number">${Math.round(patriotScore)}</span>
                         <span class="score-label">
-                            ${streak > 1 ? `🔥 ${streak}d · ` : ''}SCORE
+                            ${streak > 0 ? `🔥 ${streak}d · ` : ''}SCORE
                         </span>
                     </div>
                 </div>
