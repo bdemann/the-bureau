@@ -29,8 +29,8 @@ export function maxBand(a: DailyBand, b: DailyBand): DailyBand {
  */
 export function getDailyBand(task: Task, today: Date = new Date()): DailyBand {
     // Step 0 — Visibility
-    if (isCompletedForPeriod(task)) return 'hidden';
-    if (isCurrentlySnoozed(task))   return 'hidden';
+    if (isCompletedForPeriod(task, today)) return 'hidden';
+    if (isCurrentlySnoozed(task))          return 'hidden';
 
     // Step 1 — Hard overdue / due today
     const step1 = step1HardMandatory(task, today);
@@ -47,10 +47,17 @@ export function getDailyBand(task: Task, today: Date = new Date()): DailyBand {
 
 // ── Step 0 helpers ──────────────────────────────────────────────────────────
 
-function isCompletedForPeriod(task: Task): boolean {
+function isCompletedForPeriod(task: Task, today: Date): boolean {
     if (isMultiplePerPeriod(task)) {
         const target = task.recurrence!.frequencyPerPeriod;
         return task.completionsThisPeriod >= target;
+    }
+    // After completing a single-occurrence recurring task, advanceRecurrence
+    // sets completedAt = null and advances currentPeriodStart to the next
+    // period. If currentPeriodStart is beyond today, the task is done for
+    // the current period even though completedAt is null.
+    if (task.recurrence && task.currentPeriodStart !== null) {
+        return task.currentPeriodStart > startOfDay(today).getTime();
     }
     return task.completedAt !== null;
 }
