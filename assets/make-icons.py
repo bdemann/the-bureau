@@ -30,12 +30,18 @@ def whiten(src: Image.Image) -> Image.Image:
     return out
 
 
-def render(size: int, inset_pct: float = 0.0) -> Image.Image:
-    """Navy square at `size`, with the white eagle centered.
+def render(size: int, inset_pct: float = 0.0, y_shift_pct: float = 0.0) -> Image.Image:
+    """Navy square at `size`, with the white eagle centered (with optional y shift).
 
     `inset_pct` shrinks the eagle so a circular/squircle OS mask can't crop it.
     0.0 = bird fills as much as a square crop allows (regular icon);
     0.30 = bird occupies inner 70% (maskable icon).
+
+    `y_shift_pct` nudges the eagle down by that fraction of the canvas. The
+    bird's visual mass is in the body below the wings, so geometric centering
+    leaves the wingtips kissing the top edge while the lower half feels empty —
+    a 6–8% downward shift compensates so the silhouette reads centered when
+    the OS clips it to a circle.
     """
     src = Image.open(SOURCE)
     eagle = whiten(src)
@@ -46,20 +52,22 @@ def render(size: int, inset_pct: float = 0.0) -> Image.Image:
     # Preserve aspect ratio while fitting the eagle into target_dim x target_dim.
     eagle.thumbnail((target_dim, target_dim), Image.LANCZOS)
     x = (size - eagle.width) // 2
-    y = (size - eagle.height) // 2
+    y = (size - eagle.height) // 2 + int(size * y_shift_pct)
     canvas.alpha_composite(eagle, (x, y))
     return canvas
 
 
 def main() -> None:
     OUT.mkdir(exist_ok=True)
+    # Optical-centering: wings reach upward, body anchors below — push down ~7%.
+    Y_SHIFT = 0.07
     # Regular icons fill more of the square (4% padding).
-    render(192, inset_pct=0.04).save(OUT / "icon-192.png")
-    render(512, inset_pct=0.04).save(OUT / "icon-512.png")
+    render(192, inset_pct=0.04, y_shift_pct=Y_SHIFT).save(OUT / "icon-192.png")
+    render(512, inset_pct=0.04, y_shift_pct=Y_SHIFT).save(OUT / "icon-512.png")
     # Maskable: 30% inset (eagle stays inside the ~80% safe zone every OS uses).
-    render(512, inset_pct=0.30).save(OUT / "icon-512-mask.png")
+    render(512, inset_pct=0.30, y_shift_pct=Y_SHIFT).save(OUT / "icon-512-mask.png")
     # Favicon: tiny, can be tighter.
-    render(32, inset_pct=0.10).save(OUT / "favicon.png")
+    render(32, inset_pct=0.10, y_shift_pct=Y_SHIFT).save(OUT / "favicon.png")
     print("Wrote:")
     for f in ("icon-192.png", "icon-512.png", "icon-512-mask.png", "favicon.png"):
         print(f"  public/{f}")
