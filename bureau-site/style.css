@@ -46,7 +46,10 @@ a:hover { color: var(--red); }
 }
 
 .gov-banner .flag {
-    font-size: 1rem;
+    height: 16px;
+    width: 16px;
+    object-fit: contain;
+    filter: brightness(0) invert(1);
 }
 
 .gov-banner strong {
