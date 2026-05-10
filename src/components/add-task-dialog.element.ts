@@ -94,6 +94,8 @@ export const AddTaskDialogElement = defineElement<{
             to   { opacity: 1; }
         }
 
+        :host *, :host *::before, :host *::after { box-sizing: border-box; }
+
         .sheet {
             background: #F5EFE0;
             width: 100%;
