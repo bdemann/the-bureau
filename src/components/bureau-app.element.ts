@@ -238,6 +238,16 @@ export const BureauAppElement = defineElement()({
             commit({tasks});
         }
 
+        function onTaskSkipped(taskId: string): void {
+            const now = new Date();
+            const tasks = state.app.tasks.map(t => {
+                if (t.id !== taskId || !t.recurrence) return t;
+                return advanceRecurrence(t, now);
+            });
+            commit({tasks});
+            triggerDialogue('task_snoozed_1', false);
+        }
+
         function onTaskAdded(task: Task): void {
             commit({tasks: [...state.app.tasks, task]});
             if (Math.random() < 0.6) {
@@ -335,6 +345,8 @@ export const BureauAppElement = defineElement()({
                                 onTaskSnoozed(e.detail))}
                             ${listen(DailyViewElement.events.taskUnSnoozed, e =>
                                 onTaskUnSnoozed(e.detail))}
+                            ${listen(DailyViewElement.events.taskSkipped, e =>
+                                onTaskSkipped(e.detail))}
                         ></${DailyViewElement}>
                       `
                     : view === 'operations'
@@ -363,6 +375,8 @@ export const BureauAppElement = defineElement()({
                                 onTaskSnoozed(e.detail))}
                             ${listen(ProjectDetailElement.events.taskUnSnoozed, e =>
                                 onTaskUnSnoozed(e.detail))}
+                            ${listen(ProjectDetailElement.events.taskSkipped, e =>
+                                onTaskSkipped(e.detail))}
                             ${listen(ProjectDetailElement.events.taskAdded, e =>
                                 onTaskAdded(e.detail))}
                             ${listen(ProjectDetailElement.events.back, onBack)}

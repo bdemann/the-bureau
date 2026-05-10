@@ -25,6 +25,7 @@ export const TaskItemElement = defineElement<{
         completed: defineElementEvent<string>(),  // task id
         snoozed:   defineElementEvent<string>(),  // task id
         unSnoozed: defineElementEvent<string>(),  // task id
+        skipped:   defineElementEvent<string>(),  // task id — recurring only
     },
 
     styles: css`
@@ -289,6 +290,16 @@ export const TaskItemElement = defineElement<{
                                     if (canSnooze) dispatch(new events.snoozed(task.id));
                                 }}
                             ></${ViraButton}>
+                            ${task.recurrence ? html`
+                                <${ViraButton.assign({
+                                    text: 'Skip',
+                                    color: ViraColorVariant.Info,
+                                    buttonEmphasis: ViraEmphasis.Subtle,
+                                    buttonSize: ViraSize.Small,
+                                })}
+                                    @click=${() => dispatch(new events.skipped(task.id))}
+                                ></${ViraButton}>
+                            ` : html``}
                         `}
                 </div>
                 ` : html``}
