@@ -11,7 +11,7 @@ export const addProjectPage = defineBookPage({
             title: 'Open',
             render() {
                 return html`
-                    <div style="position:relative;height:420px;overflow:hidden;">
+                    <div style="position:relative;height:420px;overflow:hidden;transform:scale(1);">
                         <${AddProjectDialogElement.assign({open: true})}></${AddProjectDialogElement}>
                     </div>
                 `;
@@ -28,7 +28,7 @@ export const addTaskPage = defineBookPage({
             title: 'Open',
             render() {
                 return html`
-                    <div style="position:relative;height:560px;overflow:hidden;">
+                    <div style="position:relative;height:560px;overflow:hidden;transform:scale(1);">
                         <${AddTaskDialogElement.assign({projectId: 'p1', open: true})}></${AddTaskDialogElement}>
                     </div>
                 `;
