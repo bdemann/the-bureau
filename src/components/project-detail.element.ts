@@ -132,13 +132,11 @@ export const ProjectDetailElement = defineElement<{
         const {project, tasks} = inputs;
 
         const activeTasks = tasks.filter(isTaskVisible).sort((a, b) => {
-            // Sort: overdue first, then by priority weight, then by created date
-            const priorityWeight = {critical: 4, high: 3, medium: 2, low: 1};
-            const aOverdue = isTaskOverdue(a) ? 1000 : 0;
-            const bOverdue = isTaskOverdue(b) ? 1000 : 0;
-            const aWeight = aOverdue + (priorityWeight[a.priority] ?? 1);
-            const bWeight = bOverdue + (priorityWeight[b.priority] ?? 1);
-            return bWeight - aWeight;
+            const aOverdue = isTaskOverdue(a) ? 1 : 0;
+            const bOverdue = isTaskOverdue(b) ? 1 : 0;
+            if (aOverdue !== bOverdue) return bOverdue - aOverdue;
+            // Lower tier = more severe consequence, so it sorts first.
+            return a.consequenceTier - b.consequenceTier;
         });
 
         const snoozedTasks = tasks.filter(
