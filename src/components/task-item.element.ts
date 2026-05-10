@@ -264,6 +264,7 @@ export const TaskItemElement = defineElement<{
                         : html``}
                 </div>
 
+                ${task.completedAt === null ? html`
                 <div class="task-actions">
                     ${currentlySnoozed
                         ? html`
@@ -290,6 +291,7 @@ export const TaskItemElement = defineElement<{
                             ></${ViraButton}>
                         `}
                 </div>
+                ` : html``}
             </div>
         `;
     },
