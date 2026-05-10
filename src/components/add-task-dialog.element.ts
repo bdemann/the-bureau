@@ -59,7 +59,7 @@ export const AddTaskDialogElement = defineElement<{
         isRecurring: false,
         cadence: 'weekly' as RecurrenceCadence,
         frequencyPerPeriod: 2,
-        scheduleMode: 'rolling' as ScheduleMode,
+        scheduleMode: 'fixed' as ScheduleMode,
         windowType: 'flexible' as WindowType,
         suggestedDate: '',         // YYYY-MM-DD
         // ── Recurrence anchor (only relevant when isRecurring=true) ──
@@ -303,6 +303,7 @@ export const AddTaskDialogElement = defineElement<{
                 recurrence,
                 currentPeriodStart,
                 completionsThisPeriod: 0,
+                progressCount: 0,
                 snoozeCount: 0,
                 snoozedUntil: null,
                 completedAt: null,
@@ -426,9 +427,20 @@ export const AddTaskDialogElement = defineElement<{
                                 })}
                                     @click=${() => updateState({windowType: 'hard'})}
                                 ></${ViraButton}>
+                                <${ViraButton.assign({
+                                    text: 'Milestone',
+                                    color: ViraColorVariant.Neutral,
+                                    buttonEmphasis: state.windowType === 'milestone'
+                                        ? ViraEmphasis.Standard
+                                        : ViraEmphasis.Subtle,
+                                    buttonSize: ViraSize.Small,
+                                })}
+                                    @click=${() => updateState({windowType: 'milestone'})}
+                                ></${ViraButton}>
                             </div>
                         </div>
 
+                        ${state.windowType !== 'milestone' ? html`
                         <div class="field">
                             <span class="field-label">
                                 ${state.windowType === 'hard'
@@ -442,6 +454,7 @@ export const AddTaskDialogElement = defineElement<{
                                     updateState({suggestedDate: (e.target as HTMLInputElement).value})}
                             />
                         </div>
+                        ` : html``}
                     `}
 
                     ${state.isRecurring ? html`

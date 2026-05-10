@@ -231,11 +231,28 @@ export const BureauAppElement = defineElement()({
             }
         }
 
+        function onReportNoticeDismissed(): void {
+            commit({reportNoticeDismissedAt: Date.now()});
+        }
+
         function onTaskUnSnoozed(taskId: string): void {
             const tasks = state.app.tasks.map(t =>
                 t.id === taskId ? {...t, snoozedUntil: null} : t,
             );
             commit({tasks});
+        }
+
+        function onTaskProgressLogged(taskId: string): void {
+            const target = state.app.tasks.find(t => t.id === taskId);
+            if (!target) return;
+            const tasks = state.app.tasks.map(t =>
+                t.id === taskId
+                    ? {...t, progressCount: t.progressCount + 1, snoozedUntil: null}
+                    : t,
+            );
+            const reward = Math.max(1, Math.round(tierCompletionReward(target.consequenceTier as ConsequenceTier) / 4));
+            const newScore = Math.min(200, state.app.patriotScore + reward);
+            commit({tasks, patriotScore: newScore});
         }
 
         function onTaskSkipped(taskId: string): void {
@@ -338,6 +355,7 @@ export const BureauAppElement = defineElement()({
                         <${DailyViewElement.assign({
                             tasks: state.app.tasks,
                             projects: state.app.projects,
+                            reportNoticeDismissedAt: state.app.reportNoticeDismissedAt,
                         })}
                             ${listen(DailyViewElement.events.taskCompleted, e =>
                                 onTaskCompleted(e.detail))}
@@ -347,6 +365,10 @@ export const BureauAppElement = defineElement()({
                                 onTaskUnSnoozed(e.detail))}
                             ${listen(DailyViewElement.events.taskSkipped, e =>
                                 onTaskSkipped(e.detail))}
+                            ${listen(DailyViewElement.events.taskProgressLogged, e =>
+                                onTaskProgressLogged(e.detail))}
+                            ${listen(DailyViewElement.events.reportNoticeDismissed,
+                                onReportNoticeDismissed)}
                         ></${DailyViewElement}>
                       `
                     : view === 'operations'
@@ -377,6 +399,8 @@ export const BureauAppElement = defineElement()({
                                 onTaskUnSnoozed(e.detail))}
                             ${listen(ProjectDetailElement.events.taskSkipped, e =>
                                 onTaskSkipped(e.detail))}
+                            ${listen(ProjectDetailElement.events.taskProgressLogged, e =>
+                                onTaskProgressLogged(e.detail))}
                             ${listen(ProjectDetailElement.events.taskAdded, e =>
                                 onTaskAdded(e.detail))}
                             ${listen(ProjectDetailElement.events.back, onBack)}

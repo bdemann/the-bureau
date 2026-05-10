@@ -1,4 +1,5 @@
 import {defineElement, css, html} from 'element-vir';
+import {getRank, rankColor, rankLabel} from '../data/ranks.js';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // BureauHeaderElement
@@ -135,12 +136,14 @@ export const BureauHeaderElement = defineElement<{
     render({inputs}) {
         const {patriotScore, streak, onBack, projectName} = inputs;
 
-        // Score color: red when low, gold when ok, bright gold when high
-        let scoreColor = '#F5EFE0';
+        const rank = getRank(patriotScore);
+        const scoreColor = rankColor(rank);
+
+        // Score bar color tracks rank but uses slightly different palette
         let barColor = '#B8860B';
-        if (patriotScore < 40) { scoreColor = '#FF6B6B'; barColor = '#C41E3A'; }
-        else if (patriotScore < 70) { scoreColor = '#F5A623'; barColor = '#F5A623'; }
-        else if (patriotScore >= 130) { scoreColor = '#FFD700'; barColor = '#FFD700'; }
+        if (patriotScore < 40) { barColor = '#C41E3A'; }
+        else if (patriotScore < 70) { barColor = '#F5A623'; }
+        else if (patriotScore >= 130) { barColor = '#FFD700'; }
 
         const barWidth = Math.min(100, Math.max(0, (patriotScore / 200) * 100));
 
@@ -163,7 +166,7 @@ export const BureauHeaderElement = defineElement<{
                     <div class="score-block" title="Patriot Score">
                         <span class="score-number">${Math.round(patriotScore)}</span>
                         <span class="score-label">
-                            ${streak > 0 ? `🔥 ${streak}d · ` : ''}SCORE
+                            ${streak > 0 ? `🔥 ${streak}d · ` : ''}${rankLabel(rank).toUpperCase()}
                         </span>
                     </div>
                 </div>

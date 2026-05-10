@@ -18,6 +18,7 @@ export const DEFAULT_STATE: AppState = {
     completionStreak: 0,
     dialogueQueue: [],
     lastActiveDate: '',
+    reportNoticeDismissedAt: null,
 };
 
 // ── Load / save ─────────────────────────────────────────────────────────────
@@ -110,6 +111,7 @@ function ensureTaskShape(raw: any): Task {
         recurrence: raw.recurrence ?? null,
         currentPeriodStart: raw.currentPeriodStart ?? null,
         completionsThisPeriod: raw.completionsThisPeriod ?? 0,
+        progressCount: raw.progressCount ?? 0,
         snoozeCount: raw.snoozeCount ?? 0,
         snoozedUntil: raw.snoozedUntil ?? null,
         completedAt: raw.completedAt ?? null,

@@ -19,6 +19,7 @@ function makeTask(overrides: Partial<Task> & {title: string}): Task {
         recurrence: null,
         currentPeriodStart: null,
         completionsThisPeriod: 0,
+        progressCount: 0,
         snoozeCount: 0,
         snoozedUntil: null,
         completedAt: null,
@@ -157,7 +158,7 @@ export const taskItemPage = defineBookPage({
             },
         });
         defineExample({
-            title: 'Recurring weekly — progress chip',
+            title: 'Recurring weekly — progress chip + skip button',
             render() {
                 return html`
                     <${TaskItemElement.assign({
@@ -168,7 +169,34 @@ export const taskItemPage = defineBookPage({
                             recurrence: {
                                 cadence: 'weekly',
                                 frequencyPerPeriod: 3,
-                                scheduleMode: 'rolling',
+                                scheduleMode: 'fixed',
+                                hardDayOfWeek: undefined,
+                                hardDayOfMonth: undefined,
+                                ordinalWeek: undefined,
+                            },
+                        }),
+                    })}></${TaskItemElement}>
+                `;
+            },
+        });
+        defineExample({
+            title: 'Recurring daily — skip button, no window label',
+            render() {
+                const todayStart = new Date();
+                todayStart.setHours(0, 0, 0, 0);
+                const todayEnd = new Date();
+                todayEnd.setHours(23, 59, 59, 999);
+                return html`
+                    <${TaskItemElement.assign({
+                        task: makeTask({
+                            title: 'Morning pages',
+                            consequenceTier: 3,
+                            suggestedDate: todayStart.getTime(),
+                            windowDeadline: todayEnd.getTime(),
+                            recurrence: {
+                                cadence: 'daily',
+                                frequencyPerPeriod: 1,
+                                scheduleMode: 'fixed',
                                 hardDayOfWeek: undefined,
                                 hardDayOfMonth: undefined,
                                 ordinalWeek: undefined,

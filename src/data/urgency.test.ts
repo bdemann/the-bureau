@@ -23,6 +23,19 @@ describe('getDailyBand — Step 0 (visibility)', () => {
         const t = makeTask({snoozedUntil: Date.now() + DAY_MS});
         assert.strictEquals(getDailyBand(t, date('2026-05-09')), 'hidden');
     });
+
+    test('recurring task whose currentPeriodStart is in the future is hidden', () => {
+        // advanceRecurrence sets completedAt=null and currentPeriodStart to next period.
+        // The task should be hidden even though completedAt is null.
+        const today = date('2026-05-09');
+        const tomorrow = date('2026-05-10');
+        const t = makeTask({
+            recurrence: makeRecurrence({cadence: 'daily'}),
+            completedAt: null,
+            currentPeriodStart: tomorrow.getTime(),
+        });
+        assert.strictEquals(getDailyBand(t, today), 'hidden');
+    });
 });
 
 describe('getDailyBand — Step 1 (mandatory)', () => {
@@ -144,6 +157,35 @@ describe('getDailyBand — Step 2 (multiple-per-period ratio)', () => {
             windowDeadline: today.getTime() + 7 * DAY_MS, // 2/7 = ~0.28
         });
         assert.strictEquals(getDailyBand(t, today), 'backlog');
+    });
+});
+
+describe('getDailyBand — Step 2 (milestone)', () => {
+    const today = date('2026-05-09');
+
+    test('no deadline → backlog', () => {
+        const t = makeTask({windowType: 'milestone', windowDeadline: null});
+        assert.strictEquals(getDailyBand(t, today), 'backlog');
+    });
+
+    test('deadline >30 days away → backlog', () => {
+        const t = makeTask({windowType: 'milestone', windowDeadline: today.getTime() + 60 * DAY_MS});
+        assert.strictEquals(getDailyBand(t, today), 'backlog');
+    });
+
+    test('deadline ≤30 days away → radar', () => {
+        const t = makeTask({windowType: 'milestone', windowDeadline: today.getTime() + 20 * DAY_MS});
+        assert.strictEquals(getDailyBand(t, today), 'radar');
+    });
+
+    test('deadline today → mandatory', () => {
+        const t = makeTask({windowType: 'milestone', windowDeadline: today.getTime()});
+        assert.strictEquals(getDailyBand(t, today), 'mandatory');
+    });
+
+    test('completed milestone is hidden', () => {
+        const t = makeTask({windowType: 'milestone', completedAt: Date.now()});
+        assert.strictEquals(getDailyBand(t, today), 'hidden');
     });
 });
 

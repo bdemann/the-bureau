@@ -16,11 +16,12 @@ export const ProjectDetailElement = defineElement<{
     tagName: 'project-detail',
 
     events: {
-        taskCompleted: defineElementEvent<string>(),
-        taskSnoozed:   defineElementEvent<string>(),
-        taskUnSnoozed: defineElementEvent<string>(),
-        taskSkipped:   defineElementEvent<string>(),
-        taskAdded:     defineElementEvent<Task>(),
+        taskCompleted:      defineElementEvent<string>(),
+        taskSnoozed:        defineElementEvent<string>(),
+        taskUnSnoozed:      defineElementEvent<string>(),
+        taskSkipped:        defineElementEvent<string>(),
+        taskProgressLogged: defineElementEvent<string>(),
+        taskAdded:          defineElementEvent<Task>(),
         back:          defineElementEvent<void>(),
     },
 
@@ -180,6 +181,8 @@ export const ProjectDetailElement = defineElement<{
                                         dispatch(new events.taskUnSnoozed(e.detail)))}
                                     ${listen(TaskItemElement.events.skipped, e =>
                                         dispatch(new events.taskSkipped(e.detail)))}
+                                    ${listen(TaskItemElement.events.progressLogged, e =>
+                                        dispatch(new events.taskProgressLogged(e.detail)))}
                                 ></${TaskItemElement}>
                             `,
                         )}

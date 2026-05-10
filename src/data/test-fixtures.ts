@@ -16,6 +16,7 @@ export function makeTask(overrides: Partial<Task> = {}): Task {
         recurrence: null,
         currentPeriodStart: null,
         completionsThisPeriod: 0,
+        progressCount: 0,
         snoozeCount: 0,
         snoozedUntil: null,
         completedAt: null,

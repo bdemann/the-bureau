@@ -92,6 +92,9 @@ function step2Timing(task: Task, today: Date): DailyBand {
     if (task.windowType === 'hard') {
         return step2HardDate(task, today);
     }
+    if (task.windowType === 'milestone') {
+        return step2Milestone(task, today);
+    }
     return step2FlexibleWindow(task, today);
 }
 
@@ -126,6 +129,16 @@ function step2FlexibleWindow(task: Task, today: Date): DailyBand {
         if (pctRemaining <= 0.25) return 'radar';
         if (pctRemaining <= 0.5 && tier <= 2) return 'radar';
     }
+    return 'backlog';
+}
+
+function step2Milestone(task: Task, today: Date): DailyBand {
+    // No deadline set — stays in backlog until snooze escalation lifts it.
+    if (task.windowDeadline === null) return 'backlog';
+    const daysLeft = daysBetween(today, task.windowDeadline);
+    if (daysLeft <= 0) return 'mandatory';
+    if (daysLeft <= 30) return 'radar';
+    if (daysLeft <= 90) return 'backlog';
     return 'backlog';
 }
 

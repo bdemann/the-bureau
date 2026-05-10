@@ -7,59 +7,7 @@ export const headerPage = defineBookPage({
     title: 'Bureau Header',
     defineExamples({defineExample}) {
         defineExample({
-            title: 'Dashboard — nominal score',
-            render() {
-                return html`
-                    <${BureauHeaderElement.assign({
-                        patriotScore: 100,
-                        streak: 3,
-                        onBack: null,
-                        projectName: null,
-                    })}></${BureauHeaderElement}>
-                `;
-            },
-        });
-        defineExample({
-            title: 'Project view — with back button',
-            render() {
-                return html`
-                    <${BureauHeaderElement.assign({
-                        patriotScore: 100,
-                        streak: 5,
-                        onBack: () => {},
-                        projectName: 'Homeowner',
-                    })}></${BureauHeaderElement}>
-                `;
-            },
-        });
-        defineExample({
-            title: 'Low score (red)',
-            render() {
-                return html`
-                    <${BureauHeaderElement.assign({
-                        patriotScore: 25,
-                        streak: 0,
-                        onBack: null,
-                        projectName: null,
-                    })}></${BureauHeaderElement}>
-                `;
-            },
-        });
-        defineExample({
-            title: 'Warning score (orange)',
-            render() {
-                return html`
-                    <${BureauHeaderElement.assign({
-                        patriotScore: 55,
-                        streak: 1,
-                        onBack: null,
-                        projectName: null,
-                    })}></${BureauHeaderElement}>
-                `;
-            },
-        });
-        defineExample({
-            title: 'High score (bright gold)',
+            title: 'Rank: Patriot (130+)',
             render() {
                 return html`
                     <${BureauHeaderElement.assign({
@@ -72,14 +20,66 @@ export const headerPage = defineBookPage({
             },
         });
         defineExample({
-            title: 'No streak',
+            title: 'Rank: Loyal Citizen (100–129)',
             render() {
                 return html`
                     <${BureauHeaderElement.assign({
-                        patriotScore: 100,
+                        patriotScore: 110,
+                        streak: 3,
+                        onBack: null,
+                        projectName: null,
+                    })}></${BureauHeaderElement}>
+                `;
+            },
+        });
+        defineExample({
+            title: 'Rank: Citizen (70–99)',
+            render() {
+                return html`
+                    <${BureauHeaderElement.assign({
+                        patriotScore: 85,
                         streak: 0,
                         onBack: null,
                         projectName: null,
+                    })}></${BureauHeaderElement}>
+                `;
+            },
+        });
+        defineExample({
+            title: 'Rank: Disengaged Citizen (40–69)',
+            render() {
+                return html`
+                    <${BureauHeaderElement.assign({
+                        patriotScore: 55,
+                        streak: 1,
+                        onBack: null,
+                        projectName: null,
+                    })}></${BureauHeaderElement}>
+                `;
+            },
+        });
+        defineExample({
+            title: 'Rank: Suspected Communist (0–39)',
+            render() {
+                return html`
+                    <${BureauHeaderElement.assign({
+                        patriotScore: 25,
+                        streak: 0,
+                        onBack: null,
+                        projectName: null,
+                    })}></${BureauHeaderElement}>
+                `;
+            },
+        });
+        defineExample({
+            title: 'Project view — with back button',
+            render() {
+                return html`
+                    <${BureauHeaderElement.assign({
+                        patriotScore: 110,
+                        streak: 5,
+                        onBack: () => {},
+                        projectName: 'Homeowner',
                     })}></${BureauHeaderElement}>
                 `;
             },

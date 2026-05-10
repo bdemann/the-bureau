@@ -40,7 +40,8 @@ export type ScheduleMode =
 
 export type WindowType =
     | 'hard'      // must happen on suggestedDate specifically (trash day)
-    | 'flexible'; // can happen any day within the window
+    | 'flexible'  // can happen any day within the window
+    | 'milestone'; // long-horizon task; track incremental progress until truly done
 
 export interface RecurrenceConfig {
     cadence: RecurrenceCadence;
@@ -100,6 +101,10 @@ export interface Task {
     currentPeriodStart: number | null;
     /** For multiple_per_period cadences: how many done so far this period. */
     completionsThisPeriod: number;
+
+    // ── Milestone progress (only used when windowType === 'milestone') ──
+    /** Number of times progress has been logged. */
+    progressCount: number;
 
     // ── Snooze (resets to 0 on completion) ──
     snoozeCount: number;
@@ -215,4 +220,6 @@ export interface AppState {
     readonly completionStreak: number;
     readonly dialogueQueue: ReadonlyArray<DialogueEntry>;
     readonly lastActiveDate: string; // YYYY-MM-DD
+    /** ms timestamp of last dismissal; null = never dismissed (show on first load). */
+    readonly reportNoticeDismissedAt: number | null;
 }

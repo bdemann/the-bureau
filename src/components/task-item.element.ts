@@ -22,10 +22,11 @@ export const TaskItemElement = defineElement<{
     tagName: 'task-item',
 
     events: {
-        completed: defineElementEvent<string>(),  // task id
-        snoozed:   defineElementEvent<string>(),  // task id
-        unSnoozed: defineElementEvent<string>(),  // task id
-        skipped:   defineElementEvent<string>(),  // task id — recurring only
+        completed:      defineElementEvent<string>(),  // task id
+        snoozed:        defineElementEvent<string>(),  // task id
+        unSnoozed:      defineElementEvent<string>(),  // task id
+        skipped:        defineElementEvent<string>(),  // task id — recurring only
+        progressLogged: defineElementEvent<string>(),  // task id — milestone only
     },
 
     styles: css`
@@ -185,9 +186,45 @@ export const TaskItemElement = defineElement<{
             color: #6B6B6B;
             font-style: italic;
         }
+
+        .progress-log-chip {
+            font-size: 0.68rem;
+            font-family: 'Courier Prime', monospace;
+            color: #4A6741;
+        }
+
+        .milestone-complete-btn {
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 0.72rem;
+            letter-spacing: 0.12em;
+            background: none;
+            border: 1px solid #1B2A4A;
+            color: #1B2A4A;
+            padding: 3px 10px;
+            cursor: pointer;
+            transition: background 0.15s, color 0.15s;
+        }
+
+        .milestone-complete-btn:hover {
+            background: #1B2A4A;
+            color: #F5EFE0;
+        }
+
+        .milestone-confirm {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-family: 'Special Elite', serif;
+            font-size: 0.75rem;
+            color: #4A4A4A;
+        }
     `,
 
-    render({inputs, dispatch, events}) {
+    state: () => ({
+        confirmingComplete: false,
+    }),
+
+    render({inputs, state, updateState, dispatch, events}) {
         const {task} = inputs;
         const severity = getSnoozeSeverity(task.snoozeCount);
         const overdue = isTaskOverdue(task);
@@ -213,6 +250,8 @@ export const TaskItemElement = defineElement<{
             ? `${task.completionsThisPeriod} / ${task.recurrence!.frequencyPerPeriod} this ${cadenceWord}`
             : null;
 
+        const isMilestone = task.windowType === 'milestone';
+
         // Hard-date tasks may not be snoozed past the date.
         const canSnooze = !(task.windowType === 'hard'
             && task.suggestedDate !== null
@@ -227,8 +266,10 @@ export const TaskItemElement = defineElement<{
                 <div class="task-top">
                     <button
                         class="complete-checkbox"
-                        title="Mark complete"
-                        @click=${() => dispatch(new events.completed(task.id))}
+                        title=${isMilestone ? 'Log progress' : 'Mark complete'}
+                        @click=${() => isMilestone
+                            ? dispatch(new events.progressLogged(task.id))
+                            : dispatch(new events.completed(task.id))}
                     >✓</button>
 
                     <span class="task-title">${task.title}</span>
@@ -251,6 +292,10 @@ export const TaskItemElement = defineElement<{
 
                     ${progressLabel
                         ? html`<span class="progress-chip">${progressLabel}</span>`
+                        : html``}
+
+                    ${isMilestone && task.progressCount > 0
+                        ? html`<span class="progress-log-chip">${task.progressCount} session${task.progressCount === 1 ? '' : 's'} logged</span>`
                         : html``}
 
                     ${task.snoozeCount > 0
@@ -300,6 +345,39 @@ export const TaskItemElement = defineElement<{
                                     @click=${() => dispatch(new events.skipped(task.id))}
                                 ></${ViraButton}>
                             ` : html``}
+                            ${isMilestone ? html`
+                                ${state.confirmingComplete
+                                    ? html`
+                                        <span class="milestone-confirm">
+                                            Truly done?
+                                            <${ViraButton.assign({
+                                                text: 'Yes, complete',
+                                                color: ViraColorVariant.Info,
+                                                buttonEmphasis: ViraEmphasis.Standard,
+                                                buttonSize: ViraSize.Small,
+                                            })}
+                                                @click=${() => {
+                                                    updateState({confirmingComplete: false});
+                                                    dispatch(new events.completed(task.id));
+                                                }}
+                                            ></${ViraButton}>
+                                            <${ViraButton.assign({
+                                                text: 'Not yet',
+                                                color: ViraColorVariant.Neutral,
+                                                buttonEmphasis: ViraEmphasis.Subtle,
+                                                buttonSize: ViraSize.Small,
+                                            })}
+                                                @click=${() => updateState({confirmingComplete: false})}
+                                            ></${ViraButton}>
+                                        </span>
+                                    `
+                                    : html`
+                                        <button
+                                            class="milestone-complete-btn"
+                                            @click=${() => updateState({confirmingComplete: true})}
+                                        >Mark Complete</button>
+                                    `}
+                            ` : html``}
                         `}
                 </div>
                 ` : html``}
@@ -324,9 +402,12 @@ function formatDueLabel(task: Task, overdue: boolean): string | null {
         return `${pattern} · next ${fmt}`;
     }
     if (task.windowDeadline !== null) {
-        const deadline = new Date(task.windowDeadline)
-            .toLocaleDateString('en-US', {month: 'short', day: 'numeric'});
-        return `Suggested ${fmt} · window ends ${deadline}`;
+        const deadlineDate = new Date(task.windowDeadline);
+        const sameDay = deadlineDate.toDateString() === new Date(due).toDateString();
+        if (!sameDay) {
+            const deadline = deadlineDate.toLocaleDateString('en-US', {month: 'short', day: 'numeric'});
+            return `Suggested ${fmt} · window ends ${deadline}`;
+        }
     }
     return `Suggested ${fmt}`;
 }

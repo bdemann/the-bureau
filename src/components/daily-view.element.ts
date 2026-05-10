@@ -12,22 +12,28 @@ import {TaskItemElement} from './task-item.element.js';
 
 const COLLAPSE_THRESHOLD = 5;
 
+const REPORT_NOTICE_RESHOW_MS = 7 * 24 * 60 * 60 * 1000; // 7 days
+
 export const DailyViewElement = defineElement<{
     tasks: ReadonlyArray<Task>;
     projects: ReadonlyArray<Project>;
+    reportNoticeDismissedAt: number | null;
 }>()({
     tagName: 'daily-view',
 
     events: {
-        taskCompleted: defineElementEvent<string>(),
-        taskSnoozed:   defineElementEvent<string>(),
-        taskUnSnoozed: defineElementEvent<string>(),
-        taskSkipped:   defineElementEvent<string>(),
+        taskCompleted:         defineElementEvent<string>(),
+        taskSnoozed:           defineElementEvent<string>(),
+        taskUnSnoozed:         defineElementEvent<string>(),
+        taskSkipped:           defineElementEvent<string>(),
+        taskProgressLogged:    defineElementEvent<string>(),
+        reportNoticeDismissed: defineElementEvent<void>(),
     },
 
     state: () => ({
         expandRadar:   false,
         expandBacklog: false,
+        reportCopied:  false,
     }),
 
     styles: css`
@@ -97,6 +103,101 @@ export const DailyViewElement = defineElement<{
             display: flex;
             justify-content: flex-end;
         }
+
+        .report-notice {
+            margin-top: 40px;
+            border: 1px solid rgba(0,0,0,0.2);
+            border-top: 3px solid #1B2A4A;
+            padding: 14px 16px;
+            background: rgba(255,253,247,0.7);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .report-notice::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: repeating-linear-gradient(
+                -55deg,
+                transparent,
+                transparent 18px,
+                rgba(27,42,74,0.02) 18px,
+                rgba(27,42,74,0.02) 20px
+            );
+            pointer-events: none;
+        }
+
+        .report-notice-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 8px;
+        }
+
+        .report-notice-dismiss {
+            background: none;
+            border: none;
+            cursor: pointer;
+            color: #6B6B6B;
+            font-size: 1rem;
+            line-height: 1;
+            padding: 0;
+            flex-shrink: 0;
+            transition: color 0.15s;
+        }
+
+        .report-notice-dismiss:hover {
+            color: #1B2A4A;
+        }
+
+        .report-notice-eyebrow {
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 0.6rem;
+            letter-spacing: 0.3em;
+            color: #6B6B6B;
+            margin-bottom: 4px;
+        }
+
+        .report-notice-title {
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 1.1rem;
+            letter-spacing: 0.15em;
+            color: #1B2A4A;
+            margin-bottom: 6px;
+        }
+
+        .report-notice-body {
+            font-family: 'Special Elite', serif;
+            font-size: 0.78rem;
+            color: #4A4A4A;
+            line-height: 1.5;
+            margin-bottom: 12px;
+        }
+
+        .report-notice-btn {
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 0.8rem;
+            letter-spacing: 0.15em;
+            background: #1B2A4A;
+            color: #F5EFE0;
+            border: none;
+            padding: 8px 18px;
+            cursor: pointer;
+            transition: background 0.15s;
+        }
+
+        .report-notice-btn:hover {
+            background: #2C3E6B;
+        }
+
+        .report-copied {
+            font-family: 'Courier Prime', monospace;
+            font-size: 0.68rem;
+            color: #6B6B6B;
+            margin-left: 10px;
+            font-style: italic;
+        }
     `,
 
     render({inputs, state, updateState, dispatch, events}) {
@@ -143,6 +244,8 @@ export const DailyViewElement = defineElement<{
                             dispatch(new events.taskUnSnoozed(e.detail)))}
                         ${listen(TaskItemElement.events.skipped, e =>
                             dispatch(new events.taskSkipped(e.detail)))}
+                        ${listen(TaskItemElement.events.progressLogged, e =>
+                            dispatch(new events.taskProgressLogged(e.detail)))}
                     ></${TaskItemElement}>
                 `)}
             </div>
@@ -214,6 +317,29 @@ export const DailyViewElement = defineElement<{
             `;
         };
 
+        const CLEAR_URL = 'https://clear.bureauofcivicresponsibility.org';
+
+        const showReportNotice = inputs.reportNoticeDismissedAt === null
+            || (Date.now() - inputs.reportNoticeDismissedAt) >= REPORT_NOTICE_RESHOW_MS;
+
+        async function onReport() {
+            if (navigator.share) {
+                try {
+                    await navigator.share({
+                        title: 'CLEAR — Civic Engagement Tracking System',
+                        text: 'A neighbor has been flagged for potential civic disengagement. Install CLEAR to verify your own compliance record and demonstrate your patriotism to the Bureau.',
+                        url: CLEAR_URL,
+                    });
+                } catch {
+                    // User cancelled share — no action needed.
+                }
+            } else {
+                await navigator.clipboard.writeText(CLEAR_URL);
+                updateState({reportCopied: true});
+                setTimeout(() => updateState({reportCopied: false}), 3000);
+            }
+        }
+
         return html`
             ${renderBand('mandatory', {
                 emptyMessage: 'No mandatory tasks today. Agent Whitaker approves.',
@@ -230,6 +356,31 @@ export const DailyViewElement = defineElement<{
                 expanded: state.expandBacklog,
                 onToggle: () => updateState({expandBacklog: !state.expandBacklog}),
             })}
+
+            ${showReportNotice ? html`
+            <div class="report-notice">
+                <div class="report-notice-top">
+                    <div class="report-notice-eyebrow">Bureau of Civic Responsibility — Community Bulletin</div>
+                    <button
+                        class="report-notice-dismiss"
+                        title="Dismiss"
+                        @click=${() => dispatch(new events.reportNoticeDismissed())}
+                    >×</button>
+                </div>
+                <div class="report-notice-title">Report a Neighbor</div>
+                <div class="report-notice-body">
+                    Civic disengagement doesn't just affect the individual — it weakens
+                    the Republic. If you suspect a neighbor of failing their obligations,
+                    refer them to CLEAR. It's not just your right. It's your duty.
+                </div>
+                <button class="report-notice-btn" @click=${onReport}>
+                    File a Report
+                </button>
+                ${state.reportCopied
+                    ? html`<span class="report-copied">Link copied to clipboard.</span>`
+                    : html``}
+            </div>
+            ` : html``}
         `;
     },
 });
