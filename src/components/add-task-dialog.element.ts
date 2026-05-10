@@ -389,35 +389,46 @@ export const AddTaskDialogElement = defineElement<{
                         </div>
                     </div>
 
-                    <!-- Window type -->
-                    <div class="field">
-                        <span class="field-label">Timing Type</span>
-                        <div class="seg">
-                            <${ViraButton.assign({
-                                text: 'Flexible window',
-                                color: ViraColorVariant.Info,
-                                buttonEmphasis: state.windowType === 'flexible'
-                                    ? ViraEmphasis.Standard
-                                    : ViraEmphasis.Subtle,
-                                buttonSize: ViraSize.Small,
-                            })}
-                                @click=${() => updateState({windowType: 'flexible'})}
-                            ></${ViraButton}>
-                            <${ViraButton.assign({
-                                text: 'Hard date',
-                                color: ViraColorVariant.Warning,
-                                buttonEmphasis: state.windowType === 'hard'
-                                    ? ViraEmphasis.Standard
-                                    : ViraEmphasis.Subtle,
-                                buttonSize: ViraSize.Small,
-                            })}
-                                @click=${() => updateState({windowType: 'hard'})}
-                            ></${ViraButton}>
-                        </div>
+                    <!-- Recurring toggle -->
+                    <div class="recurring-row">
+                        <input
+                            id="recurring-toggle"
+                            type="checkbox"
+                            .checked=${state.isRecurring}
+                            @change=${(e: Event) =>
+                                updateState({isRecurring: (e.target as HTMLInputElement).checked})}
+                        />
+                        <label for="recurring-toggle">Recurring task</label>
                     </div>
 
-                    <!-- Suggested / hard date — hidden when an anchor picker takes over -->
-                    ${usesAnchor ? html`` : html`
+                    <!-- Window type + date — only relevant for one-time tasks -->
+                    ${state.isRecurring ? html`` : html`
+                        <div class="field">
+                            <span class="field-label">Timing Type</span>
+                            <div class="seg">
+                                <${ViraButton.assign({
+                                    text: 'Flexible window',
+                                    color: ViraColorVariant.Info,
+                                    buttonEmphasis: state.windowType === 'flexible'
+                                        ? ViraEmphasis.Standard
+                                        : ViraEmphasis.Subtle,
+                                    buttonSize: ViraSize.Small,
+                                })}
+                                    @click=${() => updateState({windowType: 'flexible'})}
+                                ></${ViraButton}>
+                                <${ViraButton.assign({
+                                    text: 'Hard date',
+                                    color: ViraColorVariant.Warning,
+                                    buttonEmphasis: state.windowType === 'hard'
+                                        ? ViraEmphasis.Standard
+                                        : ViraEmphasis.Subtle,
+                                    buttonSize: ViraSize.Small,
+                                })}
+                                    @click=${() => updateState({windowType: 'hard'})}
+                                ></${ViraButton}>
+                            </div>
+                        </div>
+
                         <div class="field">
                             <span class="field-label">
                                 ${state.windowType === 'hard'
@@ -432,18 +443,6 @@ export const AddTaskDialogElement = defineElement<{
                             />
                         </div>
                     `}
-
-                    <!-- Recurring toggle -->
-                    <div class="recurring-row">
-                        <input
-                            id="recurring-toggle"
-                            type="checkbox"
-                            .checked=${state.isRecurring}
-                            @change=${(e: Event) =>
-                                updateState({isRecurring: (e.target as HTMLInputElement).checked})}
-                        />
-                        <label for="recurring-toggle">Recurring task</label>
-                    </div>
 
                     ${state.isRecurring ? html`
                         <!-- Cadence -->
