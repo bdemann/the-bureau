@@ -4,6 +4,12 @@ import {VitePWA} from 'vite-plugin-pwa';
 export default defineConfig({
     build: {
         target: 'es2022',
+        rollupOptions: {
+            input: {
+                main: 'index.html',
+                book: 'book/index.html',
+            },
+        },
     },
     optimizeDeps: {
         esbuildOptions: {

@@ -5,11 +5,13 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
+    "book": "vite --open /book/",
     "build": "tsc && vite build",
     "preview": "vite preview",
     "test": "tsx --test 'src/data/*.test.ts'"
   },
   "dependencies": {
+    "element-book": "^26.17.3",
     "element-vir": "^26.0.0",
     "lucide-static": "^0.460.0",
     "theme-vir": "^28.0.0",
