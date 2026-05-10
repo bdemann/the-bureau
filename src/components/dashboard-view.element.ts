@@ -11,8 +11,8 @@ import {isTaskOverdue, isTaskVisible} from '../data/storage.js';
 // ─────────────────────────────────────────────────────────────────────────────
 
 export const DashboardViewElement = defineElement<{
-    projects: Project[];
-    tasks: Task[];
+    projects: ReadonlyArray<Project>;
+    tasks: ReadonlyArray<Task>;
 }>()({
     tagName: 'dashboard-view',
 

@@ -91,23 +91,31 @@ export const BureauAppElement = defineElement()({
     }),
 
     render({state, updateState}) {
-        const appState = state.app;
-        const {view, selectedProjectId, dialogueQueue, patriotScore, completionStreak} = appState;
+        // `state.app` is a live reactive ref: updateState mutates it in place,
+        // so reading state.app inside any handler always returns the latest
+        // committed value. Don't snapshot it into a local — that would freeze
+        // the value at render time and silently swallow updates between two
+        // commits in the same handler.
+        const {view, selectedProjectId, dialogueQueue, patriotScore, completionStreak} =
+            state.app;
 
         const currentDialogue = dialogueQueue.find(d => !d.dismissed) ?? null;
         const selectedProject = selectedProjectId
-            ? appState.projects.find(p => p.id === selectedProjectId) ?? null
+            ? state.app.projects.find(p => p.id === selectedProjectId) ?? null
             : null;
 
         // ── State helpers ──────────────────────────────────────────────────────
 
         function commit(updates: Partial<AppState>): void {
-            const next = {...appState, ...updates} as AppState;
+            const next = {...state.app, ...updates} as AppState;
             saveState(next);
             updateState({app: next});
         }
 
         function pushDialogue(character: 'director' | 'agent', message: string): void {
+            const queue = state.app.dialogueQueue;
+            const last = queue[0];
+            if (last && last.message === message) return;
             const entry: DialogueEntry = {
                 id: generateId(),
                 character,
@@ -115,9 +123,7 @@ export const BureauAppElement = defineElement()({
                 timestamp: Date.now(),
                 dismissed: false,
             };
-            const last = appState.dialogueQueue[0];
-            if (last && last.message === message) return;
-            commit({dialogueQueue: [entry, ...appState.dialogueQueue.slice(0, 9)]});
+            commit({dialogueQueue: [entry, ...queue.slice(0, 9)]});
         }
 
         function triggerDialogue(
@@ -131,11 +137,11 @@ export const BureauAppElement = defineElement()({
         // ── Event handlers ─────────────────────────────────────────────────────
 
         function onTaskCompleted(taskId: string): void {
-            const target = appState.tasks.find(t => t.id === taskId);
+            const target = state.app.tasks.find(t => t.id === taskId);
             if (!target) return;
 
             const now = new Date();
-            const tasks = appState.tasks.map(t => {
+            const tasks = state.app.tasks.map(t => {
                 if (t.id !== taskId) return t;
 
                 // Multiple-per-period: bump count, reset snooze. The period
@@ -168,8 +174,9 @@ export const BureauAppElement = defineElement()({
 
             const tier = (target.consequenceTier ?? 3) as ConsequenceTier;
             const reward = tierCompletionReward(tier);
-            const newScore = Math.min(200, patriotScore + reward);
-            const newStreak = completionStreak + 1;
+            const prevScore = state.app.patriotScore;
+            const newScore = Math.min(200, prevScore + reward);
+            const newStreak = state.app.completionStreak + 1;
 
             commit({tasks, patriotScore: newScore, completionStreak: newStreak});
 
@@ -179,13 +186,13 @@ export const BureauAppElement = defineElement()({
             if (newStreak > 0 && newStreak % 5 === 0) {
                 setTimeout(() => triggerDialogue('streak'), 400);
             }
-            if (newScore >= 150 && patriotScore < 150) {
+            if (newScore >= 150 && prevScore < 150) {
                 setTimeout(() => triggerDialogue('score_high'), 800);
             }
         }
 
         function onTaskSnoozed(taskId: string): void {
-            const task = appState.tasks.find(t => t.id === taskId);
+            const task = state.app.tasks.find(t => t.id === taskId);
             if (!task) return;
 
             // Hard-date tasks: cannot snooze past the date.
@@ -203,9 +210,10 @@ export const BureauAppElement = defineElement()({
 
             const tier = task.consequenceTier as ConsequenceTier;
             const penalty = Math.min(snoozePenalty(tier) * newSnoozeCount, 30);
-            const newScore = Math.max(0, patriotScore - penalty);
+            const prevScore = state.app.patriotScore;
+            const newScore = Math.max(0, prevScore - penalty);
 
-            const tasks = appState.tasks.map(t =>
+            const tasks = state.app.tasks.map(t =>
                 t.id === taskId
                     ? {...t, snoozeCount: newSnoozeCount, snoozedUntil}
                     : t,
@@ -218,31 +226,31 @@ export const BureauAppElement = defineElement()({
                 triggerDialogue(escalation.trigger, escalation.preferDirector);
             }
 
-            if (newScore < 40 && patriotScore >= 40) {
+            if (newScore < 40 && prevScore >= 40) {
                 setTimeout(() => triggerDialogue('score_low', true), 600);
             }
         }
 
         function onTaskUnSnoozed(taskId: string): void {
-            const tasks = appState.tasks.map(t =>
+            const tasks = state.app.tasks.map(t =>
                 t.id === taskId ? {...t, snoozedUntil: null} : t,
             );
             commit({tasks});
         }
 
         function onTaskAdded(task: Task): void {
-            commit({tasks: [...appState.tasks, task]});
+            commit({tasks: [...state.app.tasks, task]});
             if (Math.random() < 0.6) {
                 triggerDialogue('task_added', false);
             }
         }
 
         function onProjectAdded(project: Project): void {
-            commit({projects: [...appState.projects, project]});
+            commit({projects: [...state.app.projects, project]});
         }
 
         function onProjectSelected(projectId: string): void {
-            const projectTasks = appState.tasks.filter(t => t.projectId === projectId);
+            const projectTasks = state.app.tasks.filter(t => t.projectId === projectId);
             const overdue = projectTasks.filter(t => isTaskOverdue(t));
             commit({view: 'project', selectedProjectId: projectId});
             if (overdue.length > 0) {
@@ -260,7 +268,7 @@ export const BureauAppElement = defineElement()({
         }
 
         function onDismissDialogue(): void {
-            const dialogueQueue = appState.dialogueQueue.map((d, i) =>
+            const dialogueQueue = state.app.dialogueQueue.map((d, i) =>
                 i === 0 ? {...d, dismissed: true} : d,
             );
             commit({dialogueQueue});
@@ -318,8 +326,8 @@ export const BureauAppElement = defineElement()({
                 ${view === 'daily'
                     ? html`
                         <${DailyViewElement.assign({
-                            tasks: appState.tasks,
-                            projects: appState.projects,
+                            tasks: state.app.tasks,
+                            projects: state.app.projects,
                         })}
                             ${listen(DailyViewElement.events.taskCompleted, e =>
                                 onTaskCompleted(e.detail))}
@@ -332,8 +340,8 @@ export const BureauAppElement = defineElement()({
                     : view === 'operations'
                     ? html`
                         <${DashboardViewElement.assign({
-                            projects: appState.projects,
-                            tasks: appState.tasks,
+                            projects: state.app.projects,
+                            tasks: state.app.tasks,
                         })}
                             ${listen(DashboardViewElement.events.projectSelected, e =>
                                 onProjectSelected(e.detail))}
@@ -345,7 +353,7 @@ export const BureauAppElement = defineElement()({
                     ? html`
                         <${ProjectDetailElement.assign({
                             project: selectedProject,
-                            tasks: appState.tasks.filter(
+                            tasks: state.app.tasks.filter(
                                 t => t.projectId === selectedProject.id,
                             ),
                         })}

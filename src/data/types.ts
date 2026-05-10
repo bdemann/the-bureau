@@ -206,13 +206,13 @@ export interface DialogueEntry {
 }
 
 export interface AppState {
-    schemaVersion: number;
-    projects: Project[];
-    tasks: Task[];
-    view: AppView;
-    selectedProjectId: string | null;
-    patriotScore: number;
-    completionStreak: number;
-    dialogueQueue: DialogueEntry[];
-    lastActiveDate: string; // YYYY-MM-DD
+    readonly schemaVersion: number;
+    readonly projects: ReadonlyArray<Project>;
+    readonly tasks: ReadonlyArray<Task>;
+    readonly view: AppView;
+    readonly selectedProjectId: string | null;
+    readonly patriotScore: number;
+    readonly completionStreak: number;
+    readonly dialogueQueue: ReadonlyArray<DialogueEntry>;
+    readonly lastActiveDate: string; // YYYY-MM-DD
 }

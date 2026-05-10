@@ -11,7 +11,7 @@ import {AddTaskDialogElement} from './add-task-dialog.element.js';
 
 export const ProjectDetailElement = defineElement<{
     project: Project;
-    tasks: Task[];    // only this project's tasks
+    tasks: ReadonlyArray<Task>;    // only this project's tasks
 }>()({
     tagName: 'project-detail',
 
