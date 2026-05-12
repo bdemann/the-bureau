@@ -21,6 +21,7 @@ function makeTask(projectId: string, overrides: Partial<Task> & {title: string})
         id: Math.random().toString(36).slice(2),
         projectId,
         description: '',
+        timeOfDay: 'anytime',
         consequenceTier: 2,
         windowType: 'flexible',
         suggestedDate: null,

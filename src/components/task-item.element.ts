@@ -27,6 +27,7 @@ export const TaskItemElement = defineElement<{
         unSnoozed:      defineElementEvent<string>(),  // task id
         skipped:        defineElementEvent<string>(),  // task id — recurring only
         progressLogged: defineElementEvent<string>(),  // task id — milestone only
+        editRequested:  defineElementEvent<string>(),  // task id
     },
 
     styles: css`
@@ -42,6 +43,7 @@ export const TaskItemElement = defineElement<{
             position: relative;
             transition: border-color 0.2s;
             overflow: hidden;
+            cursor: pointer;
         }
 
         /* Tier border colours (replaces priority colours). */
@@ -258,7 +260,7 @@ export const TaskItemElement = defineElement<{
             && task.suggestedDate <= Date.now());
 
         return html`
-            <div class="${classes}">
+            <div class="${classes}" @click=${() => dispatch(new events.editRequested(task.id))}>
                 ${inputs.projectName
                     ? html`<div class="project-tag">${inputs.projectName}</div>`
                     : html``}
@@ -267,9 +269,12 @@ export const TaskItemElement = defineElement<{
                     <button
                         class="complete-checkbox"
                         title=${isMilestone ? 'Log progress' : 'Mark complete'}
-                        @click=${() => isMilestone
-                            ? dispatch(new events.progressLogged(task.id))
-                            : dispatch(new events.completed(task.id))}
+                        @click=${(e: Event) => {
+                            e.stopPropagation();
+                            isMilestone
+                                ? dispatch(new events.progressLogged(task.id))
+                                : dispatch(new events.completed(task.id));
+                        }}
                     >✓</button>
 
                     <span class="task-title">${task.title}</span>
@@ -320,7 +325,7 @@ export const TaskItemElement = defineElement<{
                                 buttonEmphasis: ViraEmphasis.Subtle,
                                 buttonSize: ViraSize.Small,
                             })}
-                                @click=${() => dispatch(new events.unSnoozed(task.id))}
+                                @click=${(e: Event) => { e.stopPropagation(); dispatch(new events.unSnoozed(task.id)); }}
                             ></${ViraButton}>
                         `
                         : html`
@@ -331,7 +336,8 @@ export const TaskItemElement = defineElement<{
                                 buttonSize: ViraSize.Small,
                                 isDisabled: !canSnooze,
                             })}
-                                @click=${() => {
+                                @click=${(e: Event) => {
+                                    e.stopPropagation();
                                     if (canSnooze) dispatch(new events.snoozed(task.id));
                                 }}
                             ></${ViraButton}>
@@ -342,7 +348,7 @@ export const TaskItemElement = defineElement<{
                                     buttonEmphasis: ViraEmphasis.Subtle,
                                     buttonSize: ViraSize.Small,
                                 })}
-                                    @click=${() => dispatch(new events.skipped(task.id))}
+                                    @click=${(e: Event) => { e.stopPropagation(); dispatch(new events.skipped(task.id)); }}
                                 ></${ViraButton}>
                             ` : html``}
                             ${isMilestone ? html`
@@ -356,7 +362,8 @@ export const TaskItemElement = defineElement<{
                                                 buttonEmphasis: ViraEmphasis.Standard,
                                                 buttonSize: ViraSize.Small,
                                             })}
-                                                @click=${() => {
+                                                @click=${(e: Event) => {
+                                                    e.stopPropagation();
                                                     updateState({confirmingComplete: false});
                                                     dispatch(new events.completed(task.id));
                                                 }}
@@ -367,14 +374,14 @@ export const TaskItemElement = defineElement<{
                                                 buttonEmphasis: ViraEmphasis.Subtle,
                                                 buttonSize: ViraSize.Small,
                                             })}
-                                                @click=${() => updateState({confirmingComplete: false})}
+                                                @click=${(e: Event) => { e.stopPropagation(); updateState({confirmingComplete: false}); }}
                                             ></${ViraButton}>
                                         </span>
                                     `
                                     : html`
                                         <button
                                             class="milestone-complete-btn"
-                                            @click=${() => updateState({confirmingComplete: true})}
+                                            @click=${(e: Event) => { e.stopPropagation(); updateState({confirmingComplete: true}); }}
                                         >Mark Complete</button>
                                     `}
                             ` : html``}

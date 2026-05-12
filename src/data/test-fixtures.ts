@@ -8,6 +8,7 @@ export function makeTask(overrides: Partial<Task> = {}): Task {
         projectId: 'proj-id',
         title: 'Test task',
         description: '',
+        timeOfDay: 'anytime',
         consequenceTier: 3,
         windowType: 'flexible',
         suggestedDate: null,

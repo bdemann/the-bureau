@@ -1,6 +1,7 @@
 import {css, defineElement, defineElementEvent, html, listen} from 'element-vir';
 import {ViraButton, ViraColorVariant, ViraEmphasis, ViraSize} from 'vira';
-import type {DailyBand, Project, Task} from '../data/types.js';
+import type {DailyBand, Project, Task, TimeOfDay} from '../data/types.js';
+import {TIME_OF_DAY_SLOTS, timeOfDayLabel} from '../data/types.js';
 import {bandLabel, bandSubtitle, getDailyBand} from '../data/urgency.js';
 import {TaskItemElement} from './task-item.element.js';
 
@@ -27,6 +28,7 @@ export const DailyViewElement = defineElement<{
         taskUnSnoozed:         defineElementEvent<string>(),
         taskSkipped:           defineElementEvent<string>(),
         taskProgressLogged:    defineElementEvent<string>(),
+        taskEditRequested:     defineElementEvent<string>(),
         reportNoticeDismissed: defineElementEvent<void>(),
     },
 
@@ -96,6 +98,21 @@ export const DailyViewElement = defineElement<{
             display: flex;
             flex-direction: column;
             gap: 6px;
+        }
+
+        .time-group + .time-group {
+            margin-top: 10px;
+        }
+
+        .time-group-header {
+            font-family: 'Courier Prime', monospace;
+            font-size: 0.65rem;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+            color: #6B6B6B;
+            margin-bottom: 5px;
+            padding-bottom: 3px;
+            border-bottom: 1px dotted rgba(0,0,0,0.18);
         }
 
         .collapse-toggle {
@@ -246,10 +263,32 @@ export const DailyViewElement = defineElement<{
                             dispatch(new events.taskSkipped(e.detail)))}
                         ${listen(TaskItemElement.events.progressLogged, e =>
                             dispatch(new events.taskProgressLogged(e.detail)))}
+                        ${listen(TaskItemElement.events.editRequested, e =>
+                            dispatch(new events.taskEditRequested(e.detail)))}
                     ></${TaskItemElement}>
                 `)}
             </div>
         `;
+
+        const renderTasksGrouped = (tasks: Task[]) => {
+            const slotGroups = TIME_OF_DAY_SLOTS
+                .map((slot: TimeOfDay) => ({
+                    slot,
+                    tasks: tasks.filter(t => (t.timeOfDay ?? 'anytime') === slot),
+                }))
+                .filter(g => g.tasks.length > 0);
+
+            if (slotGroups.length <= 1) return renderTaskList(tasks);
+
+            return html`
+                ${slotGroups.map(g => html`
+                    <div class="time-group">
+                        <div class="time-group-header">${timeOfDayLabel(g.slot)}</div>
+                        ${renderTaskList(g.tasks)}
+                    </div>
+                `)}
+            `;
+        };
 
         const renderBand = (
             band: DailyBand,
@@ -297,7 +336,7 @@ export const DailyViewElement = defineElement<{
                                 </div>
                               `
                             : html`
-                                ${renderTaskList(tasks)}
+                                ${renderTasksGrouped(tasks)}
                                 ${opts?.collapsible && opts.expanded
                                     ? html`
                                         <div class="collapse-toggle">

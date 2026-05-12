@@ -15,9 +15,15 @@ import type {
     RecurrenceConfig,
     ScheduleMode,
     Task,
+    TimeOfDay,
     WindowType,
 } from '../data/types.js';
-import {cadenceLabel, isMultiplePerPeriodCadence, tierDescription, tierLabel} from '../data/types.js';
+
+function msToDateString(ms: number): string {
+    const d = new Date(ms);
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+}
+import {TIME_OF_DAY_SLOTS, cadenceLabel, isMultiplePerPeriodCadence, tierDescription, tierLabel, timeOfDayLabel} from '../data/types.js';
 import {generateId, startOfDay} from '../data/storage.js';
 import {initialiseRecurrence} from '../data/recurrence.js';
 
@@ -44,11 +50,13 @@ const ALL_CADENCES: RecurrenceCadence[] = [
 export const AddTaskDialogElement = defineElement<{
     projectId: string;
     open: boolean;
+    editTask?: Task | null;
 }>()({
     tagName: 'add-task-dialog',
 
     events: {
         taskSubmitted: defineElementEvent<Task>(),
+        taskUpdated:   defineElementEvent<Task>(),
         cancelled:     defineElementEvent<void>(),
     },
 
@@ -56,6 +64,7 @@ export const AddTaskDialogElement = defineElement<{
         titleValue: '',
         description: '',
         consequenceTier: 3 as ConsequenceTier,
+        timeOfDay: 'anytime' as TimeOfDay,
         isRecurring: false,
         cadence: 'weekly' as RecurrenceCadence,
         frequencyPerPeriod: 2,
@@ -71,6 +80,8 @@ export const AddTaskDialogElement = defineElement<{
         monthAnchorMode: 'dom' as 'dom' | 'ordinal',
         /** 1|2|3|4|-1 for "1st/2nd/3rd/4th/last". */
         ordinalWeek: 3 as 1 | 2 | 3 | 4 | -1,
+        /** ID of the task currently being edited; null means add mode. */
+        currentEditId: null as string | null,
     }),
 
     styles: css`
@@ -166,6 +177,16 @@ export const AddTaskDialogElement = defineElement<{
             width: 100%;
         }
 
+        .tod-grid {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 6px;
+        }
+
+        .tod-grid ${ViraButton} {
+            width: 100%;
+        }
+
         .tier-help {
             margin-top: 6px;
             font-size: 0.72rem;
@@ -233,6 +254,33 @@ export const AddTaskDialogElement = defineElement<{
     render({inputs, state, updateState, dispatch, events}) {
         if (!inputs.open) return html``;
 
+        const editTask = inputs.editTask ?? null;
+        const isEditMode = editTask !== null;
+
+        // On first render for a new editTask, populate form state from the task.
+        if (isEditMode && state.currentEditId !== editTask.id) {
+            const t = editTask;
+            const cfg = t.recurrence;
+            updateState({
+                currentEditId: t.id,
+                titleValue: t.title,
+                description: t.description,
+                timeOfDay: t.timeOfDay ?? 'anytime',
+                consequenceTier: t.consequenceTier,
+                isRecurring: cfg !== null,
+                cadence: cfg?.cadence ?? 'weekly',
+                frequencyPerPeriod: cfg?.frequencyPerPeriod ?? 2,
+                scheduleMode: cfg?.scheduleMode ?? 'fixed',
+                windowType: t.windowType,
+                dayOfWeek: cfg?.hardDayOfWeek ?? 4,
+                dayOfMonth: cfg?.hardDayOfMonth ?? 1,
+                monthAnchorMode: cfg?.ordinalWeek !== undefined ? 'ordinal' : 'dom',
+                ordinalWeek: cfg?.ordinalWeek ?? 3,
+                suggestedDate: t.suggestedDate ? msToDateString(t.suggestedDate) : '',
+            });
+            return html``;
+        }
+
         const isMulti = state.isRecurring && isMultiplePerPeriodCadence(state.cadence);
 
         // When recurring weekly/monthly the user picks an anchor (day-of-week or
@@ -290,11 +338,22 @@ export const AddTaskDialogElement = defineElement<{
                 windowLengthDays = init.windowLengthDays;
             }
 
+            const baseTask = isEditMode ? editTask! : null;
+
             const task: Task = {
-                id: generateId(),
-                projectId: inputs.projectId,
+                // In edit mode: preserve identity and history fields.
+                id: baseTask?.id ?? generateId(),
+                projectId: baseTask?.projectId ?? inputs.projectId,
+                createdAt: baseTask?.createdAt ?? Date.now(),
+                snoozeCount: baseTask?.snoozeCount ?? 0,
+                snoozedUntil: baseTask?.snoozedUntil ?? null,
+                completedAt: baseTask?.completedAt ?? null,
+                completionsThisPeriod: baseTask?.completionsThisPeriod ?? 0,
+                progressCount: baseTask?.progressCount ?? 0,
+                // Editable fields:
                 title: state.titleValue.trim(),
                 description: state.description.trim(),
+                timeOfDay: state.timeOfDay,
                 consequenceTier: state.consequenceTier,
                 windowType: state.windowType,
                 suggestedDate,
@@ -302,23 +361,23 @@ export const AddTaskDialogElement = defineElement<{
                 windowLengthDays,
                 recurrence,
                 currentPeriodStart,
-                completionsThisPeriod: 0,
-                progressCount: 0,
-                snoozeCount: 0,
-                snoozedUntil: null,
-                completedAt: null,
-                createdAt: Date.now(),
                 // Legacy compatibility — derive from new fields
                 priority: tierToPriority(state.consequenceTier),
                 dueDate: suggestedDate,
             };
 
-            dispatch(new events.taskSubmitted(task));
+            if (isEditMode) {
+                dispatch(new events.taskUpdated(task));
+            } else {
+                dispatch(new events.taskSubmitted(task));
+            }
+
             // Reset
             updateState({
                 titleValue: '',
                 description: '',
                 consequenceTier: 3,
+                timeOfDay: 'anytime',
                 isRecurring: false,
                 cadence: 'weekly',
                 frequencyPerPeriod: 2,
@@ -329,6 +388,7 @@ export const AddTaskDialogElement = defineElement<{
                 dayOfMonth: 1,
                 monthAnchorMode: 'dom',
                 ordinalWeek: 3,
+                currentEditId: null,
             });
         }
 
@@ -336,11 +396,14 @@ export const AddTaskDialogElement = defineElement<{
             <div
                 class="overlay"
                 @click=${(e: Event) => {
-                    if (e.target === e.currentTarget) dispatch(new events.cancelled());
+                    if (e.target === e.currentTarget) {
+                        dispatch(new events.cancelled());
+                        updateState({currentEditId: null});
+                    }
                 }}
             >
                 <div class="sheet">
-                    <div class="sheet-title">FILE NEW TASK</div>
+                    <div class="sheet-title">${isEditMode ? 'AMEND TASK' : 'FILE NEW TASK'}</div>
 
                     <!-- Title -->
                     <div class="field">
@@ -387,6 +450,25 @@ export const AddTaskDialogElement = defineElement<{
                         <div class="tier-help">
                             <strong>${tierLabel(state.consequenceTier)}.</strong>
                             ${tierDescription(state.consequenceTier)}
+                        </div>
+                    </div>
+
+                    <!-- Time of day -->
+                    <div class="field">
+                        <span class="field-label">Time of Day</span>
+                        <div class="tod-grid">
+                            ${TIME_OF_DAY_SLOTS.map(slot => html`
+                                <${ViraButton.assign({
+                                    text: timeOfDayLabel(slot),
+                                    color: ViraColorVariant.Info,
+                                    buttonEmphasis: state.timeOfDay === slot
+                                        ? ViraEmphasis.Standard
+                                        : ViraEmphasis.Subtle,
+                                    buttonSize: ViraSize.Small,
+                                })}
+                                    @click=${() => updateState({timeOfDay: slot})}
+                                ></${ViraButton}>
+                            `)}
                         </div>
                     </div>
 
@@ -642,11 +724,14 @@ export const AddTaskDialogElement = defineElement<{
                             color: ViraColorVariant.Neutral,
                             buttonEmphasis: ViraEmphasis.Subtle,
                         })}
-                            @click=${() => dispatch(new events.cancelled())}
+                            @click=${() => {
+                                dispatch(new events.cancelled());
+                                updateState({currentEditId: null});
+                            }}
                         ></${ViraButton}>
                         <span class="grow">
                             <${ViraButton.assign({
-                                text: 'FILE TASK',
+                                text: isEditMode ? 'SAVE CHANGES' : 'FILE TASK',
                                 color: ViraColorVariant.Info,
                                 isDisabled: !canSubmit,
                             })}

@@ -74,6 +74,26 @@ export type ConsequenceTier = 1 | 2 | 3 | 4;
 
 export type DailyBand = 'mandatory' | 'suggested' | 'radar' | 'backlog' | 'hidden';
 
+export type TimeOfDay = 'morning' | 'afternoon' | 'evening' | 'bedtime' | 'anytime';
+
+export const TIME_OF_DAY_SLOTS: ReadonlyArray<TimeOfDay> = [
+    'morning', 'afternoon', 'evening', 'bedtime', 'anytime',
+];
+
+export const TIME_OF_DAY_ORDER: Record<TimeOfDay, number> = {
+    morning: 0, afternoon: 1, evening: 2, bedtime: 3, anytime: 4,
+};
+
+export function timeOfDayLabel(t: TimeOfDay): string {
+    switch (t) {
+        case 'morning':   return 'Morning';
+        case 'afternoon': return 'Afternoon';
+        case 'evening':   return 'Evening';
+        case 'bedtime':   return 'Bedtime';
+        case 'anytime':   return 'Anytime';
+    }
+}
+
 // ── Task ─────────────────────────────────────────────────────────────────────
 
 export interface Task {
@@ -81,6 +101,7 @@ export interface Task {
     projectId: string;
     title: string;
     description: string;
+    timeOfDay: TimeOfDay;
 
     // ── Consequence and timing type ──
     consequenceTier: ConsequenceTier;

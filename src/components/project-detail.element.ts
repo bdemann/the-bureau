@@ -21,8 +21,9 @@ export const ProjectDetailElement = defineElement<{
         taskUnSnoozed:      defineElementEvent<string>(),
         taskSkipped:        defineElementEvent<string>(),
         taskProgressLogged: defineElementEvent<string>(),
+        taskEditRequested:  defineElementEvent<string>(),
         taskAdded:          defineElementEvent<Task>(),
-        back:          defineElementEvent<void>(),
+        back:               defineElementEvent<void>(),
     },
 
     state: () => ({
@@ -183,6 +184,8 @@ export const ProjectDetailElement = defineElement<{
                                         dispatch(new events.taskSkipped(e.detail)))}
                                     ${listen(TaskItemElement.events.progressLogged, e =>
                                         dispatch(new events.taskProgressLogged(e.detail)))}
+                                    ${listen(TaskItemElement.events.editRequested, e =>
+                                        dispatch(new events.taskEditRequested(e.detail)))}
                                 ></${TaskItemElement}>
                             `,
                         )}
@@ -205,6 +208,8 @@ export const ProjectDetailElement = defineElement<{
                                             dispatch(new events.taskSnoozed(e.detail)))}
                                         ${listen(TaskItemElement.events.unSnoozed, e =>
                                             dispatch(new events.taskUnSnoozed(e.detail)))}
+                                        ${listen(TaskItemElement.events.editRequested, e =>
+                                            dispatch(new events.taskEditRequested(e.detail)))}
                                     ></${TaskItemElement}>
                                 `,
                             )}
@@ -246,6 +251,8 @@ export const ProjectDetailElement = defineElement<{
                                                     dispatch(new events.taskSnoozed(e.detail)))}
                                                 ${listen(TaskItemElement.events.unSnoozed, e =>
                                                     dispatch(new events.taskUnSnoozed(e.detail)))}
+                                                ${listen(TaskItemElement.events.editRequested, e =>
+                                                    dispatch(new events.taskEditRequested(e.detail)))}
                                             ></${TaskItemElement}>
                                         </div>
                                     `,

@@ -3,6 +3,7 @@ import type {
     ConsequenceTier,
     Priority,
     Task,
+    TimeOfDay,
 } from './types.js';
 import {SCHEMA_VERSION} from './types.js';
 
@@ -103,6 +104,7 @@ function ensureTaskShape(raw: any): Task {
         projectId: raw.projectId,
         title: raw.title ?? '',
         description: raw.description ?? '',
+        timeOfDay: (raw.timeOfDay ?? 'anytime') as TimeOfDay,
         consequenceTier: (raw.consequenceTier ?? 3) as ConsequenceTier,
         windowType: raw.windowType ?? 'flexible',
         suggestedDate: raw.suggestedDate ?? null,
