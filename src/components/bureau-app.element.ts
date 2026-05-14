@@ -1,5 +1,4 @@
 import {css, defineElement, html, listen} from 'element-vir';
-import {ViraButton, ViraColorVariant, ViraEmphasis, ViraSize} from 'vira';
 import type {AppState, AppView, ConsequenceTier, DialogueEntry, Project, Task} from '../data/types.js';
 import {
     generateId,
@@ -70,14 +69,6 @@ export const BureauAppElement = defineElement()({
             margin: 0 auto;
             padding-bottom: 60px;
         }
-
-        .top-tabs {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 6px;
-            padding: 8px 16px 4px;
-        }
-        .top-tabs ${ViraButton} { width: 100%; }
 
         .empty-msg {
             padding: 40px;
@@ -233,10 +224,6 @@ export const BureauAppElement = defineElement()({
             }
         }
 
-        function onReportNoticeDismissed(): void {
-            commit({reportNoticeDismissedAt: Date.now()});
-        }
-
         function onTaskUnSnoozed(taskId: string): void {
             const tasks = state.app.tasks.map(t =>
                 t.id === taskId ? {...t, snoozedUntil: null} : t,
@@ -316,8 +303,6 @@ export const BureauAppElement = defineElement()({
 
         // ── Render ─────────────────────────────────────────────────────────────
 
-        const showTabs = view !== 'project';
-
         return html`
             <div class="app-shell">
                 <${BureauHeaderElement.assign({
@@ -326,34 +311,11 @@ export const BureauAppElement = defineElement()({
                     onBack: view === 'project' ? onBack : null,
                     projectName: selectedProject?.name ?? null,
                 })}
+                    ${listen(BureauHeaderElement.events.homeRequested,
+                        () => setView('daily'))}
+                    ${listen(BureauHeaderElement.events.operationsRequested,
+                        () => setView('operations'))}
                 ></${BureauHeaderElement}>
-
-                ${showTabs
-                    ? html`
-                        <div class="top-tabs">
-                            <${ViraButton.assign({
-                                text: 'Daily',
-                                color: ViraColorVariant.Info,
-                                buttonEmphasis: view === 'daily'
-                                    ? ViraEmphasis.Standard
-                                    : ViraEmphasis.Subtle,
-                                buttonSize: ViraSize.Small,
-                            })}
-                                @click=${() => setView('daily')}
-                            ></${ViraButton}>
-                            <${ViraButton.assign({
-                                text: 'Operations',
-                                color: ViraColorVariant.Info,
-                                buttonEmphasis: view === 'operations'
-                                    ? ViraEmphasis.Standard
-                                    : ViraEmphasis.Subtle,
-                                buttonSize: ViraSize.Small,
-                            })}
-                                @click=${() => setView('operations')}
-                            ></${ViraButton}>
-                        </div>
-                      `
-                    : html``}
 
                 ${currentDialogue
                     ? html`
@@ -368,7 +330,6 @@ export const BureauAppElement = defineElement()({
                         <${DailyViewElement.assign({
                             tasks: state.app.tasks,
                             projects: state.app.projects,
-                            reportNoticeDismissedAt: state.app.reportNoticeDismissedAt,
                         })}
                             ${listen(DailyViewElement.events.taskCompleted, e =>
                                 onTaskCompleted(e.detail))}
@@ -380,8 +341,6 @@ export const BureauAppElement = defineElement()({
                                 onTaskSkipped(e.detail))}
                             ${listen(DailyViewElement.events.taskProgressLogged, e =>
                                 onTaskProgressLogged(e.detail))}
-                            ${listen(DailyViewElement.events.reportNoticeDismissed,
-                                onReportNoticeDismissed)}
                             ${listen(DailyViewElement.events.taskEditRequested, e =>
                                 onTaskEditRequested(e.detail))}
                         ></${DailyViewElement}>

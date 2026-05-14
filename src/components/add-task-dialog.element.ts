@@ -258,6 +258,7 @@ export const AddTaskDialogElement = defineElement<{
         const isEditMode = editTask !== null;
 
         // On first render for a new editTask, populate form state from the task.
+        // updateState is in-place, so state is immediately correct for the rest of render.
         if (isEditMode && state.currentEditId !== editTask.id) {
             const t = editTask;
             const cfg = t.recurrence;
@@ -278,7 +279,6 @@ export const AddTaskDialogElement = defineElement<{
                 ordinalWeek: cfg?.ordinalWeek ?? 3,
                 suggestedDate: t.suggestedDate ? msToDateString(t.suggestedDate) : '',
             });
-            return html``;
         }
 
         const isMulti = state.isRecurring && isMultiplePerPeriodCadence(state.cadence);

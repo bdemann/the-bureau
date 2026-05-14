@@ -34,8 +34,12 @@ Mark each row as you verify in the browser. Reset the localStorage entry
 - [ ] Page loads with no console errors
 - [ ] Header shows `CLEAR` + `BUREAU OF CIVIC RESPONSIBILITY` subtitle
 - [ ] Patriot score + streak render top-right
-- [ ] Tab bar shows Daily / Operations
 - [ ] Daily is the default landing view
+- [ ] Hamburger (☰) opens slide-in menu from the right
+- [ ] Menu → Daily navigates to daily view and closes menu
+- [ ] Menu → Operations navigates to operations view and closes menu
+- [ ] Menu → Report a Neighbor triggers share sheet (or copies link)
+- [ ] Clicking outside the menu panel closes it
 - [ ] Day-start dialogue appears on first load each day; dismiss closes it
 
 ### Operations view (project list)
