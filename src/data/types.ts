@@ -51,8 +51,13 @@ export interface RecurrenceConfig {
     frequencyPerPeriod: number;
     scheduleMode: ScheduleMode;
     /**
-     * Anchor day-of-week for weekly cadence, or — combined with `ordinalWeek` —
-     * for monthly cadence. 0 = Sunday … 6 = Saturday.
+     * Selected days of the week for weekly cadence (multi-select).
+     * 0 = Sunday … 6 = Saturday. Replaces the deprecated hardDayOfWeek for weekly tasks.
+     */
+    hardDaysOfWeek?: number[];
+    /**
+     * @deprecated Use hardDaysOfWeek for weekly cadence. Still used for monthly ordinal
+     * (combined with ordinalWeek). 0 = Sunday … 6 = Saturday.
      */
     hardDayOfWeek?: number;
     /** Anchor day-of-month for monthly cadence (1–31, clamped to month length). */

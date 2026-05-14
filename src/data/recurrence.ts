@@ -93,6 +93,20 @@ export function getNextSuggestedDate(
 
     // Fixed mode — keep relative position within the period.
     if (cfg.cadence === 'weekly' || cfg.cadence === 'multiple_per_week') {
+        const days = cfg.hardDaysOfWeek;
+        if (days && days.length > 0) {
+            if (days.length === 1) {
+                // Single day: place in next period (existing behaviour).
+                const d = new Date(nextPeriod.start);
+                d.setDate(d.getDate() + days[0]);
+                return d;
+            }
+            // Multi-day: cycle — find the next selected day strictly after completedAt.
+            // This allows the task to resurface in the same week (e.g. Wed→Fri).
+            const dayAfter = addDays(startOfDay(completedAt), 1);
+            return nextOccurrenceOfSelectedDays(dayAfter, days);
+        }
+        // Fallback (no hardDaysOfWeek — e.g. rolling mode or legacy data).
         const dow = cfg.hardDayOfWeek ?? (task.suggestedDate
             ? new Date(task.suggestedDate).getDay()
             : 0);
@@ -156,6 +170,10 @@ export function advanceRecurrence(task: Task, completedAt: Date): Task {
     const nextPeriodRef = new Date(currentPeriod.end + 1); // first ms of next period
     const nextPeriod = getCurrentPeriod(task.recurrence.cadence, nextPeriodRef);
     const nextSuggested = getNextSuggestedDate(task, completedAt, nextPeriod);
+    // For multi-day weekly, the next occurrence may land in the *current* week
+    // rather than the next period. Use the period that actually contains the
+    // next occurrence so currentPeriodStart is always accurate.
+    const nextOccurrencePeriod = getCurrentPeriod(task.recurrence.cadence, nextSuggested);
 
     return {
         ...task,
@@ -163,10 +181,10 @@ export function advanceRecurrence(task: Task, completedAt: Date): Task {
         snoozeCount: 0,
         snoozedUntil: null,
         completedAt: null,
-        currentPeriodStart: nextPeriod.start,
+        currentPeriodStart: nextOccurrencePeriod.start,
         suggestedDate: startOfDay(nextSuggested).getTime(),
-        windowDeadline: task.windowType === 'flexible' ? nextPeriod.end : null,
-        windowLengthDays: nextPeriod.lengthDays,
+        windowDeadline: task.windowType === 'flexible' ? nextOccurrencePeriod.end : null,
+        windowLengthDays: nextOccurrencePeriod.lengthDays,
     };
 }
 
@@ -210,17 +228,26 @@ export function rolloverIfNeeded(task: Task, today: Date): Task {
     if (task.currentPeriodStart >= todayPeriod.start) return task;
 
     // Period rolled over while task was incomplete — reset.
-    const nextSuggested = getNextSuggestedDate(task, today, todayPeriod);
+    // For multi-day weekly: find occurrence at-or-after today (include today
+    // if it's a selected day). getNextSuggestedDate uses "strictly after" which
+    // would skip today; bypass it here.
+    const days = cfg.hardDaysOfWeek;
+    const isMultiDay = (cfg.cadence === 'weekly' || cfg.cadence === 'multiple_per_week')
+        && days !== undefined && days.length > 1;
+    const nextSuggested = isMultiDay
+        ? nextOccurrenceOfSelectedDays(today, days!)
+        : getNextSuggestedDate(task, today, todayPeriod);
+    const nextOccurrencePeriod = getCurrentPeriod(cfg.cadence, nextSuggested);
     return {
         ...task,
         completionsThisPeriod: 0,
         snoozeCount: 0,
         snoozedUntil: null,
         completedAt: null,
-        currentPeriodStart: todayPeriod.start,
+        currentPeriodStart: nextOccurrencePeriod.start,
         suggestedDate: startOfDay(nextSuggested).getTime(),
-        windowDeadline: task.windowType === 'flexible' ? todayPeriod.end : null,
-        windowLengthDays: todayPeriod.lengthDays,
+        windowDeadline: task.windowType === 'flexible' ? nextOccurrencePeriod.end : null,
+        windowLengthDays: nextOccurrencePeriod.lengthDays,
     };
 }
 
@@ -252,10 +279,10 @@ export function initialiseRecurrence(
 
 function deriveInitialSuggested(cfg: RecurrenceConfig, period: Period, today: Date): number {
     if (cfg.cadence === 'weekly' || cfg.cadence === 'multiple_per_week') {
-        if (cfg.hardDayOfWeek !== undefined) {
-            // Soonest occurrence today-or-later. Without this, the period.start
-            // anchor would yield last-week's Thursday for a task created Friday.
-            return nextOccurrenceOfWeekday(today, cfg.hardDayOfWeek).getTime();
+        const days = cfg.hardDaysOfWeek ?? (cfg.hardDayOfWeek !== undefined ? [cfg.hardDayOfWeek] : null);
+        if (days && days.length > 0) {
+            // Soonest occurrence today-or-later (include today if it's a selected day).
+            return nextOccurrenceOfSelectedDays(today, days).getTime();
         }
     }
     if (cfg.cadence === 'monthly' || cfg.cadence === 'multiple_per_month') {
@@ -328,6 +355,24 @@ export function nextOccurrenceOfWeekday(from: Date, dow: number): Date {
     const r = startOfDay(new Date(from));
     const delta = (dow - r.getDay() + 7) % 7;
     r.setDate(r.getDate() + delta);
+    return r;
+}
+
+/**
+ * Earliest date >= `from` whose day-of-week is any of the values in `days`.
+ * If `from` already lands on a selected day, returns `from` (start-of-day).
+ * If `days` is empty, returns `from`.
+ */
+export function nextOccurrenceOfSelectedDays(from: Date, days: number[]): Date {
+    if (days.length === 0) return startOfDay(new Date(from));
+    const r = startOfDay(new Date(from));
+    const fromDow = r.getDay();
+    let minDelta = 7;
+    for (const dow of days) {
+        const delta = (dow - fromDow + 7) % 7;
+        if (delta < minDelta) minDelta = delta;
+    }
+    r.setDate(r.getDate() + minDelta);
     return r;
 }
 

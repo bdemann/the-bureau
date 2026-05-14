@@ -72,15 +72,25 @@ Mark each row as you verify in the browser. Reset the localStorage entry
 - [ ] Submit creates task; dialog closes; task appears in active list
 - [ ] Cancel closes without creating
 
-### Task creation — recurring (weekly day-of-week)
+### Task creation — recurring (weekly day-of-week, multi-select)
 
 - [ ] Toggle "Recurring task" on
 - [ ] Cadence: Weekly
 - [ ] Day-of-week picker appears (Sun–Sat); date picker hidden
-- [ ] Anchor summary updates ("Every Thursday, starting the next one.")
-- [ ] **Today matches the dow**: first occurrence = today
-- [ ] **Today doesn't match**: first occurrence = next occurrence
-- [ ] Card label shows `Every Thursday · next {date}`
+- [ ] Multiple days can be toggled on/off independently
+- [ ] Default is Mon–Fri selected
+- [ ] Anchor summary updates with readable description:
+  - 5 weekdays → "Every weekday (Mon–Fri)."
+  - 6 days without Sun → "Every day except Sunday."
+  - 6 days without Sat → "Every day except Saturday."
+  - 7 days → "Every day."
+  - Custom → "Mon, Wed, Fri." style list
+- [ ] FILE TASK disabled when no days selected
+- [ ] **Single day selected, today matches**: first occurrence = today
+- [ ] **Single day selected, today doesn't match**: first occurrence = next occurrence
+- [ ] **Multi-day, complete on Wed (Mon/Wed/Fri)**: next occurrence = Fri (same week)
+- [ ] **Multi-day, complete on Fri (Mon/Wed/Fri)**: next occurrence = Mon (next week)
+- [ ] Existing task with multi-day schedule pre-fills correctly in edit dialog
 
 ### Task creation — recurring (monthly, day-of-month)
 

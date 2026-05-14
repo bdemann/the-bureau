@@ -94,6 +94,15 @@ function migrateTaskV1ToV2(raw: any): Task {
     });
 }
 
+function normalizeRecurrence(raw: any): any {
+    const isWeekly = raw.cadence === 'weekly' || raw.cadence === 'multiple_per_week';
+    // Migrate single hardDayOfWeek → hardDaysOfWeek for weekly cadences
+    const hardDaysOfWeek = isWeekly
+        ? (raw.hardDaysOfWeek ?? (raw.hardDayOfWeek !== undefined ? [raw.hardDayOfWeek] : undefined))
+        : raw.hardDaysOfWeek;
+    return {...raw, endMode: raw.endMode ?? 'never', hardDaysOfWeek};
+}
+
 /**
  * Defensive — fill any missing fields with defaults so the UI never crashes
  * on partially-shaped tasks (e.g., from a half-finished migration).
@@ -111,7 +120,7 @@ function ensureTaskShape(raw: any): Task {
         windowDeadline: raw.windowDeadline ?? null,
         windowLengthDays: raw.windowLengthDays ?? null,
         recurrence: raw.recurrence
-            ? {...raw.recurrence, endMode: raw.recurrence.endMode ?? 'never'}
+            ? normalizeRecurrence(raw.recurrence)
             : null,
         currentPeriodStart: raw.currentPeriodStart ?? null,
         completionsThisPeriod: raw.completionsThisPeriod ?? 0,

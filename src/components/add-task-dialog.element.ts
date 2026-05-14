@@ -73,7 +73,9 @@ export const AddTaskDialogElement = defineElement<{
         windowType: 'flexible' as WindowType,
         suggestedDate: '',         // YYYY-MM-DD
         // ── Recurrence anchor (only relevant when isRecurring=true) ──
-        /** 0–6 (Sun–Sat) for weekly, and for monthly when monthAnchorMode='ordinal'. */
+        /** Selected days of the week for weekly multi-select (0=Sun…6=Sat). */
+        daysOfWeek: new Set<number>([1, 2, 3, 4, 5]), // default weekdays
+        /** 0–6 (Sun–Sat) for monthly ordinal only. */
         dayOfWeek: 4,              // default Thursday
         /** 1–31 for monthly when monthAnchorMode='dom'. */
         dayOfMonth: 1,
@@ -285,6 +287,10 @@ export const AddTaskDialogElement = defineElement<{
                 frequencyPerPeriod: cfg?.frequencyPerPeriod ?? 2,
                 scheduleMode: cfg?.scheduleMode ?? 'fixed',
                 windowType: t.windowType,
+                daysOfWeek: new Set<number>(
+                    cfg?.hardDaysOfWeek
+                    ?? (cfg?.hardDayOfWeek !== undefined ? [cfg.hardDayOfWeek] : [1, 2, 3, 4, 5])
+                ),
                 dayOfWeek: cfg?.hardDayOfWeek ?? 4,
                 dayOfMonth: cfg?.hardDayOfMonth ?? 1,
                 monthAnchorMode: cfg?.ordinalWeek !== undefined ? 'ordinal' : 'dom',
@@ -308,7 +314,9 @@ export const AddTaskDialogElement = defineElement<{
 
         const canSubmit = state.titleValue.trim().length > 0
             // Hard-date tasks need a date — unless an anchor implies one.
-            && (state.windowType !== 'hard' || usesAnchor || state.suggestedDate.length > 0);
+            && (state.windowType !== 'hard' || usesAnchor || state.suggestedDate.length > 0)
+            // Weekly anchor requires at least one day selected.
+            && (!usesWeeklyAnchor || state.daysOfWeek.size > 0);
 
         function submit(): void {
             if (!canSubmit) return;
@@ -348,7 +356,7 @@ export const AddTaskDialogElement = defineElement<{
                     endAfterDate,
                 };
                 if (usesWeeklyAnchor) {
-                    cfg.hardDayOfWeek = state.dayOfWeek;
+                    cfg.hardDaysOfWeek = [...state.daysOfWeek].sort((a, b) => a - b);
                 } else if (usesMonthlyAnchor) {
                     if (state.monthAnchorMode === 'ordinal') {
                         cfg.hardDayOfWeek = state.dayOfWeek;
@@ -416,6 +424,7 @@ export const AddTaskDialogElement = defineElement<{
                 scheduleMode: 'rolling',
                 windowType: 'flexible',
                 suggestedDate: '',
+                daysOfWeek: new Set<number>([1, 2, 3, 4, 5]),
                 dayOfWeek: 4,
                 dayOfMonth: 1,
                 monthAnchorMode: 'dom',
@@ -636,29 +645,31 @@ export const AddTaskDialogElement = defineElement<{
                             </div>
                         </div>
 
-                        <!-- Day-of-week anchor (weekly only) -->
+                        <!-- Day-of-week anchor (weekly only, multi-select) -->
                         ${usesWeeklyAnchor ? html`
                             <div class="field">
-                                <span class="field-label">Day of Week</span>
+                                <span class="field-label">Days of Week</span>
                                 <div class="dow-grid">
                                     ${DAY_LABELS.map(d => html`
                                         <${ViraButton.assign({
                                             text: d.label,
                                             color: ViraColorVariant.Info,
-                                            buttonEmphasis: state.dayOfWeek === d.value
+                                            buttonEmphasis: state.daysOfWeek.has(d.value)
                                                 ? ViraEmphasis.Standard
                                                 : ViraEmphasis.Subtle,
                                             buttonSize: ViraSize.Small,
                                         })}
-                                            @click=${() => updateState({dayOfWeek: d.value})}
+                                            @click=${() => {
+                                                const next = new Set(state.daysOfWeek);
+                                                if (next.has(d.value)) next.delete(d.value);
+                                                else next.add(d.value);
+                                                updateState({daysOfWeek: next});
+                                            }}
                                         ></${ViraButton}>
                                     `)}
                                 </div>
                                 <div class="anchor-summary">
-                                    Every ${dayName(state.dayOfWeek)}, starting
-                                    ${new Date().getDay() === state.dayOfWeek
-                                        ? 'today'
-                                        : 'the next one'}.
+                                    ${formatSelectedDays(state.daysOfWeek)}
                                 </div>
                             </div>
                         ` : html``}
@@ -882,6 +893,16 @@ const ORDINAL_LABELS: ReadonlyArray<{value: 1 | 2 | 3 | 4 | -1; label: string}> 
 
 function dayName(dow: number): string {
     return ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'][dow] ?? '?';
+}
+
+function formatSelectedDays(days: Set<number>): string {
+    if (days.size === 0) return 'No days selected.';
+    if (days.size === 7) return 'Every day.';
+    if (days.size === 5 && !days.has(0) && !days.has(6)) return 'Every weekday (Mon–Fri).';
+    if (days.size === 6 && !days.has(0)) return 'Every day except Sunday.';
+    if (days.size === 6 && !days.has(6)) return 'Every day except Saturday.';
+    const SHORT = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+    return [...days].sort((a, b) => a - b).map(d => SHORT[d]).join(', ') + '.';
 }
 
 function ordinalLabel(ord: 1 | 2 | 3 | 4 | -1): string {

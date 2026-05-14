@@ -5,6 +5,7 @@ import {
     getCurrentPeriod,
     initialiseRecurrence,
     isRecurrenceEnded,
+    nextOccurrenceOfSelectedDays,
     nextOccurrenceOfWeekday,
     nthWeekdayOfMonth,
     rolloverIfNeeded,
@@ -61,6 +62,39 @@ describe('nextOccurrenceOfWeekday', () => {
     });
 });
 
+describe('nextOccurrenceOfSelectedDays', () => {
+    test('returns today when today is a selected day', () => {
+        const wed = date('2026-05-13'); // Wednesday (3)
+        const r = nextOccurrenceOfSelectedDays(wed, [1, 3, 5]); // Mon/Wed/Fri
+        assert.strictEquals(r.toDateString(), wed.toDateString());
+    });
+
+    test('finds next selected day in same week', () => {
+        const thu = date('2026-05-14'); // Thursday — not in Mon/Wed/Fri
+        const r = nextOccurrenceOfSelectedDays(thu, [1, 3, 5]);
+        assert.strictEquals(r.toDateString(), date('2026-05-15').toDateString()); // Friday
+    });
+
+    test('wraps to next week when no more selected days this week', () => {
+        const fri = date('2026-05-15'); // Friday — last selected day this week
+        const sat = date('2026-05-16'); // Saturday — not selected, look forward
+        const r = nextOccurrenceOfSelectedDays(sat, [1, 3, 5]);
+        assert.strictEquals(r.toDateString(), date('2026-05-18').toDateString()); // Mon next week
+    });
+
+    test('every day except Sunday: Saturday → Monday', () => {
+        const sat = date('2026-05-16');
+        const r = nextOccurrenceOfSelectedDays(sat, [1, 2, 3, 4, 5, 6]);
+        assert.strictEquals(r.toDateString(), sat.toDateString()); // Saturday IS in list
+    });
+
+    test('empty days: returns from unchanged', () => {
+        const wed = date('2026-05-13');
+        const r = nextOccurrenceOfSelectedDays(wed, []);
+        assert.strictEquals(r.toDateString(), wed.toDateString());
+    });
+});
+
 describe('nthWeekdayOfMonth', () => {
     test('1st Thursday of May 2026 = May 7', () => {
         const r = nthWeekdayOfMonth(2026, 4, 1, 4);
@@ -90,11 +124,11 @@ describe('nthWeekdayOfMonth', () => {
 });
 
 describe('initialiseRecurrence', () => {
-    test('weekly with hardDayOfWeek lands on next occurrence (not last week\'s)', () => {
+    test('weekly with hardDaysOfWeek lands on next occurrence (not last week\'s)', () => {
         const sat = date('2026-05-09');
         const init = initialiseRecurrence(
             {windowType: 'flexible', suggestedDate: null},
-            makeRecurrence({cadence: 'weekly', hardDayOfWeek: 4}), // Thursday
+            makeRecurrence({cadence: 'weekly', hardDaysOfWeek: [4]}), // Thursday
             sat,
         );
         assert.strictEquals(
@@ -107,7 +141,7 @@ describe('initialiseRecurrence', () => {
         const sat = date('2026-05-09'); // Saturday
         const init = initialiseRecurrence(
             {windowType: 'flexible', suggestedDate: null},
-            makeRecurrence({cadence: 'weekly', hardDayOfWeek: 6}),
+            makeRecurrence({cadence: 'weekly', hardDaysOfWeek: [6]}),
             sat,
         );
         assert.strictEquals(
@@ -182,15 +216,41 @@ describe('advanceRecurrence', () => {
         );
     });
 
-    test('fixed weekly with hardDayOfWeek: next due = next week\'s same dow', () => {
+    test('fixed weekly with hardDaysOfWeek (single): next due = next week\'s same dow', () => {
         const t = makeTask({
-            recurrence: makeRecurrence({cadence: 'weekly', scheduleMode: 'fixed', hardDayOfWeek: 4}),
+            recurrence: makeRecurrence({cadence: 'weekly', scheduleMode: 'fixed', hardDaysOfWeek: [4]}),
         });
         const r = advanceRecurrence(t, date('2026-05-14')); // Thu
         // next Thursday = May 21
         assert.strictEquals(
             new Date(r.suggestedDate!).toDateString(),
             date('2026-05-21').toDateString(),
+        );
+    });
+
+    test('fixed weekly with hardDaysOfWeek (multi): cycles within week', () => {
+        const t = makeTask({
+            // Mon/Wed/Fri
+            recurrence: makeRecurrence({cadence: 'weekly', scheduleMode: 'fixed', hardDaysOfWeek: [1, 3, 5]}),
+        });
+        const r = advanceRecurrence(t, date('2026-05-13')); // Wednesday May 13
+        // Next occurrence: Friday May 15 (same week)
+        assert.strictEquals(
+            new Date(r.suggestedDate!).toDateString(),
+            date('2026-05-15').toDateString(),
+        );
+    });
+
+    test('fixed weekly multi-day: last day of week wraps to next week\'s first day', () => {
+        const t = makeTask({
+            // Mon/Wed/Fri
+            recurrence: makeRecurrence({cadence: 'weekly', scheduleMode: 'fixed', hardDaysOfWeek: [1, 3, 5]}),
+        });
+        const r = advanceRecurrence(t, date('2026-05-15')); // Friday May 15
+        // Next occurrence: Monday May 18 (next week)
+        assert.strictEquals(
+            new Date(r.suggestedDate!).toDateString(),
+            date('2026-05-18').toDateString(),
         );
     });
 
@@ -343,7 +403,7 @@ describe('rolloverIfNeeded', () => {
     test('period rolled: resets state and computes new suggested date', () => {
         const lastWeekSun = date('2026-05-03');
         const t = makeTask({
-            recurrence: makeRecurrence({cadence: 'weekly', hardDayOfWeek: 4}),
+            recurrence: makeRecurrence({cadence: 'weekly', hardDaysOfWeek: [4]}),
             currentPeriodStart: lastWeekSun.getTime(),
             completionsThisPeriod: 2,
             snoozeCount: 5,
@@ -355,5 +415,33 @@ describe('rolloverIfNeeded', () => {
         assert.strictEquals(r.snoozeCount, 0);
         assert.strictEquals(r.completedAt, null);
         assert.strictEquals(new Date(r.currentPeriodStart!).getDay(), 0);
+    });
+
+    test('multi-day: rollover when today is a selected day picks today', () => {
+        const lastWeekSun = date('2026-05-03');
+        const t = makeTask({
+            recurrence: makeRecurrence({cadence: 'weekly', hardDaysOfWeek: [1, 3, 5]}),
+            currentPeriodStart: lastWeekSun.getTime(),
+        });
+        // Today is Wednesday May 13 — a selected day
+        const r = rolloverIfNeeded(t, date('2026-05-13'));
+        assert.strictEquals(
+            new Date(r.suggestedDate!).toDateString(),
+            date('2026-05-13').toDateString(),
+        );
+    });
+
+    test('multi-day: rollover on non-selected day picks next selected day', () => {
+        const lastWeekSun = date('2026-05-03');
+        const t = makeTask({
+            recurrence: makeRecurrence({cadence: 'weekly', hardDaysOfWeek: [1, 3, 5]}),
+            currentPeriodStart: lastWeekSun.getTime(),
+        });
+        // Today is Thursday May 14 — not in Mon/Wed/Fri
+        const r = rolloverIfNeeded(t, date('2026-05-14'));
+        assert.strictEquals(
+            new Date(r.suggestedDate!).toDateString(),
+            date('2026-05-15').toDateString(), // Friday
+        );
     });
 });
