@@ -30,6 +30,7 @@ function makeTask(projectId: string, overrides: Partial<Task> & {title: string})
         recurrence: null,
         currentPeriodStart: null,
         completionsThisPeriod: 0,
+        totalCompletions: 0,
         progressCount: 0,
         snoozeCount: 0,
         snoozedUntil: null,
