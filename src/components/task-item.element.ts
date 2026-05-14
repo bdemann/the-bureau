@@ -109,10 +109,12 @@ export const TaskItemElement = defineElement<{
             line-height: 1;
             padding: 0;
         }
-        .complete-checkbox:hover {
-            border-color: #1B2A4A;
-            background: rgba(27, 42, 74, 0.05);
-            color: #1B2A4A;
+        @media (hover: hover) {
+            .complete-checkbox:hover {
+                border-color: #1B2A4A;
+                background: rgba(27, 42, 74, 0.05);
+                color: #1B2A4A;
+            }
         }
 
         .task-title {
@@ -207,9 +209,11 @@ export const TaskItemElement = defineElement<{
             transition: background 0.15s, color 0.15s;
         }
 
-        .milestone-complete-btn:hover {
-            background: #1B2A4A;
-            color: #F5EFE0;
+        @media (hover: hover) {
+            .milestone-complete-btn:hover {
+                background: #1B2A4A;
+                color: #F5EFE0;
+            }
         }
 
         .milestone-confirm {

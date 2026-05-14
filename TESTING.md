@@ -142,6 +142,11 @@ Mark each row as you verify in the browser. Reset the localStorage entry
 - [ ] Backlog: everything else (collapsed by default — count visible)
 - [ ] Empty Mandatory: "No mandatory tasks today. Agent Whitaker approves."
 - [ ] Each card shows project name above title (cross-project context)
+- [ ] When tasks span multiple time-of-day slots within a band, each slot has a collapsible header (label · count · chevron)
+- [ ] The slot matching the current time of day starts expanded; others start collapsed
+- [ ] Tapping a slot header toggles it open/closed
+- [ ] Switching to background and returning after the time slot changes resets the default to the new slot
+- [ ] Active use (app stays open through a slot transition) does NOT collapse open sections
 - [ ] Complete/snooze actions work from daily view
 
 ### Recurrence rollover

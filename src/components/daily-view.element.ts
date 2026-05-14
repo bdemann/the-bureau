@@ -14,6 +14,35 @@ import {TaskItemElement} from './task-item.element.js';
 
 const COLLAPSE_THRESHOLD = 5;
 
+// ── Time-of-day slot helpers ─────────────────────────────────────────────────
+
+function getCurrentTimeSlot(): TimeOfDay {
+    const h = new Date().getHours();
+    if (h >= 5  && h < 12) return 'morning';
+    if (h >= 12 && h < 17) return 'afternoon';
+    if (h >= 17 && h < 21) return 'evening';
+    return 'bedtime'; // 21:00–04:59
+}
+
+// The visibility-change callback is updated on every render so it always
+// closes over the latest updateState. Only fires when the tab returns from
+// background AND the time slot has changed since it was hidden — that's the
+// "came back later" signal. Active use never hides the page, so it never fires.
+let _onSlotChange: ((slot: TimeOfDay) => void) | null = null;
+
+{
+    let slotWhenHidden: TimeOfDay | null = null;
+    document.addEventListener('visibilitychange', () => {
+        if (document.hidden) {
+            slotWhenHidden = getCurrentTimeSlot();
+        } else if (slotWhenHidden !== null) {
+            const current = getCurrentTimeSlot();
+            if (current !== slotWhenHidden) _onSlotChange?.(current);
+            slotWhenHidden = null;
+        }
+    });
+}
+
 export const DailyViewElement = defineElement<{
     tasks: ReadonlyArray<Task>;
     projects: ReadonlyArray<Project>;
@@ -32,6 +61,7 @@ export const DailyViewElement = defineElement<{
     state: () => ({
         expandRadar:   false,
         expandBacklog: false,
+        expandedSlots: new Set<TimeOfDay>([getCurrentTimeSlot()]),
     }),
 
     styles: css`
@@ -101,14 +131,38 @@ export const DailyViewElement = defineElement<{
         }
 
         .time-group-header {
+            display: flex;
+            align-items: center;
+            width: 100%;
+            background: none;
+            border: none;
+            border-bottom: 1px dotted rgba(0,0,0,0.18);
+            padding: 0 0 4px;
+            margin-bottom: 6px;
+            cursor: pointer;
             font-family: 'Courier Prime', monospace;
             font-size: 0.65rem;
             letter-spacing: 0.12em;
             text-transform: uppercase;
             color: #6B6B6B;
-            margin-bottom: 5px;
-            padding-bottom: 3px;
-            border-bottom: 1px dotted rgba(0,0,0,0.18);
+            text-align: left;
+        }
+
+        @media (hover: hover) {
+            .time-group-header:hover { color: #2C2C2C; }
+        }
+
+        .time-group-label { flex: 1; }
+
+        .time-group-count {
+            font-size: 0.6rem;
+            opacity: 0.65;
+            margin-right: 6px;
+        }
+
+        .time-group-chevron {
+            font-size: 0.55rem;
+            opacity: 0.65;
         }
 
         .collapse-toggle {
@@ -120,6 +174,18 @@ export const DailyViewElement = defineElement<{
     `,
 
     render({inputs, state, updateState, dispatch, events}) {
+        // Keep the callback current every render so it captures the latest updateState.
+        _onSlotChange = (newSlot: TimeOfDay) => {
+            updateState({expandedSlots: new Set<TimeOfDay>([newSlot])});
+        };
+
+        function toggleSlot(slot: TimeOfDay): void {
+            const next = new Set(state.expandedSlots);
+            if (next.has(slot)) next.delete(slot);
+            else next.add(slot);
+            updateState({expandedSlots: next});
+        }
+
         const today = new Date();
         const projectsById = new Map(inputs.projects.map(p => [p.id, p]));
 
@@ -183,12 +249,22 @@ export const DailyViewElement = defineElement<{
             if (slotGroups.length <= 1) return renderTaskList(tasks);
 
             return html`
-                ${slotGroups.map(g => html`
-                    <div class="time-group">
-                        <div class="time-group-header">${timeOfDayLabel(g.slot)}</div>
-                        ${renderTaskList(g.tasks)}
-                    </div>
-                `)}
+                ${slotGroups.map(g => {
+                    const isExpanded = state.expandedSlots.has(g.slot);
+                    return html`
+                        <div class="time-group">
+                            <button
+                                class="time-group-header"
+                                @click=${() => toggleSlot(g.slot)}
+                            >
+                                <span class="time-group-label">${timeOfDayLabel(g.slot)}</span>
+                                <span class="time-group-count">${g.tasks.length}</span>
+                                <span class="time-group-chevron">${isExpanded ? '▾' : '▸'}</span>
+                            </button>
+                            ${isExpanded ? renderTaskList(g.tasks) : html``}
+                        </div>
+                    `;
+                })}
             `;
         };
 

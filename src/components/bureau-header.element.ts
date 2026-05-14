@@ -322,7 +322,7 @@ export const BureauHeaderElement = defineElement<{
                 try {
                     await navigator.share({
                         title: 'CLEAR — Civic Engagement Tracking System',
-                        text: 'A neighbor has been flagged for potential civic disengagement. Install CLEAR to verify your own compliance record and demonstrate your patriotism to the Bureau.',
+                        text: 'A neighbor has flagged you for potential civic disengagement. Install CLEAR — the BCR\'s official self-monitoring application — to verify your compliance record and demonstrate to the BCR that your patriotism is beyond question.',
                         url: CLEAR_URL,
                     });
                 } catch {
