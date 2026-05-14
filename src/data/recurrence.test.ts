@@ -4,6 +4,7 @@ import {
     advanceRecurrence,
     getCurrentPeriod,
     initialiseRecurrence,
+    isRecurrenceEnded,
     nextOccurrenceOfWeekday,
     nthWeekdayOfMonth,
     rolloverIfNeeded,
@@ -223,6 +224,91 @@ describe('advanceRecurrence', () => {
         assert.strictEquals(r.snoozedUntil, null);
         assert.strictEquals(r.completedAt, null);
         assert.strictEquals(r.completionsThisPeriod, 0);
+    });
+});
+
+describe('isRecurrenceEnded', () => {
+    test('endMode=never: never ends', () => {
+        const t = makeTask({
+            recurrence: makeRecurrence({endMode: 'never'}),
+            totalCompletions: 1000,
+        });
+        assert.isFalse(isRecurrenceEnded(t, date('2026-05-14')));
+    });
+
+    test('endMode=after_count: ends when count >= target', () => {
+        const t = makeTask({
+            recurrence: makeRecurrence({endMode: 'after_count', endAfterCount: 5}),
+            totalCompletions: 5,
+        });
+        assert.isTrue(isRecurrenceEnded(t, date('2026-05-14')));
+    });
+
+    test('endMode=after_count: not ended when count < target', () => {
+        const t = makeTask({
+            recurrence: makeRecurrence({endMode: 'after_count', endAfterCount: 5}),
+            totalCompletions: 4,
+        });
+        assert.isFalse(isRecurrenceEnded(t, date('2026-05-14')));
+    });
+
+    test('endMode=after_date: ends on or after end date', () => {
+        const endDate = date('2026-05-14');
+        const t = makeTask({
+            recurrence: makeRecurrence({endMode: 'after_date', endAfterDate: endDate.getTime()}),
+            totalCompletions: 1,
+        });
+        assert.isTrue(isRecurrenceEnded(t, date('2026-05-14')));
+        assert.isTrue(isRecurrenceEnded(t, date('2026-05-15')));
+    });
+
+    test('endMode=after_date: not ended before end date', () => {
+        const endDate = date('2026-05-14');
+        const t = makeTask({
+            recurrence: makeRecurrence({endMode: 'after_date', endAfterDate: endDate.getTime()}),
+            totalCompletions: 1,
+        });
+        assert.isFalse(isRecurrenceEnded(t, date('2026-05-13')));
+    });
+
+    test('no recurrence: never ended', () => {
+        const t = makeTask({recurrence: null});
+        assert.isFalse(isRecurrenceEnded(t, date('2026-05-14')));
+    });
+});
+
+describe('rolloverIfNeeded — end conditions', () => {
+    test('after_date: retires task when today is past end date', () => {
+        const endDate = date('2026-05-31');
+        const t = makeTask({
+            recurrence: makeRecurrence({cadence: 'weekly', endMode: 'after_date', endAfterDate: endDate.getTime()}),
+            currentPeriodStart: date('2026-05-25').getTime(),
+        });
+        const r = rolloverIfNeeded(t, date('2026-06-01'));
+        assert.strictEquals(r.recurrence, null);
+        assert.isTrue(r.completedAt !== null);
+    });
+
+    test('after_date: does NOT retire when today is on the end date', () => {
+        const endDate = date('2026-05-31');
+        const t = makeTask({
+            recurrence: makeRecurrence({cadence: 'weekly', endMode: 'after_date', endAfterDate: endDate.getTime()}),
+            currentPeriodStart: date('2026-05-25').getTime(),
+        });
+        const r = rolloverIfNeeded(t, date('2026-05-31'));
+        assert.strictEquals(r.recurrence, t.recurrence);
+    });
+
+    test('after_count: does NOT retire via rollover — only via completion', () => {
+        const t = makeTask({
+            recurrence: makeRecurrence({cadence: 'weekly', endMode: 'after_count', endAfterCount: 3}),
+            currentPeriodStart: date('2026-05-03').getTime(),
+            totalCompletions: 3,
+        });
+        // rolloverIfNeeded should roll over normally — end-count only triggers on completion
+        const r = rolloverIfNeeded(t, date('2026-05-13'));
+        assert.strictEquals(typeof r.recurrence, 'object');
+        assert.isTrue(r.recurrence !== null);
     });
 });
 

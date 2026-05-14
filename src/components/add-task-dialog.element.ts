@@ -13,6 +13,7 @@ import type {
     ConsequenceTier,
     RecurrenceCadence,
     RecurrenceConfig,
+    RecurrenceEndMode,
     ScheduleMode,
     Task,
     TimeOfDay,
@@ -82,6 +83,11 @@ export const AddTaskDialogElement = defineElement<{
         ordinalWeek: 3 as 1 | 2 | 3 | 4 | -1,
         /** ID of the task currently being edited; null means add mode. */
         currentEditId: null as string | null,
+        // ── End condition ──
+        hasEndCondition: false,
+        endMode: 'after_count' as 'after_count' | 'after_date',
+        endAfterCount: 10,
+        endAfterDate: '',  // YYYY-MM-DD
     }),
 
     styles: css`
@@ -249,6 +255,12 @@ export const AddTaskDialogElement = defineElement<{
             color: #6B6B6B;
             font-family: 'Courier Prime', monospace;
         }
+
+        .end-condition-section {
+            border-top: 1px dashed rgba(0,0,0,0.15);
+            padding-top: 12px;
+            margin-top: 4px;
+        }
     `,
 
     render({inputs, state, updateState, dispatch, events}) {
@@ -278,6 +290,10 @@ export const AddTaskDialogElement = defineElement<{
                 monthAnchorMode: cfg?.ordinalWeek !== undefined ? 'ordinal' : 'dom',
                 ordinalWeek: cfg?.ordinalWeek ?? 3,
                 suggestedDate: t.suggestedDate ? msToDateString(t.suggestedDate) : '',
+                hasEndCondition: cfg !== null && (cfg.endMode ?? 'never') !== 'never',
+                endMode: (cfg?.endMode === 'after_date' ? 'after_date' : 'after_count'),
+                endAfterCount: cfg?.endAfterCount ?? 10,
+                endAfterDate: cfg?.endAfterDate ? msToDateString(cfg.endAfterDate) : '',
             });
         }
 
@@ -309,12 +325,27 @@ export const AddTaskDialogElement = defineElement<{
             let windowLengthDays: number | null = null;
 
             if (state.isRecurring) {
+                let endMode: RecurrenceEndMode = 'never';
+                let endAfterCount: number | undefined;
+                let endAfterDate: number | undefined;
+                if (state.hasEndCondition) {
+                    endMode = state.endMode;
+                    if (state.endMode === 'after_count') {
+                        endAfterCount = Math.max(1, state.endAfterCount);
+                    } else if (state.endMode === 'after_date' && state.endAfterDate) {
+                        endAfterDate = startOfDay(new Date(state.endAfterDate + 'T00:00')).getTime();
+                    }
+                }
+
                 const cfg: RecurrenceConfig = {
                     cadence: state.cadence,
                     frequencyPerPeriod: isMultiplePerPeriodCadence(state.cadence)
                         ? Math.max(2, state.frequencyPerPeriod)
                         : 1,
                     scheduleMode: state.scheduleMode,
+                    endMode,
+                    endAfterCount,
+                    endAfterDate,
                 };
                 if (usesWeeklyAnchor) {
                     cfg.hardDayOfWeek = state.dayOfWeek;
@@ -349,6 +380,7 @@ export const AddTaskDialogElement = defineElement<{
                 snoozedUntil: baseTask?.snoozedUntil ?? null,
                 completedAt: baseTask?.completedAt ?? null,
                 completionsThisPeriod: baseTask?.completionsThisPeriod ?? 0,
+                totalCompletions: baseTask?.totalCompletions ?? 0,
                 progressCount: baseTask?.progressCount ?? 0,
                 // Editable fields:
                 title: state.titleValue.trim(),
@@ -389,6 +421,10 @@ export const AddTaskDialogElement = defineElement<{
                 monthAnchorMode: 'dom',
                 ordinalWeek: 3,
                 currentEditId: null,
+                hasEndCondition: false,
+                endMode: 'after_count',
+                endAfterCount: 10,
+                endAfterDate: '',
             });
         }
 
@@ -716,6 +752,76 @@ export const AddTaskDialogElement = defineElement<{
                                 </div>
                             `}
                         ` : html``}
+
+                        <!-- End condition -->
+                        <div class="end-condition-section">
+                            <div class="recurring-row">
+                                <input
+                                    id="end-condition-toggle"
+                                    type="checkbox"
+                                    .checked=${state.hasEndCondition}
+                                    @change=${(e: Event) =>
+                                        updateState({hasEndCondition: (e.target as HTMLInputElement).checked})}
+                                />
+                                <label for="end-condition-toggle">Task has an end condition</label>
+                            </div>
+
+                            ${state.hasEndCondition ? html`
+                                <div class="field">
+                                    <span class="field-label">End After</span>
+                                    <div class="seg">
+                                        <${ViraButton.assign({
+                                            text: 'N completions',
+                                            color: ViraColorVariant.Neutral,
+                                            buttonEmphasis: state.endMode === 'after_count'
+                                                ? ViraEmphasis.Standard
+                                                : ViraEmphasis.Subtle,
+                                            buttonSize: ViraSize.Small,
+                                        })}
+                                            @click=${() => updateState({endMode: 'after_count'})}
+                                        ></${ViraButton}>
+                                        <${ViraButton.assign({
+                                            text: 'A date',
+                                            color: ViraColorVariant.Neutral,
+                                            buttonEmphasis: state.endMode === 'after_date'
+                                                ? ViraEmphasis.Standard
+                                                : ViraEmphasis.Subtle,
+                                            buttonSize: ViraSize.Small,
+                                        })}
+                                            @click=${() => updateState({endMode: 'after_date'})}
+                                        ></${ViraButton}>
+                                    </div>
+                                </div>
+
+                                ${state.endMode === 'after_count' ? html`
+                                    <div class="field">
+                                        <span class="field-label">Number of Completions</span>
+                                        <${ViraInput.assign({
+                                            value: String(state.endAfterCount),
+                                            type: ViraInputType.Number,
+                                            placeholder: 'e.g. 10',
+                                        })}
+                                            ${listen(ViraInput.events.valueChange, e => {
+                                                const n = parseInt(e.detail, 10);
+                                                if (!Number.isNaN(n) && n >= 1) {
+                                                    updateState({endAfterCount: n});
+                                                }
+                                            })}
+                                        ></${ViraInput}>
+                                    </div>
+                                ` : html`
+                                    <div class="field">
+                                        <span class="field-label">Last Day (inclusive)</span>
+                                        <input
+                                            type="date"
+                                            .value=${state.endAfterDate}
+                                            @input=${(e: Event) =>
+                                                updateState({endAfterDate: (e.target as HTMLInputElement).value})}
+                                        />
+                                    </div>
+                                `}
+                            ` : html``}
+                        </div>
                     ` : html``}
 
                     <div class="actions">

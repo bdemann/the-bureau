@@ -149,6 +149,17 @@ Mark each row as you verify in the browser. Reset the localStorage entry
 - [ ] Active use (app stays open through a slot transition) does NOT collapse open sections
 - [ ] Complete/snooze actions work from daily view
 
+### Recurring end conditions
+
+- [ ] "Task has an end condition" checkbox is hidden for one-time tasks
+- [ ] Checkbox appears inside the recurring section
+- [ ] Checking it reveals "N completions" / "A date" toggle
+- [ ] "N completions" shows a number input; "A date" shows a date picker
+- [ ] After N completions: task disappears permanently (no more periods)
+- [ ] After date: completing on the end date permanently closes the task
+- [ ] After date: task is retired on next app load after end date passes (even if not completed)
+- [ ] Edit dialog pre-fills end condition from an existing task with one set
+
 ### Recurrence rollover
 
 - [ ] Daily task: complete it, advance device clock 1 day, reload — task back, fresh

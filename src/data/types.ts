@@ -43,6 +43,8 @@ export type WindowType =
     | 'flexible'  // can happen any day within the window
     | 'milestone'; // long-horizon task; track incremental progress until truly done
 
+export type RecurrenceEndMode = 'never' | 'after_count' | 'after_date';
+
 export interface RecurrenceConfig {
     cadence: RecurrenceCadence;
     /** 1 for standard cadences, N for multiple_per_X cadences. */
@@ -60,6 +62,12 @@ export interface RecurrenceConfig {
      * weekday in the month. 1 = 1st, 2 = 2nd, 3 = 3rd, 4 = 4th, -1 = last.
      */
     ordinalWeek?: 1 | 2 | 3 | 4 | -1;
+    /** When the recurrence should stop. Defaults to 'never'. */
+    endMode: RecurrenceEndMode;
+    /** Required when endMode === 'after_count'. Total lifetime completions after which the task ends. */
+    endAfterCount?: number;
+    /** Required when endMode === 'after_date'. ms timestamp (midnight local) of the last day. */
+    endAfterDate?: number;
 }
 
 // ── Consequence and band types ───────────────────────────────────────────────
@@ -122,6 +130,8 @@ export interface Task {
     currentPeriodStart: number | null;
     /** For multiple_per_period cadences: how many done so far this period. */
     completionsThisPeriod: number;
+    /** Lifetime completion count across all periods (used for after_count end mode). */
+    totalCompletions: number;
 
     // ── Milestone progress (only used when windowType === 'milestone') ──
     /** Number of times progress has been logged. */

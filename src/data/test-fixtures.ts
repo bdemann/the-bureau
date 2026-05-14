@@ -17,6 +17,7 @@ export function makeTask(overrides: Partial<Task> = {}): Task {
         recurrence: null,
         currentPeriodStart: null,
         completionsThisPeriod: 0,
+        totalCompletions: 0,
         progressCount: 0,
         snoozeCount: 0,
         snoozedUntil: null,
@@ -33,6 +34,7 @@ export function makeRecurrence(overrides: Partial<RecurrenceConfig> = {}): Recur
         cadence: 'weekly',
         frequencyPerPeriod: 1,
         scheduleMode: 'fixed',
+        endMode: 'never',
         ...overrides,
     };
 }

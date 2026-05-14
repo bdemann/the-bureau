@@ -181,6 +181,18 @@ export function advanceRecurrence(task: Task, completedAt: Date): Task {
 export function rolloverIfNeeded(task: Task, today: Date): Task {
     if (!task.recurrence) return task;
 
+    // If the end date has passed, permanently retire the task without rolling over.
+    const cfg = task.recurrence;
+    if (cfg.endMode === 'after_date'
+        && cfg.endAfterDate !== undefined
+        && startOfDay(today).getTime() > cfg.endAfterDate) {
+        return {
+            ...task,
+            completedAt: task.completedAt ?? today.getTime(),
+            recurrence: null,
+        };
+    }
+
     const todayPeriod = getCurrentPeriod(task.recurrence.cadence, today);
 
     // No period set yet — initialise.
@@ -265,6 +277,25 @@ function deriveInitialSuggested(cfg: RecurrenceConfig, period: Period, today: Da
         }
     }
     return period.start;
+}
+
+// ── End-condition helpers ────────────────────────────────────────────────────
+
+/**
+ * Returns true if the task's recurrence should permanently end given the
+ * current state. Call AFTER incrementing totalCompletions / updating dates.
+ */
+export function isRecurrenceEnded(task: Task, now: Date): boolean {
+    const cfg = task.recurrence;
+    if (!cfg || cfg.endMode === 'never') return false;
+    if (cfg.endMode === 'after_count') {
+        return task.totalCompletions >= (cfg.endAfterCount ?? Infinity);
+    }
+    if (cfg.endMode === 'after_date') {
+        return cfg.endAfterDate !== undefined
+            && startOfDay(now).getTime() >= cfg.endAfterDate;
+    }
+    return false;
 }
 
 // ── Multiple-per-period helpers ─────────────────────────────────────────────

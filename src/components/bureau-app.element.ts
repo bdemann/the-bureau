@@ -7,7 +7,7 @@ import {
     loadState,
     saveState,
 } from '../data/storage.js';
-import {advanceRecurrence, isMultiplePerPeriod, rolloverIfNeeded} from '../data/recurrence.js';
+import {advanceRecurrence, isMultiplePerPeriod, isRecurrenceEnded, rolloverIfNeeded} from '../data/recurrence.js';
 import {getDialogueFor} from '../data/dialogues.js';
 import {AddTaskDialogElement} from './add-task-dialog.element.js';
 import {BureauHeaderElement} from './bureau-header.element.js';
@@ -137,6 +137,20 @@ export const BureauAppElement = defineElement()({
             const tasks = state.app.tasks.map(t => {
                 if (t.id !== taskId) return t;
 
+                const newTotalCompletions = t.totalCompletions + 1;
+                const withCount = {...t, totalCompletions: newTotalCompletions};
+
+                // If end condition is met, permanently retire the task.
+                if (isRecurrenceEnded(withCount, now)) {
+                    return {
+                        ...withCount,
+                        completedAt: now.getTime(),
+                        recurrence: null,
+                        snoozeCount: 0,
+                        snoozedUntil: null,
+                    };
+                }
+
                 // Multiple-per-period: bump count, reset snooze. The period
                 // doesn't roll over on the Nth completion — that happens at
                 // the next period boundary via rolloverIfNeeded() on startup.
@@ -144,7 +158,7 @@ export const BureauAppElement = defineElement()({
                 // this period," so the task hides correctly until rollover.
                 if (isMultiplePerPeriod(t)) {
                     return {
-                        ...t,
+                        ...withCount,
                         completionsThisPeriod: t.completionsThisPeriod + 1,
                         snoozeCount: 0,
                         snoozedUntil: null,
@@ -153,12 +167,12 @@ export const BureauAppElement = defineElement()({
 
                 // Standard recurring: advance to next period.
                 if (t.recurrence) {
-                    return advanceRecurrence(t, now);
+                    return advanceRecurrence(withCount, now);
                 }
 
                 // One-time: mark complete.
                 return {
-                    ...t,
+                    ...withCount,
                     completedAt: now.getTime(),
                     snoozeCount: 0,
                     snoozedUntil: null,
@@ -295,8 +309,10 @@ export const BureauAppElement = defineElement()({
         }
 
         function onDismissDialogue(): void {
-            const dialogueQueue = state.app.dialogueQueue.map((d, i) =>
-                i === 0 ? {...d, dismissed: true} : d,
+            const target = state.app.dialogueQueue.find(d => !d.dismissed);
+            if (!target) return;
+            const dialogueQueue = state.app.dialogueQueue.map(d =>
+                d.id === target.id ? {...d, dismissed: true} : d,
             );
             commit({dialogueQueue});
         }

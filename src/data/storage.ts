@@ -110,9 +110,12 @@ function ensureTaskShape(raw: any): Task {
         suggestedDate: raw.suggestedDate ?? null,
         windowDeadline: raw.windowDeadline ?? null,
         windowLengthDays: raw.windowLengthDays ?? null,
-        recurrence: raw.recurrence ?? null,
+        recurrence: raw.recurrence
+            ? {...raw.recurrence, endMode: raw.recurrence.endMode ?? 'never'}
+            : null,
         currentPeriodStart: raw.currentPeriodStart ?? null,
         completionsThisPeriod: raw.completionsThisPeriod ?? 0,
+        totalCompletions: raw.totalCompletions ?? 0,
         progressCount: raw.progressCount ?? 0,
         snoozeCount: raw.snoozeCount ?? 0,
         snoozedUntil: raw.snoozedUntil ?? null,
