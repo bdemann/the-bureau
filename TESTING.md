@@ -46,11 +46,15 @@ Mark each row as you verify in the browser. Reset the localStorage entry
 
 - [ ] Empty: shows `NO ACTIVE OPERATIONS` stamp
 - [ ] `+ OPEN NEW OPERATION` opens the operation wizard
-- [ ] Wizard cancel closes without creating anything
+- [ ] Wizard cancel (with no data entered) closes immediately without creating anything
+- [ ] Clicking outside the wizard with data entered shows "DISCARD CHANGES?" confirmation
+- [ ] Confirmation "Keep editing" returns to the wizard with all data intact
+- [ ] Confirmation "Discard" closes the wizard and clears all state
 - [ ] Click card → project-detail opens
 - [ ] Multiple projects render
-- [ ] A project containing at least one routine never shows "CLEARED" (even when all tasks are done)
-- [ ] A project with only one-time or bounded-recurring tasks shows "CLEARED" when all are done
+- [ ] A project where all `kind=task` directives are completed shows "CLEARED" (regardless of routines)
+- [ ] A project with only routines (no tasks) never shows "CLEARED"
+- [ ] A project with a mix: CLEARED only when the task directives are all done
 
 ### Operation creation wizard
 
@@ -63,9 +67,14 @@ Mark each row as you verify in the browser. Reset the localStorage entry
 - [ ] Step 2: "Configure N routines →" advances to step 3 with the parsed list
 - [ ] Step 3: Routine title pre-filled from brainstorm text; editable
 - [ ] Step 3: Tier T1–T4 grid selects consequence tier
+- [ ] Step 3: Default cadence is Daily
 - [ ] Step 3: Cadence grid (Daily / Weekly / Monthly / Quarterly / Yearly) is selectable
 - [ ] Step 3 Weekly: day-of-week multi-select appears; multiple days can be toggled
-- [ ] Step 3 Monthly: day-of-month input appears
+- [ ] Step 3 Weekly: default day selected is today's day of the week
+- [ ] Step 3 Monthly: "Day of month" / "Nth weekday" toggle appears
+- [ ] Step 3 Monthly (day of month): numeric input accepts 1–31
+- [ ] Step 3 Monthly (Nth weekday): 1st/2nd/3rd/4th/Last picker + day-of-week picker appear
+- [ ] Step 3 Monthly (Nth weekday): anchor summary reads "The 2nd Sunday of each month" etc.
 - [ ] Step 3: Time-of-day grid (Anytime / Morning / Afternoon / Evening) is selectable
 - [ ] Step 3: "Create with routines so far" creates the operation using only configured routines up to this point
 - [ ] Step 3: "Next Routine →" advances to the next routine without creating yet
@@ -77,26 +86,27 @@ Mark each row as you verify in the browser. Reset the localStorage entry
 
 - [ ] Header breadcrumb shows project name
 - [ ] Back button returns to Operations
-- [ ] Empty state shows "No active tasks…" + Whitaker quote
-- [ ] `+ FILE NEW TASK` opens dialog
+- [ ] Empty state shows "No active directives…" + Whitaker quote
+- [ ] `+ FILE NEW DIRECTIVE` opens dialog
 - [ ] Active tasks list shows incomplete + un-snoozed (regardless of due date)
 - [ ] Snoozed list shows separately when applicable
 - [ ] Cleared tasks toggle (Show/Hide N cleared) works
 
-### Task creation — routine vs task kind
+### Filing directives — routine vs directive kind
 
-- [ ] Add-task dialog defaults to TASK kind selected
-- [ ] ROUTINE / TASK segmented toggle visible when creating (hidden in edit mode)
+- [ ] Add-task dialog defaults to DIRECTIVE kind selected
+- [ ] ROUTINE / DIRECTIVE segmented toggle visible when creating (hidden in edit mode)
 - [ ] Selecting ROUTINE forces "Recurring" on and hides the recurring checkbox
 - [ ] Selecting ROUTINE hides the end-condition section entirely
 - [ ] Selecting ROUTINE changes sheet title to "FILE NEW ROUTINE" and submit button to "COMMIT ROUTINE"
-- [ ] Selecting TASK shows sheet title "FILE NEW TASK" and submit button "FILE TASK"
-- [ ] Editing an existing routine shows "AMEND ROUTINE"; editing a task shows "AMEND TASK"
-- [ ] Tasks with `kind=routine` show a ROUTINE chip in the task-item card
+- [ ] Selecting DIRECTIVE shows sheet title "FILE NEW DIRECTIVE" and submit button "FILE DIRECTIVE"
+- [ ] Editing an existing routine shows "AMEND ROUTINE"; editing a directive shows "AMEND DIRECTIVE"
+- [ ] Directives with `kind=routine` show a ROUTINE chip in the task-item card
 
 ### Task creation — one-time
 
-- [ ] Title required (FILE TASK disabled until typed)
+- [ ] New directive form defaults: recurring OFF, window type Hard, due date = today
+- [ ] Title required (FILE DIRECTIVE disabled until typed)
 - [ ] Description optional
 - [ ] Tier 1–4 buttons toggle; help text updates per tier
 - [ ] Flexible / Hard date toggle works
@@ -118,7 +128,7 @@ Mark each row as you verify in the browser. Reset the localStorage entry
   - 6 days without Sat → "Every day except Saturday."
   - 7 days → "Every day."
   - Custom → "Mon, Wed, Fri." style list
-- [ ] FILE TASK disabled when no days selected
+- [ ] FILE DIRECTIVE disabled when no days selected
 - [ ] **Single day selected, today matches**: first occurrence = today
 - [ ] **Single day selected, today doesn't match**: first occurrence = next occurrence
 - [ ] **Multi-day, complete on Wed (Mon/Wed/Fri)**: next occurrence = Fri (same week)

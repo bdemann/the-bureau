@@ -64,6 +64,10 @@ export const OperationWizardDialogElement = defineElement<{open: boolean}>()({
 
     state: () => ({
         step: 1 as 1 | 2 | 3,
+        // Stable project ID for the whole wizard session
+        projectId: generateId(),
+        // Dismiss confirmation
+        confirmingCancel: false,
         // Step 1 — operation details
         operationName: '',
         operationDescription: '',
@@ -75,9 +79,12 @@ export const OperationWizardDialogElement = defineElement<{open: boolean}>()({
         currentRoutineIndex: 0,
         currentTitle: '',
         currentTier: 3 as ConsequenceTier,
-        currentCadence: 'weekly' as WizardCadence,
-        currentDaysOfWeek: [1, 2, 3, 4, 5] as number[],
+        currentCadence: 'daily' as WizardCadence,
+        currentDaysOfWeek: [new Date().getDay()] as number[],
         currentDayOfMonth: 1,
+        monthAnchorMode: 'dom' as 'dom' | 'ordinal',
+        monthOrdinalWeek: 1 as 1 | 2 | 3 | 4 | -1,
+        monthOrdinalDay: new Date().getDay(),
         currentTimeOfDay: 'anytime' as TimeOfDay,
         completedRoutines: [] as Task[],
     }),
@@ -294,19 +301,6 @@ export const OperationWizardDialogElement = defineElement<{open: boolean}>()({
 
         .actions-grow { flex: 1; }
 
-        .skip-link {
-            background: none;
-            border: none;
-            font-family: 'Courier Prime', monospace;
-            font-size: 0.72rem;
-            color: #6B6B6B;
-            cursor: pointer;
-            text-decoration: underline;
-            text-underline-offset: 2px;
-            padding: 0;
-            transition: color 0.15s;
-        }
-        .skip-link:hover { color: #2C2C2C; }
 
         .anchor-summary {
             margin-top: 6px;
@@ -319,11 +313,43 @@ export const OperationWizardDialogElement = defineElement<{open: boolean}>()({
     render({inputs, state, updateState, dispatch, events}) {
         if (!inputs.open) return html``;
 
+        if (state.confirmingCancel) {
+            return html`
+                <div class="overlay">
+                    <div class="sheet" style="padding-bottom:24px">
+                        <div class="sheet-title">DISCARD CHANGES?</div>
+                        <p style="font-family:'Courier Prime',monospace;font-size:0.85rem;color:#2C2C2C;margin:0 0 20px">
+                            Your progress on this operation will be lost.
+                        </p>
+                        <div class="actions">
+                            <${ViraButton.assign({
+                                text: 'Keep editing',
+                                color: ViraColorVariant.Neutral,
+                                buttonEmphasis: ViraEmphasis.Subtle,
+                            })}
+                                @click=${() => updateState({confirmingCancel: false})}
+                            ></${ViraButton}>
+                            <span class="actions-grow">
+                                <${ViraButton.assign({
+                                    text: 'Discard',
+                                    color: ViraColorVariant.Danger,
+                                })}
+                                    @click=${cancel}
+                                ></${ViraButton}>
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
         // ── Helpers ──────────────────────────────────────────────────────────
 
         function reset(): void {
             updateState({
                 step: 1,
+                projectId: generateId(),
+                confirmingCancel: false,
                 operationName: '',
                 operationDescription: '',
                 operationColor: 'navy',
@@ -332,9 +358,12 @@ export const OperationWizardDialogElement = defineElement<{open: boolean}>()({
                 currentRoutineIndex: 0,
                 currentTitle: '',
                 currentTier: 3,
-                currentCadence: 'weekly',
-                currentDaysOfWeek: [1, 2, 3, 4, 5],
+                currentCadence: 'daily',
+                currentDaysOfWeek: [new Date().getDay()],
                 currentDayOfMonth: 1,
+                monthAnchorMode: 'dom',
+                monthOrdinalWeek: 1,
+                monthOrdinalDay: new Date().getDay(),
                 currentTimeOfDay: 'anytime',
                 completedRoutines: [],
             });
@@ -345,9 +374,20 @@ export const OperationWizardDialogElement = defineElement<{open: boolean}>()({
             reset();
         }
 
+        function requestCancel(): void {
+            const hasWork = state.operationName.trim().length > 0
+                || state.brainstormText.trim().length > 0
+                || state.completedRoutines.length > 0;
+            if (hasWork) {
+                updateState({confirmingCancel: true});
+            } else {
+                cancel();
+            }
+        }
+
         function buildProject(): Project {
             return {
-                id: generateId(),
+                id: state.projectId,
                 name: state.operationName.trim(),
                 description: state.operationDescription.trim(),
                 colorKey: state.operationColor,
@@ -355,7 +395,7 @@ export const OperationWizardDialogElement = defineElement<{open: boolean}>()({
             };
         }
 
-        function buildCurrentRoutine(projectId: string): Task {
+        function buildCurrentRoutine(): Task {
             const today = new Date();
             const cadence = state.currentCadence;
             const scheduleMode = (cadence === 'weekly' || cadence === 'monthly') ? 'fixed' : 'rolling';
@@ -367,7 +407,10 @@ export const OperationWizardDialogElement = defineElement<{open: boolean}>()({
                 ...(cadence === 'weekly'
                     ? {hardDaysOfWeek: [...state.currentDaysOfWeek].sort((a, b) => a - b)}
                     : {}),
-                ...(cadence === 'monthly'
+                ...(cadence === 'monthly' && state.monthAnchorMode === 'ordinal'
+                    ? {hardDayOfWeek: state.monthOrdinalDay, ordinalWeek: state.monthOrdinalWeek}
+                    : {}),
+                ...(cadence === 'monthly' && state.monthAnchorMode === 'dom'
                     ? {hardDayOfMonth: state.currentDayOfMonth}
                     : {}),
             };
@@ -378,7 +421,7 @@ export const OperationWizardDialogElement = defineElement<{open: boolean}>()({
             );
             return {
                 id: generateId(),
-                projectId,
+                projectId: state.projectId,
                 title: state.currentTitle.trim() || (state.routineNames[state.currentRoutineIndex] ?? ''),
                 description: '',
                 kind: 'routine' as ItemKind,
@@ -430,17 +473,19 @@ export const OperationWizardDialogElement = defineElement<{open: boolean}>()({
                 currentRoutineIndex: 0,
                 currentTitle: names[0] ?? '',
                 currentTier: 3,
-                currentCadence: 'weekly',
-                currentDaysOfWeek: [1, 2, 3, 4, 5],
+                currentCadence: 'daily',
+                currentDaysOfWeek: [new Date().getDay()],
                 currentDayOfMonth: 1,
+                monthAnchorMode: 'dom',
+                monthOrdinalWeek: 1,
+                monthOrdinalDay: new Date().getDay(),
                 currentTimeOfDay: 'anytime',
                 completedRoutines: [],
             });
         }
 
         function nextRoutine(): void {
-            const project = buildProject();
-            const built = buildCurrentRoutine(project.id);
+            const built = buildCurrentRoutine();
             const accumulated = [...state.completedRoutines, built];
             const nextIndex = state.currentRoutineIndex + 1;
             if (nextIndex >= state.routineNames.length) {
@@ -452,9 +497,12 @@ export const OperationWizardDialogElement = defineElement<{open: boolean}>()({
                 currentRoutineIndex: nextIndex,
                 currentTitle: state.routineNames[nextIndex] ?? '',
                 currentTier: 3,
-                currentCadence: 'weekly',
-                currentDaysOfWeek: [1, 2, 3, 4, 5],
+                currentCadence: 'daily',
+                currentDaysOfWeek: [new Date().getDay()],
                 currentDayOfMonth: 1,
+                monthAnchorMode: 'dom',
+                monthOrdinalWeek: 1,
+                monthOrdinalDay: new Date().getDay(),
                 currentTimeOfDay: 'anytime',
             });
         }
@@ -482,7 +530,7 @@ export const OperationWizardDialogElement = defineElement<{open: boolean}>()({
         if (state.step === 1) {
             return html`
                 <div class="overlay" @click=${(e: Event) => {
-                    if (e.target === e.currentTarget) cancel();
+                    if (e.target === e.currentTarget) requestCancel();
                 }}>
                     <div class="sheet">
                         <div class="step-indicator">STEP 1 OF 3</div>
@@ -546,13 +594,16 @@ export const OperationWizardDialogElement = defineElement<{open: boolean}>()({
                                 color: ViraColorVariant.Neutral,
                                 buttonEmphasis: ViraEmphasis.Subtle,
                             })}
-                                @click=${cancel}
+                                @click=${requestCancel}
                             ></${ViraButton}>
-                            <button
-                                class="skip-link"
-                                ?disabled=${!canProceedStep1}
+                            <${ViraButton.assign({
+                                text: 'Quick create (no routines)',
+                                color: ViraColorVariant.Neutral,
+                                buttonEmphasis: ViraEmphasis.Subtle,
+                                isDisabled: !canProceedStep1,
+                            })}
                                 @click=${() => canProceedStep1 && createOperation([])}
-                            >Quick create (no routines)</button>
+                            ></${ViraButton}>
                             <span class="actions-grow">
                                 <${ViraButton.assign({
                                     text: 'Continue →',
@@ -574,7 +625,7 @@ export const OperationWizardDialogElement = defineElement<{open: boolean}>()({
             const parsedNames = parseBrainstorm(state.brainstormText);
             return html`
                 <div class="overlay" @click=${(e: Event) => {
-                    if (e.target === e.currentTarget) cancel();
+                    if (e.target === e.currentTarget) requestCancel();
                 }}>
                     <div class="sheet">
                         <div class="step-indicator">STEP 2 OF 3 · ${state.operationName.toUpperCase()}</div>
@@ -613,10 +664,13 @@ export const OperationWizardDialogElement = defineElement<{open: boolean}>()({
                             })}
                                 @click=${() => updateState({step: 1})}
                             ></${ViraButton}>
-                            <button
-                                class="skip-link"
+                            <${ViraButton.assign({
+                                text: 'Create without routines',
+                                color: ViraColorVariant.Neutral,
+                                buttonEmphasis: ViraEmphasis.Subtle,
+                            })}
                                 @click=${() => createOperation([])}
-                            >Create without routines</button>
+                            ></${ViraButton}>
                             <span class="actions-grow">
                                 <${ViraButton.assign({
                                     text: routineCount > 0
@@ -730,27 +784,95 @@ export const OperationWizardDialogElement = defineElement<{open: boolean}>()({
                         </div>
                     ` : html``}
 
-                    <!-- Monthly: day-of-month -->
+                    <!-- Monthly: dom vs ordinal toggle -->
                     ${state.currentCadence === 'monthly' ? html`
                         <div class="field">
-                            <label class="field-label">Day of Month (1–31)</label>
-                            <input
-                                class="dom-input"
-                                type="number"
-                                min="1"
-                                max="31"
-                                .value=${String(state.currentDayOfMonth)}
-                                @input=${(e: Event) => {
-                                    const n = parseInt((e.target as HTMLInputElement).value, 10);
-                                    if (!Number.isNaN(n) && n >= 1 && n <= 31) {
-                                        updateState({currentDayOfMonth: n});
-                                    }
-                                }}
-                            />
-                            <div class="anchor-summary">
-                                The ${ordinalSuffix(state.currentDayOfMonth)} of each month.
+                            <label class="field-label">Monthly Anchor</label>
+                            <div class="cadence-grid">
+                                <${ViraButton.assign({
+                                    text: 'Day of month',
+                                    color: ViraColorVariant.Info,
+                                    buttonEmphasis: state.monthAnchorMode === 'dom'
+                                        ? ViraEmphasis.Standard
+                                        : ViraEmphasis.Subtle,
+                                    buttonSize: ViraSize.Small,
+                                })}
+                                    @click=${() => updateState({monthAnchorMode: 'dom'})}
+                                ></${ViraButton}>
+                                <${ViraButton.assign({
+                                    text: 'Nth weekday',
+                                    color: ViraColorVariant.Info,
+                                    buttonEmphasis: state.monthAnchorMode === 'ordinal'
+                                        ? ViraEmphasis.Standard
+                                        : ViraEmphasis.Subtle,
+                                    buttonSize: ViraSize.Small,
+                                })}
+                                    @click=${() => updateState({monthAnchorMode: 'ordinal'})}
+                                ></${ViraButton}>
                             </div>
                         </div>
+
+                        ${state.monthAnchorMode === 'dom' ? html`
+                            <div class="field">
+                                <label class="field-label">Day of Month (1–31)</label>
+                                <input
+                                    class="dom-input"
+                                    type="number"
+                                    min="1"
+                                    max="31"
+                                    .value=${String(state.currentDayOfMonth)}
+                                    @input=${(e: Event) => {
+                                        const n = parseInt((e.target as HTMLInputElement).value, 10);
+                                        if (!Number.isNaN(n) && n >= 1 && n <= 31) {
+                                            updateState({currentDayOfMonth: n});
+                                        }
+                                    }}
+                                />
+                                <div class="anchor-summary">
+                                    The ${ordinalSuffix(state.currentDayOfMonth)} of each month.
+                                </div>
+                            </div>
+                        ` : html`
+                            <div class="field">
+                                <label class="field-label">Which Occurrence</label>
+                                <div class="cadence-grid">
+                                    ${([1, 2, 3, 4, -1] as Array<1|2|3|4|-1>).map(w => html`
+                                        <${ViraButton.assign({
+                                            text: w === -1 ? 'Last' : `${ordinalSuffix(w)}`,
+                                            color: ViraColorVariant.Info,
+                                            buttonEmphasis: state.monthOrdinalWeek === w
+                                                ? ViraEmphasis.Standard
+                                                : ViraEmphasis.Subtle,
+                                            buttonSize: ViraSize.Small,
+                                        })}
+                                            @click=${() => updateState({monthOrdinalWeek: w})}
+                                        ></${ViraButton}>
+                                    `)}
+                                </div>
+                            </div>
+                            <div class="field">
+                                <label class="field-label">Day of Week</label>
+                                <div class="dow-grid">
+                                    ${DAY_LABELS.map(d => html`
+                                        <${ViraButton.assign({
+                                            text: d.label,
+                                            color: ViraColorVariant.Info,
+                                            buttonEmphasis: state.monthOrdinalDay === d.value
+                                                ? ViraEmphasis.Standard
+                                                : ViraEmphasis.Subtle,
+                                            buttonSize: ViraSize.Small,
+                                        })}
+                                            @click=${() => updateState({monthOrdinalDay: d.value})}
+                                        ></${ViraButton}>
+                                    `)}
+                                </div>
+                                <div class="anchor-summary">
+                                    The ${state.monthOrdinalWeek === -1 ? 'last' : ordinalSuffix(state.monthOrdinalWeek)}
+                                    ${DAY_LABELS.find(d => d.value === state.monthOrdinalDay)?.label ?? ''}
+                                    of each month.
+                                </div>
+                            </div>
+                        `}
                     ` : html``}
 
                     <!-- Time of day -->
@@ -773,11 +895,15 @@ export const OperationWizardDialogElement = defineElement<{open: boolean}>()({
                     </div>
 
                     <div class="actions">
-                        <button class="skip-link" @click=${skipRemaining}>
-                            ${state.completedRoutines.length > 0
+                        <${ViraButton.assign({
+                            text: state.completedRoutines.length > 0
                                 ? 'Create with routines so far'
-                                : 'Create without routines'}
-                        </button>
+                                : 'Create without routines',
+                            color: ViraColorVariant.Neutral,
+                            buttonEmphasis: ViraEmphasis.Subtle,
+                        })}
+                            @click=${skipRemaining}
+                        ></${ViraButton}>
                         <span class="actions-grow">
                             <${ViraButton.assign({
                                 text: isLastRoutine ? 'Create Operation ✓' : `Next Routine →`,

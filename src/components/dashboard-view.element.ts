@@ -157,7 +157,7 @@ export const DashboardViewElement = defineElement<{
                     <div class="intel-banner">
                         <div class="intel-title">DAILY STATUS BRIEFING</div>
                         <span class="intel-stat ${pendingCount > 0 ? '' : 'good'}">
-                            ${pendingCount} task${pendingCount !== 1 ? 's' : ''} pending
+                            ${pendingCount} directive${pendingCount !== 1 ? 's' : ''} pending
                         </span>
                         ${overdueCount > 0
                             ? html` · <span class="intel-stat alert">${overdueCount} overdue</span>`

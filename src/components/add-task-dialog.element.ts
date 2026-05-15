@@ -68,12 +68,12 @@ export const AddTaskDialogElement = defineElement<{
         description: '',
         consequenceTier: 3 as ConsequenceTier,
         timeOfDay: 'anytime' as TimeOfDay,
-        isRecurring: true,
+        isRecurring: false,
         cadence: 'weekly' as RecurrenceCadence,
         frequencyPerPeriod: 2,
         scheduleMode: 'fixed' as ScheduleMode,
-        windowType: 'flexible' as WindowType,
-        suggestedDate: '',         // YYYY-MM-DD
+        windowType: 'hard' as WindowType,
+        suggestedDate: msToDateString(Date.now()),  // YYYY-MM-DD
         // ── Recurrence anchor (only relevant when isRecurring=true) ──
         /** Selected days of the week for weekly multi-select (0=Sun…6=Sat). */
         daysOfWeek: new Set<number>([1, 2, 3, 4, 5]), // default weekdays
@@ -430,12 +430,12 @@ export const AddTaskDialogElement = defineElement<{
                 description: '',
                 consequenceTier: 3,
                 timeOfDay: 'anytime',
-                isRecurring: true,
+                isRecurring: false,
                 cadence: 'weekly',
                 frequencyPerPeriod: 2,
                 scheduleMode: 'rolling',
-                windowType: 'flexible',
-                suggestedDate: '',
+                windowType: 'hard',
+                suggestedDate: msToDateString(Date.now()),
                 daysOfWeek: new Set<number>([1, 2, 3, 4, 5]),
                 dayOfWeek: 4,
                 dayOfMonth: 1,
@@ -462,8 +462,8 @@ export const AddTaskDialogElement = defineElement<{
                 <div class="sheet">
                     <div class="sheet-title">
                         ${isEditMode
-                            ? (state.kind === 'routine' ? 'AMEND ROUTINE' : 'AMEND TASK')
-                            : (state.kind === 'routine' ? 'FILE NEW ROUTINE' : 'FILE NEW TASK')}
+                            ? (state.kind === 'routine' ? 'AMEND ROUTINE' : 'AMEND DIRECTIVE')
+                            : (state.kind === 'routine' ? 'FILE NEW ROUTINE' : 'FILE NEW DIRECTIVE')}
                     </div>
 
                     <!-- Kind toggle (Routine vs Task) -->
@@ -480,7 +480,7 @@ export const AddTaskDialogElement = defineElement<{
                                 @click=${() => updateState({kind: 'routine', isRecurring: true})}
                             ></${ViraButton}>
                             <${ViraButton.assign({
-                                text: 'Task',
+                                text: 'Directive',
                                 color: ViraColorVariant.Info,
                                 buttonEmphasis: state.kind === 'task'
                                     ? ViraEmphasis.Standard
@@ -494,10 +494,10 @@ export const AddTaskDialogElement = defineElement<{
 
                     <!-- Title -->
                     <div class="field">
-                        <span class="field-label">Task Title *</span>
+                        <span class="field-label">Title *</span>
                         <${ViraInput.assign({
                             value: state.titleValue,
-                            placeholder: 'Describe the task clearly.',
+                            placeholder: 'Describe the directive clearly.',
                         })}
                             ${listen(ViraInput.events.valueChange, e =>
                                 updateState({titleValue: e.detail}))}
@@ -569,7 +569,7 @@ export const AddTaskDialogElement = defineElement<{
                                 @change=${(e: Event) =>
                                     updateState({isRecurring: (e.target as HTMLInputElement).checked})}
                             />
-                            <label for="recurring-toggle">Recurring task</label>
+                            <label for="recurring-toggle">Recurring directive</label>
                         </div>
                     `}
 
@@ -896,7 +896,7 @@ export const AddTaskDialogElement = defineElement<{
                             <${ViraButton.assign({
                                 text: isEditMode
                                     ? 'SAVE CHANGES'
-                                    : state.kind === 'routine' ? 'COMMIT ROUTINE' : 'FILE TASK',
+                                    : state.kind === 'routine' ? 'COMMIT ROUTINE' : 'FILE DIRECTIVE',
                                 color: ViraColorVariant.Info,
                                 isDisabled: !canSubmit,
                             })}

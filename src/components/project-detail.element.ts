@@ -158,7 +158,7 @@ export const ProjectDetailElement = defineElement<{
             ${activeTasks.length === 0 && snoozedTasks.length === 0
                 ? html`
                     <div class="empty-state">
-                        <p>No active tasks in this operation.</p>
+                        <p>No active directives in this operation.</p>
                         <p class="empty-quote">
                             "A cleared docket is not an idle one — it is a prepared one."<br />
                             — Agent H. Whitaker
@@ -169,7 +169,7 @@ export const ProjectDetailElement = defineElement<{
 
             ${activeTasks.length > 0
                 ? html`
-                    <div class="section-label">ACTIVE TASKS</div>
+                    <div class="section-label">ACTIVE DIRECTIVES</div>
                     <div class="task-list">
                         ${activeTasks.map(
                             task => html`
@@ -223,7 +223,7 @@ export const ProjectDetailElement = defineElement<{
                 class="add-btn"
                 @click=${() => updateState({addingTask: true})}
             >
-                + FILE NEW TASK
+                + FILE NEW DIRECTIVE
             </button>
 
             <!-- Completed tasks (collapsed by default) -->
@@ -234,7 +234,7 @@ export const ProjectDetailElement = defineElement<{
                         @click=${() => updateState({showCompleted: !state.showCompleted})}
                     >
                         ${state.showCompleted ? 'Hide' : 'Show'}
-                        ${completedTasks.length} cleared task${completedTasks.length !== 1 ? 's' : ''}
+                        ${completedTasks.length} cleared directive${completedTasks.length !== 1 ? 's' : ''}
                     </button>
 
                     ${state.showCompleted
