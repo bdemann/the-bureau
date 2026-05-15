@@ -278,6 +278,12 @@ export const BureauAppElement = defineElement()({
             commit({projects: [...state.app.projects, project]});
         }
 
+        function onProjectDeleted(projectId: string): void {
+            const projects = state.app.projects.filter(p => p.id !== projectId);
+            const tasks    = state.app.tasks.filter(t => t.projectId !== projectId);
+            commit({projects, tasks, view: 'operations', selectedProjectId: null});
+        }
+
         function onOperationCreated(project: Project, routines: ReadonlyArray<Task>): void {
             commit({
                 projects: [...state.app.projects, project],
@@ -405,6 +411,8 @@ export const BureauAppElement = defineElement()({
                             ${listen(ProjectDetailElement.events.back, onBack)}
                             ${listen(ProjectDetailElement.events.taskEditRequested, e =>
                                 onTaskEditRequested(e.detail))}
+                            ${listen(ProjectDetailElement.events.projectDeleted, e =>
+                                onProjectDeleted(e.detail))}
                         ></${ProjectDetailElement}>
                       `
                     : html`

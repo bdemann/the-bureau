@@ -24,11 +24,13 @@ export const ProjectDetailElement = defineElement<{
         taskEditRequested:  defineElementEvent<string>(),
         taskAdded:          defineElementEvent<Task>(),
         back:               defineElementEvent<void>(),
+        projectDeleted:     defineElementEvent<string>(),  // project id
     },
 
     state: () => ({
         addingTask: false,
         showCompleted: false,
+        confirmingDelete: false,
     }),
 
     styles: css`
@@ -129,6 +131,70 @@ export const ProjectDetailElement = defineElement<{
         .snoozed-section {
             margin-top: 8px;
         }
+
+        .delete-zone {
+            margin-top: 32px;
+            border-top: 1px solid rgba(0,0,0,0.1);
+            padding-top: 16px;
+        }
+
+        .delete-btn {
+            background: none;
+            border: 1px solid #C41E3A;
+            color: #C41E3A;
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 0.85rem;
+            letter-spacing: 0.2em;
+            padding: 8px 16px;
+            cursor: pointer;
+            transition: background 0.15s, color 0.15s;
+        }
+        .delete-btn:hover { background: #C41E3A; color: #F5EFE0; }
+
+        .confirm-delete {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            padding: 12px;
+            background: #FFF5F5;
+            border: 1px solid #C41E3A;
+        }
+
+        .confirm-delete p {
+            font-family: 'Courier Prime', monospace;
+            font-size: 0.8rem;
+            color: #8B0000;
+            margin: 0;
+        }
+
+        .confirm-actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        .confirm-yes {
+            background: #C41E3A;
+            border: none;
+            color: #F5EFE0;
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 0.85rem;
+            letter-spacing: 0.15em;
+            padding: 8px 16px;
+            cursor: pointer;
+        }
+        .confirm-yes:hover { background: #8B0000; }
+
+        .confirm-no {
+            background: none;
+            border: 1px solid #6B6B6B;
+            color: #6B6B6B;
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 0.85rem;
+            letter-spacing: 0.15em;
+            padding: 8px 16px;
+            cursor: pointer;
+        }
+        .confirm-no:hover { background: rgba(0,0,0,0.05); }
     `,
 
     render({inputs, state, updateState, dispatch, events}) {
@@ -262,6 +328,32 @@ export const ProjectDetailElement = defineElement<{
                         : html``}
                   `
                 : html``}
+
+            <!-- Delete operation -->
+            <div class="delete-zone">
+                ${state.confirmingDelete
+                    ? html`
+                        <div class="confirm-delete">
+                            <p>PERMANENTLY DECOMMISSION THIS OPERATION AND ALL ITS DIRECTIVES?</p>
+                            <div class="confirm-actions">
+                                <button
+                                    class="confirm-yes"
+                                    @click=${() => dispatch(new events.projectDeleted(project.id))}
+                                >DECOMMISSION</button>
+                                <button
+                                    class="confirm-no"
+                                    @click=${() => updateState({confirmingDelete: false})}
+                                >CANCEL</button>
+                            </div>
+                        </div>
+                      `
+                    : html`
+                        <button
+                            class="delete-btn"
+                            @click=${() => updateState({confirmingDelete: true})}
+                        >DECOMMISSION OPERATION</button>
+                      `}
+            </div>
 
             <!-- Add task dialog -->
             <${AddTaskDialogElement.assign({

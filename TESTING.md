@@ -91,6 +91,10 @@ Mark each row as you verify in the browser. Reset the localStorage entry
 - [ ] Active tasks list shows incomplete + un-snoozed (regardless of due date)
 - [ ] Snoozed list shows separately when applicable
 - [ ] Cleared tasks toggle (Show/Hide N cleared) works
+- [ ] DECOMMISSION OPERATION button visible at bottom of project detail
+- [ ] Clicking DECOMMISSION OPERATION shows inline confirmation ("DECOMMISSION" / "CANCEL")
+- [ ] Cancelling confirmation returns to normal view with no changes
+- [ ] Confirming decommission removes the project and all its tasks, then navigates back to Operations
 
 ### Filing directives — routine vs directive kind
 
