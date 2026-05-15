@@ -435,6 +435,12 @@ function formatDueLabel(task: Task, overdue: boolean): string | null {
             return `Suggested ${fmt} · window ends ${deadline}`;
         }
     }
+    // suggestedDate has arrived — switch from "Suggested" to "Due"
+    if (due <= Date.now()) {
+        return new Date(due).toDateString() === new Date().toDateString()
+            ? 'Due today'
+            : `Overdue · ${fmt}`;
+    }
     return `Suggested ${fmt}`;
 }
 

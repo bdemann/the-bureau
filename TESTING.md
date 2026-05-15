@@ -194,7 +194,7 @@ Mark each row as you verify in the browser. Reset the localStorage entry
 ### Daily view
 
 - [ ] Mandatory: tasks due today / hard-overdue / cadence=daily
-- [ ] Suggested: flexible tasks past suggestedDate but inside window
+- [ ] Suggested: flexible tasks past suggestedDate but inside window (regression: suggestedDate = today shows "Due today", not "Suggested [date]")
 - [ ] Radar: tasks ≤ 3 days from hard date, or window % low
 - [ ] Backlog: everything else (collapsed by default — count visible)
 - [ ] Empty Mandatory: "No mandatory tasks today. Agent Whitaker approves."
