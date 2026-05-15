@@ -116,7 +116,9 @@ export const BureauAppElement = defineElement()({
                 timestamp: Date.now(),
                 dismissed: false,
             };
-            commit({dialogueQueue: [entry, ...queue.slice(0, 9)]});
+            // A new memo replaces any existing visible one rather than stacking.
+            const clearedQueue = queue.map(d => d.dismissed ? d : {...d, dismissed: true});
+            commit({dialogueQueue: [entry, ...clearedQueue.slice(0, 9)]});
         }
 
         function triggerDialogue(
