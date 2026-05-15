@@ -162,7 +162,9 @@ export const ProjectCardElement = defineElement<{
         );
         const completedCount = tasks.filter(t => t.completedAt !== null).length;
         const totalCount = tasks.length;
-        const allDone = totalCount > 0 && completedCount === totalCount;
+        // An operation with routines is an ongoing commitment — it's never "cleared".
+        const hasRoutines = tasks.some(t => t.kind === 'routine');
+        const allDone = !hasRoutines && totalCount > 0 && completedCount === totalCount;
 
         return html`
             <div

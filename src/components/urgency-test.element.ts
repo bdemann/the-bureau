@@ -434,6 +434,7 @@ function baseTask(overrides: Partial<Task>): Task {
         title: 'test',
         description: '',
         consequenceTier: 3,
+        kind: 'task' as Task['kind'],
         windowType: 'flexible',
         suggestedDate: null,
         windowDeadline: null,
@@ -446,7 +447,6 @@ function baseTask(overrides: Partial<Task>): Task {
         snoozedUntil: null,
         completedAt: null,
         createdAt: Date.now(),
-        priority: 'medium',
         dueDate: null,
         ...overrides,
     } as Task;

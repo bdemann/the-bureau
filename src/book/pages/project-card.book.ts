@@ -1,7 +1,7 @@
 import {html} from 'element-vir';
 import {defineBookPage} from 'element-book';
 import {ProjectCardElement} from '../../components/project-card.element.js';
-import type {Project, Task} from '../../data/types.js';
+import type {ItemKind, Project, Task} from '../../data/types.js';
 
 const NOW = Date.now();
 const DAY = 86_400_000;
@@ -22,6 +22,7 @@ function makeTask(projectId: string, overrides: Partial<Task> & {title: string})
         projectId,
         description: '',
         timeOfDay: 'anytime',
+        kind: 'task' as ItemKind,
         consequenceTier: 2,
         windowType: 'flexible',
         suggestedDate: null,
@@ -36,7 +37,6 @@ function makeTask(projectId: string, overrides: Partial<Task> & {title: string})
         snoozedUntil: null,
         completedAt: null,
         createdAt: NOW - DAY,
-        priority: 'medium',
         dueDate: null,
         ...overrides,
     };

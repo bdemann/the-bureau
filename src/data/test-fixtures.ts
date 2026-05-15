@@ -1,6 +1,6 @@
 // Shared fixtures for unit tests. Build a Task in one line via makeTask({...}).
 
-import type {RecurrenceConfig, Task} from './types.js';
+import type {ItemKind, RecurrenceConfig, Task} from './types.js';
 
 export function makeTask(overrides: Partial<Task> = {}): Task {
     return {
@@ -9,6 +9,7 @@ export function makeTask(overrides: Partial<Task> = {}): Task {
         title: 'Test task',
         description: '',
         timeOfDay: 'anytime',
+        kind: 'task' as ItemKind,
         consequenceTier: 3,
         windowType: 'flexible',
         suggestedDate: null,
@@ -23,7 +24,6 @@ export function makeTask(overrides: Partial<Task> = {}): Task {
         snoozedUntil: null,
         completedAt: null,
         createdAt: 0,
-        priority: 'medium',
         dueDate: null,
         ...overrides,
     };

@@ -2,7 +2,7 @@
 // Core domain types for BCR (Bureau of Civic Responsibility)
 // ─────────────────────────────────────────────────────────────────────────────
 
-export type Priority = 'low' | 'medium' | 'high' | 'critical';
+export type ItemKind = 'routine' | 'task';
 export type AppView = 'daily' | 'operations' | 'project';
 export type Character = 'director' | 'agent';
 
@@ -115,6 +115,7 @@ export interface Task {
     title: string;
     description: string;
     timeOfDay: TimeOfDay;
+    kind: ItemKind;
 
     // ── Consequence and timing type ──
     consequenceTier: ConsequenceTier;
@@ -152,8 +153,6 @@ export interface Task {
     createdAt: number;
 
     // ── Legacy (Phase 1) — kept for backward compat ──
-    /** @deprecated Use consequenceTier. Retained so old data still renders. */
-    priority: Priority;
     /** @deprecated Use suggestedDate. Retained so old data still renders. */
     dueDate: number | null;
 }

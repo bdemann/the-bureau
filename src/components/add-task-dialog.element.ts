@@ -11,6 +11,7 @@ import {
 } from 'vira';
 import type {
     ConsequenceTier,
+    ItemKind,
     RecurrenceCadence,
     RecurrenceConfig,
     RecurrenceEndMode,
@@ -62,6 +63,7 @@ export const AddTaskDialogElement = defineElement<{
     },
 
     state: () => ({
+        kind: 'task' as ItemKind,
         titleValue: '',
         description: '',
         consequenceTier: 3 as ConsequenceTier,
@@ -263,6 +265,14 @@ export const AddTaskDialogElement = defineElement<{
             padding-top: 12px;
             margin-top: 4px;
         }
+
+        .kind-toggle {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 6px;
+            margin-bottom: 16px;
+        }
+        .kind-toggle ${ViraButton} { width: 100%; }
     `,
 
     render({inputs, state, updateState, dispatch, events}) {
@@ -278,6 +288,7 @@ export const AddTaskDialogElement = defineElement<{
             const cfg = t.recurrence;
             updateState({
                 currentEditId: t.id,
+                kind: t.kind ?? 'task',
                 titleValue: t.title,
                 description: t.description,
                 timeOfDay: t.timeOfDay ?? 'anytime',
@@ -391,6 +402,7 @@ export const AddTaskDialogElement = defineElement<{
                 totalCompletions: baseTask?.totalCompletions ?? 0,
                 progressCount: baseTask?.progressCount ?? 0,
                 // Editable fields:
+                kind: state.kind,
                 title: state.titleValue.trim(),
                 description: state.description.trim(),
                 timeOfDay: state.timeOfDay,
@@ -401,8 +413,7 @@ export const AddTaskDialogElement = defineElement<{
                 windowLengthDays,
                 recurrence,
                 currentPeriodStart,
-                // Legacy compatibility — derive from new fields
-                priority: tierToPriority(state.consequenceTier),
+                // Legacy compatibility — retain deprecated dueDate field
                 dueDate: suggestedDate,
             };
 
@@ -414,6 +425,7 @@ export const AddTaskDialogElement = defineElement<{
 
             // Reset
             updateState({
+                kind: 'task',
                 titleValue: '',
                 description: '',
                 consequenceTier: 3,
@@ -448,7 +460,37 @@ export const AddTaskDialogElement = defineElement<{
                 }}
             >
                 <div class="sheet">
-                    <div class="sheet-title">${isEditMode ? 'AMEND TASK' : 'FILE NEW TASK'}</div>
+                    <div class="sheet-title">
+                        ${isEditMode
+                            ? (state.kind === 'routine' ? 'AMEND ROUTINE' : 'AMEND TASK')
+                            : (state.kind === 'routine' ? 'FILE NEW ROUTINE' : 'FILE NEW TASK')}
+                    </div>
+
+                    <!-- Kind toggle (Routine vs Task) -->
+                    ${!isEditMode ? html`
+                        <div class="kind-toggle">
+                            <${ViraButton.assign({
+                                text: 'Routine',
+                                color: ViraColorVariant.Info,
+                                buttonEmphasis: state.kind === 'routine'
+                                    ? ViraEmphasis.Standard
+                                    : ViraEmphasis.Subtle,
+                                buttonSize: ViraSize.Small,
+                            })}
+                                @click=${() => updateState({kind: 'routine', isRecurring: true})}
+                            ></${ViraButton}>
+                            <${ViraButton.assign({
+                                text: 'Task',
+                                color: ViraColorVariant.Info,
+                                buttonEmphasis: state.kind === 'task'
+                                    ? ViraEmphasis.Standard
+                                    : ViraEmphasis.Subtle,
+                                buttonSize: ViraSize.Small,
+                            })}
+                                @click=${() => updateState({kind: 'task'})}
+                            ></${ViraButton}>
+                        </div>
+                    ` : html``}
 
                     <!-- Title -->
                     <div class="field">
@@ -517,17 +559,19 @@ export const AddTaskDialogElement = defineElement<{
                         </div>
                     </div>
 
-                    <!-- Recurring toggle -->
-                    <div class="recurring-row">
-                        <input
-                            id="recurring-toggle"
-                            type="checkbox"
-                            .checked=${state.isRecurring}
-                            @change=${(e: Event) =>
-                                updateState({isRecurring: (e.target as HTMLInputElement).checked})}
-                        />
-                        <label for="recurring-toggle">Recurring task</label>
-                    </div>
+                    <!-- Recurring toggle — hidden for routines (always recurring) -->
+                    ${state.kind === 'routine' ? html`` : html`
+                        <div class="recurring-row">
+                            <input
+                                id="recurring-toggle"
+                                type="checkbox"
+                                .checked=${state.isRecurring}
+                                @change=${(e: Event) =>
+                                    updateState({isRecurring: (e.target as HTMLInputElement).checked})}
+                            />
+                            <label for="recurring-toggle">Recurring task</label>
+                        </div>
+                    `}
 
                     <!-- Window type + date — only relevant for one-time tasks -->
                     ${state.isRecurring ? html`` : html`
@@ -764,7 +808,8 @@ export const AddTaskDialogElement = defineElement<{
                             `}
                         ` : html``}
 
-                        <!-- End condition -->
+                        <!-- End condition — hidden for routines (they never end) -->
+                        ${state.kind === 'routine' ? html`` : html`
                         <div class="end-condition-section">
                             <div class="recurring-row">
                                 <input
@@ -833,6 +878,7 @@ export const AddTaskDialogElement = defineElement<{
                                 `}
                             ` : html``}
                         </div>
+                        `}
                     ` : html``}
 
                     <div class="actions">
@@ -848,7 +894,9 @@ export const AddTaskDialogElement = defineElement<{
                         ></${ViraButton}>
                         <span class="grow">
                             <${ViraButton.assign({
-                                text: isEditMode ? 'SAVE CHANGES' : 'FILE TASK',
+                                text: isEditMode
+                                    ? 'SAVE CHANGES'
+                                    : state.kind === 'routine' ? 'COMMIT ROUTINE' : 'FILE TASK',
                                 color: ViraColorVariant.Info,
                                 isDisabled: !canSubmit,
                             })}
@@ -922,12 +970,3 @@ function ordinalSuffix(n: number): string {
     return `${n}th`;
 }
 
-/** Map consequence tier → legacy priority for backward compatibility. */
-function tierToPriority(tier: ConsequenceTier): 'low' | 'medium' | 'high' | 'critical' {
-    switch (tier) {
-        case 1: return 'critical';
-        case 2: return 'high';
-        case 3: return 'medium';
-        case 4: return 'low';
-    }
-}

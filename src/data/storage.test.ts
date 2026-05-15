@@ -171,6 +171,24 @@ function v1Task(priority: 'low' | 'medium' | 'high' | 'critical', dueDate: numbe
     } as unknown as Task;
 }
 
+/** A raw stored task with no `kind` field, simulating pre-kind localStorage data. */
+function legacyTask(recurrence: unknown = null): unknown {
+    return {
+        id: 'task-id',
+        projectId: 'proj-id',
+        title: 'Test',
+        description: '',
+        consequenceTier: 3,
+        windowType: 'flexible',
+        snoozeCount: 0,
+        snoozedUntil: null,
+        completedAt: null,
+        createdAt: 0,
+        recurrence,
+        // deliberately omits `kind`
+    };
+}
+
 describe('migrateState', () => {
     test('Phase 1 critical priority → tier 1', () => {
         const v1: AppState = {
@@ -228,5 +246,55 @@ describe('migrateState', () => {
         const out = migrateState(v2);
         assert.strictEquals(out.tasks[0]!.consequenceTier, 2);
         assert.strictEquals(out.schemaVersion, SCHEMA_VERSION);
+    });
+});
+
+describe('kind migration', () => {
+    test('no recurrence + no kind → task', () => {
+        const state: AppState = {
+            ...DEFAULT_STATE,
+            tasks: [legacyTask(null)] as unknown as Task[],
+        };
+        assert.strictEquals(migrateState(state).tasks[0]!.kind, 'task');
+    });
+
+    test('recurring endMode=never + no kind → routine', () => {
+        const state: AppState = {
+            ...DEFAULT_STATE,
+            tasks: [legacyTask({cadence: 'weekly', frequencyPerPeriod: 1, scheduleMode: 'fixed', endMode: 'never'})] as unknown as Task[],
+        };
+        assert.strictEquals(migrateState(state).tasks[0]!.kind, 'routine');
+    });
+
+    test('recurring with no endMode field + no kind → routine (default to never)', () => {
+        const state: AppState = {
+            ...DEFAULT_STATE,
+            tasks: [legacyTask({cadence: 'weekly', frequencyPerPeriod: 1, scheduleMode: 'fixed'})] as unknown as Task[],
+        };
+        assert.strictEquals(migrateState(state).tasks[0]!.kind, 'routine');
+    });
+
+    test('recurring endMode=after_count + no kind → task', () => {
+        const state: AppState = {
+            ...DEFAULT_STATE,
+            tasks: [legacyTask({cadence: 'weekly', frequencyPerPeriod: 1, scheduleMode: 'fixed', endMode: 'after_count', endAfterCount: 10})] as unknown as Task[],
+        };
+        assert.strictEquals(migrateState(state).tasks[0]!.kind, 'task');
+    });
+
+    test('recurring endMode=after_date + no kind → task', () => {
+        const state: AppState = {
+            ...DEFAULT_STATE,
+            tasks: [legacyTask({cadence: 'monthly', frequencyPerPeriod: 1, scheduleMode: 'fixed', endMode: 'after_date', endAfterDate: Date.now() + DAY_MS * 30})] as unknown as Task[],
+        };
+        assert.strictEquals(migrateState(state).tasks[0]!.kind, 'task');
+    });
+
+    test('existing kind field is preserved, not overwritten', () => {
+        const state: AppState = {
+            ...DEFAULT_STATE,
+            tasks: [makeTask({kind: 'routine', recurrence: null})],
+        };
+        assert.strictEquals(migrateState(state).tasks[0]!.kind, 'routine');
     });
 });

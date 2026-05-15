@@ -45,11 +45,33 @@ Mark each row as you verify in the browser. Reset the localStorage entry
 ### Operations view (project list)
 
 - [ ] Empty: shows `NO ACTIVE OPERATIONS` stamp
-- [ ] `+ OPEN NEW OPERATION` opens dialog
-- [ ] Cancel closes without creating
-- [ ] Submitting a name creates the project; card appears
+- [ ] `+ OPEN NEW OPERATION` opens the operation wizard
+- [ ] Wizard cancel closes without creating anything
 - [ ] Click card → project-detail opens
 - [ ] Multiple projects render
+- [ ] A project containing at least one routine never shows "CLEARED" (even when all tasks are done)
+- [ ] A project with only one-time or bounded-recurring tasks shows "CLEARED" when all are done
+
+### Operation creation wizard
+
+- [ ] Step 1: Continue disabled until operation name is typed
+- [ ] Step 1: Description is optional (Continue works with empty description)
+- [ ] Step 1: Color picker selects a highlight color; swatch updates visually
+- [ ] Step 1: "Quick create (no routines)" skips to project creation with no routines
+- [ ] Step 2: Brainstorm textarea accepts free text; parsed names preview below (split on newlines and commas, empties stripped)
+- [ ] Step 2: "Create without routines" creates the project immediately with no routines
+- [ ] Step 2: "Configure N routines →" advances to step 3 with the parsed list
+- [ ] Step 3: Routine title pre-filled from brainstorm text; editable
+- [ ] Step 3: Tier T1–T4 grid selects consequence tier
+- [ ] Step 3: Cadence grid (Daily / Weekly / Monthly / Quarterly / Yearly) is selectable
+- [ ] Step 3 Weekly: day-of-week multi-select appears; multiple days can be toggled
+- [ ] Step 3 Monthly: day-of-month input appears
+- [ ] Step 3: Time-of-day grid (Anytime / Morning / Afternoon / Evening) is selectable
+- [ ] Step 3: "Create with routines so far" creates the operation using only configured routines up to this point
+- [ ] Step 3: "Next Routine →" advances to the next routine without creating yet
+- [ ] Step 3: Last routine shows "Create Operation ✓" instead of Next
+- [ ] After wizard completes: operation card appears in dashboard
+- [ ] After wizard completes: routines appear with ROUTINE chip in project detail
 
 ### Project-detail
 
@@ -60,6 +82,17 @@ Mark each row as you verify in the browser. Reset the localStorage entry
 - [ ] Active tasks list shows incomplete + un-snoozed (regardless of due date)
 - [ ] Snoozed list shows separately when applicable
 - [ ] Cleared tasks toggle (Show/Hide N cleared) works
+
+### Task creation — routine vs task kind
+
+- [ ] Add-task dialog defaults to TASK kind selected
+- [ ] ROUTINE / TASK segmented toggle visible when creating (hidden in edit mode)
+- [ ] Selecting ROUTINE forces "Recurring" on and hides the recurring checkbox
+- [ ] Selecting ROUTINE hides the end-condition section entirely
+- [ ] Selecting ROUTINE changes sheet title to "FILE NEW ROUTINE" and submit button to "COMMIT ROUTINE"
+- [ ] Selecting TASK shows sheet title "FILE NEW TASK" and submit button "FILE TASK"
+- [ ] Editing an existing routine shows "AMEND ROUTINE"; editing a task shows "AMEND TASK"
+- [ ] Tasks with `kind=routine` show a ROUTINE chip in the task-item card
 
 ### Task creation — one-time
 
@@ -176,6 +209,13 @@ Mark each row as you verify in the browser. Reset the localStorage entry
 - [ ] Weekly fixed (anchored Thursday): complete it, next-week reload — suggestedDate is next Thursday
 - [ ] Weekly rolling: complete on a different day — next due = completion + 7 days
 - [ ] Multi-per-week: complete 1× this week, advance week — completionsThisPeriod resets to 0
+
+### Bug regressions
+
+- [ ] Skip action (recurring task) fires NO Whitaker/Briggs dialogue (regression: NEW-2)
+- [ ] Menu → "Report a Neighbor": menu closes immediately; share sheet appears (or link is copied) (regression: NEW-3)
+- [ ] Patriot score header shows streak when streak is 0 — e.g. "0d · SUSPECTED COMMUNIST" (regression: Bug #8)
+- [ ] Daily view: expand BACKLOG band → previously-expanded time-of-day slots within other bands stay expanded (regression: NEW-4)
 
 ### Persistence
 

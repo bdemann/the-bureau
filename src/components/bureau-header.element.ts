@@ -23,8 +23,7 @@ export const BureauHeaderElement = defineElement<{
     },
 
     state: () => ({
-        menuOpen:     false,
-        reportCopied: false,
+        menuOpen: false,
     }),
 
     styles: css`
@@ -318,6 +317,7 @@ export const BureauHeaderElement = defineElement<{
         }
 
         async function onReportNeighbor(): Promise<void> {
+            closeMenu();
             if (navigator.share) {
                 try {
                     await navigator.share({
@@ -330,8 +330,6 @@ export const BureauHeaderElement = defineElement<{
                 }
             } else {
                 await navigator.clipboard.writeText(CLEAR_URL);
-                updateState({reportCopied: true});
-                setTimeout(() => updateState({reportCopied: false}), 3000);
             }
         }
 
@@ -352,7 +350,7 @@ export const BureauHeaderElement = defineElement<{
                     <div class="score-block" title="Patriot Score">
                         <span class="score-number">${Math.round(patriotScore)}</span>
                         <span class="score-label">
-                            ${streak > 0 ? `🔥 ${streak}d · ` : ''}${rankLabel(rank).toUpperCase()}
+                            ${streak > 0 ? `🔥 ${streak}d · ` : `${streak}d · `}${rankLabel(rank).toUpperCase()}
                         </span>
                     </div>
 
@@ -406,9 +404,6 @@ export const BureauHeaderElement = defineElement<{
                                 Report a Neighbor
                                 <span class="menu-item-sub">Refer a civic non-compliant to CLEAR</span>
                             </button>
-                            ${state.reportCopied
-                                ? html`<div class="menu-copied">Link copied to clipboard.</div>`
-                                : html``}
                         </div>
                     </div>
                 </div>

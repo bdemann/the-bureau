@@ -1,7 +1,7 @@
 import type {
     AppState,
     ConsequenceTier,
-    Priority,
+    ItemKind,
     Task,
     TimeOfDay,
 } from './types.js';
@@ -114,6 +114,12 @@ function ensureTaskShape(raw: any): Task {
         title: raw.title ?? '',
         description: raw.description ?? '',
         timeOfDay: (raw.timeOfDay ?? 'anytime') as TimeOfDay,
+        // Migrate: existing recurring + no-end tasks become 'routine', others 'task'.
+        kind: (raw.kind ?? (
+            raw.recurrence && (raw.recurrence.endMode ?? 'never') === 'never'
+                ? 'routine'
+                : 'task'
+        )) as ItemKind,
         consequenceTier: (raw.consequenceTier ?? 3) as ConsequenceTier,
         windowType: raw.windowType ?? 'flexible',
         suggestedDate: raw.suggestedDate ?? null,
@@ -130,12 +136,11 @@ function ensureTaskShape(raw: any): Task {
         snoozedUntil: raw.snoozedUntil ?? null,
         completedAt: raw.completedAt ?? null,
         createdAt: raw.createdAt ?? Date.now(),
-        priority: (raw.priority ?? 'medium') as Priority,
         dueDate: raw.dueDate ?? null,
     };
 }
 
-function priorityToTier(priority: Priority | undefined): ConsequenceTier {
+function priorityToTier(priority: string | undefined): ConsequenceTier {
     switch (priority) {
         case 'critical': return 1;
         case 'high':     return 2;

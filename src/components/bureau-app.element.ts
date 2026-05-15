@@ -265,7 +265,6 @@ export const BureauAppElement = defineElement()({
                 return advanceRecurrence(t, now);
             });
             commit({tasks});
-            triggerDialogue('task_snoozed_1', false);
         }
 
         function onTaskAdded(task: Task): void {
@@ -277,6 +276,14 @@ export const BureauAppElement = defineElement()({
 
         function onProjectAdded(project: Project): void {
             commit({projects: [...state.app.projects, project]});
+        }
+
+        function onOperationCreated(project: Project, routines: ReadonlyArray<Task>): void {
+            commit({
+                projects: [...state.app.projects, project],
+                tasks:    [...state.app.tasks, ...routines],
+            });
+            triggerDialogue('task_added', false);
         }
 
         function onTaskEditRequested(taskId: string): void {
@@ -371,6 +378,8 @@ export const BureauAppElement = defineElement()({
                                 onProjectSelected(e.detail))}
                             ${listen(DashboardViewElement.events.projectAdded, e =>
                                 onProjectAdded(e.detail))}
+                            ${listen(DashboardViewElement.events.operationCreated, e =>
+                                onOperationCreated(e.detail.project, e.detail.routines))}
                         ></${DashboardViewElement}>
                       `
                     : selectedProject

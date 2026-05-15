@@ -1,7 +1,7 @@
 import {defineElement, defineElementEvent, css, html, listen} from 'element-vir';
 import type {Project, Task} from '../data/types.js';
 import {ProjectCardElement} from './project-card.element.js';
-import {AddProjectDialogElement} from './add-project-dialog.element.js';
+import {OperationWizardDialogElement} from './operation-wizard-dialog.element.js';
 import {isTaskOverdue, isTaskVisible} from '../data/storage.js';
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -17,12 +17,13 @@ export const DashboardViewElement = defineElement<{
     tagName: 'dashboard-view',
 
     events: {
-        projectSelected: defineElementEvent<string>(),  // project id
-        projectAdded:    defineElementEvent<Project>(),
+        projectSelected:  defineElementEvent<string>(),  // project id
+        projectAdded:     defineElementEvent<Project>(),
+        operationCreated: defineElementEvent<{project: Project; routines: ReadonlyArray<Task>}>(),
     },
 
     state: () => ({
-        addingProject: false,
+        wizardOpen: false,
     }),
 
     styles: css`
@@ -198,20 +199,20 @@ export const DashboardViewElement = defineElement<{
 
             <button
                 class="add-btn"
-                @click=${() => updateState({addingProject: true})}
+                @click=${() => updateState({wizardOpen: true})}
             >
                 + OPEN NEW OPERATION
             </button>
 
-            <!-- Add project dialog -->
-            <${AddProjectDialogElement.assign({open: state.addingProject})}
-                ${listen(AddProjectDialogElement.events.projectSubmitted, e => {
-                    dispatch(new events.projectAdded(e.detail));
-                    updateState({addingProject: false});
+            <!-- Operation wizard dialog -->
+            <${OperationWizardDialogElement.assign({open: state.wizardOpen})}
+                ${listen(OperationWizardDialogElement.events.operationCreated, e => {
+                    dispatch(new events.operationCreated(e.detail));
+                    updateState({wizardOpen: false});
                 })}
-                ${listen(AddProjectDialogElement.events.cancelled, () =>
-                    updateState({addingProject: false}))}
-            ></${AddProjectDialogElement}>
+                ${listen(OperationWizardDialogElement.events.cancelled, () =>
+                    updateState({wizardOpen: false}))}
+            ></${OperationWizardDialogElement}>
         `;
     },
 });

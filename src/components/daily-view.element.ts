@@ -61,7 +61,7 @@ export const DailyViewElement = defineElement<{
     state: () => ({
         expandRadar:   false,
         expandBacklog: false,
-        expandedSlots: new Set<TimeOfDay>([getCurrentTimeSlot()]),
+        expandedSlots: {[getCurrentTimeSlot()]: true} as Partial<Record<TimeOfDay, boolean>>,
     }),
 
     styles: css`
@@ -176,14 +176,11 @@ export const DailyViewElement = defineElement<{
     render({inputs, state, updateState, dispatch, events}) {
         // Keep the callback current every render so it captures the latest updateState.
         _onSlotChange = (newSlot: TimeOfDay) => {
-            updateState({expandedSlots: new Set<TimeOfDay>([newSlot])});
+            updateState({expandedSlots: {[newSlot]: true}});
         };
 
         function toggleSlot(slot: TimeOfDay): void {
-            const next = new Set(state.expandedSlots);
-            if (next.has(slot)) next.delete(slot);
-            else next.add(slot);
-            updateState({expandedSlots: next});
+            updateState({expandedSlots: {...state.expandedSlots, [slot]: !state.expandedSlots[slot]}});
         }
 
         const today = new Date();
@@ -250,7 +247,7 @@ export const DailyViewElement = defineElement<{
 
             return html`
                 ${slotGroups.map(g => {
-                    const isExpanded = state.expandedSlots.has(g.slot);
+                    const isExpanded = !!state.expandedSlots[g.slot];
                     return html`
                         <div class="time-group">
                             <button

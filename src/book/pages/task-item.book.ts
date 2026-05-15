@@ -1,7 +1,7 @@
 import {html} from 'element-vir';
 import {defineBookPage} from 'element-book';
 import {TaskItemElement} from '../../components/task-item.element.js';
-import type {Task} from '../../data/types.js';
+import type {ItemKind, Task} from '../../data/types.js';
 
 const NOW = Date.now();
 const DAY = 86_400_000;
@@ -12,6 +12,7 @@ function makeTask(overrides: Partial<Task> & {title: string}): Task {
         projectId: 'p1',
         description: '',
         timeOfDay: 'anytime',
+        kind: 'task' as ItemKind,
         consequenceTier: 2,
         windowType: 'flexible',
         suggestedDate: null,
@@ -26,7 +27,6 @@ function makeTask(overrides: Partial<Task> & {title: string}): Task {
         snoozedUntil: null,
         completedAt: null,
         createdAt: NOW - DAY,
-        priority: 'medium',
         dueDate: null,
         ...overrides,
     };

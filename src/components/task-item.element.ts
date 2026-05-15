@@ -197,6 +197,17 @@ export const TaskItemElement = defineElement<{
             color: #4A6741;
         }
 
+        .kind-chip {
+            font-size: 0.6rem;
+            font-family: 'Bebas Neue', sans-serif;
+            letter-spacing: 0.15em;
+            padding: 1px 5px;
+            border-radius: 1px;
+            background: rgba(27, 42, 74, 0.08);
+            color: #1B2A4A;
+            border: 1px solid rgba(27, 42, 74, 0.2);
+        }
+
         .milestone-complete-btn {
             font-family: 'Bebas Neue', sans-serif;
             font-size: 0.72rem;
@@ -305,6 +316,10 @@ export const TaskItemElement = defineElement<{
 
                     ${isMilestone && task.progressCount > 0
                         ? html`<span class="progress-log-chip">${task.progressCount} session${task.progressCount === 1 ? '' : 's'} logged</span>`
+                        : html``}
+
+                    ${task.kind === 'routine'
+                        ? html`<span class="kind-chip">ROUTINE</span>`
                         : html``}
 
                     ${task.snoozeCount > 0
