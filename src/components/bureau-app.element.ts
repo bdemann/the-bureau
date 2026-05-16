@@ -6,6 +6,7 @@ import {
     isTaskOverdue,
     loadState,
     saveState,
+    startOfDay,
 } from '../data/storage.js';
 import {advanceRecurrence, isMultiplePerPeriod, isRecurrenceEnded, rolloverIfNeeded} from '../data/recurrence.js';
 import {getDialogueFor} from '../data/dialogues.js';
@@ -14,6 +15,7 @@ import {BureauHeaderElement} from './bureau-header.element.js';
 import {CharacterDialogueElement} from './character-dialogue.element.js';
 import {DailyViewElement} from './daily-view.element.js';
 import {DashboardViewElement} from './dashboard-view.element.js';
+import {InsightsViewElement} from './insights-view.element.js';
 import {ProjectDetailElement} from './project-detail.element.js';
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -27,7 +29,24 @@ function bootstrap(): AppState {
 
     // Roll any recurring tasks forward whose period elapsed while we were away.
     const today = new Date();
-    const tasks = loaded.tasks.map(t => rolloverIfNeeded(t, today));
+    const todayMidnight = startOfDay(today).getTime();
+    const tasks = loaded.tasks.map(t => {
+        const rolled = rolloverIfNeeded(t, today);
+        // One-time hard-date tasks past their date can never be done — mark missed.
+        if (!rolled.recurrence
+            && rolled.completedAt === null
+            && rolled.missedAt === null
+            && rolled.windowType === 'hard'
+            && rolled.suggestedDate !== null
+            && rolled.suggestedDate < todayMidnight) {
+            return {
+                ...rolled,
+                missedAt: rolled.suggestedDate,
+                totalMisses: rolled.totalMisses + 1,
+            };
+        }
+        return rolled;
+    });
 
     // Detect a new day → push the day-start dialogue.
     const todayStr = getTodayString();
@@ -161,17 +180,28 @@ export const BureauAppElement = defineElement()({
                 // The urgency engine treats count >= target as "complete for
                 // this period," so the task hides correctly until rollover.
                 if (isMultiplePerPeriod(t)) {
+                    const isFullPeriodComplete = t.completionsThisPeriod + 1 >= t.recurrence!.frequencyPerPeriod;
+                    const newStreak = isFullPeriodComplete ? t.taskCompletionStreak + 1 : t.taskCompletionStreak;
                     return {
                         ...withCount,
                         completionsThisPeriod: t.completionsThisPeriod + 1,
                         snoozeCount: 0,
                         snoozedUntil: null,
+                        taskCompletionStreak: newStreak,
+                        maxTaskCompletionStreak: Math.max(t.maxTaskCompletionStreak, newStreak),
+                        skipStreak: isFullPeriodComplete ? 0 : t.skipStreak,
                     };
                 }
 
                 // Standard recurring: advance to next period.
                 if (t.recurrence) {
-                    return advanceRecurrence(withCount, now);
+                    const newStreak = t.taskCompletionStreak + 1;
+                    return {
+                        ...advanceRecurrence(withCount, now),
+                        taskCompletionStreak: newStreak,
+                        maxTaskCompletionStreak: Math.max(t.maxTaskCompletionStreak, newStreak),
+                        skipStreak: 0,
+                    };
                 }
 
                 // One-time: mark complete.
@@ -180,6 +210,8 @@ export const BureauAppElement = defineElement()({
                     completedAt: now.getTime(),
                     snoozeCount: 0,
                     snoozedUntil: null,
+                    taskCompletionStreak: t.taskCompletionStreak + 1,
+                    maxTaskCompletionStreak: Math.max(t.maxTaskCompletionStreak, t.taskCompletionStreak + 1),
                 };
             });
 
@@ -233,7 +265,7 @@ export const BureauAppElement = defineElement()({
 
             const tasks = state.app.tasks.map(t =>
                 t.id === taskId
-                    ? {...t, snoozeCount: newSnoozeCount, snoozedUntil}
+                    ? {...t, snoozeCount: newSnoozeCount, snoozedUntil, totalSnoozes: t.totalSnoozes + 1}
                     : t,
             );
             commit({tasks, patriotScore: newScore});
@@ -273,7 +305,13 @@ export const BureauAppElement = defineElement()({
             const now = new Date();
             const tasks = state.app.tasks.map(t => {
                 if (t.id !== taskId || !t.recurrence) return t;
-                return advanceRecurrence(t, now);
+                const advanced = advanceRecurrence(t, now);
+                return {
+                    ...advanced,
+                    totalSkips: t.totalSkips + 1,
+                    skipStreak: t.skipStreak + 1,
+                    taskCompletionStreak: 0,
+                };
             });
             commit({tasks});
         }
@@ -305,6 +343,20 @@ export const BureauAppElement = defineElement()({
             const tasks = state.app.tasks.filter(t => t.id !== taskId);
             commit({tasks});
             updateState({editingTask: null});
+        }
+
+        function onMissedTaskRevived(taskId: string): void {
+            const todayMs = startOfDay(new Date()).getTime();
+            const tasks = state.app.tasks.map(t => {
+                if (t.id !== taskId) return t;
+                // Clear missed status; if suggestedDate is in the past, reset to
+                // today so the task surfaces in the mandatory band immediately.
+                const suggestedDate = (t.suggestedDate !== null && t.suggestedDate < todayMs)
+                    ? todayMs
+                    : t.suggestedDate;
+                return {...t, missedAt: null, suggestedDate};
+            });
+            commit({tasks});
         }
 
         function onOperationCreated(project: Project, routines: ReadonlyArray<Task>): void {
@@ -383,6 +435,8 @@ export const BureauAppElement = defineElement()({
                         () => setView('daily'))}
                     ${listen(BureauHeaderElement.events.operationsRequested,
                         () => setView('operations'))}
+                    ${listen(BureauHeaderElement.events.insightsRequested,
+                        () => setView('insights'))}
                 ></${BureauHeaderElement}>
 
                 ${currentDialogue
@@ -393,7 +447,19 @@ export const BureauAppElement = defineElement()({
                       `
                     : html``}
 
-                ${view === 'daily'
+                ${view === 'insights'
+                    ? html`
+                        <${InsightsViewElement.assign({
+                            tasks: state.app.tasks,
+                            projects: state.app.projects,
+                        })}
+                            ${listen(InsightsViewElement.events.missedTaskDismissed, e =>
+                                onTaskDeleted(e.detail))}
+                            ${listen(InsightsViewElement.events.missedTaskRevived, e =>
+                                onMissedTaskRevived(e.detail))}
+                        ></${InsightsViewElement}>
+                      `
+                    : view === 'daily'
                     ? html`
                         <${DailyViewElement.assign({
                             tasks: state.app.tasks,

@@ -248,6 +248,9 @@ export function rolloverIfNeeded(task: Task, today: Date): Task {
         suggestedDate: startOfDay(nextSuggested).getTime(),
         windowDeadline: task.windowType === 'flexible' ? nextOccurrencePeriod.end : null,
         windowLengthDays: nextOccurrencePeriod.lengthDays,
+        totalMisses: task.totalMisses + 1,
+        skipStreak: task.skipStreak + 1,
+        taskCompletionStreak: 0,
     };
 }
 

@@ -134,6 +134,13 @@ function ensureTaskShape(raw: any): Task {
         progressCount: raw.progressCount ?? 0,
         snoozeCount: raw.snoozeCount ?? 0,
         snoozedUntil: raw.snoozedUntil ?? null,
+        totalSnoozes: raw.totalSnoozes ?? 0,
+        totalSkips: raw.totalSkips ?? 0,
+        totalMisses: raw.totalMisses ?? 0,
+        missedAt: raw.missedAt ?? null,
+        taskCompletionStreak: raw.taskCompletionStreak ?? 0,
+        maxTaskCompletionStreak: raw.maxTaskCompletionStreak ?? 0,
+        skipStreak: raw.skipStreak ?? 0,
         completedAt: raw.completedAt ?? null,
         createdAt: raw.createdAt ?? Date.now(),
         dueDate: raw.dueDate ?? null,
@@ -189,8 +196,10 @@ export function isTaskCompleteForPeriod(task: Task): boolean {
  * AND not currently snoozed. Used by legacy components — daily view uses
  * urgency.ts/getDailyBand instead.
  */
-export function isTaskVisible(task: Pick<Task, 'snoozedUntil' | 'completedAt'>): boolean {
+export function isTaskVisible(task: Pick<Task, 'snoozedUntil' | 'completedAt'> & {missedAt?: number | null}): boolean {
     if (task.completedAt !== null) return false;
+    // eslint-disable-next-line eqeqeq
+    if (task.missedAt != null) return false;
     if (task.snoozedUntil !== null && task.snoozedUntil > Date.now()) return false;
     return true;
 }

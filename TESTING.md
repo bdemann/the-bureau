@@ -272,6 +272,28 @@ Mark each row as you verify in the browser. Reset the localStorage entry
 - [ ] Weekly rolling: complete on a different day — next due = completion + 7 days
 - [ ] Multi-per-week: complete 1× this week, advance week — completionsThisPeriod resets to 0
 
+### Insights
+
+- [ ] Menu → Intelligence Report navigates to the insights view
+- [ ] Page shows "INTELLIGENCE REPORT" title and subtitle
+- [ ] MISSED DIRECTIVES section shows tasks whose one-time hard-date has passed (missedAt set); empty state shows "No missed directives on record"
+- [ ] Missed one-time hard-date tasks no longer appear in daily or project-detail views
+- [ ] Each missed one-time task row shows REVIVE and DISMISS buttons
+- [ ] REVIVE: task returns to active; if its suggestedDate was in the past it is reset to today; task reappears in daily mandatory band
+- [ ] DISMISS: task is permanently deleted and no longer appears anywhere
+- [ ] Recurring missed tasks (totalMisses > 0 but missedAt = null) show the miss count only — no REVIVE/DISMISS buttons
+- [ ] Recurring tasks that rolled over without completion appear in MISSED DIRECTIVES with miss count
+- [ ] MOST SNOOZED section shows tasks with totalSnoozes > 0, sorted by count desc
+- [ ] Snozing a task increments its totalSnoozes (verify by checking insights after snooze)
+- [ ] MOST SKIPPED section shows tasks with totalSkips > 0, sorted by count desc
+- [ ] Skipping a recurring task increments its totalSkips (visible in insights)
+- [ ] TOP COMPLETIONS section shows tasks sorted by totalCompletions desc
+- [ ] Completing a task increments totalCompletions (visible in insights)
+- [ ] BEST STREAKS section appears when any task has maxTaskCompletionStreak > 1
+- [ ] OPERATIONS OVERVIEW table appears when projects exist; shows miss/snooze/skip/done counts per operation
+- [ ] Recurring task rolled over at startup (period elapsed without completion): totalMisses incremented
+- [ ] skipStreak resets to 0 on task completion; taskCompletionStreak resets to 0 on skip
+
 ### Bug regressions
 
 - [ ] Skip action (recurring task) fires NO Whitaker/Briggs dialogue (regression: NEW-2)

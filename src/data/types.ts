@@ -3,7 +3,7 @@
 // ─────────────────────────────────────────────────────────────────────────────
 
 export type ItemKind = 'routine' | 'task';
-export type AppView = 'daily' | 'operations' | 'project';
+export type AppView = 'daily' | 'operations' | 'project' | 'insights';
 export type Character = 'director' | 'agent';
 
 export const SCHEMA_VERSION = 2;
@@ -146,6 +146,19 @@ export interface Task {
     // ── Snooze (resets to 0 on completion) ──
     snoozeCount: number;
     snoozedUntil: number | null;
+
+    // ── Lifetime insight counters ──
+    totalSnoozes: number;
+    totalSkips: number;
+    totalMisses: number;
+    /** ms timestamp when a one-time hard-date task's date passed unaddressed. null = not missed. */
+    missedAt: number | null;
+    /** Consecutive periods completed without a miss or skip (per-task streak). */
+    taskCompletionStreak: number;
+    /** Highest ever taskCompletionStreak for this task. */
+    maxTaskCompletionStreak: number;
+    /** Consecutive periods skipped (advanced without completion). */
+    skipStreak: number;
 
     // ── Completion ──
     /** ms timestamp; null = incomplete for the current period. */

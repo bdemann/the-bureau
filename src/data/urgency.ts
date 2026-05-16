@@ -31,6 +31,7 @@ export function getDailyBand(task: Task, today: Date = new Date()): DailyBand {
     // Step 0 — Visibility
     if (isCompletedForPeriod(task, today)) return 'hidden';
     if (isCurrentlySnoozed(task))          return 'hidden';
+    if (task.missedAt !== null)            return 'hidden';
 
     // Step 1 — Hard overdue / due today
     const step1 = step1HardMandatory(task, today);
