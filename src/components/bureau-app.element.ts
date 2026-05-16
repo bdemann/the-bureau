@@ -206,6 +206,13 @@ export const BureauAppElement = defineElement()({
             const task = state.app.tasks.find(t => t.id === taskId);
             if (!task) return;
 
+            // Daily routines cannot be snoozed.
+            if (task.kind === 'routine'
+                && (task.recurrence?.cadence === 'daily'
+                    || task.recurrence?.cadence === 'multiple_per_day')) {
+                return;
+            }
+
             // Hard-date tasks: cannot snooze past the date.
             if (task.windowType === 'hard'
                 && task.suggestedDate !== null

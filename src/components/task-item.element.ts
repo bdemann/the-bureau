@@ -269,10 +269,16 @@ export const TaskItemElement = defineElement<{
 
         const isMilestone = task.windowType === 'milestone';
 
+        // Daily routines can't be snoozed — skip is the right action for them.
+        const isDailyRoutine = task.kind === 'routine'
+            && (task.recurrence?.cadence === 'daily'
+                || task.recurrence?.cadence === 'multiple_per_day');
+
         // Hard-date tasks may not be snoozed past the date.
-        const canSnooze = !(task.windowType === 'hard'
-            && task.suggestedDate !== null
-            && task.suggestedDate <= Date.now());
+        const canSnooze = !isDailyRoutine
+            && !(task.windowType === 'hard'
+                && task.suggestedDate !== null
+                && task.suggestedDate <= Date.now());
 
         return html`
             <div class="${classes}" @click=${() => dispatch(new events.editRequested(task.id))}>
@@ -348,18 +354,20 @@ export const TaskItemElement = defineElement<{
                             ></${ViraButton}>
                         `
                         : html`
-                            <${ViraButton.assign({
-                                text: canSnooze ? 'Snooze (+24h)' : 'Cannot snooze',
-                                color: ViraColorVariant.Warning,
-                                buttonEmphasis: ViraEmphasis.Subtle,
-                                buttonSize: ViraSize.Small,
-                                isDisabled: !canSnooze,
-                            })}
-                                @click=${(e: Event) => {
-                                    e.stopPropagation();
-                                    if (canSnooze) dispatch(new events.snoozed(task.id));
-                                }}
-                            ></${ViraButton}>
+                            ${isDailyRoutine ? html`` : html`
+                                <${ViraButton.assign({
+                                    text: canSnooze ? 'Snooze (+24h)' : 'Cannot snooze',
+                                    color: ViraColorVariant.Warning,
+                                    buttonEmphasis: ViraEmphasis.Subtle,
+                                    buttonSize: ViraSize.Small,
+                                    isDisabled: !canSnooze,
+                                })}
+                                    @click=${(e: Event) => {
+                                        e.stopPropagation();
+                                        if (canSnooze) dispatch(new events.snoozed(task.id));
+                                    }}
+                                ></${ViraButton}>
+                            `}
                             ${task.recurrence ? html`
                                 <${ViraButton.assign({
                                     text: 'Skip',

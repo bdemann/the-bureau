@@ -212,6 +212,7 @@ Mark each row as you verify in the browser. Reset the localStorage entry
 
 ### Task snooze
 
+- [ ] Daily routines (kind=routine, cadence=daily or multiple-per-day) show no snooze button — only Skip
 - [ ] Snooze button → snoozedUntil = +24h, badge appears
 - [ ] Task moves to Snoozed section
 - [ ] Snooze count escalates color (yellow → orange → red)
