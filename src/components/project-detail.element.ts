@@ -30,6 +30,7 @@ export const ProjectDetailElement = defineElement<{
         taskProgressLogged: defineElementEvent<string>(),
         taskEditRequested:  defineElementEvent<string>(),
         newTaskRequested:   defineElementEvent<string>(),  // project id to pre-select
+        tasksReordered:     defineElementEvent<ReadonlyArray<string>>(),  // ordered task ids
         back:               defineElementEvent<void>(),
         projectDeleted:     defineElementEvent<string>(),
         projectUpdated:     defineElementEvent<Project>(),
@@ -39,6 +40,8 @@ export const ProjectDetailElement = defineElement<{
         showCompleted: false,
         confirmingDelete: false,
         editingProject: false,
+        draggedId: null as string | null,
+        dragOverId: null as string | null,
         editName: '',
         editDescription: '',
         editColor: 'navy' as ProjectColor,
@@ -141,6 +144,22 @@ export const ProjectDetailElement = defineElement<{
 
         .snoozed-section {
             margin-top: 8px;
+        }
+
+        .task-drag-wrapper { position: relative; }
+        .task-drag-wrapper.is-dragging { opacity: 0.35; }
+        .task-drag-wrapper.is-drag-over::before {
+            content: '';
+            display: block;
+            height: 2px;
+            background: #1B2A4A;
+            margin-bottom: 1px;
+        }
+        .drop-zone-end {
+            height: 20px;
+        }
+        .drop-zone-end.is-drag-over {
+            border-top: 2px solid #1B2A4A;
         }
 
         .delete-zone {
@@ -291,13 +310,7 @@ export const ProjectDetailElement = defineElement<{
     render({inputs, state, updateState, dispatch, events}) {
         const {project, tasks} = inputs;
 
-        const activeTasks = tasks.filter(isTaskVisible).sort((a, b) => {
-            const aOverdue = isTaskOverdue(a) ? 1 : 0;
-            const bOverdue = isTaskOverdue(b) ? 1 : 0;
-            if (aOverdue !== bOverdue) return bOverdue - aOverdue;
-            // Lower tier = more severe consequence, so it sorts first.
-            return a.consequenceTier - b.consequenceTier;
-        });
+        const activeTasks = tasks.filter(isTaskVisible);
 
         const snoozedTasks = tasks.filter(
             t =>
@@ -330,7 +343,35 @@ export const ProjectDetailElement = defineElement<{
                     <div class="task-list">
                         ${activeTasks.map(
                             task => html`
-                                <${TaskItemElement.assign({task})}
+                                <div
+                                    class="task-drag-wrapper ${state.draggedId === task.id ? 'is-dragging' : ''} ${state.dragOverId === task.id ? 'is-drag-over' : ''}"
+                                    draggable="true"
+                                    @dragstart=${(e: DragEvent) => {
+                                        e.dataTransfer?.setData('text/plain', task.id);
+                                        updateState({draggedId: task.id});
+                                    }}
+                                    @dragover=${(e: DragEvent) => {
+                                        e.preventDefault();
+                                        if (state.draggedId && state.draggedId !== task.id) {
+                                            updateState({dragOverId: task.id});
+                                        }
+                                    }}
+                                    @dragleave=${() => {
+                                        if (state.dragOverId === task.id) updateState({dragOverId: null});
+                                    }}
+                                    @drop=${(e: DragEvent) => {
+                                        e.preventDefault();
+                                        const fromId = e.dataTransfer?.getData('text/plain') ?? state.draggedId;
+                                        if (fromId && fromId !== task.id) {
+                                            dispatch(new events.tasksReordered(
+                                                reorderBefore(activeTasks, fromId, task.id).map(t => t.id)
+                                            ));
+                                        }
+                                        updateState({draggedId: null, dragOverId: null});
+                                    }}
+                                    @dragend=${() => updateState({draggedId: null, dragOverId: null})}
+                                >
+                                <${TaskItemElement.assign({task, showDragHandle: true})}
                                     ${listen(TaskItemElement.events.completed, e =>
                                         dispatch(new events.taskCompleted(e.detail)))}
                                     ${listen(TaskItemElement.events.snoozed, e =>
@@ -344,8 +385,29 @@ export const ProjectDetailElement = defineElement<{
                                     ${listen(TaskItemElement.events.editRequested, e =>
                                         dispatch(new events.taskEditRequested(e.detail)))}
                                 ></${TaskItemElement}>
+                                </div>
                             `,
                         )}
+                        <div
+                            class="drop-zone-end ${state.dragOverId === '__end__' ? 'is-drag-over' : ''}"
+                            @dragover=${(e: DragEvent) => {
+                                e.preventDefault();
+                                updateState({dragOverId: '__end__'});
+                            }}
+                            @dragleave=${() => {
+                                if (state.dragOverId === '__end__') updateState({dragOverId: null});
+                            }}
+                            @drop=${(e: DragEvent) => {
+                                e.preventDefault();
+                                const fromId = e.dataTransfer?.getData('text/plain') ?? state.draggedId;
+                                if (fromId) {
+                                    dispatch(new events.tasksReordered(
+                                        moveToEnd(activeTasks, fromId).map(t => t.id)
+                                    ));
+                                }
+                                updateState({draggedId: null, dragOverId: null});
+                            }}
+                        ></div>
                     </div>
                   `
                 : html``}
@@ -527,3 +589,21 @@ export const ProjectDetailElement = defineElement<{
         `;
     },
 });
+
+// ── Helpers ─────────────────────────────────────────────────────────────────
+
+function reorderBefore<T extends {id: string}>(list: ReadonlyArray<T>, fromId: string, toId: string): T[] {
+    const item = list.find(t => t.id === fromId);
+    if (!item) return [...list];
+    const rest = list.filter(t => t.id !== fromId);
+    const idx = rest.findIndex(t => t.id === toId);
+    if (idx === -1) return [...list];
+    rest.splice(idx, 0, item);
+    return rest;
+}
+
+function moveToEnd<T extends {id: string}>(list: ReadonlyArray<T>, fromId: string): T[] {
+    const item = list.find(t => t.id === fromId);
+    if (!item) return [...list];
+    return [...list.filter(t => t.id !== fromId), item];
+}

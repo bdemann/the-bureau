@@ -182,6 +182,19 @@ Mark each row as you verify in the browser. Reset the localStorage entry
 - [ ] Streak increments
 - [ ] Sometimes Whitaker (or Briggs) speaks
 
+### Reordering directives
+
+- [ ] Each task card in project-detail (active directives) shows a `⠿` drag handle on the right
+- [ ] Each task card in daily view shows a `⠿` drag handle on the right
+- [ ] Dragging a task by its handle (or anywhere on the card) shows the card at reduced opacity
+- [ ] A blue line appears above the drop target as the dragged card hovers over it
+- [ ] Dropping onto another task inserts the dragged task before the target
+- [ ] A drop zone at the bottom of each list allows moving a task to the last position
+- [ ] Reorder persists after navigating away and back (saved to state)
+- [ ] Reordering in project-detail does not affect tasks in other operations
+- [ ] Reordering within a daily-view band does not affect tasks in other bands
+- [ ] Reordering within one time-slot group does not affect tasks in another slot group within the same band
+
 ### Filing directives from the daily view
 
 - [ ] `+ FILE DIRECTIVE` button visible at the top of the daily view

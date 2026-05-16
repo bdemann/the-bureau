@@ -324,6 +324,18 @@ export const BureauAppElement = defineElement()({
             updateState({addingTask: true, newTaskProjectId: projectId, editingTask: null});
         }
 
+        function onTasksReordered(orderedIds: ReadonlyArray<string>): void {
+            const orderedSet = new Set(orderedIds);
+            const orderedTasks = orderedIds
+                .map(id => state.app.tasks.find(t => t.id === id))
+                .filter((t): t is Task => t !== undefined);
+            let idx = 0;
+            const newTasks = state.app.tasks.map(t =>
+                orderedSet.has(t.id) ? orderedTasks[idx++]! : t,
+            );
+            commit({tasks: newTasks});
+        }
+
         function onTaskUpdated(task: Task): void {
             const tasks = state.app.tasks.map(t => t.id === task.id ? task : t);
             commit({tasks});
@@ -401,6 +413,8 @@ export const BureauAppElement = defineElement()({
                                 onTaskEditRequested(e.detail))}
                             ${listen(DailyViewElement.events.newTaskRequested, () =>
                                 onNewTaskRequested(null))}
+                            ${listen(DailyViewElement.events.tasksReordered, e =>
+                                onTasksReordered(e.detail))}
                         ></${DailyViewElement}>
                       `
                     : view === 'operations'
@@ -444,6 +458,8 @@ export const BureauAppElement = defineElement()({
                                 onProjectDeleted(e.detail))}
                             ${listen(ProjectDetailElement.events.projectUpdated, e =>
                                 onProjectUpdated(e.detail))}
+                            ${listen(ProjectDetailElement.events.tasksReordered, e =>
+                                onTasksReordered(e.detail))}
                         ></${ProjectDetailElement}>
                       `
                     : html`

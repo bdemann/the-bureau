@@ -18,6 +18,8 @@ export const TaskItemElement = defineElement<{
     task: Task;
     /** Optional: shown above the title when the daily view renders cross-project. */
     projectName?: string;
+    /** Show a drag-handle affordance (⠿) when parent is managing reorder. */
+    showDragHandle?: boolean;
 }>()({
     tagName: 'task-item',
 
@@ -126,6 +128,17 @@ export const TaskItemElement = defineElement<{
         }
 
         .task-card.snooze-critical .task-title { color: #5A0000; }
+
+        .drag-handle {
+            flex-shrink: 0;
+            font-size: 0.75rem;
+            color: #B0A898;
+            cursor: grab;
+            padding: 0 2px;
+            margin-top: 2px;
+            user-select: none;
+            line-height: 1;
+        }
 
         .tier-pip {
             flex-shrink: 0;
@@ -301,6 +314,9 @@ export const TaskItemElement = defineElement<{
                     <span class="task-title">${task.title}</span>
 
                     <span class="tier-pip t-${tier}">${tierShortLabel(tier)}</span>
+                    ${inputs.showDragHandle
+                        ? html`<span class="drag-handle">⠿</span>`
+                        : html``}
                 </div>
 
                 ${task.description

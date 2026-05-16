@@ -57,12 +57,15 @@ export const DailyViewElement = defineElement<{
         taskProgressLogged: defineElementEvent<string>(),
         taskEditRequested:  defineElementEvent<string>(),
         newTaskRequested:   defineElementEvent<void>(),
+        tasksReordered:     defineElementEvent<ReadonlyArray<string>>(),  // ordered task ids
     },
 
     state: () => ({
         expandRadar:   false,
         expandBacklog: false,
         expandedSlots: {[getCurrentTimeSlot()]: true} as Partial<Record<TimeOfDay, boolean>>,
+        draggedId: null as string | null,
+        dragOverId: null as string | null,
     }),
 
     styles: css`
@@ -172,6 +175,18 @@ export const DailyViewElement = defineElement<{
             justify-content: flex-end;
         }
 
+        .task-drag-wrapper { position: relative; }
+        .task-drag-wrapper.is-dragging { opacity: 0.35; }
+        .task-drag-wrapper.is-drag-over::before {
+            content: '';
+            display: block;
+            height: 2px;
+            background: #1B2A4A;
+            margin-bottom: 1px;
+        }
+        .drop-zone-end { height: 20px; }
+        .drop-zone-end.is-drag-over { border-top: 2px solid #1B2A4A; }
+
         .file-directive-btn {
             display: flex;
             align-items: center;
@@ -219,39 +234,80 @@ export const DailyViewElement = defineElement<{
             bands[band].push(task);
         }
 
-        // Sort each band by tier, then by due date (sooner first).
-        for (const k of ['mandatory', 'suggested', 'radar', 'backlog'] as DailyBand[]) {
-            bands[k].sort((a, b) => {
-                if (a.consequenceTier !== b.consequenceTier) {
-                    return a.consequenceTier - b.consequenceTier;
-                }
-                const aDue = a.suggestedDate ?? a.windowDeadline ?? Number.POSITIVE_INFINITY;
-                const bDue = b.suggestedDate ?? b.windowDeadline ?? Number.POSITIVE_INFINITY;
-                return aDue - bDue;
-            });
-        }
-
         const renderTaskList = (tasks: Task[]) => html`
             <div class="task-list">
                 ${tasks.map(t => html`
-                    <${TaskItemElement.assign({
-                        task: t,
-                        projectName: t.projectId ? projectsById.get(t.projectId)?.name : undefined,
-                    })}
-                        ${listen(TaskItemElement.events.completed, e =>
-                            dispatch(new events.taskCompleted(e.detail)))}
-                        ${listen(TaskItemElement.events.snoozed, e =>
-                            dispatch(new events.taskSnoozed(e.detail)))}
-                        ${listen(TaskItemElement.events.unSnoozed, e =>
-                            dispatch(new events.taskUnSnoozed(e.detail)))}
-                        ${listen(TaskItemElement.events.skipped, e =>
-                            dispatch(new events.taskSkipped(e.detail)))}
-                        ${listen(TaskItemElement.events.progressLogged, e =>
-                            dispatch(new events.taskProgressLogged(e.detail)))}
-                        ${listen(TaskItemElement.events.editRequested, e =>
-                            dispatch(new events.taskEditRequested(e.detail)))}
-                    ></${TaskItemElement}>
+                    <div
+                        class="task-drag-wrapper ${state.draggedId === t.id ? 'is-dragging' : ''} ${state.dragOverId === t.id ? 'is-drag-over' : ''}"
+                        draggable="true"
+                        @dragstart=${(e: DragEvent) => {
+                            e.dataTransfer?.setData('text/plain', t.id);
+                            updateState({draggedId: t.id});
+                        }}
+                        @dragover=${(e: DragEvent) => {
+                            e.preventDefault();
+                            if (state.draggedId && state.draggedId !== t.id
+                                    && tasks.some(x => x.id === state.draggedId)) {
+                                updateState({dragOverId: t.id});
+                            }
+                        }}
+                        @dragleave=${() => {
+                            if (state.dragOverId === t.id) updateState({dragOverId: null});
+                        }}
+                        @drop=${(e: DragEvent) => {
+                            e.preventDefault();
+                            const fromId = e.dataTransfer?.getData('text/plain') ?? state.draggedId;
+                            if (fromId && fromId !== t.id && tasks.some(x => x.id === fromId)) {
+                                dispatch(new events.tasksReordered(
+                                    reorderBefore(tasks, fromId, t.id).map(x => x.id)
+                                ));
+                            }
+                            updateState({draggedId: null, dragOverId: null});
+                        }}
+                        @dragend=${() => updateState({draggedId: null, dragOverId: null})}
+                    >
+                        <${TaskItemElement.assign({
+                            task: t,
+                            projectName: t.projectId ? projectsById.get(t.projectId)?.name : undefined,
+                            showDragHandle: true,
+                        })}
+                            ${listen(TaskItemElement.events.completed, e =>
+                                dispatch(new events.taskCompleted(e.detail)))}
+                            ${listen(TaskItemElement.events.snoozed, e =>
+                                dispatch(new events.taskSnoozed(e.detail)))}
+                            ${listen(TaskItemElement.events.unSnoozed, e =>
+                                dispatch(new events.taskUnSnoozed(e.detail)))}
+                            ${listen(TaskItemElement.events.skipped, e =>
+                                dispatch(new events.taskSkipped(e.detail)))}
+                            ${listen(TaskItemElement.events.progressLogged, e =>
+                                dispatch(new events.taskProgressLogged(e.detail)))}
+                            ${listen(TaskItemElement.events.editRequested, e =>
+                                dispatch(new events.taskEditRequested(e.detail)))}
+                        ></${TaskItemElement}>
+                    </div>
                 `)}
+                <div
+                    class="drop-zone-end ${state.dragOverId === '__end__' && tasks.some(x => x.id === state.draggedId) ? 'is-drag-over' : ''}"
+                    @dragover=${(e: DragEvent) => {
+                        e.preventDefault();
+                        if (state.draggedId && tasks.some(x => x.id === state.draggedId)) {
+                            updateState({dragOverId: '__end__'});
+                        }
+                    }}
+                    @dragleave=${() => {
+                        if (state.dragOverId === '__end__') updateState({dragOverId: null});
+                    }}
+                    @drop=${(e: DragEvent) => {
+                        e.preventDefault();
+                        const fromId = e.dataTransfer?.getData('text/plain') ?? state.draggedId;
+                        if (fromId && tasks.some(x => x.id === fromId)) {
+                            dispatch(new events.tasksReordered(
+                                moveToEnd(tasks, fromId).map(x => x.id)
+                            ));
+                        }
+                        updateState({draggedId: null, dragOverId: null});
+                    }}
+                ></div>
             </div>
         `;
 
@@ -376,3 +432,21 @@ export const DailyViewElement = defineElement<{
         `;
     },
 });
+
+// ── Helpers ─────────────────────────────────────────────────────────────────
+
+function reorderBefore<T extends {id: string}>(list: ReadonlyArray<T>, fromId: string, toId: string): T[] {
+    const item = list.find(t => t.id === fromId);
+    if (!item) return [...list];
+    const rest = list.filter(t => t.id !== fromId);
+    const idx = rest.findIndex(t => t.id === toId);
+    if (idx === -1) return [...list];
+    rest.splice(idx, 0, item);
+    return rest;
+}
+
+function moveToEnd<T extends {id: string}>(list: ReadonlyArray<T>, fromId: string): T[] {
+    const item = list.find(t => t.id === fromId);
+    if (!item) return [...list];
+    return [...list.filter(t => t.id !== fromId), item];
+}
