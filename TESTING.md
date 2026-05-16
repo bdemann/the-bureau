@@ -102,30 +102,30 @@ Mark each row as you verify in the browser. Reset the localStorage entry
 - [ ] Cancelling confirmation returns to normal view with no changes
 - [ ] Confirming decommission removes the project and all its tasks, then navigates back to Operations
 
-### Filing directives — routine vs directive kind
+### Filing directives — routine vs task kind
 
-- [ ] Add-task dialog defaults to DIRECTIVE kind selected
-- [ ] ROUTINE / DIRECTIVE segmented toggle visible when creating (hidden in edit mode)
+- [ ] Add-task dialog defaults to TASK kind selected
+- [ ] ROUTINE / TASK segmented toggle visible when creating (hidden in edit mode)
 - [ ] Selecting ROUTINE forces "Recurring" on and hides the recurring checkbox
 - [ ] Selecting ROUTINE hides the end-condition section entirely
 - [ ] Selecting ROUTINE changes sheet title to "FILE NEW ROUTINE" and submit button to "COMMIT ROUTINE"
-- [ ] Selecting DIRECTIVE shows sheet title "FILE NEW DIRECTIVE" and submit button "FILE DIRECTIVE"
-- [ ] Editing an existing routine shows "AMEND ROUTINE"; editing a directive shows "AMEND DIRECTIVE"
+- [ ] Selecting TASK shows sheet title "FILE NEW TASK" and submit button "FILE TASK"
+- [ ] Editing an existing routine shows "AMEND ROUTINE"; editing a task shows "AMEND TASK"
 - [ ] Directives with `kind=routine` show a ROUTINE chip in the task-item card
 
-### Task creation — one-time
+### Task directive creation — one-time
 
-- [ ] New directive form defaults: recurring OFF, window type Hard, due date = today
-- [ ] Title required (FILE DIRECTIVE disabled until typed)
+- [ ] New task form defaults: recurring OFF, window type Hard, due date = today
+- [ ] Title required (FILE TASK disabled until typed)
 - [ ] Description optional
 - [ ] Tier 1–4 buttons toggle; help text updates per tier
 - [ ] Flexible / Hard date toggle works
 - [ ] Hard requires a date; flexible date is optional
 - [ ] Date picker visible (not recurring)
-- [ ] Submit creates task; dialog closes; task appears in active list
+- [ ] Submit creates directive; dialog closes; directive appears in active list
 - [ ] Cancel closes without creating
 
-### Task creation — recurring (weekly day-of-week, multi-select)
+### Task directive creation — recurring (weekly day-of-week, multi-select)
 
 - [ ] Toggle "Recurring task" on
 - [ ] Cadence: Weekly
@@ -138,23 +138,23 @@ Mark each row as you verify in the browser. Reset the localStorage entry
   - 6 days without Sat → "Every day except Saturday."
   - 7 days → "Every day."
   - Custom → "Mon, Wed, Fri." style list
-- [ ] FILE DIRECTIVE disabled when no days selected
+- [ ] FILE TASK disabled when no days selected
 - [ ] **Single day selected, today matches**: first occurrence = today
 - [ ] **Single day selected, today doesn't match**: first occurrence = next occurrence
 - [ ] **Multi-day, complete on Wed (Mon/Wed/Fri)**: next occurrence = Fri (same week)
 - [ ] **Multi-day, complete on Fri (Mon/Wed/Fri)**: next occurrence = Mon (next week)
-- [ ] Existing task with multi-day schedule pre-fills correctly in edit dialog
+- [ ] Existing directive with multi-day schedule pre-fills correctly in edit dialog
 
-### Task creation — recurring (monthly, day-of-month)
+### Task directive creation — recurring (monthly, day-of-month)
 
 - [ ] Cadence: Monthly → "Anchor" toggle appears
 - [ ] Day-of-month input accepts 1–31; rejects out-of-range
 - [ ] Anchor summary shows "The Nth of each month"
-- [ ] Submit creates task; first occurrence is this month's that-day if it
+- [ ] Submit creates directive; first occurrence is this month's that-day if it
       hasn't passed, else next month's
 - [ ] Card label `Day N of each month · next {date}`
 
-### Task creation — recurring (monthly, Nth weekday)
+### Task directive creation — recurring (monthly, Nth weekday)
 
 - [ ] Switch to "Nth weekday" mode
 - [ ] Ordinal (1st/2nd/3rd/4th/Last) and day-of-week pickers appear
@@ -164,90 +164,90 @@ Mark each row as you verify in the browser. Reset the localStorage entry
 - [ ] **Last weekday**: works in both 4-Thursday and 5-Thursday months
 - [ ] Card label `3rd Thursday of each month · next {date}`
 
-### Task creation — multiple-per-period
+### Task directive creation — multiple-per-period
 
 - [ ] Cadence: Multiple per week (or per-day/month/quarter/year)
 - [ ] "Times per period" input appears; accepts 2–99
 - [ ] Date picker still visible (multi-per uses dates, not anchors)
-- [ ] Submit creates task with `frequencyPerPeriod`
+- [ ] Submit creates directive with `frequencyPerPeriod`
 - [ ] Card shows `0 / 3 this week` progress chip
 
-### Task completion
+### Directive completion
 
-- [ ] One-time: ✓ → task moves to "cleared" (collapsed)
+- [ ] One-time task: ✓ → directive moves to "cleared" (collapsed)
 - [ ] Standard recurring: ✓ → suggestedDate updates to next period
 - [ ] Multi-per-period: ✓ → progress chip increments
-- [ ] When multi-per count reaches target: task hides until next period
+- [ ] When multi-per count reaches target: directive hides until next period
 - [ ] Score goes up by tier-weighted amount
 - [ ] Streak increments
 - [ ] Sometimes Whitaker (or Briggs) speaks
 
 ### Reordering directives
 
-- [ ] Each task card in project-detail (active directives) shows a `⠿` drag handle on the right
-- [ ] Each task card in daily view shows a `⠿` drag handle on the right
-- [ ] Dragging a task by its handle (or anywhere on the card) shows the card at reduced opacity
+- [ ] Each directive card in project-detail (active directives) shows a `⠿` drag handle on the right
+- [ ] Each directive card in daily view shows a `⠿` drag handle on the right
+- [ ] Dragging a directive by its handle (or anywhere on the card) shows the card at reduced opacity
 - [ ] A blue line appears above the drop target as the dragged card hovers over it
-- [ ] Dropping onto another task inserts the dragged task before the target
-- [ ] A drop zone at the bottom of each list allows moving a task to the last position
+- [ ] Dropping onto another directive inserts the dragged one before the target
+- [ ] A drop zone at the bottom of each list allows moving a directive to the last position
 - [ ] Reorder persists after navigating away and back (saved to state)
-- [ ] Reordering in project-detail does not affect tasks in other operations
-- [ ] Reordering within a daily-view band does not affect tasks in other bands
-- [ ] Reordering within one time-slot group does not affect tasks in another slot group within the same band
+- [ ] Reordering in project-detail does not affect directives in other operations
+- [ ] Reordering within a daily-view band does not affect directives in other bands
+- [ ] Reordering within one time-slot group does not affect directives in another slot group within the same band
 
 ### Filing directives from the daily view
 
-- [ ] `+ FILE DIRECTIVE` button visible at the top of the daily view
-- [ ] Clicking it opens the add-task dialog with "No operation" pre-selected in the Operation dropdown
-- [ ] Directive can be submitted with "No operation" selected — task appears in daily view with no project name tag
-- [ ] Operation dropdown lists all existing projects; selecting one assigns the task to that project
-- [ ] After creation, task appears in the correct project-detail if an operation was selected
+- [ ] `+ FILE DIRECTIVE` button visible at the bottom of the daily view
+- [ ] Clicking it opens the directive dialog with "No operation" pre-selected in the Operation dropdown
+- [ ] Directive can be submitted with "No operation" selected — appears in daily view with no project name tag
+- [ ] Operation dropdown lists all existing projects; selecting one assigns the directive to that project
+- [ ] After creation, directive appears in the correct project-detail if an operation was selected
 
 ### Operation assignment on directives
 
-- [ ] Operation dropdown is the last field in the add-task dialog
+- [ ] Operation dropdown is the last field in the directive dialog
 - [ ] When opened via `+ FILE NEW DIRECTIVE` in a project, that project is pre-selected in the dropdown
 - [ ] User can change the pre-selected operation before submitting
 - [ ] When editing an existing directive, the current operation is pre-selected in the dropdown
 - [ ] Changing the operation on an existing directive and saving moves it to the new project
-- [ ] "No operation" option always present; selecting it saves the task with no project assignment
-- [ ] Tasks with no operation do not appear in any project-detail view
-- [ ] Tasks with no operation do appear in the daily view (with no project name tag above the title)
+- [ ] "No operation" option always present; selecting it saves the directive with no project assignment
+- [ ] Directives with no operation do not appear in any project-detail view
+- [ ] Directives with no operation do appear in the daily view (with no project name tag above the title)
 
-### Task deletion
+### Directive termination
 
-- [ ] In edit mode (click any task card), "TERMINATE DIRECTIVE" button appears at the bottom of the dialog
+- [ ] In edit mode (click any directive card), "TERMINATE DIRECTIVE" button appears at the bottom of the dialog
 - [ ] Clicking TERMINATE DIRECTIVE shows inline confirmation: "PERMANENTLY TERMINATE THIS DIRECTIVE?" with TERMINATE and CANCEL buttons
 - [ ] CANCEL in confirmation returns to the edit form without deleting
-- [ ] Confirming TERMINATE removes the task and closes the dialog
-- [ ] Deleted task no longer appears in project-detail or daily view
+- [ ] Confirming TERMINATE removes the directive and closes the dialog
+- [ ] Terminated directive no longer appears in project-detail or daily view
 - [ ] TERMINATE DIRECTIVE button is NOT present when creating a new directive (add mode)
 
-### Task snooze
+### Snooze
 
 - [ ] Daily routines (kind=routine, cadence=daily or multiple-per-day) show no snooze button — only Skip
 - [ ] Snooze button → snoozedUntil = +24h, badge appears
-- [ ] Task moves to Snoozed section
+- [ ] Directive moves to Snoozed section
 - [ ] Snooze count escalates color (yellow → orange → red)
 - [ ] Score decreases (tier-weighted)
-- [ ] Hard-date task whose date is today: button reads "Cannot snooze" and is disabled
+- [ ] Hard-date directive whose date is today: button reads "Cannot snooze" and is disabled
 - [ ] At 6 snoozes (any tier), Briggs takes over
 - [ ] Whitaker dialogue escalates with count
 
 ### Un-snooze
 
-- [ ] In Snoozed list → "Wake up" moves task back to Active
+- [ ] In Snoozed list → "Wake up" moves directive back to Active
 - [ ] Snooze count *retained* (un-snooze ≠ reset)
 
 ### Daily view
 
-- [ ] Mandatory: tasks due today / hard-overdue / cadence=daily
-- [ ] Suggested: flexible tasks past suggestedDate but inside window (regression: suggestedDate = today shows "Due today", not "Suggested [date]")
-- [ ] Radar: tasks ≤ 3 days from hard date, or window % low
+- [ ] Mandatory: directives due today / hard-overdue / cadence=daily
+- [ ] Suggested: flexible directives past suggestedDate but inside window (regression: suggestedDate = today shows "Due today", not "Suggested [date]")
+- [ ] Radar: directives ≤ 3 days from hard date, or window % low
 - [ ] Backlog: everything else (collapsed by default — count visible)
 - [ ] Empty Mandatory: "No mandatory tasks today. Agent Whitaker approves."
 - [ ] Each card shows project name above title (cross-project context)
-- [ ] When tasks span multiple time-of-day slots within a band, each slot has a collapsible header (label · count · chevron)
+- [ ] When directives span multiple time-of-day slots within a band, each slot has a collapsible header (label · count · chevron)
 - [ ] The slot matching the current time of day starts expanded; others start collapsed
 - [ ] Tapping a slot header toggles it open/closed
 - [ ] Switching to background and returning after the time slot changes resets the default to the new slot
@@ -256,18 +256,18 @@ Mark each row as you verify in the browser. Reset the localStorage entry
 
 ### Recurring end conditions
 
-- [ ] "Task has an end condition" checkbox is hidden for one-time tasks
-- [ ] Checkbox appears inside the recurring section
+- [ ] "Has an end condition" checkbox is hidden for routines (they never end)
+- [ ] Checkbox appears inside the recurring section for task-kind directives
 - [ ] Checking it reveals "N completions" / "A date" toggle
 - [ ] "N completions" shows a number input; "A date" shows a date picker
-- [ ] After N completions: task disappears permanently (no more periods)
-- [ ] After date: completing on the end date permanently closes the task
-- [ ] After date: task is retired on next app load after end date passes (even if not completed)
-- [ ] Edit dialog pre-fills end condition from an existing task with one set
+- [ ] After N completions: directive disappears permanently (no more periods)
+- [ ] After date: completing on the end date permanently closes the directive
+- [ ] After date: directive is retired on next app load after end date passes (even if not completed)
+- [ ] Edit dialog pre-fills end condition from an existing directive with one set
 
 ### Recurrence rollover
 
-- [ ] Daily task: complete it, advance device clock 1 day, reload — task back, fresh
+- [ ] Daily routine: complete it, advance device clock 1 day, reload — back, fresh
 - [ ] Weekly fixed (anchored Thursday): complete it, next-week reload — suggestedDate is next Thursday
 - [ ] Weekly rolling: complete on a different day — next due = completion + 7 days
 - [ ] Multi-per-week: complete 1× this week, advance week — completionsThisPeriod resets to 0
@@ -276,27 +276,27 @@ Mark each row as you verify in the browser. Reset the localStorage entry
 
 - [ ] Menu → Intelligence Report navigates to the insights view
 - [ ] Page shows "INTELLIGENCE REPORT" title and subtitle
-- [ ] MISSED DIRECTIVES section shows tasks whose one-time hard-date has passed (missedAt set); empty state shows "No missed directives on record"
-- [ ] Missed one-time hard-date tasks no longer appear in daily or project-detail views
-- [ ] Each missed one-time task row shows REVIVE and DISMISS buttons
-- [ ] REVIVE: task returns to active; if its suggestedDate was in the past it is reset to today; task reappears in daily mandatory band
-- [ ] DISMISS: task is permanently deleted and no longer appears anywhere
-- [ ] Recurring missed tasks (totalMisses > 0 but missedAt = null) show the miss count only — no REVIVE/DISMISS buttons
-- [ ] Recurring tasks that rolled over without completion appear in MISSED DIRECTIVES with miss count
-- [ ] MOST SNOOZED section shows tasks with totalSnoozes > 0, sorted by count desc
-- [ ] Snozing a task increments its totalSnoozes (verify by checking insights after snooze)
-- [ ] MOST SKIPPED section shows tasks with totalSkips > 0, sorted by count desc
-- [ ] Skipping a recurring task increments its totalSkips (visible in insights)
-- [ ] TOP COMPLETIONS section shows tasks sorted by totalCompletions desc
-- [ ] Completing a task increments totalCompletions (visible in insights)
+- [ ] MISSED DIRECTIVES section shows directives whose one-time hard-date has passed (missedAt set); empty state shows "No missed directives on record"
+- [ ] Missed one-time hard-date directives no longer appear in daily or project-detail views
+- [ ] Each missed one-time directive row shows REVIVE and DISMISS buttons
+- [ ] REVIVE: directive returns to active; if its suggestedDate was in the past it is reset to today; directive reappears in daily mandatory band
+- [ ] DISMISS: directive is permanently deleted and no longer appears anywhere
+- [ ] Recurring directives with missed periods (totalMisses > 0 but missedAt = null) show the miss count only — no REVIVE/DISMISS buttons
+- [ ] Recurring directives that rolled over without completion appear in MISSED DIRECTIVES with miss count
+- [ ] MOST SNOOZED section shows directives with totalSnoozes > 0, sorted by count desc
+- [ ] Snoozing a directive increments its totalSnoozes (verify by checking insights after snooze)
+- [ ] MOST SKIPPED section shows directives with totalSkips > 0, sorted by count desc
+- [ ] Skipping a recurring directive increments its totalSkips (visible in insights)
+- [ ] TOP COMPLETIONS section shows directives sorted by totalCompletions desc
+- [ ] Completing a directive increments totalCompletions (visible in insights)
 - [ ] BEST STREAKS section appears when any task has maxTaskCompletionStreak > 1
 - [ ] OPERATIONS OVERVIEW table appears when projects exist; shows miss/snooze/skip/done counts per operation
-- [ ] Recurring task rolled over at startup (period elapsed without completion): totalMisses incremented
-- [ ] skipStreak resets to 0 on task completion; taskCompletionStreak resets to 0 on skip
+- [ ] Recurring directive rolled over at startup (period elapsed without completion): totalMisses incremented
+- [ ] skipStreak resets to 0 on directive completion; taskCompletionStreak resets to 0 on skip
 
 ### Bug regressions
 
-- [ ] Skip action (recurring task) fires NO Whitaker/Briggs dialogue (regression: NEW-2)
+- [ ] Skip action (recurring directive) fires NO Whitaker/Briggs dialogue (regression: NEW-2)
 - [ ] Menu → "Report a Neighbor": menu closes immediately; share sheet appears (or link is copied) (regression: NEW-3)
 - [ ] Patriot score header shows streak when streak is 0 — e.g. "0d · SUSPECTED COMMUNIST" (regression: Bug #8)
 - [ ] Daily view: expand BACKLOG band → previously-expanded time-of-day slots within other bands stay expanded (regression: NEW-4)

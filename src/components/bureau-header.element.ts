@@ -396,11 +396,11 @@ export const BureauHeaderElement = defineElement<{
                             <div class="menu-section-label">Navigate</div>
                             <button class="menu-item" @click=${onHome}>
                                 Daily
-                                <span class="menu-item-sub">Today's tasks by urgency</span>
+                                <span class="menu-item-sub">Today's directives by urgency</span>
                             </button>
                             <button class="menu-item" @click=${onOperations}>
                                 Operations
-                                <span class="menu-item-sub">Browse projects &amp; task lists</span>
+                                <span class="menu-item-sub">Browse operations &amp; directives</span>
                             </button>
                             <button class="menu-item" @click=${onInsights}>
                                 Intelligence Report

@@ -588,11 +588,11 @@ export const AddTaskDialogElement = defineElement<{
                 <div class="sheet">
                     <div class="sheet-title">
                         ${isEditMode
-                            ? (state.kind === 'routine' ? 'AMEND ROUTINE' : 'AMEND DIRECTIVE')
-                            : (state.kind === 'routine' ? 'FILE NEW ROUTINE' : 'FILE NEW DIRECTIVE')}
+                            ? (state.kind === 'routine' ? 'AMEND ROUTINE' : 'AMEND TASK')
+                            : (state.kind === 'routine' ? 'FILE NEW ROUTINE' : 'FILE NEW TASK')}
                     </div>
 
-                    <!-- Kind toggle (Routine vs Task) -->
+                    <!-- Kind toggle (Routine vs Task) — both are types of Directive -->
                     ${!isEditMode ? html`
                         <div class="kind-toggle">
                             <${ViraButton.assign({
@@ -606,7 +606,7 @@ export const AddTaskDialogElement = defineElement<{
                                 @click=${() => updateState({kind: 'routine', isRecurring: true})}
                             ></${ViraButton}>
                             <${ViraButton.assign({
-                                text: 'Directive',
+                                text: 'Task',
                                 color: ViraColorVariant.Info,
                                 buttonEmphasis: state.kind === 'task'
                                     ? ViraEmphasis.Standard
@@ -945,7 +945,7 @@ export const AddTaskDialogElement = defineElement<{
                                     @change=${(e: Event) =>
                                         updateState({hasEndCondition: (e.target as HTMLInputElement).checked})}
                                 />
-                                <label for="end-condition-toggle">Task has an end condition</label>
+                                <label for="end-condition-toggle">Has an end condition</label>
                             </div>
 
                             ${state.hasEndCondition ? html`
@@ -1071,7 +1071,7 @@ export const AddTaskDialogElement = defineElement<{
                             <${ViraButton.assign({
                                 text: isEditMode
                                     ? 'SAVE CHANGES'
-                                    : state.kind === 'routine' ? 'COMMIT ROUTINE' : 'FILE DIRECTIVE',
+                                    : state.kind === 'routine' ? 'COMMIT ROUTINE' : 'FILE TASK',
                                 color: ViraColorVariant.Info,
                                 isDisabled: !canSubmit,
                             })}
