@@ -193,7 +193,7 @@ export const DailyViewElement = defineElement<{
             justify-content: center;
             gap: 8px;
             width: 100%;
-            margin-bottom: 20px;
+            margin-top: 8px;
             padding: 12px;
             background: #1B2A4A;
             color: #F5EFE0;
@@ -408,11 +408,6 @@ export const DailyViewElement = defineElement<{
         };
 
         return html`
-            <button
-                class="file-directive-btn"
-                @click=${() => dispatch(new events.newTaskRequested())}
-            >+ FILE DIRECTIVE</button>
-
             ${renderBand('mandatory', {
                 emptyMessage: 'No mandatory tasks today. Agent Whitaker approves.',
             })}
@@ -429,6 +424,10 @@ export const DailyViewElement = defineElement<{
                 onToggle: () => updateState({expandBacklog: !state.expandBacklog}),
             })}
 
+            <button
+                class="file-directive-btn"
+                @click=${() => dispatch(new events.newTaskRequested())}
+            >+ FILE DIRECTIVE</button>
         `;
     },
 });
