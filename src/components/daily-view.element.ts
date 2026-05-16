@@ -56,6 +56,7 @@ export const DailyViewElement = defineElement<{
         taskSkipped:        defineElementEvent<string>(),
         taskProgressLogged: defineElementEvent<string>(),
         taskEditRequested:  defineElementEvent<string>(),
+        newTaskRequested:   defineElementEvent<void>(),
     },
 
     state: () => ({
@@ -171,6 +172,25 @@ export const DailyViewElement = defineElement<{
             justify-content: flex-end;
         }
 
+        .file-directive-btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            width: 100%;
+            margin-bottom: 20px;
+            padding: 12px;
+            background: #1B2A4A;
+            color: #F5EFE0;
+            border: none;
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 0.9rem;
+            letter-spacing: 0.2em;
+            cursor: pointer;
+            transition: background 0.15s;
+        }
+        .file-directive-btn:hover { background: #2A3F6F; }
+
     `,
 
     render({inputs, state, updateState, dispatch, events}) {
@@ -216,7 +236,7 @@ export const DailyViewElement = defineElement<{
                 ${tasks.map(t => html`
                     <${TaskItemElement.assign({
                         task: t,
-                        projectName: projectsById.get(t.projectId)?.name,
+                        projectName: t.projectId ? projectsById.get(t.projectId)?.name : undefined,
                     })}
                         ${listen(TaskItemElement.events.completed, e =>
                             dispatch(new events.taskCompleted(e.detail)))}
@@ -332,6 +352,11 @@ export const DailyViewElement = defineElement<{
         };
 
         return html`
+            <button
+                class="file-directive-btn"
+                @click=${() => dispatch(new events.newTaskRequested())}
+            >+ FILE DIRECTIVE</button>
+
             ${renderBand('mandatory', {
                 emptyMessage: 'No mandatory tasks today. Agent Whitaker approves.',
             })}

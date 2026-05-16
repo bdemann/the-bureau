@@ -182,6 +182,25 @@ Mark each row as you verify in the browser. Reset the localStorage entry
 - [ ] Streak increments
 - [ ] Sometimes Whitaker (or Briggs) speaks
 
+### Filing directives from the daily view
+
+- [ ] `+ FILE DIRECTIVE` button visible at the top of the daily view
+- [ ] Clicking it opens the add-task dialog with "No operation" pre-selected in the Operation dropdown
+- [ ] Directive can be submitted with "No operation" selected — task appears in daily view with no project name tag
+- [ ] Operation dropdown lists all existing projects; selecting one assigns the task to that project
+- [ ] After creation, task appears in the correct project-detail if an operation was selected
+
+### Operation assignment on directives
+
+- [ ] Operation dropdown is the last field in the add-task dialog
+- [ ] When opened via `+ FILE NEW DIRECTIVE` in a project, that project is pre-selected in the dropdown
+- [ ] User can change the pre-selected operation before submitting
+- [ ] When editing an existing directive, the current operation is pre-selected in the dropdown
+- [ ] Changing the operation on an existing directive and saving moves it to the new project
+- [ ] "No operation" option always present; selecting it saves the task with no project assignment
+- [ ] Tasks with no operation do not appear in any project-detail view
+- [ ] Tasks with no operation do appear in the daily view (with no project name tag above the title)
+
 ### Task deletion
 
 - [ ] In edit mode (click any task card), "TERMINATE DIRECTIVE" button appears at the bottom of the dialog

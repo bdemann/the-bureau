@@ -81,6 +81,8 @@ export const BureauAppElement = defineElement()({
     state: () => ({
         app: bootstrap(),
         editingTask: null as Task | null,
+        addingTask: false,
+        newTaskProjectId: null as string | null,
     }),
 
     render({state, updateState}) {
@@ -271,6 +273,7 @@ export const BureauAppElement = defineElement()({
 
         function onTaskAdded(task: Task): void {
             commit({tasks: [...state.app.tasks, task]});
+            updateState({addingTask: false, newTaskProjectId: null});
             if (Math.random() < 0.6) {
                 triggerDialogue('task_added', false);
             }
@@ -308,6 +311,10 @@ export const BureauAppElement = defineElement()({
         function onTaskEditRequested(taskId: string): void {
             const task = state.app.tasks.find(t => t.id === taskId) ?? null;
             updateState({editingTask: task});
+        }
+
+        function onNewTaskRequested(projectId: string | null): void {
+            updateState({addingTask: true, newTaskProjectId: projectId, editingTask: null});
         }
 
         function onTaskUpdated(task: Task): void {
@@ -385,6 +392,8 @@ export const BureauAppElement = defineElement()({
                                 onTaskProgressLogged(e.detail))}
                             ${listen(DailyViewElement.events.taskEditRequested, e =>
                                 onTaskEditRequested(e.detail))}
+                            ${listen(DailyViewElement.events.newTaskRequested, () =>
+                                onNewTaskRequested(null))}
                         ></${DailyViewElement}>
                       `
                     : view === 'operations'
@@ -419,8 +428,8 @@ export const BureauAppElement = defineElement()({
                                 onTaskSkipped(e.detail))}
                             ${listen(ProjectDetailElement.events.taskProgressLogged, e =>
                                 onTaskProgressLogged(e.detail))}
-                            ${listen(ProjectDetailElement.events.taskAdded, e =>
-                                onTaskAdded(e.detail))}
+                            ${listen(ProjectDetailElement.events.newTaskRequested, e =>
+                                onNewTaskRequested(e.detail))}
                             ${listen(ProjectDetailElement.events.back, onBack)}
                             ${listen(ProjectDetailElement.events.taskEditRequested, e =>
                                 onTaskEditRequested(e.detail))}
@@ -435,18 +444,21 @@ export const BureauAppElement = defineElement()({
                             Operation not found. Return to dashboard.
                         </p>
                       `}
-                <!-- Root-level edit dialog — accessible from any view -->
+                <!-- Root-level dialog — handles both creating and editing tasks -->
                 <${AddTaskDialogElement.assign({
-                    projectId: state.editingTask?.projectId ?? '',
-                    open: state.editingTask !== null,
+                    projectId: state.editingTask?.projectId ?? state.newTaskProjectId,
+                    open: state.editingTask !== null || state.addingTask,
                     editTask: state.editingTask,
+                    projects: state.app.projects,
                 })}
+                    ${listen(AddTaskDialogElement.events.taskSubmitted, e =>
+                        onTaskAdded(e.detail))}
                     ${listen(AddTaskDialogElement.events.taskUpdated, e =>
                         onTaskUpdated(e.detail))}
                     ${listen(AddTaskDialogElement.events.taskDeleted, e =>
                         onTaskDeleted(e.detail))}
                     ${listen(AddTaskDialogElement.events.cancelled, () =>
-                        updateState({editingTask: null}))}
+                        updateState({editingTask: null, addingTask: false, newTaskProjectId: null}))}
                 ></${AddTaskDialogElement}>
             </div>
         `;

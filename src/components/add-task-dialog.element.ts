@@ -12,6 +12,7 @@ import {
 import type {
     ConsequenceTier,
     ItemKind,
+    Project,
     RecurrenceCadence,
     RecurrenceConfig,
     RecurrenceEndMode,
@@ -50,9 +51,10 @@ const ALL_CADENCES: RecurrenceCadence[] = [
 ];
 
 export const AddTaskDialogElement = defineElement<{
-    projectId: string;
+    projectId: string | null;
     open: boolean;
     editTask?: Task | null;
+    projects?: ReadonlyArray<Project>;
 }>()({
     tagName: 'add-task-dialog',
 
@@ -89,6 +91,10 @@ export const AddTaskDialogElement = defineElement<{
         /** ID of the task currently being edited; null means add mode. */
         currentEditId: null as string | null,
         confirmingDelete: false,
+        /** Which operation this task belongs to; null = no operation. */
+        selectedProjectId: null as string | null,
+        /** Tracks open transitions so add-mode form resets on each open. */
+        wasOpen: false,
         // ── End condition ──
         hasEndCondition: false,
         endMode: 'after_count' as 'after_count' | 'after_date',
@@ -276,6 +282,20 @@ export const AddTaskDialogElement = defineElement<{
         }
         .kind-toggle ${ViraButton} { width: 100%; }
 
+        .operation-select {
+            width: 100%;
+            font-family: 'Special Elite', serif;
+            font-size: 0.9rem;
+            background: #FDFAF5;
+            border: 1px solid rgba(0,0,0,0.2);
+            padding: 8px 10px;
+            color: #2C2C2C;
+            appearance: none;
+            cursor: pointer;
+            box-sizing: border-box;
+        }
+        .operation-select:focus { outline: none; border-color: #1B2A4A; }
+
         .delete-section {
             border-top: 1px solid rgba(196,30,58,0.2);
             margin-top: 20px;
@@ -335,7 +355,11 @@ export const AddTaskDialogElement = defineElement<{
     `,
 
     render({inputs, state, updateState, dispatch, events}) {
-        if (!inputs.open) return html``;
+        // Reset wasOpen when dialog closes so the next open is treated as fresh.
+        if (!inputs.open) {
+            if (state.wasOpen) updateState({wasOpen: false});
+            return html``;
+        }
 
         const editTask = inputs.editTask ?? null;
         const isEditMode = editTask !== null;
@@ -347,7 +371,9 @@ export const AddTaskDialogElement = defineElement<{
             const cfg = t.recurrence;
             updateState({
                 currentEditId: t.id,
+                wasOpen: true,
                 confirmingDelete: false,
+                selectedProjectId: t.projectId,
                 kind: t.kind ?? 'task',
                 titleValue: t.title,
                 description: t.description,
@@ -373,6 +399,37 @@ export const AddTaskDialogElement = defineElement<{
                 endAfterDate: cfg?.endAfterDate ? msToDateString(cfg.endAfterDate) : '',
             });
         }
+
+        // When dialog opens fresh in add mode, reset the form and seed the project selection.
+        if (!isEditMode && !state.wasOpen) {
+            updateState({
+                wasOpen: true,
+                selectedProjectId: inputs.projectId,
+                titleValue: '',
+                description: '',
+                kind: 'task',
+                consequenceTier: 3,
+                timeOfDay: 'anytime',
+                isRecurring: false,
+                cadence: 'weekly',
+                frequencyPerPeriod: 2,
+                scheduleMode: 'fixed',
+                windowType: 'hard',
+                suggestedDate: msToDateString(Date.now()),
+                daysOfWeek: new Set<number>([1, 2, 3, 4, 5]),
+                dayOfWeek: 4,
+                dayOfMonth: 1,
+                monthAnchorMode: 'dom',
+                ordinalWeek: 3,
+                hasEndCondition: false,
+                endMode: 'after_count',
+                endAfterCount: 10,
+                endAfterDate: '',
+                confirmingDelete: false,
+                currentEditId: null,
+            });
+        }
+
 
         const isMulti = state.isRecurring && isMultiplePerPeriodCadence(state.cadence);
 
@@ -453,7 +510,7 @@ export const AddTaskDialogElement = defineElement<{
             const task: Task = {
                 // In edit mode: preserve identity and history fields.
                 id: baseTask?.id ?? generateId(),
-                projectId: baseTask?.projectId ?? inputs.projectId,
+                projectId: state.selectedProjectId,
                 createdAt: baseTask?.createdAt ?? Date.now(),
                 snoozeCount: baseTask?.snoozeCount ?? 0,
                 snoozedUntil: baseTask?.snoozedUntil ?? null,
@@ -502,6 +559,8 @@ export const AddTaskDialogElement = defineElement<{
                 monthAnchorMode: 'dom',
                 ordinalWeek: 3,
                 currentEditId: null,
+                selectedProjectId: null,
+                wasOpen: false,
                 hasEndCondition: false,
                 endMode: 'after_count',
                 endAfterCount: 10,
@@ -940,6 +999,27 @@ export const AddTaskDialogElement = defineElement<{
                         </div>
                         `}
                     ` : html``}
+
+                    <!-- Operation assignment — always last, always visible -->
+                    <div class="field">
+                        <label class="field-label">Operation</label>
+                        <select
+                            class="operation-select"
+                            .value=${state.selectedProjectId ?? ''}
+                            @change=${(e: Event) => {
+                                const val = (e.target as HTMLSelectElement).value;
+                                updateState({selectedProjectId: val === '' ? null : val});
+                            }}
+                        >
+                            <option value="">No operation</option>
+                            ${(inputs.projects ?? []).map(p => html`
+                                <option
+                                    value="${p.id}"
+                                    .selected=${state.selectedProjectId === p.id}
+                                >${p.name}</option>
+                            `)}
+                        </select>
+                    </div>
 
                     ${isEditMode ? html`
                         <div class="delete-section">

@@ -10,7 +10,6 @@ const COLOR_OPTIONS: ReadonlyArray<{key: ProjectColor; label: string; swatch: st
     {key: 'slate', label: 'Slate',   swatch: '#4A5568'},
 ];
 import {TaskItemElement} from './task-item.element.js';
-import {AddTaskDialogElement} from './add-task-dialog.element.js';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // ProjectDetailElement
@@ -30,14 +29,13 @@ export const ProjectDetailElement = defineElement<{
         taskSkipped:        defineElementEvent<string>(),
         taskProgressLogged: defineElementEvent<string>(),
         taskEditRequested:  defineElementEvent<string>(),
-        taskAdded:          defineElementEvent<Task>(),
+        newTaskRequested:   defineElementEvent<string>(),  // project id to pre-select
         back:               defineElementEvent<void>(),
         projectDeleted:     defineElementEvent<string>(),
         projectUpdated:     defineElementEvent<Project>(),
     },
 
     state: () => ({
-        addingTask: false,
         showCompleted: false,
         confirmingDelete: false,
         editingProject: false,
@@ -380,7 +378,7 @@ export const ProjectDetailElement = defineElement<{
             <!-- Add task button -->
             <button
                 class="add-btn"
-                @click=${() => updateState({addingTask: true})}
+                @click=${() => dispatch(new events.newTaskRequested(project.id))}
             >
                 + FILE NEW DIRECTIVE
             </button>
@@ -526,18 +524,6 @@ export const ProjectDetailElement = defineElement<{
                       `}
             </div>
 
-            <!-- Add task dialog -->
-            <${AddTaskDialogElement.assign({
-                projectId: project.id,
-                open: state.addingTask,
-            })}
-                ${listen(AddTaskDialogElement.events.taskSubmitted, e => {
-                    dispatch(new events.taskAdded(e.detail));
-                    updateState({addingTask: false});
-                })}
-                ${listen(AddTaskDialogElement.events.cancelled, () =>
-                    updateState({addingTask: false}))}
-            ></${AddTaskDialogElement}>
         `;
     },
 });

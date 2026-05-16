@@ -111,7 +111,7 @@ export function timeOfDayLabel(t: TimeOfDay): string {
 
 export interface Task {
     id: string;
-    projectId: string;
+    projectId: string | null;
     title: string;
     description: string;
     timeOfDay: TimeOfDay;
