@@ -288,7 +288,7 @@ export const BureauHeaderElement = defineElement<{
     render({inputs, state, updateState, dispatch, events}) {
         const {patriotScore, streak, onBack, projectName} = inputs;
 
-        const rank = getRank(patriotScore);
+        const rank = streak === 0 ? 'suspected_communist' : getRank(patriotScore);
         const scoreColor = rankColor(rank);
 
         let barColor = '#B8860B';
