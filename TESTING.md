@@ -131,7 +131,7 @@ Mark each row as you verify in the browser. Reset the localStorage entry
 - [ ] Cadence: Weekly
 - [ ] Day-of-week picker appears (Sun–Sat); date picker hidden
 - [ ] Multiple days can be toggled on/off independently
-- [ ] Default is Mon–Fri selected
+- [ ] Default is today's day of the week (single day selected)
 - [ ] Anchor summary updates with readable description:
   - 5 weekdays → "Every weekday (Mon–Fri)."
   - 6 days without Sun → "Every day except Sunday."

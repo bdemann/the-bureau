@@ -79,9 +79,9 @@ export const AddTaskDialogElement = defineElement<{
         suggestedDate: msToDateString(Date.now()),  // YYYY-MM-DD
         // ── Recurrence anchor (only relevant when isRecurring=true) ──
         /** Selected days of the week for weekly multi-select (0=Sun…6=Sat). */
-        daysOfWeek: new Set<number>([1, 2, 3, 4, 5]), // default weekdays
+        daysOfWeek: new Set<number>([new Date().getDay()]), // default: today only
         /** 0–6 (Sun–Sat) for monthly ordinal only. */
-        dayOfWeek: 4,              // default Thursday
+        dayOfWeek: new Date().getDay(), // default: today
         /** 1–31 for monthly when monthAnchorMode='dom'. */
         dayOfMonth: 1,
         /** 'dom' = day-of-month (e.g., 15th); 'ordinal' = Nth weekday (e.g., 3rd Thu). */
@@ -416,8 +416,8 @@ export const AddTaskDialogElement = defineElement<{
                 scheduleMode: 'fixed',
                 windowType: 'hard',
                 suggestedDate: msToDateString(Date.now()),
-                daysOfWeek: new Set<number>([1, 2, 3, 4, 5]),
-                dayOfWeek: 4,
+                daysOfWeek: new Set<number>([new Date().getDay()]),
+                dayOfWeek: new Date().getDay(),
                 dayOfMonth: 1,
                 monthAnchorMode: 'dom',
                 ordinalWeek: 3,
@@ -560,8 +560,8 @@ export const AddTaskDialogElement = defineElement<{
                 scheduleMode: 'rolling',
                 windowType: 'hard',
                 suggestedDate: msToDateString(Date.now()),
-                daysOfWeek: new Set<number>([1, 2, 3, 4, 5]),
-                dayOfWeek: 4,
+                daysOfWeek: new Set<number>([new Date().getDay()]),
+                dayOfWeek: new Date().getDay(),
                 dayOfMonth: 1,
                 monthAnchorMode: 'dom',
                 ordinalWeek: 3,
@@ -603,7 +603,7 @@ export const AddTaskDialogElement = defineElement<{
                                     : ViraEmphasis.Subtle,
                                 buttonSize: ViraSize.Small,
                             })}
-                                @click=${() => updateState({kind: 'routine', isRecurring: true})}
+                                @click=${() => updateState({kind: 'routine', isRecurring: true, cadence: 'daily'})}
                             ></${ViraButton}>
                             <${ViraButton.assign({
                                 text: 'Task',
@@ -613,7 +613,7 @@ export const AddTaskDialogElement = defineElement<{
                                     : ViraEmphasis.Subtle,
                                 buttonSize: ViraSize.Small,
                             })}
-                                @click=${() => updateState({kind: 'task'})}
+                                @click=${() => updateState({kind: 'task', isRecurring: false, cadence: 'weekly'})}
                             ></${ViraButton}>
                         </div>
                     ` : html``}
