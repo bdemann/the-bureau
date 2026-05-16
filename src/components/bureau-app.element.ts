@@ -286,6 +286,17 @@ export const BureauAppElement = defineElement()({
             commit({projects, tasks, view: 'operations', selectedProjectId: null});
         }
 
+        function onProjectUpdated(project: Project): void {
+            const projects = state.app.projects.map(p => p.id === project.id ? project : p);
+            commit({projects});
+        }
+
+        function onTaskDeleted(taskId: string): void {
+            const tasks = state.app.tasks.filter(t => t.id !== taskId);
+            commit({tasks});
+            updateState({editingTask: null});
+        }
+
         function onOperationCreated(project: Project, routines: ReadonlyArray<Task>): void {
             commit({
                 projects: [...state.app.projects, project],
@@ -415,6 +426,8 @@ export const BureauAppElement = defineElement()({
                                 onTaskEditRequested(e.detail))}
                             ${listen(ProjectDetailElement.events.projectDeleted, e =>
                                 onProjectDeleted(e.detail))}
+                            ${listen(ProjectDetailElement.events.projectUpdated, e =>
+                                onProjectUpdated(e.detail))}
                         ></${ProjectDetailElement}>
                       `
                     : html`
@@ -430,6 +443,8 @@ export const BureauAppElement = defineElement()({
                 })}
                     ${listen(AddTaskDialogElement.events.taskUpdated, e =>
                         onTaskUpdated(e.detail))}
+                    ${listen(AddTaskDialogElement.events.taskDeleted, e =>
+                        onTaskDeleted(e.detail))}
                     ${listen(AddTaskDialogElement.events.cancelled, () =>
                         updateState({editingTask: null}))}
                 ></${AddTaskDialogElement}>

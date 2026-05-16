@@ -1,6 +1,14 @@
 import {defineElement, defineElementEvent, css, html, listen} from 'element-vir';
-import type {Project, Task} from '../data/types.js';
+import type {Project, ProjectColor, Task} from '../data/types.js';
 import {isTaskVisible, isTaskOverdue} from '../data/storage.js';
+
+const COLOR_OPTIONS: ReadonlyArray<{key: ProjectColor; label: string; swatch: string}> = [
+    {key: 'red',   label: 'Crimson', swatch: '#C41E3A'},
+    {key: 'navy',  label: 'Navy',    swatch: '#1B2A4A'},
+    {key: 'gold',  label: 'Gold',    swatch: '#B8860B'},
+    {key: 'olive', label: 'Olive',   swatch: '#4A5E2A'},
+    {key: 'slate', label: 'Slate',   swatch: '#4A5568'},
+];
 import {TaskItemElement} from './task-item.element.js';
 import {AddTaskDialogElement} from './add-task-dialog.element.js';
 
@@ -24,13 +32,18 @@ export const ProjectDetailElement = defineElement<{
         taskEditRequested:  defineElementEvent<string>(),
         taskAdded:          defineElementEvent<Task>(),
         back:               defineElementEvent<void>(),
-        projectDeleted:     defineElementEvent<string>(),  // project id
+        projectDeleted:     defineElementEvent<string>(),
+        projectUpdated:     defineElementEvent<Project>(),
     },
 
     state: () => ({
         addingTask: false,
         showCompleted: false,
         confirmingDelete: false,
+        editingProject: false,
+        editName: '',
+        editDescription: '',
+        editColor: 'navy' as ProjectColor,
     }),
 
     styles: css`
@@ -195,6 +208,86 @@ export const ProjectDetailElement = defineElement<{
             cursor: pointer;
         }
         .confirm-no:hover { background: rgba(0,0,0,0.05); }
+
+        .zone-actions {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .edit-btn {
+            background: none;
+            border: 1px solid #1B2A4A;
+            color: #1B2A4A;
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 0.85rem;
+            letter-spacing: 0.2em;
+            padding: 8px 16px;
+            cursor: pointer;
+            transition: background 0.15s, color 0.15s;
+        }
+        .edit-btn:hover { background: #1B2A4A; color: #F5EFE0; }
+
+        .edit-form {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .edit-label {
+            display: block;
+            font-size: 0.65rem;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+            font-family: 'Courier Prime', monospace;
+            color: #6B6B6B;
+            margin-bottom: 3px;
+        }
+
+        .edit-input {
+            width: 100%;
+            font-family: 'Special Elite', serif;
+            font-size: 0.9rem;
+            background: #FDFAF5;
+            border: 1px solid rgba(0,0,0,0.2);
+            padding: 8px 10px;
+            color: #2C2C2C;
+            box-sizing: border-box;
+        }
+        .edit-input:focus { outline: none; border-color: #1B2A4A; }
+
+        .edit-textarea { min-height: 60px; resize: vertical; }
+
+        .color-grid {
+            display: flex;
+            gap: 8px;
+        }
+        .color-option { display: none; }
+        .color-swatch {
+            display: block;
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            border: 3px solid transparent;
+            cursor: pointer;
+            transition: border-color 0.15s, transform 0.1s;
+        }
+        .color-swatch.selected {
+            border-color: #2C2C2C;
+            transform: scale(1.15);
+        }
+
+        .save-btn {
+            background: #1B2A4A;
+            border: none;
+            color: #F5EFE0;
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 0.85rem;
+            letter-spacing: 0.15em;
+            padding: 8px 16px;
+            cursor: pointer;
+        }
+        .save-btn:hover { background: #2A3F6F; }
     `,
 
     render({inputs, state, updateState, dispatch, events}) {
@@ -329,9 +422,76 @@ export const ProjectDetailElement = defineElement<{
                   `
                 : html``}
 
-            <!-- Delete operation -->
+            <!-- Edit / delete operation zone -->
             <div class="delete-zone">
-                ${state.confirmingDelete
+                ${state.editingProject
+                    ? html`
+                        <div class="edit-form">
+                            <div>
+                                <label class="edit-label">Operation Name</label>
+                                <input
+                                    class="edit-input"
+                                    type="text"
+                                    .value=${state.editName}
+                                    @input=${(e: Event) =>
+                                        updateState({editName: (e.target as HTMLInputElement).value})}
+                                />
+                            </div>
+                            <div>
+                                <label class="edit-label">Briefing</label>
+                                <textarea
+                                    class="edit-input edit-textarea"
+                                    .value=${state.editDescription}
+                                    @input=${(e: Event) =>
+                                        updateState({editDescription: (e.target as HTMLTextAreaElement).value})}
+                                ></textarea>
+                            </div>
+                            <div>
+                                <label class="edit-label">Designation Color</label>
+                                <div class="color-grid">
+                                    ${COLOR_OPTIONS.map(opt => html`
+                                        <div>
+                                            <input
+                                                type="radio"
+                                                class="color-option"
+                                                name="edit-color"
+                                                id="ec-${opt.key}"
+                                                .checked=${state.editColor === opt.key}
+                                                @change=${() => updateState({editColor: opt.key})}
+                                            />
+                                            <label
+                                                for="ec-${opt.key}"
+                                                class="color-swatch ${state.editColor === opt.key ? 'selected' : ''}"
+                                                style="background:${opt.swatch}"
+                                                title="${opt.label}"
+                                            ></label>
+                                        </div>
+                                    `)}
+                                </div>
+                            </div>
+                            <div class="confirm-actions">
+                                <button
+                                    class="save-btn"
+                                    @click=${() => {
+                                        const trimmed = state.editName.trim();
+                                        if (!trimmed) return;
+                                        dispatch(new events.projectUpdated({
+                                            ...project,
+                                            name: trimmed,
+                                            description: state.editDescription.trim(),
+                                            colorKey: state.editColor,
+                                        }));
+                                        updateState({editingProject: false});
+                                    }}
+                                >SAVE CHANGES</button>
+                                <button
+                                    class="confirm-no"
+                                    @click=${() => updateState({editingProject: false})}
+                                >CANCEL</button>
+                            </div>
+                        </div>
+                      `
+                    : state.confirmingDelete
                     ? html`
                         <div class="confirm-delete">
                             <p>PERMANENTLY DECOMMISSION THIS OPERATION AND ALL ITS DIRECTIVES?</p>
@@ -348,10 +508,21 @@ export const ProjectDetailElement = defineElement<{
                         </div>
                       `
                     : html`
-                        <button
-                            class="delete-btn"
-                            @click=${() => updateState({confirmingDelete: true})}
-                        >DECOMMISSION OPERATION</button>
+                        <div class="zone-actions">
+                            <button
+                                class="edit-btn"
+                                @click=${() => updateState({
+                                    editingProject: true,
+                                    editName: project.name,
+                                    editDescription: project.description,
+                                    editColor: project.colorKey,
+                                })}
+                            >EDIT OPERATION</button>
+                            <button
+                                class="delete-btn"
+                                @click=${() => updateState({confirmingDelete: true})}
+                            >DECOMMISSION OPERATION</button>
+                        </div>
                       `}
             </div>
 

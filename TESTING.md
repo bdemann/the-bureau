@@ -91,7 +91,13 @@ Mark each row as you verify in the browser. Reset the localStorage entry
 - [ ] Active tasks list shows incomplete + un-snoozed (regardless of due date)
 - [ ] Snoozed list shows separately when applicable
 - [ ] Cleared tasks toggle (Show/Hide N cleared) works
-- [ ] DECOMMISSION OPERATION button visible at bottom of project detail
+- [ ] EDIT OPERATION and DECOMMISSION OPERATION buttons visible at bottom of project detail
+- [ ] Clicking EDIT OPERATION opens inline form pre-filled with current name, briefing, and color
+- [ ] Color swatch matching current project color is pre-selected
+- [ ] Changing name/description/color and clicking SAVE CHANGES persists the updates
+- [ ] Saved operation name and color reflect immediately in the project-detail header
+- [ ] CANCEL in edit form closes the form with no changes
+- [ ] Cannot save with blank operation name (SAVE CHANGES does nothing until name is non-empty)
 - [ ] Clicking DECOMMISSION OPERATION shows inline confirmation ("DECOMMISSION" / "CANCEL")
 - [ ] Cancelling confirmation returns to normal view with no changes
 - [ ] Confirming decommission removes the project and all its tasks, then navigates back to Operations
@@ -175,6 +181,15 @@ Mark each row as you verify in the browser. Reset the localStorage entry
 - [ ] Score goes up by tier-weighted amount
 - [ ] Streak increments
 - [ ] Sometimes Whitaker (or Briggs) speaks
+
+### Task deletion
+
+- [ ] In edit mode (click any task card), "TERMINATE DIRECTIVE" button appears at the bottom of the dialog
+- [ ] Clicking TERMINATE DIRECTIVE shows inline confirmation: "PERMANENTLY TERMINATE THIS DIRECTIVE?" with TERMINATE and CANCEL buttons
+- [ ] CANCEL in confirmation returns to the edit form without deleting
+- [ ] Confirming TERMINATE removes the task and closes the dialog
+- [ ] Deleted task no longer appears in project-detail or daily view
+- [ ] TERMINATE DIRECTIVE button is NOT present when creating a new directive (add mode)
 
 ### Task snooze
 

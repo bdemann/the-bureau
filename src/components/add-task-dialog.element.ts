@@ -59,6 +59,7 @@ export const AddTaskDialogElement = defineElement<{
     events: {
         taskSubmitted: defineElementEvent<Task>(),
         taskUpdated:   defineElementEvent<Task>(),
+        taskDeleted:   defineElementEvent<string>(),  // task id
         cancelled:     defineElementEvent<void>(),
     },
 
@@ -87,6 +88,7 @@ export const AddTaskDialogElement = defineElement<{
         ordinalWeek: 3 as 1 | 2 | 3 | 4 | -1,
         /** ID of the task currently being edited; null means add mode. */
         currentEditId: null as string | null,
+        confirmingDelete: false,
         // ── End condition ──
         hasEndCondition: false,
         endMode: 'after_count' as 'after_count' | 'after_date',
@@ -273,6 +275,63 @@ export const AddTaskDialogElement = defineElement<{
             margin-bottom: 16px;
         }
         .kind-toggle ${ViraButton} { width: 100%; }
+
+        .delete-section {
+            border-top: 1px solid rgba(196,30,58,0.2);
+            margin-top: 20px;
+            padding-top: 14px;
+        }
+
+        .task-delete-btn {
+            background: none;
+            border: 1px solid #C41E3A;
+            color: #C41E3A;
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 0.8rem;
+            letter-spacing: 0.2em;
+            padding: 6px 14px;
+            cursor: pointer;
+            transition: background 0.15s, color 0.15s;
+        }
+        .task-delete-btn:hover { background: #C41E3A; color: #F5EFE0; }
+
+        .delete-confirm-row {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .delete-confirm-label {
+            font-family: 'Courier Prime', monospace;
+            font-size: 0.78rem;
+            color: #8B0000;
+            flex: 1;
+        }
+
+        .delete-confirm-yes {
+            background: #C41E3A;
+            border: none;
+            color: #F5EFE0;
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 0.8rem;
+            letter-spacing: 0.15em;
+            padding: 6px 14px;
+            cursor: pointer;
+        }
+        .delete-confirm-yes:hover { background: #8B0000; }
+
+        .delete-confirm-no {
+            background: none;
+            border: 1px solid #6B6B6B;
+            color: #6B6B6B;
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 0.8rem;
+            letter-spacing: 0.15em;
+            padding: 6px 14px;
+            cursor: pointer;
+        }
+        .delete-confirm-no:hover { background: rgba(0,0,0,0.05); }
     `,
 
     render({inputs, state, updateState, dispatch, events}) {
@@ -288,6 +347,7 @@ export const AddTaskDialogElement = defineElement<{
             const cfg = t.recurrence;
             updateState({
                 currentEditId: t.id,
+                confirmingDelete: false,
                 kind: t.kind ?? 'task',
                 titleValue: t.title,
                 description: t.description,
@@ -881,6 +941,34 @@ export const AddTaskDialogElement = defineElement<{
                         `}
                     ` : html``}
 
+                    ${isEditMode ? html`
+                        <div class="delete-section">
+                            ${state.confirmingDelete
+                                ? html`
+                                    <div class="delete-confirm-row">
+                                        <span class="delete-confirm-label">PERMANENTLY TERMINATE THIS DIRECTIVE?</span>
+                                        <button
+                                            class="delete-confirm-yes"
+                                            @click=${() => {
+                                                dispatch(new events.taskDeleted(editTask!.id));
+                                                updateState({currentEditId: null, confirmingDelete: false});
+                                            }}
+                                        >TERMINATE</button>
+                                        <button
+                                            class="delete-confirm-no"
+                                            @click=${() => updateState({confirmingDelete: false})}
+                                        >CANCEL</button>
+                                    </div>
+                                  `
+                                : html`
+                                    <button
+                                        class="task-delete-btn"
+                                        @click=${() => updateState({confirmingDelete: true})}
+                                    >TERMINATE DIRECTIVE</button>
+                                  `}
+                        </div>
+                    ` : html``}
+
                     <div class="actions">
                         <${ViraButton.assign({
                             text: 'Cancel',
@@ -889,7 +977,7 @@ export const AddTaskDialogElement = defineElement<{
                         })}
                             @click=${() => {
                                 dispatch(new events.cancelled());
-                                updateState({currentEditId: null});
+                                updateState({currentEditId: null, confirmingDelete: false});
                             }}
                         ></${ViraButton}>
                         <span class="grow">
