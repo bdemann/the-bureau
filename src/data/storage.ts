@@ -132,6 +132,8 @@ function ensureTaskShape(raw: any): Task {
         completionsThisPeriod: raw.completionsThisPeriod ?? 0,
         totalCompletions: raw.totalCompletions ?? 0,
         progressCount: raw.progressCount ?? 0,
+        pausedUntil: raw.pausedUntil ?? null,
+        pausedIndefinitely: raw.pausedIndefinitely ?? false,
         snoozeCount: raw.snoozeCount ?? 0,
         snoozedUntil: raw.snoozedUntil ?? null,
         totalSnoozes: raw.totalSnoozes ?? 0,
@@ -184,6 +186,11 @@ export function isCurrentlySnoozed(task: Pick<Task, 'snoozedUntil'>): boolean {
     return task.snoozedUntil !== null && task.snoozedUntil > Date.now();
 }
 
+export function isCurrentlyPaused(task: Pick<Task, 'pausedUntil' | 'pausedIndefinitely'>): boolean {
+    if (task.pausedIndefinitely) return true;
+    return task.pausedUntil !== null && task.pausedUntil > Date.now();
+}
+
 export function isTaskCompleteForPeriod(task: Task): boolean {
     if (task.recurrence && task.recurrence.frequencyPerPeriod > 1) {
         return task.completionsThisPeriod >= task.recurrence.frequencyPerPeriod;
@@ -193,14 +200,15 @@ export function isTaskCompleteForPeriod(task: Task): boolean {
 
 /**
  * Phase 1 helper retained for back-compat: returns true if task is incomplete
- * AND not currently snoozed. Used by legacy components — daily view uses
- * urgency.ts/getDailyBand instead.
+ * AND not currently snoozed or paused. Used by legacy components — daily view
+ * uses urgency.ts/getDailyBand instead.
  */
-export function isTaskVisible(task: Pick<Task, 'snoozedUntil' | 'completedAt'> & {missedAt?: number | null}): boolean {
+export function isTaskVisible(task: Pick<Task, 'snoozedUntil' | 'completedAt' | 'pausedUntil' | 'pausedIndefinitely'> & {missedAt?: number | null}): boolean {
     if (task.completedAt !== null) return false;
     // eslint-disable-next-line eqeqeq
     if (task.missedAt != null) return false;
     if (task.snoozedUntil !== null && task.snoozedUntil > Date.now()) return false;
+    if (isCurrentlyPaused(task)) return false;
     return true;
 }
 

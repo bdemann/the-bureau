@@ -1,6 +1,6 @@
 import {defineElement, defineElementEvent, css, html, listen} from 'element-vir';
 import type {Project, ProjectColor, Task} from '../data/types.js';
-import {isTaskVisible, isTaskOverdue} from '../data/storage.js';
+import {isCurrentlyPaused, isTaskVisible, isTaskOverdue} from '../data/storage.js';
 
 const COLOR_OPTIONS: ReadonlyArray<{key: ProjectColor; label: string; swatch: string}> = [
     {key: 'red',   label: 'Crimson', swatch: '#C41E3A'},
@@ -312,9 +312,14 @@ export const ProjectDetailElement = defineElement<{
 
         const activeTasks = tasks.filter(isTaskVisible);
 
+        const pausedTasks = tasks.filter(
+            t => t.completedAt === null && isCurrentlyPaused(t),
+        );
+
         const snoozedTasks = tasks.filter(
             t =>
                 t.completedAt === null &&
+                !isCurrentlyPaused(t) &&
                 t.snoozedUntil !== null &&
                 t.snoozedUntil > Date.now(),
         );
@@ -325,7 +330,7 @@ export const ProjectDetailElement = defineElement<{
 
         return html`
             <!-- Active tasks section -->
-            ${activeTasks.length === 0 && snoozedTasks.length === 0
+            ${activeTasks.length === 0 && pausedTasks.length === 0 && snoozedTasks.length === 0
                 ? html`
                     <div class="empty-state">
                         <p>No active directives in this operation.</p>
@@ -408,6 +413,25 @@ export const ProjectDetailElement = defineElement<{
                                 updateState({draggedId: null, dragOverId: null});
                             }}
                         ></div>
+                    </div>
+                  `
+                : html``}
+
+            <!-- Paused tasks -->
+            ${pausedTasks.length > 0
+                ? html`
+                    <div class="snoozed-section">
+                        <div class="section-label">PAUSED (${pausedTasks.length})</div>
+                        <div class="task-list">
+                            ${pausedTasks.map(
+                                task => html`
+                                    <${TaskItemElement.assign({task})}
+                                        ${listen(TaskItemElement.events.editRequested, e =>
+                                            dispatch(new events.taskEditRequested(e.detail)))}
+                                    ></${TaskItemElement}>
+                                `,
+                            )}
+                        </div>
                     </div>
                   `
                 : html``}

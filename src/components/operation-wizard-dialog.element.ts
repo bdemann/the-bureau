@@ -436,6 +436,8 @@ export const OperationWizardDialogElement = defineElement<{open: boolean}>()({
                 completionsThisPeriod: 0,
                 totalCompletions: 0,
                 progressCount: 0,
+                pausedUntil: null,
+                pausedIndefinitely: false,
                 snoozeCount: 0,
                 snoozedUntil: null,
                 totalSnoozes: 0,

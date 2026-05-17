@@ -20,6 +20,8 @@ export function makeTask(overrides: Partial<Task> = {}): Task {
         completionsThisPeriod: 0,
         totalCompletions: 0,
         progressCount: 0,
+        pausedUntil: null,
+        pausedIndefinitely: false,
         snoozeCount: 0,
         snoozedUntil: null,
         totalSnoozes: 0,

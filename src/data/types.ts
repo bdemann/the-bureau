@@ -150,6 +150,19 @@ export interface Task {
     /** Number of times progress has been logged. */
     progressCount: number;
 
+    // ── Pause (deliberate suspension — no score/streak impact) ──
+    /**
+     * When set, the directive is hidden from the daily view and rollover does
+     * not count misses. null = not paused. Unlike snooze, pause is intentional
+     * and does not penalize the patriot score.
+     *
+     * Use Infinity (serialized as null in JSON — stored alongside
+     * pausedIndefinitely flag) or a future ms timestamp.
+     */
+    pausedUntil: number | null;
+    /** True when the directive is paused with no end date. */
+    pausedIndefinitely: boolean;
+
     // ── Snooze (resets to 0 on completion) ──
     snoozeCount: number;
     snoozedUntil: number | null;

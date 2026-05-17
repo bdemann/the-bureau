@@ -261,6 +261,17 @@ Mark each row as you verify in the browser. Reset the localStorage entry
 - [ ] Active use (app stays open through a slot transition) does NOT collapse open sections
 - [ ] Complete/snooze actions work from daily view
 
+### Pausing directives
+
+- [ ] Edit any directive → "Pause Directive" row with 4 options: Active / Indefinitely / Until date / For N days
+- [ ] Active: directive is visible and operates normally
+- [ ] Indefinitely: directive disappears from daily view with no score impact
+- [ ] Until date: hides until the selected date, then reappears automatically
+- [ ] For N days: hides for N days from today
+- [ ] Paused directives do NOT accrue misses during rollover
+- [ ] Paused directives appear in a PAUSED section in their operation's project detail
+- [ ] Clicking the task card for a paused directive opens edit mode where pause can be removed
+
 ### Recurring start date
 
 - [ ] "Has a start date" checkbox appears in the recurring section (for both routines and tasks)

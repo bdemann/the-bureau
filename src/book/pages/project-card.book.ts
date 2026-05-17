@@ -33,6 +33,8 @@ function makeTask(projectId: string, overrides: Partial<Task> & {title: string})
         completionsThisPeriod: 0,
         totalCompletions: 0,
         progressCount: 0,
+        pausedUntil: null,
+        pausedIndefinitely: false,
         snoozeCount: 0,
         snoozedUntil: null,
         totalSnoozes: 0,

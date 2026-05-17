@@ -6,7 +6,7 @@
 
 import type {RecurrenceCadence, RecurrenceConfig, Task} from './types.js';
 import {isMultiplePerPeriodCadence} from './types.js';
-import {startOfDay} from './storage.js';
+import {isCurrentlyPaused, startOfDay} from './storage.js';
 
 // ── Period boundary computation ─────────────────────────────────────────────
 
@@ -216,6 +216,9 @@ export function rolloverIfNeeded(task: Task, today: Date): Task {
     if (cfg.startDate !== undefined && startOfDay(today).getTime() < cfg.startDate) {
         return task;
     }
+
+    // Paused — don't roll over, don't count a miss.
+    if (isCurrentlyPaused(task)) return task;
 
     const todayPeriod = getCurrentPeriod(task.recurrence.cadence, today);
 

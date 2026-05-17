@@ -98,6 +98,10 @@ export const AddTaskDialogElement = defineElement<{
         // ── Start date ──
         hasStartDate: false,
         startDate: '',  // YYYY-MM-DD
+        // ── Pause ──
+        pauseMode: 'none' as 'none' | 'indefinite' | 'until_date' | 'for_days',
+        pauseUntilDate: '',  // YYYY-MM-DD
+        pauseForDays: 7,
         // ── End condition ──
         hasEndCondition: false,
         endMode: 'after_count' as 'after_count' | 'after_date',
@@ -398,6 +402,12 @@ export const AddTaskDialogElement = defineElement<{
                 suggestedDate: t.suggestedDate ? msToDateString(t.suggestedDate) : '',
                 hasStartDate: cfg?.startDate !== undefined,
                 startDate: cfg?.startDate ? msToDateString(cfg.startDate) : '',
+                pauseMode: t.pausedIndefinitely ? 'indefinite'
+                    : (t.pausedUntil !== null && t.pausedUntil > Date.now()) ? 'until_date'
+                    : 'none',
+                pauseUntilDate: (t.pausedUntil !== null && !t.pausedIndefinitely)
+                    ? msToDateString(t.pausedUntil) : '',
+                pauseForDays: 7,
                 hasEndCondition: cfg !== null && (cfg.endMode ?? 'never') !== 'never',
                 endMode: (cfg?.endMode === 'after_date' ? 'after_date' : 'after_count'),
                 endAfterCount: cfg?.endAfterCount ?? 10,
@@ -428,6 +438,9 @@ export const AddTaskDialogElement = defineElement<{
                 ordinalWeek: 3,
                 hasStartDate: false,
                 startDate: '',
+                pauseMode: 'none',
+                pauseUntilDate: '',
+                pauseForDays: 7,
                 hasEndCondition: false,
                 endMode: 'after_count',
                 endAfterCount: 10,
@@ -517,6 +530,17 @@ export const AddTaskDialogElement = defineElement<{
                 windowLengthDays = init.windowLengthDays;
             }
 
+            // Compute pause fields from pauseMode.
+            let pausedUntil: number | null = null;
+            let pausedIndefinitely = false;
+            if (state.pauseMode === 'indefinite') {
+                pausedIndefinitely = true;
+            } else if (state.pauseMode === 'until_date' && state.pauseUntilDate) {
+                pausedUntil = startOfDay(new Date(state.pauseUntilDate + 'T00:00')).getTime();
+            } else if (state.pauseMode === 'for_days') {
+                pausedUntil = startOfDay(new Date()).getTime() + state.pauseForDays * 86_400_000;
+            }
+
             const baseTask = isEditMode ? editTask! : null;
 
             const task: Task = {
@@ -524,6 +548,8 @@ export const AddTaskDialogElement = defineElement<{
                 id: baseTask?.id ?? generateId(),
                 projectId: state.selectedProjectId,
                 createdAt: baseTask?.createdAt ?? Date.now(),
+                pausedUntil,
+                pausedIndefinitely,
                 snoozeCount: baseTask?.snoozeCount ?? 0,
                 snoozedUntil: baseTask?.snoozedUntil ?? null,
                 totalSnoozes: baseTask?.totalSnoozes ?? 0,
@@ -582,6 +608,9 @@ export const AddTaskDialogElement = defineElement<{
                 wasOpen: false,
                 hasStartDate: false,
                 startDate: '',
+                pauseMode: 'none',
+                pauseUntilDate: '',
+                pauseForDays: 7,
                 hasEndCondition: false,
                 endMode: 'after_count',
                 endAfterCount: 10,
@@ -974,6 +1003,54 @@ export const AddTaskDialogElement = defineElement<{
                                 </div>
                             ` : html``}
                         </div>
+
+                        <!-- Pause — edit mode only -->
+                        ${isEditMode ? html`
+                        <div class="end-condition-section">
+                            <div class="field">
+                                <span class="field-label">Pause Directive</span>
+                                <div class="seg" style="grid-template-columns: repeat(4, 1fr);">
+                                    ${(['none', 'indefinite', 'until_date', 'for_days'] as const).map(m => html`
+                                        <${ViraButton.assign({
+                                            text: m === 'none' ? 'Active' : m === 'indefinite' ? 'Indefinitely' : m === 'until_date' ? 'Until date' : 'For N days',
+                                            color: m === 'none' ? ViraColorVariant.Info : ViraColorVariant.Warning,
+                                            buttonEmphasis: state.pauseMode === m ? ViraEmphasis.Standard : ViraEmphasis.Subtle,
+                                            buttonSize: ViraSize.Small,
+                                        })}
+                                            @click=${() => updateState({pauseMode: m})}
+                                        ></${ViraButton}>
+                                    `)}
+                                </div>
+                            </div>
+                            ${state.pauseMode === 'until_date' ? html`
+                                <div class="field">
+                                    <span class="field-label">Pause Until</span>
+                                    <input
+                                        type="date"
+                                        .value=${state.pauseUntilDate}
+                                        @input=${(e: Event) =>
+                                            updateState({pauseUntilDate: (e.target as HTMLInputElement).value})}
+                                    />
+                                </div>
+                            ` : state.pauseMode === 'for_days' ? html`
+                                <div class="field">
+                                    <span class="field-label">Pause For (days)</span>
+                                    <span class="dom-input">
+                                        <${ViraInput.assign({
+                                            value: String(state.pauseForDays),
+                                            type: ViraInputType.Number,
+                                            placeholder: 'e.g. 14',
+                                        })}
+                                            ${listen(ViraInput.events.valueChange, e => {
+                                                const n = parseInt(e.detail, 10);
+                                                if (!Number.isNaN(n) && n >= 1) updateState({pauseForDays: n});
+                                            })}
+                                        ></${ViraInput}>
+                                    </span>
+                                </div>
+                            ` : html``}
+                        </div>
+                        ` : html``}
 
                         <!-- End condition — hidden for routines (they never end) -->
                         ${state.kind === 'routine' ? html`` : html`

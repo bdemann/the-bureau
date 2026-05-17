@@ -24,6 +24,38 @@ describe('getDailyBand — Step 0 (visibility)', () => {
         assert.strictEquals(getDailyBand(t, date('2026-05-09')), 'hidden');
     });
 
+    test('paused indefinitely is hidden', () => {
+        const t = makeTask({
+            pausedIndefinitely: true,
+            pausedUntil: null,
+            recurrence: makeRecurrence({cadence: 'daily'}),
+            currentPeriodStart: date('2026-05-09').getTime(),
+        });
+        assert.strictEquals(getDailyBand(t, date('2026-05-09')), 'hidden');
+    });
+
+    test('paused until future date is hidden', () => {
+        const future = date('2026-12-01');
+        const t = makeTask({
+            pausedIndefinitely: false,
+            pausedUntil: future.getTime(),
+            recurrence: makeRecurrence({cadence: 'daily'}),
+            currentPeriodStart: date('2026-05-09').getTime(),
+        });
+        assert.strictEquals(getDailyBand(t, date('2026-05-09')), 'hidden');
+    });
+
+    test('pause with past pausedUntil is visible', () => {
+        const past = date('2026-01-01');
+        const t = makeTask({
+            pausedIndefinitely: false,
+            pausedUntil: past.getTime(),
+            recurrence: makeRecurrence({cadence: 'daily'}),
+            currentPeriodStart: date('2026-05-09').getTime(),
+        });
+        assert.strictEquals(getDailyBand(t, date('2026-05-09')), 'mandatory');
+    });
+
     test('recurring task with future startDate is hidden before that date', () => {
         const today = date('2026-05-09');
         const future = date('2026-12-01');
