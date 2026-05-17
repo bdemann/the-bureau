@@ -476,6 +476,18 @@ export const BureauAppElement = defineElement()({
             updateState({addingTask: true, newTaskProjectId: projectId, editingTask: null});
         }
 
+        function onProjectsReordered(orderedIds: ReadonlyArray<string>): void {
+            const orderedSet = new Set(orderedIds);
+            const orderedProjects = orderedIds
+                .map(id => state.app.projects.find(p => p.id === id))
+                .filter((p): p is Project => p !== undefined);
+            let idx = 0;
+            const newProjects = state.app.projects.map(p =>
+                orderedSet.has(p.id) ? orderedProjects[idx++]! : p,
+            );
+            commit({projects: newProjects});
+        }
+
         function onTasksReordered(orderedIds: ReadonlyArray<string>): void {
             const orderedSet = new Set(orderedIds);
             const orderedTasks = orderedIds
@@ -595,6 +607,8 @@ export const BureauAppElement = defineElement()({
                                 onProjectAdded(e.detail))}
                             ${listen(DashboardViewElement.events.operationCreated, e =>
                                 onOperationCreated(e.detail.project, e.detail.routines))}
+                            ${listen(DashboardViewElement.events.projectsReordered, e =>
+                                onProjectsReordered(e.detail))}
                         ></${DashboardViewElement}>
                       `
                     : selectedProject

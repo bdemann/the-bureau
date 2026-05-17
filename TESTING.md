@@ -199,6 +199,14 @@ Mark each row as you verify in the browser. Reset the localStorage entry
 - [ ] Reordering within a daily-view band does not affect directives in other bands
 - [ ] Reordering within one time-slot group does not affect directives in another slot group within the same band
 
+### Reordering operations (dashboard)
+
+- [ ] Dragging an operation card on the dashboard shows the card at reduced opacity
+- [ ] A blue line appears above the drop target as the dragged card hovers over it
+- [ ] Dropping onto another card inserts the dragged one before the target
+- [ ] A drop zone at the bottom of the list allows moving an operation to the last position
+- [ ] Reorder persists after navigating away and back (saved to state)
+
 ### Filing directives from the daily view
 
 - [ ] `+ FILE DIRECTIVE` button visible at the bottom of the daily view

@@ -17,13 +17,16 @@ export const DashboardViewElement = defineElement<{
     tagName: 'dashboard-view',
 
     events: {
-        projectSelected:  defineElementEvent<string>(),  // project id
-        projectAdded:     defineElementEvent<Project>(),
-        operationCreated: defineElementEvent<{project: Project; routines: ReadonlyArray<Task>}>(),
+        projectSelected:   defineElementEvent<string>(),  // project id
+        projectAdded:      defineElementEvent<Project>(),
+        operationCreated:  defineElementEvent<{project: Project; routines: ReadonlyArray<Task>}>(),
+        projectsReordered: defineElementEvent<ReadonlyArray<string>>(),  // ordered project ids
     },
 
     state: () => ({
         wizardOpen: false,
+        draggedId: null as string | null,
+        dragOverId: null as string | null,
     }),
 
     styles: css`
@@ -134,10 +137,23 @@ export const DashboardViewElement = defineElement<{
             background: rgba(27, 42, 74, 0.05);
             border-color: rgba(27, 42, 74, 0.6);
         }
+
+        .card-drag-wrapper { position: relative; }
+        .card-drag-wrapper.is-dragging { opacity: 0.35; }
+        .card-drag-wrapper.is-drag-over::before {
+            content: '';
+            display: block;
+            height: 2px;
+            background: #1B2A4A;
+            margin-bottom: 2px;
+        }
+        .drop-zone-end { height: 20px; }
+        .drop-zone-end.is-drag-over { border-top: 2px solid #1B2A4A; }
     `,
 
     render({inputs, state, updateState, dispatch, events}) {
-        const {projects, tasks} = inputs;
+        const {projects} = inputs;
+        const {tasks} = inputs;
 
         // Calculate summary stats for the intel banner
         const allVisible = tasks.filter(isTaskVisible);
@@ -185,15 +201,64 @@ export const DashboardViewElement = defineElement<{
                     <div class="project-grid">
                         ${projects.map(
                             project => html`
-                                <${ProjectCardElement.assign({
-                                    project,
-                                    tasks: tasks.filter(t => t.projectId === project.id),
-                                })}
-                                    ${listen(ProjectCardElement.events.selected, e =>
-                                        dispatch(new events.projectSelected(e.detail)))}
-                                ></${ProjectCardElement}>
+                                <div
+                                    class="card-drag-wrapper ${state.draggedId === project.id ? 'is-dragging' : ''} ${state.dragOverId === project.id ? 'is-drag-over' : ''}"
+                                    draggable="true"
+                                    @dragstart=${(e: DragEvent) => {
+                                        e.dataTransfer?.setData('text/plain', project.id);
+                                        updateState({draggedId: project.id});
+                                    }}
+                                    @dragover=${(e: DragEvent) => {
+                                        e.preventDefault();
+                                        if (state.draggedId && state.draggedId !== project.id) {
+                                            updateState({dragOverId: project.id});
+                                        }
+                                    }}
+                                    @dragleave=${() => {
+                                        if (state.dragOverId === project.id) updateState({dragOverId: null});
+                                    }}
+                                    @drop=${(e: DragEvent) => {
+                                        e.preventDefault();
+                                        const fromId = e.dataTransfer?.getData('text/plain') ?? state.draggedId;
+                                        if (fromId && fromId !== project.id) {
+                                            dispatch(new events.projectsReordered(
+                                                reorderBefore(projects, fromId, project.id).map(p => p.id)
+                                            ));
+                                        }
+                                        updateState({draggedId: null, dragOverId: null});
+                                    }}
+                                    @dragend=${() => updateState({draggedId: null, dragOverId: null})}
+                                >
+                                    <${ProjectCardElement.assign({
+                                        project,
+                                        tasks: tasks.filter(t => t.projectId === project.id),
+                                    })}
+                                        ${listen(ProjectCardElement.events.selected, e =>
+                                            dispatch(new events.projectSelected(e.detail)))}
+                                    ></${ProjectCardElement}>
+                                </div>
                             `,
                         )}
+                        <div
+                            class="drop-zone-end ${state.dragOverId === '__end__' ? 'is-drag-over' : ''}"
+                            @dragover=${(e: DragEvent) => {
+                                e.preventDefault();
+                                if (state.draggedId) updateState({dragOverId: '__end__'});
+                            }}
+                            @dragleave=${() => {
+                                if (state.dragOverId === '__end__') updateState({dragOverId: null});
+                            }}
+                            @drop=${(e: DragEvent) => {
+                                e.preventDefault();
+                                const fromId = e.dataTransfer?.getData('text/plain') ?? state.draggedId;
+                                if (fromId) {
+                                    dispatch(new events.projectsReordered(
+                                        moveToEnd(projects, fromId).map(p => p.id)
+                                    ));
+                                }
+                                updateState({draggedId: null, dragOverId: null});
+                            }}
+                        ></div>
                     </div>
                   `}
 
@@ -216,3 +281,21 @@ export const DashboardViewElement = defineElement<{
         `;
     },
 });
+
+// ── Helpers ──────────────────────────────────────────────────────────────────
+
+function reorderBefore<T extends {id: string}>(list: ReadonlyArray<T>, fromId: string, toId: string): T[] {
+    const item = list.find(p => p.id === fromId);
+    if (!item) return [...list];
+    const rest = list.filter(p => p.id !== fromId);
+    const idx = rest.findIndex(p => p.id === toId);
+    if (idx === -1) return [...list];
+    rest.splice(idx, 0, item);
+    return rest;
+}
+
+function moveToEnd<T extends {id: string}>(list: ReadonlyArray<T>, fromId: string): T[] {
+    const item = list.find(p => p.id === fromId);
+    if (!item) return [...list];
+    return [...list.filter(p => p.id !== fromId), item];
+}
