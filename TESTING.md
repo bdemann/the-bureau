@@ -260,6 +260,11 @@ Mark each row as you verify in the browser. Reset the localStorage entry
 - [ ] Switching to background and returning after the time slot changes resets the default to the new slot
 - [ ] Active use (app stays open through a slot transition) does NOT collapse open sections
 - [ ] Complete/snooze actions work from daily view
+- [ ] Snoozing a directive shows an UNDO toast at the bottom of the screen
+- [ ] Skipping a directive shows an UNDO toast at the bottom of the screen
+- [ ] Clicking UNDO on the toast reverses the skip/snooze (task returns to its pre-action state, score is restored)
+- [ ] The UNDO toast disappears automatically after ~30 seconds
+- [ ] Performing a second skip/snooze replaces the previous UNDO toast
 
 ### Pausing directives
 

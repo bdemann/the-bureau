@@ -95,6 +95,50 @@ export const BureauAppElement = defineElement()({
             font-family: 'Special Elite', serif;
             color: #6B6B6B;
         }
+
+        .undo-toast {
+            position: fixed;
+            bottom: 80px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #1B2A4A;
+            color: #F5EFE0;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 10px 16px;
+            font-family: 'Courier Prime', monospace;
+            font-size: 0.8rem;
+            letter-spacing: 0.04em;
+            z-index: 300;
+            max-width: 90vw;
+            animation: toast-in 0.2s ease-out;
+            white-space: nowrap;
+        }
+
+        @keyframes toast-in {
+            from { opacity: 0; transform: translateX(-50%) translateY(8px); }
+            to   { opacity: 1; transform: translateX(-50%) translateY(0); }
+        }
+
+        .undo-toast-label {
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 200px;
+        }
+
+        .undo-btn {
+            background: none;
+            border: 1px solid #F5EFE0;
+            color: #F5EFE0;
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 0.8rem;
+            letter-spacing: 0.15em;
+            padding: 4px 10px;
+            cursor: pointer;
+            flex-shrink: 0;
+        }
+        .undo-btn:hover { background: rgba(255,255,255,0.1); }
     `,
 
     state: () => ({
@@ -102,6 +146,13 @@ export const BureauAppElement = defineElement()({
         editingTask: null as Task | null,
         addingTask: false,
         newTaskProjectId: null as string | null,
+        undoAction: null as {
+            prevTask: Task;
+            prevScore: number;
+            label: string;
+            expiresAt: number;
+            timerId: ReturnType<typeof setTimeout>;
+        } | null,
     }),
 
     render({state, updateState}) {
@@ -148,6 +199,39 @@ export const BureauAppElement = defineElement()({
         ): void {
             const line = getDialogueFor(trigger, preferDirector);
             pushDialogue(line.character, line.message);
+        }
+
+        // ── Undo helpers ───────────────────────────────────────────────────────
+
+        const UNDO_TTL_MS = 30_000; // 30 seconds
+
+        function offerUndo(prevTask: Task, prevScore: number, label: string): void {
+            // Cancel any existing undo timer.
+            if (state.undoAction) clearTimeout(state.undoAction.timerId);
+            const timerId = setTimeout(
+                () => updateState({undoAction: null}),
+                UNDO_TTL_MS,
+            );
+            updateState({
+                undoAction: {
+                    prevTask,
+                    prevScore,
+                    label,
+                    expiresAt: Date.now() + UNDO_TTL_MS,
+                    timerId,
+                },
+            });
+        }
+
+        function onUndo(): void {
+            if (!state.undoAction) return;
+            clearTimeout(state.undoAction.timerId);
+            const {prevTask, prevScore} = state.undoAction;
+            const tasks = state.app.tasks.map(t =>
+                t.id === prevTask.id ? prevTask : t,
+            );
+            commit({tasks, patriotScore: prevScore});
+            updateState({undoAction: null});
         }
 
         // ── Event handlers ─────────────────────────────────────────────────────
@@ -269,6 +353,7 @@ export const BureauAppElement = defineElement()({
                     : t,
             );
             commit({tasks, patriotScore: newScore});
+            offerUndo(task, prevScore, `Snoozed "${task.title}"`);
 
             // Tier-aware dialogue escalation: tier 1 escalates faster.
             const escalation = computeSnoozeDialogue(tier, newSnoozeCount);
@@ -303,7 +388,7 @@ export const BureauAppElement = defineElement()({
 
         function onTaskSkipped(taskId: string): void {
             const target = state.app.tasks.find(t => t.id === taskId);
-            if (!target) return;
+            if (!target || !target.recurrence) return;
 
             const now = new Date();
             const tasks = state.app.tasks.map(t => {
@@ -323,6 +408,7 @@ export const BureauAppElement = defineElement()({
             const newScore = Math.max(0, prevScore - penalty);
 
             commit({tasks, patriotScore: newScore});
+            offerUndo(target, prevScore, `Skipped "${target.title}"`);
             triggerDialogue('task_skipped', tier <= 2);
 
             if (newScore < 40 && prevScore >= 40) {
@@ -563,6 +649,15 @@ export const BureauAppElement = defineElement()({
                     ${listen(AddTaskDialogElement.events.cancelled, () =>
                         updateState({editingTask: null, addingTask: false, newTaskProjectId: null}))}
                 ></${AddTaskDialogElement}>
+
+                ${state.undoAction
+                    ? html`
+                        <div class="undo-toast">
+                            <span class="undo-toast-label">${state.undoAction.label}</span>
+                            <button class="undo-btn" @click=${onUndo}>UNDO</button>
+                        </div>
+                      `
+                    : html``}
             </div>
         `;
     },
