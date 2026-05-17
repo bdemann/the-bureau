@@ -299,6 +299,18 @@ Mark each row as you verify in the browser. Reset the localStorage entry
 - [ ] Edit dialog re-opens with all previously selected days highlighted
 - [ ] Operation wizard monthly: same multi-select grid behaviour
 
+### Quarterly cadence with month-of-quarter anchor
+
+- [ ] Quarterly cadence → "Month of Quarter" picker shows three buttons: "1st Month", "2nd Month", "3rd Month"
+- [ ] Selecting "2nd Month" updates the anchor summary (e.g., "The 15th of the 2nd month of each quarter.")
+- [ ] Day-of-month grid (1–31 toggle buttons) appears below the month-of-quarter picker
+- [ ] Multiple days can be selected; at least one must remain selected
+- [ ] Anchor summary reflects multiple selected days (e.g., "The 1st and 15th of the 2nd month of each quarter.")
+- [ ] Completing on the 1st when [1,15] selected in 2nd month advances to the 15th of that same quarter's 2nd month
+- [ ] Completing on the 15th (last dom in period) advances to the 1st of the 2nd month of the next quarter
+- [ ] Edit dialog re-opens with the correct month-of-quarter button highlighted and all selected days toggled on
+- [ ] Operation wizard quarterly: same month-of-quarter picker and multi-dom grid behavior
+
 ### Annually cadence (directive dialog)
 
 - [ ] Selecting "Annually" from the cadence dropdown shows Season shortcuts, Month grid, and Day-of-month field

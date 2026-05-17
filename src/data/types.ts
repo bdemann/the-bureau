@@ -63,6 +63,15 @@ export interface RecurrenceConfig {
     /** Anchor day-of-month for monthly cadence (1–31, clamped to month length). */
     hardDayOfMonth?: number;
     /**
+     * For quarterly cadence: which month within the quarter the task fires in.
+     * 0 = first month of quarter (Jan/Apr/Jul/Oct),
+     * 1 = second month (Feb/May/Aug/Nov),
+     * 2 = third month (Mar/Jun/Sep/Dec).
+     * When absent, falls back to the month-within-quarter of suggestedDate.
+     * Combined with hardDayOfMonth or hardDaysOfMonth for the day(s).
+     */
+    hardMonthOfQuarter?: 0 | 1 | 2;
+    /**
      * Multi-select days-of-month for monthly cadence (each value 1–31).
      * When set, the task cycles through these days in order within each month,
      * advancing to the next selected day after each completion (wrapping to the

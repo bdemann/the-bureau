@@ -5,6 +5,7 @@ import {
     getCurrentPeriod,
     initialiseRecurrence,
     isRecurrenceEnded,
+    nextOccurrenceInQuarterlyTarget,
     nextOccurrenceOfSelectedDays,
     nextOccurrenceOfSelectedDoms,
     nextOccurrenceOfWeekday,
@@ -599,6 +600,100 @@ describe('monthly multi-dom (hardDaysOfMonth)', () => {
             new Date(r.suggestedDate!).toDateString(),
             date('2026-05-15').toDateString(),
         );
+    });
+});
+
+describe('nextOccurrenceInQuarterlyTarget', () => {
+    // Q2 2026 = Apr 1 – Jun 30.  monthOfQuarter=1 → May (2nd month).
+    const q2Start = date('2026-04-01');
+
+    test('from before target month: returns first dom of target month', () => {
+        const r = nextOccurrenceInQuarterlyTarget([1, 15], date('2026-04-10'), q2Start, 1);
+        assert.strictEquals(r.toDateString(), date('2026-05-01').toDateString());
+    });
+
+    test('from = first dom in target month: returns that dom', () => {
+        const r = nextOccurrenceInQuarterlyTarget([1, 15], date('2026-05-01'), q2Start, 1);
+        assert.strictEquals(r.toDateString(), date('2026-05-01').toDateString());
+    });
+
+    test('from between doms in target month: returns next dom', () => {
+        const r = nextOccurrenceInQuarterlyTarget([1, 15], date('2026-05-08'), q2Start, 1);
+        assert.strictEquals(r.toDateString(), date('2026-05-15').toDateString());
+    });
+
+    test('from after last dom in target month: wraps to next quarter', () => {
+        const r = nextOccurrenceInQuarterlyTarget([1, 15], date('2026-05-20'), q2Start, 1);
+        assert.strictEquals(r.toDateString(), date('2026-08-01').toDateString()); // Q3 May+3=Aug
+    });
+});
+
+describe('quarterly — hardMonthOfQuarter anchor', () => {
+    test('initialiseRecurrence quarterly picks target month in current quarter', () => {
+        // Today = May 8 (Q2). hardMonthOfQuarter=1 (2nd month=May). dom=15.
+        const today = date('2026-05-08');
+        const cfg = makeRecurrence({cadence: 'quarterly', hardMonthOfQuarter: 1, hardDayOfMonth: 15});
+        const init = initialiseRecurrence({windowType: 'flexible', suggestedDate: null}, cfg, today);
+        assert.strictEquals(new Date(init.suggestedDate).toDateString(), date('2026-05-15').toDateString());
+    });
+
+    test('initialiseRecurrence quarterly with multi-dom picks next dom', () => {
+        // Today = May 8. doms=[1,15]. Next dom at-or-after May 8 in May = 15.
+        const today = date('2026-05-08');
+        const cfg = makeRecurrence({cadence: 'quarterly', hardMonthOfQuarter: 1, hardDaysOfMonth: [1, 15]});
+        const init = initialiseRecurrence({windowType: 'flexible', suggestedDate: null}, cfg, today);
+        assert.strictEquals(new Date(init.suggestedDate).toDateString(), date('2026-05-15').toDateString());
+    });
+
+    test('advanceRecurrence quarterly single-dom places in next quarter target month', () => {
+        const t = makeTask({
+            recurrence: makeRecurrence({cadence: 'quarterly', hardMonthOfQuarter: 1, hardDayOfMonth: 15}),
+            suggestedDate: date('2026-05-15').getTime(),
+            currentPeriodStart: date('2026-04-01').getTime(),
+        });
+        const advanced = advanceRecurrence(t, date('2026-05-15'));
+        assert.strictEquals(new Date(advanced.suggestedDate!).toDateString(), date('2026-08-15').toDateString());
+    });
+
+    test('advanceRecurrence quarterly multi-dom cycles to next dom in same quarter', () => {
+        const t = makeTask({
+            recurrence: makeRecurrence({cadence: 'quarterly', hardMonthOfQuarter: 1, hardDaysOfMonth: [1, 15]}),
+            suggestedDate: date('2026-05-01').getTime(),
+            currentPeriodStart: date('2026-04-01').getTime(),
+        });
+        const advanced = advanceRecurrence(t, date('2026-05-01'));
+        assert.strictEquals(new Date(advanced.suggestedDate!).toDateString(), date('2026-05-15').toDateString());
+    });
+
+    test('advanceRecurrence quarterly multi-dom wraps to next quarter after last dom', () => {
+        const t = makeTask({
+            recurrence: makeRecurrence({cadence: 'quarterly', hardMonthOfQuarter: 1, hardDaysOfMonth: [1, 15]}),
+            suggestedDate: date('2026-05-15').getTime(),
+            currentPeriodStart: date('2026-04-01').getTime(),
+        });
+        const advanced = advanceRecurrence(t, date('2026-05-15'));
+        assert.strictEquals(new Date(advanced.suggestedDate!).toDateString(), date('2026-08-01').toDateString());
+    });
+
+    test('rolloverIfNeeded quarterly multi-dom: picks today when today is selected dom in target month', () => {
+        const t = makeTask({
+            recurrence: makeRecurrence({cadence: 'quarterly', hardMonthOfQuarter: 1, hardDaysOfMonth: [1, 15]}),
+            currentPeriodStart: date('2026-01-01').getTime(),
+            suggestedDate: date('2026-02-15').getTime(),
+        });
+        const r = rolloverIfNeeded(t, date('2026-05-01'));
+        assert.strictEquals(new Date(r.suggestedDate!).toDateString(), date('2026-05-01').toDateString());
+    });
+
+    test('rolloverIfNeeded quarterly: before target month → picks first dom of target month', () => {
+        const t = makeTask({
+            recurrence: makeRecurrence({cadence: 'quarterly', hardMonthOfQuarter: 1, hardDaysOfMonth: [1, 15]}),
+            currentPeriodStart: date('2026-01-01').getTime(),
+            suggestedDate: date('2026-02-15').getTime(),
+        });
+        // Today = Apr 10 (Q2), before May (2nd month of Q2)
+        const r = rolloverIfNeeded(t, date('2026-04-10'));
+        assert.strictEquals(new Date(r.suggestedDate!).toDateString(), date('2026-05-01').toDateString());
     });
 });
 

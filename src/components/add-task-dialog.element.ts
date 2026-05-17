@@ -88,8 +88,10 @@ export const AddTaskDialogElement = defineElement<{
         monthAnchorMode: 'dom' as 'dom' | 'ordinal',
         /** 1|2|3|4|-1 for "1st/2nd/3rd/4th/last". */
         ordinalWeek: 3 as 1 | 2 | 3 | 4 | 5 | -1,
-        /** Selected day(s) of month for monthly DOM mode (1–31, multi-select). */
+        /** Selected day(s) of month for monthly/quarterly DOM mode (1–31, multi-select). */
         daysOfMonth: new Set<number>([1]),
+        /** 0|1|2 — which month within the quarter for quarterly anchor. */
+        quarterMonth: 0 as 0 | 1 | 2,
         /** 0–11 (Jan–Dec) for yearly anchor. */
         annualMonth: new Date().getMonth() as number,
         /** ID of the task currently being edited; null means add mode. */
@@ -421,6 +423,7 @@ export const AddTaskDialogElement = defineElement<{
                     cfg?.hardDaysOfMonth
                     ?? (cfg?.hardDayOfMonth !== undefined ? [cfg.hardDayOfMonth] : [1])
                 ),
+                quarterMonth: (cfg?.hardMonthOfQuarter ?? 0) as 0 | 1 | 2,
                 monthAnchorMode: cfg?.ordinalWeek !== undefined ? 'ordinal' : 'dom',
                 ordinalWeek: cfg?.ordinalWeek ?? 3,
                 annualMonth: cfg?.hardMonthOfYear
@@ -461,6 +464,7 @@ export const AddTaskDialogElement = defineElement<{
                 dayOfWeek: new Date().getDay(),
                 dayOfMonth: 1,
                 daysOfMonth: new Set<number>([1]),
+                quarterMonth: 0 as 0 | 1 | 2,
                 monthAnchorMode: 'dom',
                 ordinalWeek: 3,
                 annualMonth: new Date().getMonth(),
@@ -481,12 +485,13 @@ export const AddTaskDialogElement = defineElement<{
 
         const isMulti = state.isRecurring && isMultiplePerPeriodCadence(state.cadence);
 
-        // When recurring weekly/monthly/yearly the user picks an anchor instead
-        // of a calendar date — the engine computes the first occurrence from there.
+        // When recurring weekly/monthly/quarterly/yearly the user picks an anchor
+        // instead of a calendar date — the engine computes the first occurrence.
         const usesWeeklyAnchor = state.isRecurring && state.cadence === 'weekly';
         const usesMonthlyAnchor = state.isRecurring && state.cadence === 'monthly';
+        const usesQuarterlyAnchor = state.isRecurring && state.cadence === 'quarterly';
         const usesYearlyAnchor = state.isRecurring && state.cadence === 'yearly';
-        const usesAnchor = usesWeeklyAnchor || usesMonthlyAnchor || usesYearlyAnchor;
+        const usesAnchor = usesWeeklyAnchor || usesMonthlyAnchor || usesQuarterlyAnchor || usesYearlyAnchor;
 
         const canSubmit = state.titleValue.trim().length > 0
             // Hard-date tasks need a date — unless an anchor implies one.
@@ -549,6 +554,14 @@ export const AddTaskDialogElement = defineElement<{
                         } else {
                             cfg.hardDayOfMonth = sorted[0] ?? 1;
                         }
+                    }
+                } else if (usesQuarterlyAnchor) {
+                    cfg.hardMonthOfQuarter = state.quarterMonth;
+                    const sorted = [...state.daysOfMonth].sort((a, b) => a - b);
+                    if (sorted.length > 1) {
+                        cfg.hardDaysOfMonth = sorted;
+                    } else {
+                        cfg.hardDayOfMonth = sorted[0] ?? 1;
                     }
                 } else if (usesYearlyAnchor) {
                     cfg.hardMonthOfYear = state.annualMonth;
@@ -638,6 +651,7 @@ export const AddTaskDialogElement = defineElement<{
                 dayOfWeek: new Date().getDay(),
                 dayOfMonth: 1,
                 daysOfMonth: new Set<number>([1]),
+                quarterMonth: 0 as 0 | 1 | 2,
                 monthAnchorMode: 'dom',
                 ordinalWeek: 3,
                 annualMonth: new Date().getMonth(),
@@ -1025,6 +1039,58 @@ export const AddTaskDialogElement = defineElement<{
                             `}
                         ` : html``}
 
+                        <!-- Quarterly anchor: month-within-quarter + day(s)-of-month -->
+                        ${usesQuarterlyAnchor ? html`
+                            <div class="field">
+                                <span class="field-label">Month of Quarter</span>
+                                <div class="seg" style="grid-template-columns: repeat(3, 1fr);">
+                                    ${QUARTER_MONTH_LABELS.map(q => html`
+                                        <${ViraButton.assign({
+                                            text: q.label,
+                                            color: ViraColorVariant.Info,
+                                            buttonEmphasis: state.quarterMonth === q.value
+                                                ? ViraEmphasis.Standard
+                                                : ViraEmphasis.Subtle,
+                                            buttonSize: ViraSize.Small,
+                                        })}
+                                            @click=${() => updateState({quarterMonth: q.value})}
+                                        ></${ViraButton}>
+                                    `)}
+                                </div>
+                                <div class="anchor-summary">
+                                    ${quarterMonthSummary(state.quarterMonth)}
+                                </div>
+                            </div>
+                            <div class="field">
+                                <span class="field-label">Day(s) of Month</span>
+                                <div class="dom-multi-grid">
+                                    ${DOM_RANGE.map(d => html`
+                                        <${ViraButton.assign({
+                                            text: String(d),
+                                            color: ViraColorVariant.Info,
+                                            buttonEmphasis: state.daysOfMonth.has(d)
+                                                ? ViraEmphasis.Standard
+                                                : ViraEmphasis.Subtle,
+                                            buttonSize: ViraSize.Small,
+                                        })}
+                                            @click=${() => {
+                                                const next = new Set(state.daysOfMonth);
+                                                if (next.has(d)) {
+                                                    if (next.size > 1) next.delete(d);
+                                                } else {
+                                                    next.add(d);
+                                                }
+                                                updateState({daysOfMonth: next});
+                                            }}
+                                        ></${ViraButton}>
+                                    `)}
+                                </div>
+                                <div class="anchor-summary">
+                                    ${formatSelectedDoms(state.daysOfMonth)}
+                                </div>
+                            </div>
+                        ` : html``}
+
                         <!-- Annually anchor (yearly only): month + day-of-month -->
                         ${usesYearlyAnchor ? html`
                             <div class="field">
@@ -1320,6 +1386,21 @@ function tierColor(tier: ConsequenceTier): ViraColorVariant {
 
 /** 1–31 for the day-of-month multi-select grid. */
 const DOM_RANGE: ReadonlyArray<number> = Array.from({length: 31}, (_, i) => i + 1);
+
+const QUARTER_MONTH_LABELS: ReadonlyArray<{value: 0 | 1 | 2; label: string}> = [
+    {value: 0, label: '1st month'},
+    {value: 1, label: '2nd month'},
+    {value: 2, label: '3rd month'},
+];
+
+function quarterMonthSummary(m: 0 | 1 | 2): string {
+    const labels = [
+        'Jan · Apr · Jul · Oct',
+        'Feb · May · Aug · Nov',
+        'Mar · Jun · Sep · Dec',
+    ];
+    return labels[m] ?? '';
+}
 
 const MONTH_LABELS: ReadonlyArray<{value: number; label: string}> = [
     {value: 0,  label: 'Jan'},

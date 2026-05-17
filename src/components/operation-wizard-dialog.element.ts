@@ -83,6 +83,7 @@ export const OperationWizardDialogElement = defineElement<{open: boolean}>()({
         currentDaysOfWeek: [new Date().getDay()] as number[],
         currentDayOfMonth: 1,
         currentDaysOfMonth: [1] as number[],
+        quarterMonth: 0 as 0 | 1 | 2,
         monthAnchorMode: 'dom' as 'dom' | 'ordinal',
         monthOrdinalWeek: 1 as 1 | 2 | 3 | 4 | 5 | -1,
         monthOrdinalDay: new Date().getDay(),
@@ -380,6 +381,7 @@ export const OperationWizardDialogElement = defineElement<{open: boolean}>()({
                 currentDaysOfWeek: [new Date().getDay()],
                 currentDayOfMonth: 1,
                 currentDaysOfMonth: [1],
+                quarterMonth: 0 as 0 | 1 | 2,
                 monthAnchorMode: 'dom',
                 monthOrdinalWeek: 1,
                 monthOrdinalDay: new Date().getDay(),
@@ -418,7 +420,7 @@ export const OperationWizardDialogElement = defineElement<{open: boolean}>()({
         function buildCurrentRoutine(): Task {
             const today = new Date();
             const cadence = state.currentCadence;
-            const scheduleMode = (cadence === 'weekly' || cadence === 'monthly' || cadence === 'yearly') ? 'fixed' : 'rolling';
+            const scheduleMode = (cadence === 'weekly' || cadence === 'monthly' || cadence === 'quarterly' || cadence === 'yearly') ? 'fixed' : 'rolling';
             const cfg: RecurrenceConfig = {
                 cadence,
                 frequencyPerPeriod: 1,
@@ -434,6 +436,11 @@ export const OperationWizardDialogElement = defineElement<{open: boolean}>()({
                     ? (state.currentDaysOfMonth.length > 1
                         ? {hardDaysOfMonth: [...state.currentDaysOfMonth].sort((a, b) => a - b)}
                         : {hardDayOfMonth: state.currentDaysOfMonth[0] ?? 1})
+                    : {}),
+                ...(cadence === 'quarterly'
+                    ? (state.currentDaysOfMonth.length > 1
+                        ? {hardMonthOfQuarter: state.quarterMonth, hardDaysOfMonth: [...state.currentDaysOfMonth].sort((a, b) => a - b)}
+                        : {hardMonthOfQuarter: state.quarterMonth, hardDayOfMonth: state.currentDaysOfMonth[0] ?? 1})
                     : {}),
                 ...(cadence === 'yearly'
                     ? {hardMonthOfYear: state.annualMonth, hardDayOfMonth: state.currentDayOfMonth}
@@ -511,6 +518,7 @@ export const OperationWizardDialogElement = defineElement<{open: boolean}>()({
                 currentDaysOfWeek: [new Date().getDay()],
                 currentDayOfMonth: 1,
                 currentDaysOfMonth: [1],
+                quarterMonth: 0 as 0 | 1 | 2,
                 monthAnchorMode: 'dom',
                 monthOrdinalWeek: 1,
                 monthOrdinalDay: new Date().getDay(),
@@ -537,6 +545,7 @@ export const OperationWizardDialogElement = defineElement<{open: boolean}>()({
                 currentDaysOfWeek: [new Date().getDay()],
                 currentDayOfMonth: 1,
                 currentDaysOfMonth: [1],
+                quarterMonth: 0 as 0 | 1 | 2,
                 monthAnchorMode: 'dom',
                 monthOrdinalWeek: 1,
                 monthOrdinalDay: new Date().getDay(),
@@ -920,6 +929,56 @@ export const OperationWizardDialogElement = defineElement<{open: boolean}>()({
                         `}
                     ` : html``}
 
+                    <!-- Quarterly anchor: month-within-quarter + day(s)-of-month -->
+                    ${state.currentCadence === 'quarterly' ? html`
+                        <div class="field">
+                            <label class="field-label">Month of Quarter</label>
+                            <div class="cadence-grid" style="grid-template-columns: repeat(3, 1fr);">
+                                ${QUARTER_MONTH_LABELS.map(q => html`
+                                    <${ViraButton.assign({
+                                        text: q.label,
+                                        color: ViraColorVariant.Info,
+                                        buttonEmphasis: state.quarterMonth === q.value
+                                            ? ViraEmphasis.Standard
+                                            : ViraEmphasis.Subtle,
+                                        buttonSize: ViraSize.Small,
+                                    })}
+                                        @click=${() => updateState({quarterMonth: q.value})}
+                                    ></${ViraButton}>
+                                `)}
+                            </div>
+                            <div class="anchor-summary">
+                                ${quarterMonthSummary(state.quarterMonth)}
+                            </div>
+                        </div>
+                        <div class="field">
+                            <label class="field-label">Day(s) of Month</label>
+                            <div class="dom-multi-grid">
+                                ${DOM_RANGE.map(d => html`
+                                    <${ViraButton.assign({
+                                        text: String(d),
+                                        color: ViraColorVariant.Info,
+                                        buttonEmphasis: state.currentDaysOfMonth.includes(d)
+                                            ? ViraEmphasis.Standard
+                                            : ViraEmphasis.Subtle,
+                                        buttonSize: ViraSize.Small,
+                                    })}
+                                        @click=${() => {
+                                            const current = state.currentDaysOfMonth;
+                                            const next = current.includes(d)
+                                                ? (current.length > 1 ? current.filter(x => x !== d) : current)
+                                                : [...current, d];
+                                            updateState({currentDaysOfMonth: next});
+                                        }}
+                                    ></${ViraButton}>
+                                `)}
+                            </div>
+                            <div class="anchor-summary">
+                                ${formatSelectedDoms(state.currentDaysOfMonth)}
+                            </div>
+                        </div>
+                    ` : html``}
+
                     <!-- Annually anchor (yearly only): month + day-of-month -->
                     ${state.currentCadence === 'yearly' ? html`
                         <div class="field">
@@ -1055,6 +1114,21 @@ function ordinalSuffix(n: number): string {
 }
 
 const DOM_RANGE: ReadonlyArray<number> = Array.from({length: 31}, (_, i) => i + 1);
+
+const QUARTER_MONTH_LABELS: ReadonlyArray<{value: 0 | 1 | 2; label: string}> = [
+    {value: 0, label: '1st month'},
+    {value: 1, label: '2nd month'},
+    {value: 2, label: '3rd month'},
+];
+
+function quarterMonthSummary(m: 0 | 1 | 2): string {
+    const labels = [
+        'Jan · Apr · Jul · Oct',
+        'Feb · May · Aug · Nov',
+        'Mar · Jun · Sep · Dec',
+    ];
+    return labels[m] ?? '';
+}
 
 function formatSelectedDoms(doms: number[]): string {
     if (doms.length === 0) return 'No days selected.';

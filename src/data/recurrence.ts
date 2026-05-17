@@ -133,8 +133,23 @@ export function getNextSuggestedDate(
         return new Date(start.getFullYear(), start.getMonth(), Math.min(dom, lastDay));
     }
     if (cfg.cadence === 'quarterly' || cfg.cadence === 'multiple_per_quarter') {
-        // Preserve "month-within-quarter and day-of-month" of the current
-        // suggestedDate, clamped to the new quarter.
+        if (cfg.hardMonthOfQuarter !== undefined) {
+            const doms = cfg.hardDaysOfMonth?.length ? cfg.hardDaysOfMonth : [cfg.hardDayOfMonth ?? 1];
+            if (doms.length > 1) {
+                // Multi-dom: cycle within the target month, wrapping to next quarter.
+                const dayAfter = addDays(startOfDay(completedAt), 1);
+                const currentQuarterPeriod = getCurrentPeriod(cfg.cadence, completedAt);
+                return nextOccurrenceInQuarterlyTarget(
+                    doms, dayAfter, new Date(currentQuarterPeriod.start), cfg.hardMonthOfQuarter,
+                );
+            }
+            // Single dom: place in the configured month of the next quarter.
+            const start = new Date(nextPeriod.start);
+            const target = new Date(start.getFullYear(), start.getMonth() + cfg.hardMonthOfQuarter, 1);
+            const lastDay = new Date(target.getFullYear(), target.getMonth() + 1, 0).getDate();
+            return new Date(target.getFullYear(), target.getMonth(), Math.min(doms[0]!, lastDay));
+        }
+        // Fallback: preserve month-within-quarter and day from suggestedDate.
         const ref = task.suggestedDate ? new Date(task.suggestedDate) : new Date(nextPeriod.start);
         const monthOffset = ref.getMonth() % 3;
         const dom = ref.getDate();
@@ -254,10 +269,15 @@ export function rolloverIfNeeded(task: Task, today: Date): Task {
     const doms = cfg.hardDaysOfMonth;
     const isMultiDom = (cfg.cadence === 'monthly' || cfg.cadence === 'multiple_per_month')
         && doms !== undefined && doms.length > 1;
+    const isMultiDomQuarterly = (cfg.cadence === 'quarterly' || cfg.cadence === 'multiple_per_quarter')
+        && cfg.hardMonthOfQuarter !== undefined
+        && doms !== undefined && doms.length > 1;
     const nextSuggested = isMultiDay
         ? nextOccurrenceOfSelectedDays(today, days!)
         : isMultiDom
         ? nextOccurrenceOfSelectedDoms(today, doms!)
+        : isMultiDomQuarterly
+        ? nextOccurrenceInQuarterlyTarget(doms!, today, new Date(todayPeriod.start), cfg.hardMonthOfQuarter!)
         : getNextSuggestedDate(task, today, todayPeriod);
     const nextOccurrencePeriod = getCurrentPeriod(cfg.cadence, nextSuggested);
     return {
@@ -335,6 +355,15 @@ function deriveInitialSuggested(cfg: RecurrenceConfig, period: Period, today: Da
             return new Date(start.getFullYear(), start.getMonth(), dom).getTime();
         }
     }
+    if (cfg.cadence === 'quarterly' || cfg.cadence === 'multiple_per_quarter') {
+        if (cfg.hardMonthOfQuarter !== undefined) {
+            const doms = cfg.hardDaysOfMonth?.length ? cfg.hardDaysOfMonth : [cfg.hardDayOfMonth ?? 1];
+            const todayQuarterPeriod = getCurrentPeriod(cfg.cadence, today);
+            return nextOccurrenceInQuarterlyTarget(
+                doms, today, new Date(todayQuarterPeriod.start), cfg.hardMonthOfQuarter,
+            ).getTime();
+        }
+    }
     if (cfg.cadence === 'yearly' || cfg.cadence === 'multiple_per_year') {
         if (cfg.hardMonthOfYear !== undefined) {
             const todayMs = startOfDay(today).getTime();
@@ -402,6 +431,48 @@ export function nextOccurrenceOfWeekday(from: Date, dow: number): Date {
     const delta = (dow - r.getDay() + 7) % 7;
     r.setDate(r.getDate() + delta);
     return r;
+}
+
+/**
+ * Earliest occurrence of one of `doms` at-or-after `from` within the configured
+ * quarter month. If `from` is before the target month, returns the first dom of
+ * that month. If all doms in that month have passed (or `from` is past the target
+ * month), returns the first dom in the same-offset month of the next quarter.
+ *
+ * `quarterPeriodStart` is the first day of the current quarter.
+ * `monthOfQuarter` is 0/1/2 (which month within the quarter).
+ */
+export function nextOccurrenceInQuarterlyTarget(
+    doms: number[],
+    from: Date,
+    quarterPeriodStart: Date,
+    monthOfQuarter: number,
+): Date {
+    const sorted = [...doms].sort((a, b) => a - b);
+    const qStart = new Date(quarterPeriodStart);
+    const targetDate = new Date(qStart.getFullYear(), qStart.getMonth() + monthOfQuarter, 1);
+    const lastDay = new Date(targetDate.getFullYear(), targetDate.getMonth() + 1, 0).getDate();
+
+    // Before target month — return first dom of target month.
+    if (startOfDay(from) < targetDate) {
+        const firstDom = sorted.find(d => d <= lastDay) ?? 1;
+        return new Date(targetDate.getFullYear(), targetDate.getMonth(), Math.min(firstDom, lastDay));
+    }
+
+    // In target month — return next dom at-or-after from.
+    if (from.getMonth() === targetDate.getMonth() && from.getFullYear() === targetDate.getFullYear()) {
+        const fromDom = from.getDate();
+        const nextDom = sorted.find(d => d >= fromDom && d <= lastDay);
+        if (nextDom !== undefined) {
+            return new Date(targetDate.getFullYear(), targetDate.getMonth(), nextDom);
+        }
+    }
+
+    // Past target month (or no dom found in it) — advance to next quarter's target.
+    const nextTarget = new Date(targetDate.getFullYear(), targetDate.getMonth() + 3, 1);
+    const lastDayNext = new Date(nextTarget.getFullYear(), nextTarget.getMonth() + 1, 0).getDate();
+    const firstDomNext = sorted.find(d => d <= lastDayNext) ?? 1;
+    return new Date(nextTarget.getFullYear(), nextTarget.getMonth(), Math.min(firstDomNext, lastDayNext));
 }
 
 /**
