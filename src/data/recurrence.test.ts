@@ -195,6 +195,29 @@ describe('initialiseRecurrence', () => {
         );
         assert.strictEquals(init.windowDeadline, null);
     });
+
+    test('created late in week for next week\'s day: window deadline is next week, not this week', () => {
+        // Regression: created Saturday May 16 targeting Wednesday (next week).
+        // windowDeadline must be next Saturday (May 23), not this Saturday (May 16).
+        const sat = date('2026-05-16');
+        const init = initialiseRecurrence(
+            {windowType: 'flexible', suggestedDate: null},
+            makeRecurrence({cadence: 'weekly', hardDaysOfWeek: [3]}), // Wednesday
+            sat,
+        );
+        assert.strictEquals(
+            new Date(init.suggestedDate).toDateString(),
+            date('2026-05-20').toDateString(), // next Wednesday
+        );
+        assert.strictEquals(
+            new Date(init.windowDeadline!).toDateString(),
+            date('2026-05-23').toDateString(), // next Saturday — not May 16
+        );
+        assert.strictEquals(
+            new Date(init.currentPeriodStart).toDateString(),
+            date('2026-05-17').toDateString(), // next Sunday
+        );
+    });
 });
 
 describe('advanceRecurrence', () => {

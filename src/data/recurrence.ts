@@ -270,13 +270,17 @@ export function initialiseRecurrence(
     windowDeadline: number | null;
     windowLengthDays: number;
 } {
-    const period = getCurrentPeriod(recurrence.cadence, today);
-    const suggested = base.suggestedDate ?? deriveInitialSuggested(recurrence, period, today);
+    const todayPeriod = getCurrentPeriod(recurrence.cadence, today);
+    const suggested = base.suggestedDate ?? deriveInitialSuggested(recurrence, todayPeriod, today);
+    // Use the period that contains the suggested date so window boundaries
+    // match when the task is actually due (e.g. created Saturday for Wednesday
+    // → period is next week, not this week).
+    const suggestedPeriod = getCurrentPeriod(recurrence.cadence, new Date(suggested));
     return {
-        currentPeriodStart: period.start,
+        currentPeriodStart: suggestedPeriod.start,
         suggestedDate: startOfDay(new Date(suggested)).getTime(),
-        windowDeadline: base.windowType === 'flexible' ? period.end : null,
-        windowLengthDays: period.lengthDays,
+        windowDeadline: base.windowType === 'flexible' ? suggestedPeriod.end : null,
+        windowLengthDays: suggestedPeriod.lengthDays,
     };
 }
 
