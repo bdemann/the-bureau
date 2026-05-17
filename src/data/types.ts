@@ -74,6 +74,12 @@ export interface RecurrenceConfig {
     endAfterCount?: number;
     /** Required when endMode === 'after_date'. ms timestamp (midnight local) of the last day. */
     endAfterDate?: number;
+    /**
+     * Optional ms timestamp (midnight local). The directive is invisible and
+     * does not advance until this date arrives. Useful for scheduling future
+     * routines (e.g., add a Christmas tradition in October, starts December 1).
+     */
+    startDate?: number;
 }
 
 // ── Consequence and band types ───────────────────────────────────────────────

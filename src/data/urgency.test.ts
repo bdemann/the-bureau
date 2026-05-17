@@ -24,6 +24,26 @@ describe('getDailyBand — Step 0 (visibility)', () => {
         assert.strictEquals(getDailyBand(t, date('2026-05-09')), 'hidden');
     });
 
+    test('recurring task with future startDate is hidden before that date', () => {
+        const today = date('2026-05-09');
+        const future = date('2026-12-01');
+        const t = makeTask({
+            recurrence: makeRecurrence({cadence: 'daily', startDate: future.getTime()}),
+            currentPeriodStart: today.getTime(),
+        });
+        assert.strictEquals(getDailyBand(t, today), 'hidden');
+    });
+
+    test('recurring task with startDate in the past is visible', () => {
+        const today = date('2026-05-09');
+        const past = date('2026-01-01');
+        const t = makeTask({
+            recurrence: makeRecurrence({cadence: 'daily', startDate: past.getTime()}),
+            currentPeriodStart: today.getTime(),
+        });
+        assert.strictEquals(getDailyBand(t, today), 'mandatory');
+    });
+
     test('recurring task whose currentPeriodStart is in the future is hidden', () => {
         // advanceRecurrence sets completedAt=null and currentPeriodStart to next period.
         // The task should be hidden even though completedAt is null.

@@ -409,6 +409,30 @@ describe('rolloverIfNeeded — end conditions', () => {
     });
 });
 
+describe('rolloverIfNeeded — startDate', () => {
+    test('task with future startDate does not roll over and does not accrue a miss', () => {
+        const startDate = date('2026-12-01');
+        const t = makeTask({
+            recurrence: makeRecurrence({cadence: 'monthly', startDate: startDate.getTime()}),
+            currentPeriodStart: date('2026-04-01').getTime(),
+        });
+        const result = rolloverIfNeeded(t, date('2026-05-17'));
+        // Should be unchanged — startDate hasn't arrived yet.
+        assert.strictEquals(result, t);
+    });
+
+    test('task with past startDate rolls over normally', () => {
+        const startDate = date('2026-01-01');
+        const t = makeTask({
+            recurrence: makeRecurrence({cadence: 'monthly', startDate: startDate.getTime()}),
+            currentPeriodStart: date('2026-04-01').getTime(),
+        });
+        const result = rolloverIfNeeded(t, date('2026-05-17'));
+        // Should have rolled over (period changed).
+        assert.strictEquals(new Date(result.currentPeriodStart!).getMonth(), 4); // May
+    });
+});
+
 describe('rolloverIfNeeded', () => {
     test('one-time task: no change', () => {
         const t = makeTask();

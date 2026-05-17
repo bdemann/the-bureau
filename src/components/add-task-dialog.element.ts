@@ -95,6 +95,9 @@ export const AddTaskDialogElement = defineElement<{
         selectedProjectId: null as string | null,
         /** Tracks open transitions so add-mode form resets on each open. */
         wasOpen: false,
+        // ── Start date ──
+        hasStartDate: false,
+        startDate: '',  // YYYY-MM-DD
         // ── End condition ──
         hasEndCondition: false,
         endMode: 'after_count' as 'after_count' | 'after_date',
@@ -393,6 +396,8 @@ export const AddTaskDialogElement = defineElement<{
                 monthAnchorMode: cfg?.ordinalWeek !== undefined ? 'ordinal' : 'dom',
                 ordinalWeek: cfg?.ordinalWeek ?? 3,
                 suggestedDate: t.suggestedDate ? msToDateString(t.suggestedDate) : '',
+                hasStartDate: cfg?.startDate !== undefined,
+                startDate: cfg?.startDate ? msToDateString(cfg.startDate) : '',
                 hasEndCondition: cfg !== null && (cfg.endMode ?? 'never') !== 'never',
                 endMode: (cfg?.endMode === 'after_date' ? 'after_date' : 'after_count'),
                 endAfterCount: cfg?.endAfterCount ?? 10,
@@ -421,6 +426,8 @@ export const AddTaskDialogElement = defineElement<{
                 dayOfMonth: 1,
                 monthAnchorMode: 'dom',
                 ordinalWeek: 3,
+                hasStartDate: false,
+                startDate: '',
                 hasEndCondition: false,
                 endMode: 'after_count',
                 endAfterCount: 10,
@@ -473,6 +480,10 @@ export const AddTaskDialogElement = defineElement<{
                     }
                 }
 
+                const startDate = (state.hasStartDate && state.startDate)
+                    ? startOfDay(new Date(state.startDate + 'T00:00')).getTime()
+                    : undefined;
+
                 const cfg: RecurrenceConfig = {
                     cadence: state.cadence,
                     frequencyPerPeriod: isMultiplePerPeriodCadence(state.cadence)
@@ -482,6 +493,7 @@ export const AddTaskDialogElement = defineElement<{
                     endMode,
                     endAfterCount,
                     endAfterDate,
+                    startDate,
                 };
                 if (usesWeeklyAnchor) {
                     cfg.hardDaysOfWeek = [...state.daysOfWeek].sort((a, b) => a - b);
@@ -568,6 +580,8 @@ export const AddTaskDialogElement = defineElement<{
                 currentEditId: null,
                 selectedProjectId: null,
                 wasOpen: false,
+                hasStartDate: false,
+                startDate: '',
                 hasEndCondition: false,
                 endMode: 'after_count',
                 endAfterCount: 10,
@@ -935,6 +949,31 @@ export const AddTaskDialogElement = defineElement<{
                                 </div>
                             `}
                         ` : html``}
+
+                        <!-- Start date -->
+                        <div class="end-condition-section">
+                            <div class="recurring-row">
+                                <input
+                                    id="start-date-toggle"
+                                    type="checkbox"
+                                    .checked=${state.hasStartDate}
+                                    @change=${(e: Event) =>
+                                        updateState({hasStartDate: (e.target as HTMLInputElement).checked})}
+                                />
+                                <label for="start-date-toggle">Has a start date (don't show until then)</label>
+                            </div>
+                            ${state.hasStartDate ? html`
+                                <div class="field">
+                                    <span class="field-label">Start Date</span>
+                                    <input
+                                        type="date"
+                                        .value=${state.startDate}
+                                        @input=${(e: Event) =>
+                                            updateState({startDate: (e.target as HTMLInputElement).value})}
+                                    />
+                                </div>
+                            ` : html``}
+                        </div>
 
                         <!-- End condition — hidden for routines (they never end) -->
                         ${state.kind === 'routine' ? html`` : html`

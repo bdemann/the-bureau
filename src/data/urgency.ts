@@ -32,6 +32,9 @@ export function getDailyBand(task: Task, today: Date = new Date()): DailyBand {
     if (isCompletedForPeriod(task, today)) return 'hidden';
     if (isCurrentlySnoozed(task))          return 'hidden';
     if (task.missedAt !== null)            return 'hidden';
+    // Not started yet — hide until startDate arrives.
+    if (task.recurrence?.startDate !== undefined
+        && startOfDay(today).getTime() < task.recurrence.startDate) return 'hidden';
 
     // Step 1 — Hard overdue / due today
     const step1 = step1HardMandatory(task, today);

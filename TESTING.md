@@ -261,6 +261,15 @@ Mark each row as you verify in the browser. Reset the localStorage entry
 - [ ] Active use (app stays open through a slot transition) does NOT collapse open sections
 - [ ] Complete/snooze actions work from daily view
 
+### Recurring start date
+
+- [ ] "Has a start date" checkbox appears in the recurring section (for both routines and tasks)
+- [ ] Checking it reveals a date picker labeled "Start Date"
+- [ ] A directive with a future start date does NOT appear in the daily view
+- [ ] A directive with a future start date does NOT accrue misses during rollover
+- [ ] Once the start date arrives the directive appears normally
+- [ ] Edit dialog pre-fills start date checkbox + date if one is set
+
 ### Recurring end conditions
 
 - [ ] "Has an end condition" checkbox is hidden for routines (they never end)

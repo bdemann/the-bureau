@@ -199,8 +199,9 @@ export function advanceRecurrence(task: Task, completedAt: Date): Task {
 export function rolloverIfNeeded(task: Task, today: Date): Task {
     if (!task.recurrence) return task;
 
-    // If the end date has passed, permanently retire the task without rolling over.
     const cfg = task.recurrence;
+
+    // If the end date has passed, permanently retire the task without rolling over.
     if (cfg.endMode === 'after_date'
         && cfg.endAfterDate !== undefined
         && startOfDay(today).getTime() > cfg.endAfterDate) {
@@ -209,6 +210,11 @@ export function rolloverIfNeeded(task: Task, today: Date): Task {
             completedAt: task.completedAt ?? today.getTime(),
             recurrence: null,
         };
+    }
+
+    // Not started yet — don't roll over, don't count a miss.
+    if (cfg.startDate !== undefined && startOfDay(today).getTime() < cfg.startDate) {
+        return task;
     }
 
     const todayPeriod = getCurrentPeriod(task.recurrence.cadence, today);
