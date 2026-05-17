@@ -248,7 +248,10 @@ Mark each row as you verify in the browser. Reset the localStorage entry
 - [ ] Mandatory: directives due today / hard-overdue / cadence=daily
 - [ ] Suggested: flexible directives past suggestedDate but inside window (regression: suggestedDate = today shows "Due today", not "Suggested [date]")
 - [ ] Radar: directives ≤ 3 days from hard date, or window % low
-- [ ] Backlog: everything else (collapsed by default — count visible)
+- [ ] Backlog: everything else
+- [ ] All four bands (Mandatory, Suggested, Radar, Backlog) start with a chevron ▾/▸ in the header
+- [ ] Clicking a band header collapses/expands it; Mandatory and Suggested start expanded, Radar and Backlog start collapsed
+- [ ] When a band is collapsed only the header + count are visible; tasks are hidden
 - [ ] Empty Mandatory: "No mandatory tasks today. Agent Whitaker approves."
 - [ ] Each card shows project name above title (cross-project context)
 - [ ] When directives span multiple time-of-day slots within a band, each slot has a collapsible header (label · count · chevron)

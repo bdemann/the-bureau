@@ -61,8 +61,10 @@ export const DailyViewElement = defineElement<{
     },
 
     state: () => ({
-        expandRadar:   false,
-        expandBacklog: false,
+        expandMandatory: true,
+        expandSuggested: true,
+        expandRadar:     false,
+        expandBacklog:   false,
         expandedSlots: {[getCurrentTimeSlot()]: true} as Partial<Record<TimeOfDay, boolean>>,
         draggedId: null as string | null,
         dragOverId: null as string | null,
@@ -91,6 +93,20 @@ export const DailyViewElement = defineElement<{
         .band-header.suggested  { border-bottom-color: #E8821A; }
         .band-header.radar      { border-bottom-color: #B8860B; }
         .band-header.backlog    { border-bottom-color: rgba(0,0,0,0.2); }
+
+        .band-header.collapsible {
+            cursor: pointer;
+            user-select: none;
+        }
+        @media (hover: hover) {
+            .band-header.collapsible:hover { opacity: 0.8; }
+        }
+
+        .band-chevron {
+            font-size: 0.6rem;
+            opacity: 0.5;
+            align-self: center;
+        }
 
         .band-title {
             font-family: 'Bebas Neue', sans-serif;
@@ -354,55 +370,32 @@ export const DailyViewElement = defineElement<{
         ) => {
             const tasks = bands[band];
             const overThreshold = tasks.length > COLLAPSE_THRESHOLD;
-            const showCollapsed =
-                opts?.collapsible
-                && (opts.alwaysCollapse || overThreshold)
-                && !opts.expanded;
+            const isCollapsible = !!(opts?.collapsible && (opts.alwaysCollapse || overThreshold || opts.expanded !== undefined));
+            const isExpanded = opts?.expanded ?? true;
 
             return html`
                 <section class="band">
-                    <div class="band-header ${band}">
+                    <div
+                        class="band-header ${band} ${isCollapsible ? 'collapsible' : ''}"
+                        @click=${isCollapsible ? (opts?.onToggle ?? (() => {})) : null}
+                    >
                         <div>
                             <div class="band-title">${bandLabel(band)}</div>
                             <div class="band-subtitle">${bandSubtitle(band)}</div>
                         </div>
-                        <div class="band-count">${tasks.length}</div>
+                        <div style="display:flex;align-items:center;gap:8px;">
+                            <span class="band-count">${tasks.length}</span>
+                            ${isCollapsible ? html`<span class="band-chevron">${isExpanded ? '▾' : '▸'}</span>` : html``}
+                        </div>
                     </div>
 
-                    ${tasks.length === 0
-                        ? opts?.emptyMessage
-                            ? html`<div class="band-empty">${opts.emptyMessage}</div>`
-                            : html``
-                        : showCollapsed
-                            ? html`
-                                <div class="collapse-toggle">
-                                    <${ViraButton.assign({
-                                        text: `Show ${tasks.length}`,
-                                        color: ViraColorVariant.Neutral,
-                                        buttonEmphasis: ViraEmphasis.Subtle,
-                                        buttonSize: ViraSize.Small,
-                                    })}
-                                        @click=${opts?.onToggle ?? (() => {})}
-                                    ></${ViraButton}>
-                                </div>
-                              `
-                            : html`
-                                ${renderTasksGrouped(tasks)}
-                                ${opts?.collapsible && opts.expanded
-                                    ? html`
-                                        <div class="collapse-toggle">
-                                            <${ViraButton.assign({
-                                                text: 'Hide',
-                                                color: ViraColorVariant.Neutral,
-                                                buttonEmphasis: ViraEmphasis.Subtle,
-                                                buttonSize: ViraSize.Small,
-                                            })}
-                                                @click=${opts?.onToggle ?? (() => {})}
-                                            ></${ViraButton}>
-                                        </div>
-                                      `
-                                    : html``}
-                              `}
+                    ${!isExpanded
+                        ? html``
+                        : tasks.length === 0
+                            ? opts?.emptyMessage
+                                ? html`<div class="band-empty">${opts.emptyMessage}</div>`
+                                : html``
+                            : html`${renderTasksGrouped(tasks)}`}
                 </section>
             `;
         };
@@ -410,10 +403,20 @@ export const DailyViewElement = defineElement<{
         return html`
             ${renderBand('mandatory', {
                 emptyMessage: 'No mandatory tasks today. Agent Whitaker approves.',
+                collapsible: true,
+                alwaysCollapse: true,
+                expanded: state.expandMandatory,
+                onToggle: () => updateState({expandMandatory: !state.expandMandatory}),
             })}
-            ${renderBand('suggested')}
+            ${renderBand('suggested', {
+                collapsible: true,
+                alwaysCollapse: true,
+                expanded: state.expandSuggested,
+                onToggle: () => updateState({expandSuggested: !state.expandSuggested}),
+            })}
             ${renderBand('radar', {
                 collapsible: true,
+                alwaysCollapse: true,
                 expanded: state.expandRadar,
                 onToggle: () => updateState({expandRadar: !state.expandRadar}),
             })}
