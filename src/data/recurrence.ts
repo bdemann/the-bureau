@@ -121,7 +121,12 @@ export function getNextSuggestedDate(
             return nthWeekdayOfMonth(
                 start.getFullYear(), start.getMonth(), cfg.ordinalWeek, cfg.hardDayOfWeek);
         }
-        const dom = cfg.hardDayOfMonth ?? (task.suggestedDate
+        // Multi-dom: cycle through selected days, wrapping to next month as needed.
+        if (cfg.hardDaysOfMonth && cfg.hardDaysOfMonth.length > 1) {
+            const dayAfter = addDays(startOfDay(completedAt), 1);
+            return nextOccurrenceOfSelectedDoms(dayAfter, cfg.hardDaysOfMonth);
+        }
+        const dom = (cfg.hardDaysOfMonth?.[0]) ?? cfg.hardDayOfMonth ?? (task.suggestedDate
             ? new Date(task.suggestedDate).getDate()
             : 1);
         const lastDay = new Date(start.getFullYear(), start.getMonth() + 1, 0).getDate();
@@ -240,14 +245,19 @@ export function rolloverIfNeeded(task: Task, today: Date): Task {
     if (task.currentPeriodStart >= todayPeriod.start) return task;
 
     // Period rolled over while task was incomplete — reset.
-    // For multi-day weekly: find occurrence at-or-after today (include today
-    // if it's a selected day). getNextSuggestedDate uses "strictly after" which
+    // For multi-day weekly/monthly: find occurrence at-or-after today (include today
+    // if it's a selected day/dom). getNextSuggestedDate uses "strictly after" which
     // would skip today; bypass it here.
     const days = cfg.hardDaysOfWeek;
     const isMultiDay = (cfg.cadence === 'weekly' || cfg.cadence === 'multiple_per_week')
         && days !== undefined && days.length > 1;
+    const doms = cfg.hardDaysOfMonth;
+    const isMultiDom = (cfg.cadence === 'monthly' || cfg.cadence === 'multiple_per_month')
+        && doms !== undefined && doms.length > 1;
     const nextSuggested = isMultiDay
         ? nextOccurrenceOfSelectedDays(today, days!)
+        : isMultiDom
+        ? nextOccurrenceOfSelectedDoms(today, doms!)
         : getNextSuggestedDate(task, today, todayPeriod);
     const nextOccurrencePeriod = getCurrentPeriod(cfg.cadence, nextSuggested);
     return {
@@ -314,6 +324,9 @@ function deriveInitialSuggested(cfg: RecurrenceConfig, period: Period, today: Da
             if (thisMonth.getTime() >= todayMs) return thisMonth.getTime();
             return nthWeekdayOfMonth(
                 today.getFullYear(), today.getMonth() + 1, cfg.ordinalWeek, cfg.hardDayOfWeek).getTime();
+        }
+        if (cfg.hardDaysOfMonth && cfg.hardDaysOfMonth.length > 0) {
+            return nextOccurrenceOfSelectedDoms(today, cfg.hardDaysOfMonth).getTime();
         }
         if (cfg.hardDayOfMonth !== undefined) {
             const start = new Date(period.start);
@@ -389,6 +402,33 @@ export function nextOccurrenceOfWeekday(from: Date, dow: number): Date {
     const delta = (dow - r.getDay() + 7) % 7;
     r.setDate(r.getDate() + delta);
     return r;
+}
+
+/**
+ * Earliest date >= `from` whose day-of-month is any of the values in `doms`.
+ * If `from`'s day-of-month is already in `doms`, returns `from` (start-of-day).
+ * If `doms` is empty, returns `from`.
+ * Clamps each candidate to the actual last day of its month.
+ */
+export function nextOccurrenceOfSelectedDoms(from: Date, doms: number[]): Date {
+    if (doms.length === 0) return startOfDay(new Date(from));
+    const r = startOfDay(new Date(from));
+    const sorted = [...doms].sort((a, b) => a - b);
+    const fromDom = r.getDate();
+    // Check remaining selected days in this month (including today).
+    for (const dom of sorted) {
+        if (dom >= fromDom) {
+            const lastDay = new Date(r.getFullYear(), r.getMonth() + 1, 0).getDate();
+            if (dom <= lastDay) {
+                return new Date(r.getFullYear(), r.getMonth(), dom);
+            }
+        }
+    }
+    // Nothing left this month — advance to next month.
+    const nextMonth = new Date(r.getFullYear(), r.getMonth() + 1, 1);
+    const lastDayNext = new Date(nextMonth.getFullYear(), nextMonth.getMonth() + 1, 0).getDate();
+    const firstDom = sorted.find(d => d <= lastDayNext) ?? sorted[0]!;
+    return new Date(nextMonth.getFullYear(), nextMonth.getMonth(), Math.min(firstDom, lastDayNext));
 }
 
 /**

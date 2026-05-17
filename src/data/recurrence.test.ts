@@ -6,6 +6,7 @@ import {
     initialiseRecurrence,
     isRecurrenceEnded,
     nextOccurrenceOfSelectedDays,
+    nextOccurrenceOfSelectedDoms,
     nextOccurrenceOfWeekday,
     nthWeekdayOfMonth,
     rolloverIfNeeded,
@@ -503,6 +504,100 @@ describe('rolloverIfNeeded', () => {
         assert.strictEquals(
             new Date(r.suggestedDate!).toDateString(),
             date('2026-05-15').toDateString(), // Friday
+        );
+    });
+});
+
+describe('nextOccurrenceOfSelectedDoms', () => {
+    test('returns today when today is a selected dom', () => {
+        const r = nextOccurrenceOfSelectedDoms(date('2026-05-01'), [1, 15]);
+        assert.strictEquals(r.toDateString(), date('2026-05-01').toDateString());
+    });
+
+    test('returns next selected dom later this month', () => {
+        const r = nextOccurrenceOfSelectedDoms(date('2026-05-08'), [1, 15]);
+        assert.strictEquals(r.toDateString(), date('2026-05-15').toDateString());
+    });
+
+    test('wraps to first dom of next month when all doms passed', () => {
+        const r = nextOccurrenceOfSelectedDoms(date('2026-05-20'), [1, 15]);
+        assert.strictEquals(r.toDateString(), date('2026-06-01').toDateString());
+    });
+
+    test('clamps dom to month length (Feb has no 31st)', () => {
+        // If [28, 31] and we are in Feb 10: next is Feb 28 (31 doesn't exist).
+        const r = nextOccurrenceOfSelectedDoms(date('2026-02-10'), [28, 31]);
+        assert.strictEquals(r.toDateString(), date('2026-02-28').toDateString());
+    });
+});
+
+describe('monthly multi-dom (hardDaysOfMonth)', () => {
+    test('initialiseRecurrence picks today when today is a selected dom', () => {
+        const today = date('2026-05-01');
+        const cfg = makeRecurrence({cadence: 'monthly', hardDaysOfMonth: [1, 15]});
+        const init = initialiseRecurrence({windowType: 'flexible', suggestedDate: null}, cfg, today);
+        assert.strictEquals(new Date(init.suggestedDate).toDateString(), today.toDateString());
+    });
+
+    test('initialiseRecurrence picks next dom later this month', () => {
+        const today = date('2026-05-08');
+        const cfg = makeRecurrence({cadence: 'monthly', hardDaysOfMonth: [1, 15]});
+        const init = initialiseRecurrence({windowType: 'flexible', suggestedDate: null}, cfg, today);
+        assert.strictEquals(
+            new Date(init.suggestedDate).toDateString(),
+            date('2026-05-15').toDateString(),
+        );
+    });
+
+    test('advanceRecurrence cycles to next dom in same month', () => {
+        const t = makeTask({
+            recurrence: makeRecurrence({cadence: 'monthly', hardDaysOfMonth: [1, 15]}),
+            suggestedDate: date('2026-05-01').getTime(),
+            currentPeriodStart: date('2026-05-01').getTime(),
+        });
+        const advanced = advanceRecurrence(t, date('2026-05-01'));
+        assert.strictEquals(
+            new Date(advanced.suggestedDate!).toDateString(),
+            date('2026-05-15').toDateString(),
+        );
+    });
+
+    test('advanceRecurrence wraps to first dom of next month after last dom', () => {
+        const t = makeTask({
+            recurrence: makeRecurrence({cadence: 'monthly', hardDaysOfMonth: [1, 15]}),
+            suggestedDate: date('2026-05-15').getTime(),
+            currentPeriodStart: date('2026-05-01').getTime(),
+        });
+        const advanced = advanceRecurrence(t, date('2026-05-15'));
+        assert.strictEquals(
+            new Date(advanced.suggestedDate!).toDateString(),
+            date('2026-06-01').toDateString(),
+        );
+    });
+
+    test('rolloverIfNeeded for multi-dom picks today when today is a selected dom', () => {
+        const t = makeTask({
+            recurrence: makeRecurrence({cadence: 'monthly', hardDaysOfMonth: [1, 15]}),
+            currentPeriodStart: date('2026-04-01').getTime(),
+            suggestedDate: date('2026-04-15').getTime(),
+        });
+        const r = rolloverIfNeeded(t, date('2026-05-01'));
+        assert.strictEquals(
+            new Date(r.suggestedDate!).toDateString(),
+            date('2026-05-01').toDateString(),
+        );
+    });
+
+    test('rolloverIfNeeded for multi-dom picks next dom when today is not selected', () => {
+        const t = makeTask({
+            recurrence: makeRecurrence({cadence: 'monthly', hardDaysOfMonth: [1, 15]}),
+            currentPeriodStart: date('2026-04-01').getTime(),
+            suggestedDate: date('2026-04-15').getTime(),
+        });
+        const r = rolloverIfNeeded(t, date('2026-05-08'));
+        assert.strictEquals(
+            new Date(r.suggestedDate!).toDateString(),
+            date('2026-05-15').toDateString(),
         );
     });
 });

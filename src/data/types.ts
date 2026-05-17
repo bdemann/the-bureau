@@ -63,6 +63,14 @@ export interface RecurrenceConfig {
     /** Anchor day-of-month for monthly cadence (1–31, clamped to month length). */
     hardDayOfMonth?: number;
     /**
+     * Multi-select days-of-month for monthly cadence (each value 1–31).
+     * When set, the task cycles through these days in order within each month,
+     * advancing to the next selected day after each completion (wrapping to the
+     * first day of the following month when the last selected day passes).
+     * Supersedes hardDayOfMonth when present.
+     */
+    hardDaysOfMonth?: number[];
+    /**
      * For monthly cadence with `hardDayOfWeek` set: which occurrence of that
      * weekday in the month. 1 = 1st, 2 = 2nd, 3 = 3rd, 4 = 4th, 5 = 5th (when
      * it exists — months without a 5th occurrence are skipped), -1 = last.

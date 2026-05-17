@@ -88,6 +88,8 @@ export const AddTaskDialogElement = defineElement<{
         monthAnchorMode: 'dom' as 'dom' | 'ordinal',
         /** 1|2|3|4|-1 for "1st/2nd/3rd/4th/last". */
         ordinalWeek: 3 as 1 | 2 | 3 | 4 | 5 | -1,
+        /** Selected day(s) of month for monthly DOM mode (1–31, multi-select). */
+        daysOfMonth: new Set<number>([1]),
         /** 0–11 (Jan–Dec) for yearly anchor. */
         annualMonth: new Date().getMonth() as number,
         /** ID of the task currently being edited; null means add mode. */
@@ -275,6 +277,14 @@ export const AddTaskDialogElement = defineElement<{
         }
         .month-grid ${ViraButton} { width: 100%; }
 
+        /* Multi-day-of-month picker (1–31) */
+        .dom-multi-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 3px;
+        }
+        .dom-multi-grid ${ViraButton} { width: 100%; }
+
         /* Day-of-month numeric input (narrow) */
         .dom-input { max-width: 8ch; }
 
@@ -407,6 +417,10 @@ export const AddTaskDialogElement = defineElement<{
                 ),
                 dayOfWeek: cfg?.hardDayOfWeek ?? 4,
                 dayOfMonth: cfg?.hardDayOfMonth ?? 1,
+                daysOfMonth: new Set<number>(
+                    cfg?.hardDaysOfMonth
+                    ?? (cfg?.hardDayOfMonth !== undefined ? [cfg.hardDayOfMonth] : [1])
+                ),
                 monthAnchorMode: cfg?.ordinalWeek !== undefined ? 'ordinal' : 'dom',
                 ordinalWeek: cfg?.ordinalWeek ?? 3,
                 annualMonth: cfg?.hardMonthOfYear
@@ -446,6 +460,7 @@ export const AddTaskDialogElement = defineElement<{
                 daysOfWeek: new Set<number>([new Date().getDay()]),
                 dayOfWeek: new Date().getDay(),
                 dayOfMonth: 1,
+                daysOfMonth: new Set<number>([1]),
                 monthAnchorMode: 'dom',
                 ordinalWeek: 3,
                 annualMonth: new Date().getMonth(),
@@ -528,7 +543,12 @@ export const AddTaskDialogElement = defineElement<{
                         cfg.hardDayOfWeek = state.dayOfWeek;
                         cfg.ordinalWeek = state.ordinalWeek;
                     } else {
-                        cfg.hardDayOfMonth = state.dayOfMonth;
+                        const sorted = [...state.daysOfMonth].sort((a, b) => a - b);
+                        if (sorted.length > 1) {
+                            cfg.hardDaysOfMonth = sorted;
+                        } else {
+                            cfg.hardDayOfMonth = sorted[0] ?? 1;
+                        }
                     }
                 } else if (usesYearlyAnchor) {
                     cfg.hardMonthOfYear = state.annualMonth;
@@ -617,6 +637,7 @@ export const AddTaskDialogElement = defineElement<{
                 daysOfWeek: new Set<number>([new Date().getDay()]),
                 dayOfWeek: new Date().getDay(),
                 dayOfMonth: 1,
+                daysOfMonth: new Set<number>([1]),
                 monthAnchorMode: 'dom',
                 ordinalWeek: 3,
                 annualMonth: new Date().getMonth(),
@@ -936,23 +957,31 @@ export const AddTaskDialogElement = defineElement<{
 
                             ${state.monthAnchorMode === 'dom' ? html`
                                 <div class="field">
-                                    <span class="field-label">Day of Month (1–31)</span>
-                                    <span class="dom-input">
-                                        <${ViraInput.assign({
-                                            value: String(state.dayOfMonth),
-                                            type: ViraInputType.Number,
-                                            placeholder: 'e.g. 15',
-                                        })}
-                                            ${listen(ViraInput.events.valueChange, e => {
-                                                const n = parseInt(e.detail, 10);
-                                                if (!Number.isNaN(n) && n >= 1 && n <= 31) {
-                                                    updateState({dayOfMonth: n});
-                                                }
+                                    <span class="field-label">Day(s) of Month</span>
+                                    <div class="dom-multi-grid">
+                                        ${DOM_RANGE.map(d => html`
+                                            <${ViraButton.assign({
+                                                text: String(d),
+                                                color: ViraColorVariant.Info,
+                                                buttonEmphasis: state.daysOfMonth.has(d)
+                                                    ? ViraEmphasis.Standard
+                                                    : ViraEmphasis.Subtle,
+                                                buttonSize: ViraSize.Small,
                                             })}
-                                        ></${ViraInput}>
-                                    </span>
+                                                @click=${() => {
+                                                    const next = new Set(state.daysOfMonth);
+                                                    if (next.has(d)) {
+                                                        if (next.size > 1) next.delete(d);
+                                                    } else {
+                                                        next.add(d);
+                                                    }
+                                                    updateState({daysOfMonth: next});
+                                                }}
+                                            ></${ViraButton}>
+                                        `)}
+                                    </div>
                                     <div class="anchor-summary">
-                                        The ${ordinalSuffix(state.dayOfMonth)} of each month.
+                                        ${formatSelectedDoms(state.daysOfMonth)}
                                     </div>
                                 </div>
                             ` : html`
@@ -1289,6 +1318,9 @@ function tierColor(tier: ConsequenceTier): ViraColorVariant {
     }
 }
 
+/** 1–31 for the day-of-month multi-select grid. */
+const DOM_RANGE: ReadonlyArray<number> = Array.from({length: 31}, (_, i) => i + 1);
+
 const MONTH_LABELS: ReadonlyArray<{value: number; label: string}> = [
     {value: 0,  label: 'Jan'},
     {value: 1,  label: 'Feb'},
@@ -1351,6 +1383,15 @@ function ordinalLabel(ord: 1 | 2 | 3 | 4 | 5 | -1): string {
     if (ord === 3)  return '3rd';
     if (ord === 4)  return '4th';
     return '5th (when it occurs)';
+}
+
+function formatSelectedDoms(doms: Set<number>): string {
+    if (doms.size === 0) return 'No days selected.';
+    const sorted = [...doms].sort((a, b) => a - b);
+    const labels = sorted.map(ordinalSuffix);
+    if (labels.length === 1) return `The ${labels[0]} of each month.`;
+    if (labels.length === 2) return `The ${labels[0]} and ${labels[1]} of each month.`;
+    return `The ${labels.slice(0, -1).join(', ')}, and ${labels[labels.length - 1]} of each month.`;
 }
 
 function ordinalSuffix(n: number): string {

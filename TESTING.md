@@ -289,6 +289,16 @@ Mark each row as you verify in the browser. Reset the localStorage entry
 - [ ] Paused directives appear in a PAUSED section in their operation's project detail
 - [ ] Clicking the task card for a paused directive opens edit mode where pause can be removed
 
+### Monthly multi-day scheduling
+
+- [ ] Monthly cadence → "Day of month" mode shows a 7-column grid of buttons 1–31 (not a number input)
+- [ ] Buttons toggle on/off; at least one must stay selected (can't deselect the last one)
+- [ ] Anchor summary reads "The 1st of each month." for one day, "The 1st and 15th of each month." for two
+- [ ] Completing on the 1st when [1,15] are selected advances the directive to the 15th of the same month
+- [ ] Completing on the 15th advances to the 1st of the next month
+- [ ] Edit dialog re-opens with all previously selected days highlighted
+- [ ] Operation wizard monthly: same multi-select grid behaviour
+
 ### Annually cadence (directive dialog)
 
 - [ ] Selecting "Annually" from the cadence dropdown shows Season shortcuts, Month grid, and Day-of-month field

@@ -82,6 +82,7 @@ export const OperationWizardDialogElement = defineElement<{open: boolean}>()({
         currentCadence: 'daily' as WizardCadence,
         currentDaysOfWeek: [new Date().getDay()] as number[],
         currentDayOfMonth: 1,
+        currentDaysOfMonth: [1] as number[],
         monthAnchorMode: 'dom' as 'dom' | 'ordinal',
         monthOrdinalWeek: 1 as 1 | 2 | 3 | 4 | 5 | -1,
         monthOrdinalDay: new Date().getDay(),
@@ -278,6 +279,14 @@ export const OperationWizardDialogElement = defineElement<{open: boolean}>()({
         }
         .month-grid ${ViraButton} { width: 100%; }
 
+        /* Multi-day-of-month picker (1–31) */
+        .dom-multi-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 3px;
+        }
+        .dom-multi-grid ${ViraButton} { width: 100%; }
+
         /* Time-of-day picker */
         .tod-grid {
             display: grid;
@@ -370,6 +379,7 @@ export const OperationWizardDialogElement = defineElement<{open: boolean}>()({
                 currentCadence: 'daily',
                 currentDaysOfWeek: [new Date().getDay()],
                 currentDayOfMonth: 1,
+                currentDaysOfMonth: [1],
                 monthAnchorMode: 'dom',
                 monthOrdinalWeek: 1,
                 monthOrdinalDay: new Date().getDay(),
@@ -421,7 +431,9 @@ export const OperationWizardDialogElement = defineElement<{open: boolean}>()({
                     ? {hardDayOfWeek: state.monthOrdinalDay, ordinalWeek: state.monthOrdinalWeek}
                     : {}),
                 ...(cadence === 'monthly' && state.monthAnchorMode === 'dom'
-                    ? {hardDayOfMonth: state.currentDayOfMonth}
+                    ? (state.currentDaysOfMonth.length > 1
+                        ? {hardDaysOfMonth: [...state.currentDaysOfMonth].sort((a, b) => a - b)}
+                        : {hardDayOfMonth: state.currentDaysOfMonth[0] ?? 1})
                     : {}),
                 ...(cadence === 'yearly'
                     ? {hardMonthOfYear: state.annualMonth, hardDayOfMonth: state.currentDayOfMonth}
@@ -498,6 +510,7 @@ export const OperationWizardDialogElement = defineElement<{open: boolean}>()({
                 currentCadence: 'daily',
                 currentDaysOfWeek: [new Date().getDay()],
                 currentDayOfMonth: 1,
+                currentDaysOfMonth: [1],
                 monthAnchorMode: 'dom',
                 monthOrdinalWeek: 1,
                 monthOrdinalDay: new Date().getDay(),
@@ -523,6 +536,7 @@ export const OperationWizardDialogElement = defineElement<{open: boolean}>()({
                 currentCadence: 'daily',
                 currentDaysOfWeek: [new Date().getDay()],
                 currentDayOfMonth: 1,
+                currentDaysOfMonth: [1],
                 monthAnchorMode: 'dom',
                 monthOrdinalWeek: 1,
                 monthOrdinalDay: new Date().getDay(),
@@ -838,22 +852,29 @@ export const OperationWizardDialogElement = defineElement<{open: boolean}>()({
 
                         ${state.monthAnchorMode === 'dom' ? html`
                             <div class="field">
-                                <label class="field-label">Day of Month (1–31)</label>
-                                <input
-                                    class="dom-input"
-                                    type="number"
-                                    min="1"
-                                    max="31"
-                                    .value=${String(state.currentDayOfMonth)}
-                                    @input=${(e: Event) => {
-                                        const n = parseInt((e.target as HTMLInputElement).value, 10);
-                                        if (!Number.isNaN(n) && n >= 1 && n <= 31) {
-                                            updateState({currentDayOfMonth: n});
-                                        }
-                                    }}
-                                />
+                                <label class="field-label">Day(s) of Month</label>
+                                <div class="dom-multi-grid">
+                                    ${DOM_RANGE.map(d => html`
+                                        <${ViraButton.assign({
+                                            text: String(d),
+                                            color: ViraColorVariant.Info,
+                                            buttonEmphasis: state.currentDaysOfMonth.includes(d)
+                                                ? ViraEmphasis.Standard
+                                                : ViraEmphasis.Subtle,
+                                            buttonSize: ViraSize.Small,
+                                        })}
+                                            @click=${() => {
+                                                const current = state.currentDaysOfMonth;
+                                                const next = current.includes(d)
+                                                    ? (current.length > 1 ? current.filter(x => x !== d) : current)
+                                                    : [...current, d];
+                                                updateState({currentDaysOfMonth: next});
+                                            }}
+                                        ></${ViraButton}>
+                                    `)}
+                                </div>
                                 <div class="anchor-summary">
-                                    The ${ordinalSuffix(state.currentDayOfMonth)} of each month.
+                                    ${formatSelectedDoms(state.currentDaysOfMonth)}
                                 </div>
                             </div>
                         ` : html`
@@ -1031,6 +1052,17 @@ function ordinalSuffix(n: number): string {
     if (mod10 === 2 && mod100 !== 12) return `${n}nd`;
     if (mod10 === 3 && mod100 !== 13) return `${n}rd`;
     return `${n}th`;
+}
+
+const DOM_RANGE: ReadonlyArray<number> = Array.from({length: 31}, (_, i) => i + 1);
+
+function formatSelectedDoms(doms: number[]): string {
+    if (doms.length === 0) return 'No days selected.';
+    const sorted = [...doms].sort((a, b) => a - b);
+    const labels = sorted.map(ordinalSuffix);
+    if (labels.length === 1) return `The ${labels[0]} of each month.`;
+    if (labels.length === 2) return `The ${labels[0]} and ${labels[1]} of each month.`;
+    return `The ${labels.slice(0, -1).join(', ')}, and ${labels[labels.length - 1]} of each month.`;
 }
 
 const MONTH_LABELS: ReadonlyArray<{value: number; label: string}> = [
