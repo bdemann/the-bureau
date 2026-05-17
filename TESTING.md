@@ -73,8 +73,9 @@ Mark each row as you verify in the browser. Reset the localStorage entry
 - [ ] Step 3 Weekly: default day selected is today's day of the week
 - [ ] Step 3 Monthly: "Day of month" / "Nth weekday" toggle appears
 - [ ] Step 3 Monthly (day of month): numeric input accepts 1–31
-- [ ] Step 3 Monthly (Nth weekday): 1st/2nd/3rd/4th/Last picker + day-of-week picker appear
+- [ ] Step 3 Monthly (Nth weekday): 1st/2nd/3rd/4th/5th*/Last picker + day-of-week picker appear
 - [ ] Step 3 Monthly (Nth weekday): anchor summary reads "The 2nd Sunday of each month" etc.
+- [ ] Step 3 Monthly (Nth weekday): selecting 5th* shows "(skips months without a 5th)" in summary
 - [ ] Step 3: Time-of-day grid (Anytime / Morning / Afternoon / Evening) is selectable
 - [ ] Step 3: "Create with routines so far" creates the operation using only configured routines up to this point
 - [ ] Step 3: "Next Routine →" advances to the next routine without creating yet
@@ -159,11 +160,12 @@ Mark each row as you verify in the browser. Reset the localStorage entry
 ### Task directive creation — recurring (monthly, Nth weekday)
 
 - [ ] Switch to "Nth weekday" mode
-- [ ] Ordinal (1st/2nd/3rd/4th/Last) and day-of-week pickers appear
+- [ ] Ordinal (1st/2nd/3rd/4th/5th (when it occurs)/Last) and day-of-week pickers appear
 - [ ] Anchor summary shows "The 3rd Thursday of each month"
 - [ ] **This month's Nth-dow already passed**: first occurrence = next month's
 - [ ] **Not yet passed**: first occurrence = this month's
 - [ ] **Last weekday**: works in both 4-Thursday and 5-Thursday months
+- [ ] **5th weekday**: skips months that don't have a 5th occurrence (e.g., 5th Sunday skips Sep and Oct 2026, lands Nov 29)
 - [ ] Card label `3rd Thursday of each month · next {date}`
 
 ### Task directive creation — multiple-per-period

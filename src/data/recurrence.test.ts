@@ -121,6 +121,20 @@ describe('nthWeekdayOfMonth', () => {
         const r = nthWeekdayOfMonth(2026, 1, 1, 0);
         assert.strictEquals(r.toDateString(), date('2026-02-01').toDateString());
     });
+
+    test('5th Sunday of May 2026 = May 31', () => {
+        // May 2026 has 5 Sundays: 3, 10, 17, 24, 31.
+        const r = nthWeekdayOfMonth(2026, 4, 5, 0);
+        assert.strictEquals(r.toDateString(), date('2026-05-31').toDateString());
+    });
+
+    test('5th weekday skips month with no 5th occurrence', () => {
+        // September 2026 has only 4 Sundays (Sep 6, 13, 20, 27).
+        // October 2026 has only 4 Sundays (Oct 4, 11, 18, 25).
+        // November 2026 has 5 Sundays (Nov 1, 8, 15, 22, 29).
+        const r = nthWeekdayOfMonth(2026, 8, 5, 0); // start from Sep 2026
+        assert.strictEquals(r.toDateString(), date('2026-11-29').toDateString());
+    });
 });
 
 describe('initialiseRecurrence', () => {

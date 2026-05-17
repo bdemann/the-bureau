@@ -87,7 +87,7 @@ export const AddTaskDialogElement = defineElement<{
         /** 'dom' = day-of-month (e.g., 15th); 'ordinal' = Nth weekday (e.g., 3rd Thu). */
         monthAnchorMode: 'dom' as 'dom' | 'ordinal',
         /** 1|2|3|4|-1 for "1st/2nd/3rd/4th/last". */
-        ordinalWeek: 3 as 1 | 2 | 3 | 4 | -1,
+        ordinalWeek: 3 as 1 | 2 | 3 | 4 | 5 | -1,
         /** ID of the task currently being edited; null means add mode. */
         currentEditId: null as string | null,
         confirmingDelete: false,
@@ -1108,11 +1108,12 @@ const DAY_LABELS: ReadonlyArray<{value: number; label: string}> = [
     {value: 6, label: 'Sat'},
 ];
 
-const ORDINAL_LABELS: ReadonlyArray<{value: 1 | 2 | 3 | 4 | -1; label: string}> = [
+const ORDINAL_LABELS: ReadonlyArray<{value: 1 | 2 | 3 | 4 | 5 | -1; label: string}> = [
     {value: 1,  label: '1st'},
     {value: 2,  label: '2nd'},
     {value: 3,  label: '3rd'},
     {value: 4,  label: '4th'},
+    {value: 5,  label: '5th'},
     {value: -1, label: 'Last'},
 ];
 
@@ -1130,12 +1131,13 @@ function formatSelectedDays(days: Set<number>): string {
     return [...days].sort((a, b) => a - b).map(d => SHORT[d]).join(', ') + '.';
 }
 
-function ordinalLabel(ord: 1 | 2 | 3 | 4 | -1): string {
+function ordinalLabel(ord: 1 | 2 | 3 | 4 | 5 | -1): string {
     if (ord === -1) return 'last';
     if (ord === 1)  return '1st';
     if (ord === 2)  return '2nd';
     if (ord === 3)  return '3rd';
-    return '4th';
+    if (ord === 4)  return '4th';
+    return '5th (when it occurs)';
 }
 
 function ordinalSuffix(n: number): string {

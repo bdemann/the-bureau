@@ -402,6 +402,21 @@ export function nthWeekdayOfMonth(
         last.setDate(last.getDate() - back);
         return last;
     }
+    if (ordinal === 5) {
+        // The 5th occurrence only exists in some months. Search forward from
+        // the given month until we find one that has a 5th occurrence.
+        for (let delta = 0; delta < 12; delta++) {
+            const targetYear = year + Math.floor((month + delta) / 12);
+            const targetMonth = (month + delta) % 12;
+            const first = new Date(targetYear, targetMonth, 1);
+            const offset = (dow - first.getDay() + 7) % 7;
+            const day = 1 + offset + 4 * 7;
+            const daysInMonth = new Date(targetYear, targetMonth + 1, 0).getDate();
+            if (day <= daysInMonth) return new Date(targetYear, targetMonth, day);
+        }
+        // Unreachable: every 7-month span has at least one 5th occurrence.
+        return new Date(year, month, 1);
+    }
     const first = new Date(year, month, 1);
     const offset = (dow - first.getDay() + 7) % 7;
     return new Date(year, month, 1 + offset + (ordinal - 1) * 7);

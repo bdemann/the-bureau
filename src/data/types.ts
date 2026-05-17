@@ -64,9 +64,10 @@ export interface RecurrenceConfig {
     hardDayOfMonth?: number;
     /**
      * For monthly cadence with `hardDayOfWeek` set: which occurrence of that
-     * weekday in the month. 1 = 1st, 2 = 2nd, 3 = 3rd, 4 = 4th, -1 = last.
+     * weekday in the month. 1 = 1st, 2 = 2nd, 3 = 3rd, 4 = 4th, 5 = 5th (when
+     * it exists — months without a 5th occurrence are skipped), -1 = last.
      */
-    ordinalWeek?: 1 | 2 | 3 | 4 | -1;
+    ordinalWeek?: 1 | 2 | 3 | 4 | 5 | -1;
     /** When the recurrence should stop. Defaults to 'never'. */
     endMode: RecurrenceEndMode;
     /** Required when endMode === 'after_count'. Total lifetime completions after which the task ends. */

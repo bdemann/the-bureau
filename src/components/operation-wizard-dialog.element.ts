@@ -83,7 +83,7 @@ export const OperationWizardDialogElement = defineElement<{open: boolean}>()({
         currentDaysOfWeek: [new Date().getDay()] as number[],
         currentDayOfMonth: 1,
         monthAnchorMode: 'dom' as 'dom' | 'ordinal',
-        monthOrdinalWeek: 1 as 1 | 2 | 3 | 4 | -1,
+        monthOrdinalWeek: 1 as 1 | 2 | 3 | 4 | 5 | -1,
         monthOrdinalDay: new Date().getDay(),
         currentTimeOfDay: 'anytime' as TimeOfDay,
         completedRoutines: [] as Task[],
@@ -843,9 +843,9 @@ export const OperationWizardDialogElement = defineElement<{open: boolean}>()({
                             <div class="field">
                                 <label class="field-label">Which Occurrence</label>
                                 <div class="cadence-grid">
-                                    ${([1, 2, 3, 4, -1] as Array<1|2|3|4|-1>).map(w => html`
+                                    ${([1, 2, 3, 4, 5, -1] as Array<1|2|3|4|5|-1>).map(w => html`
                                         <${ViraButton.assign({
-                                            text: w === -1 ? 'Last' : `${ordinalSuffix(w)}`,
+                                            text: w === -1 ? 'Last' : w === 5 ? '5th*' : `${ordinalSuffix(w)}`,
                                             color: ViraColorVariant.Info,
                                             buttonEmphasis: state.monthOrdinalWeek === w
                                                 ? ViraEmphasis.Standard
@@ -876,7 +876,7 @@ export const OperationWizardDialogElement = defineElement<{open: boolean}>()({
                                 <div class="anchor-summary">
                                     The ${state.monthOrdinalWeek === -1 ? 'last' : ordinalSuffix(state.monthOrdinalWeek)}
                                     ${DAY_LABELS.find(d => d.value === state.monthOrdinalDay)?.label ?? ''}
-                                    of each month.
+                                    of each month${state.monthOrdinalWeek === 5 ? ' (skips months without a 5th)' : ''}.
                                 </div>
                             </div>
                         `}
