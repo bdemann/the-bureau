@@ -141,7 +141,10 @@ export function getNextSuggestedDate(
     if (cfg.cadence === 'yearly' || cfg.cadence === 'multiple_per_year') {
         const ref = task.suggestedDate ? new Date(task.suggestedDate) : new Date(nextPeriod.start);
         const start = new Date(nextPeriod.start);
-        return new Date(start.getFullYear(), ref.getMonth(), ref.getDate());
+        const month = cfg.hardMonthOfYear ?? ref.getMonth();
+        const dom = cfg.hardDayOfMonth ?? ref.getDate();
+        const lastDayOfMonth = new Date(start.getFullYear(), month + 1, 0).getDate();
+        return new Date(start.getFullYear(), month, Math.min(dom, lastDayOfMonth));
     }
     // daily / multiple_per_day
     return new Date(nextPeriod.start);
@@ -317,6 +320,20 @@ function deriveInitialSuggested(cfg: RecurrenceConfig, period: Period, today: Da
             const lastDay = new Date(start.getFullYear(), start.getMonth() + 1, 0).getDate();
             const dom = Math.min(cfg.hardDayOfMonth, lastDay);
             return new Date(start.getFullYear(), start.getMonth(), dom).getTime();
+        }
+    }
+    if (cfg.cadence === 'yearly' || cfg.cadence === 'multiple_per_year') {
+        if (cfg.hardMonthOfYear !== undefined) {
+            const todayMs = startOfDay(today).getTime();
+            const month = cfg.hardMonthOfYear;
+            const dom = cfg.hardDayOfMonth ?? 1;
+            // This year's occurrence in the target month.
+            const lastDayThis = new Date(today.getFullYear(), month + 1, 0).getDate();
+            const thisYear = new Date(today.getFullYear(), month, Math.min(dom, lastDayThis));
+            if (thisYear.getTime() >= todayMs) return thisYear.getTime();
+            // Already passed this year — use next year's.
+            const lastDayNext = new Date(today.getFullYear() + 1, month + 1, 0).getDate();
+            return new Date(today.getFullYear() + 1, month, Math.min(dom, lastDayNext)).getTime();
         }
     }
     return period.start;

@@ -506,3 +506,57 @@ describe('rolloverIfNeeded', () => {
         );
     });
 });
+
+describe('annually — hardMonthOfYear anchor', () => {
+    test('initialiseRecurrence with hardMonthOfYear picks this-year occurrence when in future', () => {
+        // Today = May 17; target month = September (8), dom = 1 → Sep 1 2026
+        const today = date('2026-05-17');
+        const cfg = makeRecurrence({cadence: 'yearly', hardMonthOfYear: 8, hardDayOfMonth: 1});
+        const init = initialiseRecurrence({windowType: 'flexible', suggestedDate: null}, cfg, today);
+        assert.strictEquals(
+            new Date(init.suggestedDate).toDateString(),
+            date('2026-09-01').toDateString(),
+        );
+    });
+
+    test('initialiseRecurrence with hardMonthOfYear rolls to next year when this-year date passed', () => {
+        // Today = May 17; target month = January (0), dom = 15 → Jan 15 2027
+        const today = date('2026-05-17');
+        const cfg = makeRecurrence({cadence: 'yearly', hardMonthOfYear: 0, hardDayOfMonth: 15});
+        const init = initialiseRecurrence({windowType: 'flexible', suggestedDate: null}, cfg, today);
+        assert.strictEquals(
+            new Date(init.suggestedDate).toDateString(),
+            date('2027-01-15').toDateString(),
+        );
+    });
+
+    test('getNextSuggestedDate for yearly preserves hardMonthOfYear year-over-year', () => {
+        const today = date('2026-05-17');
+        // Task was due Sep 1 2026 — now advance it
+        const t = makeTask({
+            recurrence: makeRecurrence({cadence: 'yearly', hardMonthOfYear: 8, hardDayOfMonth: 1}),
+            suggestedDate: date('2026-09-01').getTime(),
+            currentPeriodStart: date('2026-01-01').getTime(),
+        });
+        const advanced = advanceRecurrence(t, today);
+        assert.strictEquals(
+            new Date(advanced.suggestedDate!).toDateString(),
+            date('2027-09-01').toDateString(),
+        );
+    });
+
+    test('getNextSuggestedDate for yearly clamps day to month length', () => {
+        // target: Feb 31 → clamps to Feb 28 (non-leap 2027)
+        const today = date('2026-05-17');
+        const t = makeTask({
+            recurrence: makeRecurrence({cadence: 'yearly', hardMonthOfYear: 1, hardDayOfMonth: 31}),
+            suggestedDate: date('2026-02-28').getTime(),
+            currentPeriodStart: date('2026-01-01').getTime(),
+        });
+        const advanced = advanceRecurrence(t, today);
+        assert.strictEquals(
+            new Date(advanced.suggestedDate!).toDateString(),
+            date('2027-02-28').toDateString(),
+        );
+    });
+});

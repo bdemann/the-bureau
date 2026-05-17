@@ -88,6 +88,8 @@ export const AddTaskDialogElement = defineElement<{
         monthAnchorMode: 'dom' as 'dom' | 'ordinal',
         /** 1|2|3|4|-1 for "1st/2nd/3rd/4th/last". */
         ordinalWeek: 3 as 1 | 2 | 3 | 4 | 5 | -1,
+        /** 0–11 (Jan–Dec) for yearly anchor. */
+        annualMonth: new Date().getMonth() as number,
         /** ID of the task currently being edited; null means add mode. */
         currentEditId: null as string | null,
         confirmingDelete: false,
@@ -265,6 +267,14 @@ export const AddTaskDialogElement = defineElement<{
         }
         .ord-grid ${ViraButton} { width: 100%; }
 
+        /* Month-of-year picker (Jan..Dec) */
+        .month-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 4px;
+        }
+        .month-grid ${ViraButton} { width: 100%; }
+
         /* Day-of-month numeric input (narrow) */
         .dom-input { max-width: 8ch; }
 
@@ -399,6 +409,8 @@ export const AddTaskDialogElement = defineElement<{
                 dayOfMonth: cfg?.hardDayOfMonth ?? 1,
                 monthAnchorMode: cfg?.ordinalWeek !== undefined ? 'ordinal' : 'dom',
                 ordinalWeek: cfg?.ordinalWeek ?? 3,
+                annualMonth: cfg?.hardMonthOfYear
+                    ?? (t.suggestedDate ? new Date(t.suggestedDate).getMonth() : new Date().getMonth()),
                 suggestedDate: t.suggestedDate ? msToDateString(t.suggestedDate) : '',
                 hasStartDate: cfg?.startDate !== undefined,
                 startDate: cfg?.startDate ? msToDateString(cfg.startDate) : '',
@@ -436,6 +448,7 @@ export const AddTaskDialogElement = defineElement<{
                 dayOfMonth: 1,
                 monthAnchorMode: 'dom',
                 ordinalWeek: 3,
+                annualMonth: new Date().getMonth(),
                 hasStartDate: false,
                 startDate: '',
                 pauseMode: 'none',
@@ -453,12 +466,12 @@ export const AddTaskDialogElement = defineElement<{
 
         const isMulti = state.isRecurring && isMultiplePerPeriodCadence(state.cadence);
 
-        // When recurring weekly/monthly the user picks an anchor (day-of-week or
-        // day-of-month / ordinal weekday) instead of a calendar date — the engine
-        // computes the first occurrence from there.
+        // When recurring weekly/monthly/yearly the user picks an anchor instead
+        // of a calendar date — the engine computes the first occurrence from there.
         const usesWeeklyAnchor = state.isRecurring && state.cadence === 'weekly';
         const usesMonthlyAnchor = state.isRecurring && state.cadence === 'monthly';
-        const usesAnchor = usesWeeklyAnchor || usesMonthlyAnchor;
+        const usesYearlyAnchor = state.isRecurring && state.cadence === 'yearly';
+        const usesAnchor = usesWeeklyAnchor || usesMonthlyAnchor || usesYearlyAnchor;
 
         const canSubmit = state.titleValue.trim().length > 0
             // Hard-date tasks need a date — unless an anchor implies one.
@@ -517,6 +530,9 @@ export const AddTaskDialogElement = defineElement<{
                     } else {
                         cfg.hardDayOfMonth = state.dayOfMonth;
                     }
+                } else if (usesYearlyAnchor) {
+                    cfg.hardMonthOfYear = state.annualMonth;
+                    cfg.hardDayOfMonth = state.dayOfMonth;
                 }
                 recurrence = cfg;
                 const init = initialiseRecurrence(
@@ -603,6 +619,7 @@ export const AddTaskDialogElement = defineElement<{
                 dayOfMonth: 1,
                 monthAnchorMode: 'dom',
                 ordinalWeek: 3,
+                annualMonth: new Date().getMonth(),
                 currentEditId: null,
                 selectedProjectId: null,
                 wasOpen: false,
@@ -979,6 +996,64 @@ export const AddTaskDialogElement = defineElement<{
                             `}
                         ` : html``}
 
+                        <!-- Annually anchor (yearly only): month + day-of-month -->
+                        ${usesYearlyAnchor ? html`
+                            <div class="field">
+                                <span class="field-label">Season</span>
+                                <div class="seg" style="grid-template-columns: repeat(4, 1fr);">
+                                    ${SEASON_SHORTCUTS.map(s => html`
+                                        <${ViraButton.assign({
+                                            text: s.label,
+                                            color: ViraColorVariant.Info,
+                                            buttonEmphasis: state.annualMonth === s.month
+                                                ? ViraEmphasis.Standard
+                                                : ViraEmphasis.Subtle,
+                                            buttonSize: ViraSize.Small,
+                                        })}
+                                            @click=${() => updateState({annualMonth: s.month})}
+                                        ></${ViraButton}>
+                                    `)}
+                                </div>
+                            </div>
+                            <div class="field">
+                                <span class="field-label">Month</span>
+                                <div class="month-grid">
+                                    ${MONTH_LABELS.map(m => html`
+                                        <${ViraButton.assign({
+                                            text: m.label,
+                                            color: ViraColorVariant.Info,
+                                            buttonEmphasis: state.annualMonth === m.value
+                                                ? ViraEmphasis.Standard
+                                                : ViraEmphasis.Subtle,
+                                            buttonSize: ViraSize.Small,
+                                        })}
+                                            @click=${() => updateState({annualMonth: m.value})}
+                                        ></${ViraButton}>
+                                    `)}
+                                </div>
+                            </div>
+                            <div class="field">
+                                <span class="field-label">Day of Month (1–31)</span>
+                                <span class="dom-input">
+                                    <${ViraInput.assign({
+                                        value: String(state.dayOfMonth),
+                                        type: ViraInputType.Number,
+                                        placeholder: 'e.g. 15',
+                                    })}
+                                        ${listen(ViraInput.events.valueChange, e => {
+                                            const n = parseInt(e.detail, 10);
+                                            if (!Number.isNaN(n) && n >= 1 && n <= 31) {
+                                                updateState({dayOfMonth: n});
+                                            }
+                                        })}
+                                    ></${ViraInput}>
+                                </span>
+                                <div class="anchor-summary">
+                                    Every ${MONTH_LABELS[state.annualMonth]?.label ?? ''} ${ordinalSuffix(state.dayOfMonth)}.
+                                </div>
+                            </div>
+                        ` : html``}
+
                         <!-- Start date -->
                         <div class="end-condition-section">
                             <div class="recurring-row">
@@ -1213,6 +1288,28 @@ function tierColor(tier: ConsequenceTier): ViraColorVariant {
         case 4: return ViraColorVariant.Neutral;
     }
 }
+
+const MONTH_LABELS: ReadonlyArray<{value: number; label: string}> = [
+    {value: 0,  label: 'Jan'},
+    {value: 1,  label: 'Feb'},
+    {value: 2,  label: 'Mar'},
+    {value: 3,  label: 'Apr'},
+    {value: 4,  label: 'May'},
+    {value: 5,  label: 'Jun'},
+    {value: 6,  label: 'Jul'},
+    {value: 7,  label: 'Aug'},
+    {value: 8,  label: 'Sep'},
+    {value: 9,  label: 'Oct'},
+    {value: 10, label: 'Nov'},
+    {value: 11, label: 'Dec'},
+];
+
+const SEASON_SHORTCUTS: ReadonlyArray<{label: string; month: number}> = [
+    {label: 'Spring', month: 2},   // March
+    {label: 'Summer', month: 5},   // June
+    {label: 'Fall',   month: 8},   // September
+    {label: 'Winter', month: 11},  // December
+];
 
 const DAY_LABELS: ReadonlyArray<{value: number; label: string}> = [
     {value: 0, label: 'Sun'},

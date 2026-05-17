@@ -41,7 +41,7 @@ const CADENCES: {value: WizardCadence; label: string}[] = [
     {value: 'weekly',    label: 'Weekly'},
     {value: 'monthly',   label: 'Monthly'},
     {value: 'quarterly', label: 'Quarterly'},
-    {value: 'yearly',    label: 'Yearly'},
+    {value: 'yearly',    label: 'Annually'},
 ];
 
 const DAY_LABELS = [
@@ -85,6 +85,7 @@ export const OperationWizardDialogElement = defineElement<{open: boolean}>()({
         monthAnchorMode: 'dom' as 'dom' | 'ordinal',
         monthOrdinalWeek: 1 as 1 | 2 | 3 | 4 | 5 | -1,
         monthOrdinalDay: new Date().getDay(),
+        annualMonth: new Date().getMonth() as number,
         currentTimeOfDay: 'anytime' as TimeOfDay,
         completedRoutines: [] as Task[],
     }),
@@ -269,6 +270,14 @@ export const OperationWizardDialogElement = defineElement<{open: boolean}>()({
         }
         .dow-grid ${ViraButton} { width: 100%; }
 
+        /* Month-of-year picker (Jan..Dec) */
+        .month-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 4px;
+        }
+        .month-grid ${ViraButton} { width: 100%; }
+
         /* Time-of-day picker */
         .tod-grid {
             display: grid;
@@ -364,6 +373,7 @@ export const OperationWizardDialogElement = defineElement<{open: boolean}>()({
                 monthAnchorMode: 'dom',
                 monthOrdinalWeek: 1,
                 monthOrdinalDay: new Date().getDay(),
+                annualMonth: new Date().getMonth(),
                 currentTimeOfDay: 'anytime',
                 completedRoutines: [],
             });
@@ -398,7 +408,7 @@ export const OperationWizardDialogElement = defineElement<{open: boolean}>()({
         function buildCurrentRoutine(): Task {
             const today = new Date();
             const cadence = state.currentCadence;
-            const scheduleMode = (cadence === 'weekly' || cadence === 'monthly') ? 'fixed' : 'rolling';
+            const scheduleMode = (cadence === 'weekly' || cadence === 'monthly' || cadence === 'yearly') ? 'fixed' : 'rolling';
             const cfg: RecurrenceConfig = {
                 cadence,
                 frequencyPerPeriod: 1,
@@ -412,6 +422,9 @@ export const OperationWizardDialogElement = defineElement<{open: boolean}>()({
                     : {}),
                 ...(cadence === 'monthly' && state.monthAnchorMode === 'dom'
                     ? {hardDayOfMonth: state.currentDayOfMonth}
+                    : {}),
+                ...(cadence === 'yearly'
+                    ? {hardMonthOfYear: state.annualMonth, hardDayOfMonth: state.currentDayOfMonth}
                     : {}),
             };
             const init = initialiseRecurrence(
@@ -488,6 +501,7 @@ export const OperationWizardDialogElement = defineElement<{open: boolean}>()({
                 monthAnchorMode: 'dom',
                 monthOrdinalWeek: 1,
                 monthOrdinalDay: new Date().getDay(),
+                annualMonth: new Date().getMonth(),
                 currentTimeOfDay: 'anytime',
                 completedRoutines: [],
             });
@@ -512,6 +526,7 @@ export const OperationWizardDialogElement = defineElement<{open: boolean}>()({
                 monthAnchorMode: 'dom',
                 monthOrdinalWeek: 1,
                 monthOrdinalDay: new Date().getDay(),
+                annualMonth: new Date().getMonth(),
                 currentTimeOfDay: 'anytime',
             });
         }
@@ -884,6 +899,63 @@ export const OperationWizardDialogElement = defineElement<{open: boolean}>()({
                         `}
                     ` : html``}
 
+                    <!-- Annually anchor (yearly only): month + day-of-month -->
+                    ${state.currentCadence === 'yearly' ? html`
+                        <div class="field">
+                            <label class="field-label">Season</label>
+                            <div class="cadence-grid">
+                                ${SEASON_SHORTCUTS.map(s => html`
+                                    <${ViraButton.assign({
+                                        text: s.label,
+                                        color: ViraColorVariant.Info,
+                                        buttonEmphasis: state.annualMonth === s.month
+                                            ? ViraEmphasis.Standard
+                                            : ViraEmphasis.Subtle,
+                                        buttonSize: ViraSize.Small,
+                                    })}
+                                        @click=${() => updateState({annualMonth: s.month})}
+                                    ></${ViraButton}>
+                                `)}
+                            </div>
+                        </div>
+                        <div class="field">
+                            <label class="field-label">Month</label>
+                            <div class="month-grid">
+                                ${MONTH_LABELS.map(m => html`
+                                    <${ViraButton.assign({
+                                        text: m.label,
+                                        color: ViraColorVariant.Info,
+                                        buttonEmphasis: state.annualMonth === m.value
+                                            ? ViraEmphasis.Standard
+                                            : ViraEmphasis.Subtle,
+                                        buttonSize: ViraSize.Small,
+                                    })}
+                                        @click=${() => updateState({annualMonth: m.value})}
+                                    ></${ViraButton}>
+                                `)}
+                            </div>
+                        </div>
+                        <div class="field">
+                            <label class="field-label">Day of Month (1–31)</label>
+                            <input
+                                class="dom-input"
+                                type="number"
+                                min="1"
+                                max="31"
+                                .value=${String(state.currentDayOfMonth)}
+                                @input=${(e: Event) => {
+                                    const n = parseInt((e.target as HTMLInputElement).value, 10);
+                                    if (!Number.isNaN(n) && n >= 1 && n <= 31) {
+                                        updateState({currentDayOfMonth: n});
+                                    }
+                                }}
+                            />
+                            <div class="anchor-summary">
+                                Every ${MONTH_LABELS[state.annualMonth]?.label ?? ''} ${ordinalSuffix(state.currentDayOfMonth)}.
+                            </div>
+                        </div>
+                    ` : html``}
+
                     <!-- Time of day -->
                     <div class="field">
                         <label class="field-label">Time of Day</label>
@@ -960,3 +1032,25 @@ function ordinalSuffix(n: number): string {
     if (mod10 === 3 && mod100 !== 13) return `${n}rd`;
     return `${n}th`;
 }
+
+const MONTH_LABELS: ReadonlyArray<{value: number; label: string}> = [
+    {value: 0,  label: 'Jan'},
+    {value: 1,  label: 'Feb'},
+    {value: 2,  label: 'Mar'},
+    {value: 3,  label: 'Apr'},
+    {value: 4,  label: 'May'},
+    {value: 5,  label: 'Jun'},
+    {value: 6,  label: 'Jul'},
+    {value: 7,  label: 'Aug'},
+    {value: 8,  label: 'Sep'},
+    {value: 9,  label: 'Oct'},
+    {value: 10, label: 'Nov'},
+    {value: 11, label: 'Dec'},
+];
+
+const SEASON_SHORTCUTS: ReadonlyArray<{label: string; month: number}> = [
+    {label: 'Spring', month: 2},   // March
+    {label: 'Summer', month: 5},   // June
+    {label: 'Fall',   month: 8},   // September
+    {label: 'Winter', month: 11},  // December
+];

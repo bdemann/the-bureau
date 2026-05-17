@@ -80,6 +80,11 @@ export interface RecurrenceConfig {
      * routines (e.g., add a Christmas tradition in October, starts December 1).
      */
     startDate?: number;
+    /**
+     * For yearly cadence: which month (0=Jan … 11=Dec) the task fires in.
+     * When absent, falls back to the month of suggestedDate.
+     */
+    hardMonthOfYear?: number;
 }
 
 // ── Consequence and band types ───────────────────────────────────────────────
@@ -226,7 +231,7 @@ export function cadenceLabel(cadence: RecurrenceCadence): string {
         case 'multiple_per_quarter': return 'Multiple times per quarter';
         case 'quarterly':            return 'Quarterly';
         case 'multiple_per_year':    return 'Multiple times per year';
-        case 'yearly':               return 'Yearly';
+        case 'yearly':               return 'Annually';
     }
 }
 

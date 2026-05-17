@@ -68,7 +68,11 @@ Mark each row as you verify in the browser. Reset the localStorage entry
 - [ ] Step 3: Routine title pre-filled from brainstorm text; editable
 - [ ] Step 3: Tier T1–T4 grid selects consequence tier
 - [ ] Step 3: Default cadence is Daily
-- [ ] Step 3: Cadence grid (Daily / Weekly / Monthly / Quarterly / Yearly) is selectable
+- [ ] Step 3: Cadence grid (Daily / Weekly / Monthly / Quarterly / Annually) is selectable
+- [ ] Step 3 Annually: Season shortcuts (Spring/Summer/Fall/Winter) appear and select corresponding month
+- [ ] Step 3 Annually: Month grid (Jan–Dec, 4×3) appears; active month is highlighted
+- [ ] Step 3 Annually: Day-of-month field appears; anchor summary reads "Every Sep 1st." etc.
+- [ ] Step 3 Annually: Clicking a season shortcut and then checking the month grid shows the correct month highlighted
 - [ ] Step 3 Weekly: day-of-week multi-select appears; multiple days can be toggled
 - [ ] Step 3 Weekly: default day selected is today's day of the week
 - [ ] Step 3 Monthly: "Day of month" / "Nth weekday" toggle appears
@@ -284,6 +288,15 @@ Mark each row as you verify in the browser. Reset the localStorage entry
 - [ ] Paused directives do NOT accrue misses during rollover
 - [ ] Paused directives appear in a PAUSED section in their operation's project detail
 - [ ] Clicking the task card for a paused directive opens edit mode where pause can be removed
+
+### Annually cadence (directive dialog)
+
+- [ ] Selecting "Annually" from the cadence dropdown shows Season shortcuts, Month grid, and Day-of-month field
+- [ ] Season shortcuts (Spring/Summer/Fall/Winter) set the month to Mar/Jun/Sep/Dec respectively and highlight the corresponding month button
+- [ ] Month grid (Jan–Dec) allows fine selection; clicking any month updates the anchor summary
+- [ ] Day-of-month input updates the anchor summary (e.g., "Every Sep 1st.")
+- [ ] Saving an annually directive: edit dialog re-opens with the same month and day pre-filled
+- [ ] After advancing one year (or simulating with devtools): suggested date is the same month/day next year
 
 ### Recurring start date
 
