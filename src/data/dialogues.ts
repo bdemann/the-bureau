@@ -15,6 +15,7 @@ export type DialogueTrigger =
     | 'task_snoozed_2_3'
     | 'task_snoozed_4_5'
     | 'task_snoozed_6plus'
+    | 'task_skipped'
     | 'task_overdue'
     | 'project_completed'
     | 'score_low'
@@ -192,6 +193,30 @@ export const DIALOGUES: readonly DialogueLine[] = [
         trigger: 'task_snoozed_6plus',
         message:
             'Six delays. In my day we called that sabotage. I am choosing to call it incompetence. For now.',
+    },
+
+    // ── TASK SKIPPED — Director Briggs ──────────────────────────────────────
+    {
+        character: 'director',
+        trigger: 'task_skipped',
+        message: "Skipped. That goes in the file, citizen. Every skip is a data point.",
+    },
+    {
+        character: 'director',
+        trigger: 'task_skipped',
+        message: "You chose not to do it. That is a choice I will remember when scores are reviewed.",
+    },
+
+    // ── TASK SKIPPED — Agent Whitaker ────────────────────────────────────────
+    {
+        character: 'agent',
+        trigger: 'task_skipped',
+        message: "Skipping this one. Noted. Just make sure it doesn't become a pattern.",
+    },
+    {
+        character: 'agent',
+        trigger: 'task_skipped',
+        message: "Alright, moving on. But your score took a hit — Briggs notices these things.",
     },
 
     // ── TASK OVERDUE — Director Briggs ───────────────────────────────────────

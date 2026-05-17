@@ -9,6 +9,7 @@ const ALL_TRIGGERS: ReadonlyArray<DialogueTrigger> = [
     'task_snoozed_2_3',
     'task_snoozed_4_5',
     'task_snoozed_6plus',
+    'task_skipped',
     'task_overdue',
     'project_completed',
     'score_low',

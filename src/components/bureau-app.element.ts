@@ -302,6 +302,9 @@ export const BureauAppElement = defineElement()({
         }
 
         function onTaskSkipped(taskId: string): void {
+            const target = state.app.tasks.find(t => t.id === taskId);
+            if (!target) return;
+
             const now = new Date();
             const tasks = state.app.tasks.map(t => {
                 if (t.id !== taskId || !t.recurrence) return t;
@@ -313,7 +316,18 @@ export const BureauAppElement = defineElement()({
                     taskCompletionStreak: 0,
                 };
             });
-            commit({tasks});
+
+            const tier = target.consequenceTier as ConsequenceTier;
+            const penalty = skipPenalty(tier);
+            const prevScore = state.app.patriotScore;
+            const newScore = Math.max(0, prevScore - penalty);
+
+            commit({tasks, patriotScore: newScore});
+            triggerDialogue('task_skipped', tier <= 2);
+
+            if (newScore < 40 && prevScore >= 40) {
+                setTimeout(() => triggerDialogue('score_low', true), 600);
+            }
         }
 
         function onTaskAdded(task: Task): void {
@@ -572,6 +586,16 @@ function snoozePenalty(tier: ConsequenceTier): number {
         case 1: return 8;
         case 2: return 5;
         case 3: return 3;
+        case 4: return 1;
+    }
+}
+
+/** Score penalty for skipping a period entirely, scaled by tier. */
+function skipPenalty(tier: ConsequenceTier): number {
+    switch (tier) {
+        case 1: return 12;
+        case 2: return 7;
+        case 3: return 4;
         case 4: return 1;
     }
 }
