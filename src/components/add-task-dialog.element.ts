@@ -593,30 +593,32 @@ export const AddTaskDialogElement = defineElement<{
                     </div>
 
                     <!-- Kind toggle (Routine vs Task) — both are types of Directive -->
-                    ${!isEditMode ? html`
-                        <div class="kind-toggle">
-                            <${ViraButton.assign({
-                                text: 'Routine',
-                                color: ViraColorVariant.Info,
-                                buttonEmphasis: state.kind === 'routine'
-                                    ? ViraEmphasis.Standard
-                                    : ViraEmphasis.Subtle,
-                                buttonSize: ViraSize.Small,
-                            })}
-                                @click=${() => updateState({kind: 'routine', isRecurring: true, cadence: 'daily'})}
-                            ></${ViraButton}>
-                            <${ViraButton.assign({
-                                text: 'Task',
-                                color: ViraColorVariant.Info,
-                                buttonEmphasis: state.kind === 'task'
-                                    ? ViraEmphasis.Standard
-                                    : ViraEmphasis.Subtle,
-                                buttonSize: ViraSize.Small,
-                            })}
-                                @click=${() => updateState({kind: 'task', isRecurring: false, cadence: 'weekly'})}
-                            ></${ViraButton}>
-                        </div>
-                    ` : html``}
+                    <div class="kind-toggle">
+                        <${ViraButton.assign({
+                            text: 'Routine',
+                            color: ViraColorVariant.Info,
+                            buttonEmphasis: state.kind === 'routine'
+                                ? ViraEmphasis.Standard
+                                : ViraEmphasis.Subtle,
+                            buttonSize: ViraSize.Small,
+                        })}
+                            @click=${() => isEditMode
+                                ? updateState({kind: 'routine'})
+                                : updateState({kind: 'routine', isRecurring: true, cadence: 'daily'})}
+                        ></${ViraButton}>
+                        <${ViraButton.assign({
+                            text: 'Task',
+                            color: ViraColorVariant.Info,
+                            buttonEmphasis: state.kind === 'task'
+                                ? ViraEmphasis.Standard
+                                : ViraEmphasis.Subtle,
+                            buttonSize: ViraSize.Small,
+                        })}
+                            @click=${() => isEditMode
+                                ? updateState({kind: 'task'})
+                                : updateState({kind: 'task', isRecurring: false, cadence: 'weekly'})}
+                        ></${ViraButton}>
+                    </div>
 
                     <!-- Title -->
                     <div class="field">

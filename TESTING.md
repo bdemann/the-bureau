@@ -105,12 +105,14 @@ Mark each row as you verify in the browser. Reset the localStorage entry
 ### Filing directives — routine vs task kind
 
 - [ ] Add-task dialog defaults to TASK kind selected
-- [ ] ROUTINE / TASK segmented toggle visible when creating (hidden in edit mode)
-- [ ] Selecting ROUTINE forces "Recurring" on and hides the recurring checkbox
+- [ ] ROUTINE / TASK segmented toggle visible when creating AND when editing
+- [ ] In create mode: selecting ROUTINE forces "Recurring" on and hides the recurring checkbox
 - [ ] Selecting ROUTINE hides the end-condition section entirely
 - [ ] Selecting ROUTINE changes sheet title to "FILE NEW ROUTINE" and submit button to "COMMIT ROUTINE"
 - [ ] Selecting TASK shows sheet title "FILE NEW TASK" and submit button "FILE TASK"
 - [ ] Editing an existing routine shows "AMEND ROUTINE"; editing a task shows "AMEND TASK"
+- [ ] In edit mode: switching from ROUTINE → TASK (or vice versa) does not reset recurrence settings
+- [ ] Saving after switching kind persists the new kind (e.g. routine becomes task, ROUTINE chip disappears)
 - [ ] Directives with `kind=routine` show a ROUTINE chip in the task-item card
 
 ### Task directive creation — one-time
