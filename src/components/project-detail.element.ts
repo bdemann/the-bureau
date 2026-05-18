@@ -1,6 +1,7 @@
 import {defineElement, defineElementEvent, css, html, listen} from 'element-vir';
-import type {Project, ProjectColor, Task} from '../data/types.js';
+import type {Goal, Project, ProjectColor, Task} from '../data/types.js';
 import {isCurrentlyPaused, isTaskVisible, isTaskOverdue} from '../data/storage.js';
+import {GoalsViewElement} from './goals-view.element.js';
 
 const COLOR_OPTIONS: ReadonlyArray<{key: ProjectColor; label: string; swatch: string}> = [
     {key: 'red',   label: 'Crimson', swatch: '#C41E3A'},
@@ -19,6 +20,8 @@ import {TaskItemElement} from './task-item.element.js';
 export const ProjectDetailElement = defineElement<{
     project: Project;
     tasks: ReadonlyArray<Task>;    // only this project's tasks
+    goals: ReadonlyArray<Goal>;    // only this project's goals
+    projects: ReadonlyArray<Project>;
 }>()({
     tagName: 'project-detail',
 
@@ -34,6 +37,11 @@ export const ProjectDetailElement = defineElement<{
         back:               defineElementEvent<void>(),
         projectDeleted:     defineElementEvent<string>(),
         projectUpdated:     defineElementEvent<Project>(),
+        goalAdded:          defineElementEvent<Goal>(),
+        goalUpdated:        defineElementEvent<Goal>(),
+        goalDeleted:        defineElementEvent<string>(),
+        goalSpawnRequested: defineElementEvent<string>(),           // goal id
+        goalUnlinkRequested: defineElementEvent<{goalId: string; taskId: string}>(),
     },
 
     state: () => ({
@@ -505,6 +513,28 @@ export const ProjectDetailElement = defineElement<{
                         : html``}
                   `
                 : html``}
+
+            <!-- Goals for this operation -->
+            <div class="goals-section">
+                <div class="section-label" style="margin-bottom:8px">OBJECTIVES</div>
+                <${GoalsViewElement.assign({
+                    goals: inputs.goals,
+                    tasks: inputs.tasks,
+                    projects: inputs.projects,
+                    filterProjectId: project.id,
+                })}
+                    ${listen(GoalsViewElement.events.goalAdded, e =>
+                        dispatch(new events.goalAdded(e.detail)))}
+                    ${listen(GoalsViewElement.events.goalUpdated, e =>
+                        dispatch(new events.goalUpdated(e.detail)))}
+                    ${listen(GoalsViewElement.events.goalDeleted, e =>
+                        dispatch(new events.goalDeleted(e.detail)))}
+                    ${listen(GoalsViewElement.events.spawnRequested, e =>
+                        dispatch(new events.goalSpawnRequested(e.detail)))}
+                    ${listen(GoalsViewElement.events.unlinkRequested, e =>
+                        dispatch(new events.goalUnlinkRequested(e.detail)))}
+                ></${GoalsViewElement}>
+            </div>
 
             <!-- Edit / delete operation zone -->
             <div class="delete-zone">

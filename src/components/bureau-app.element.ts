@@ -445,7 +445,8 @@ export const BureauAppElement = defineElement()({
         function onProjectDeleted(projectId: string): void {
             const projects = state.app.projects.filter(p => p.id !== projectId);
             const tasks    = state.app.tasks.filter(t => t.projectId !== projectId);
-            commit({projects, tasks, view: 'operations', selectedProjectId: null});
+            const goals    = state.app.goals.filter(g => g.projectId !== projectId);
+            commit({projects, tasks, goals, view: 'operations', selectedProjectId: null});
         }
 
         function onProjectUpdated(project: Project): void {
@@ -537,10 +538,11 @@ export const BureauAppElement = defineElement()({
         }
 
         function onSpawnRequested(goalId: string): void {
+            const goal = state.app.goals.find(g => g.id === goalId);
             updateState({
                 spawningForGoalId: goalId,
                 addingTask: true,
-                newTaskProjectId: null,
+                newTaskProjectId: goal?.projectId ?? null,
                 editingTask: null,
             });
         }
@@ -634,6 +636,7 @@ export const BureauAppElement = defineElement()({
                         <${GoalsViewElement.assign({
                             goals: state.app.goals,
                             tasks: state.app.tasks,
+                            projects: state.app.projects,
                         })}
                             ${listen(GoalsViewElement.events.goalAdded, e =>
                                 onGoalAdded(e.detail))}
@@ -722,6 +725,10 @@ export const BureauAppElement = defineElement()({
                             tasks: state.app.tasks.filter(
                                 t => t.projectId === selectedProject.id,
                             ),
+                            goals: state.app.goals.filter(
+                                g => g.projectId === selectedProject.id,
+                            ),
+                            projects: state.app.projects,
                         })}
                             ${listen(ProjectDetailElement.events.taskCompleted, e =>
                                 onTaskCompleted(e.detail))}
@@ -744,6 +751,16 @@ export const BureauAppElement = defineElement()({
                                 onProjectUpdated(e.detail))}
                             ${listen(ProjectDetailElement.events.tasksReordered, e =>
                                 onTasksReordered(e.detail))}
+                            ${listen(ProjectDetailElement.events.goalAdded, e =>
+                                onGoalAdded(e.detail))}
+                            ${listen(ProjectDetailElement.events.goalUpdated, e =>
+                                onGoalUpdated(e.detail))}
+                            ${listen(ProjectDetailElement.events.goalDeleted, e =>
+                                onGoalDeleted(e.detail))}
+                            ${listen(ProjectDetailElement.events.goalSpawnRequested, e =>
+                                onSpawnRequested(e.detail))}
+                            ${listen(ProjectDetailElement.events.goalUnlinkRequested, e =>
+                                onUnlinkRequested(e.detail))}
                         ></${ProjectDetailElement}>
                       `
                     : html`

@@ -381,26 +381,36 @@ Mark each row as you verify in the browser. Reset the localStorage entry
 
 ### Strategic Objectives (Goals)
 
+**Global view (Strategic Objectives nav item)**
 - [ ] Menu → "Strategic Objectives" navigates to the goals view
 - [ ] Page shows "STRATEGIC OBJECTIVES" title and subtitle
 - [ ] Empty state shows "No objectives on file. File one above to begin."
-- [ ] "FILE OBJECTIVE" dashed button opens the add form (title, description, target date)
-- [ ] Submitting with a blank title does nothing; form stays open
-- [ ] Submitting with a title creates the goal and shows it in the ACTIVE section
-- [ ] Active goals are sorted: goals with a target date first (soonest first), then no-date goals newest-first
+- [ ] Add form includes an "Operation" dropdown to link the goal to a project
+- [ ] Goal cards in the global view show an operation badge (⊙ Operation Name)
+- [ ] All goals across all operations are listed, sorted by target date (soonest first, no-date goals last)
+- [ ] Sorting is per status group: active sorted separately from achieved/abandoned
+
+**Per-operation view (project detail page)**
+- [ ] Project detail page shows an "OBJECTIVES" section below the directives list
+- [ ] Only goals linked to that operation appear; other operations' goals are not shown
+- [ ] "FILE OBJECTIVE" button in the per-operation view opens a form without an operation selector (project pre-filled)
+- [ ] Goals filed from project detail are automatically linked to that operation
+
+**Shared goal card behaviour**
 - [ ] Goal card shows title, description (if any), target date (if set), linked directives section
 - [ ] Target date in the past shows "OVERDUE" in red for active goals
 - [ ] ACTIVE / ACHIEVED / ABANDONED section headers show counts; sections are hidden when empty
-- [ ] EDIT button on a card expands an inline edit form pre-filled with current data; saving updates the card
-- [ ] DELETE button shows a confirmation row; CONFIRM deletes the goal permanently; CANCEL dismisses it
-- [ ] MARK ACHIEVED changes goal status to "achieved"; card moves to ACHIEVED section with green left border; only REACTIVATE and EDIT/DELETE remain as actions
-- [ ] ABANDON changes goal status to "abandoned"; card moves to ABANDONED section with grey left border
-- [ ] REACTIVATE on achieved/abandoned goal returns it to ACTIVE section
-- [ ] "+ SPAWN DIRECTIVE" opens the Add Directive sheet; submitting creates the directive and adds it to the goal's linked directives list automatically
+- [ ] EDIT button expands an inline edit form pre-filled with current data; saving updates the card
+- [ ] DELETE button shows a confirmation row; CONFIRM deletes permanently; CANCEL dismisses it
+- [ ] MARK ACHIEVED → card moves to ACHIEVED section (green left border); only REACTIVATE / EDIT / DELETE remain
+- [ ] ABANDON → card moves to ABANDONED section (grey left border)
+- [ ] REACTIVATE returns goal to ACTIVE section
+- [ ] "+ SPAWN DIRECTIVE" opens the Add Directive sheet with the goal's operation pre-selected; submitting creates the directive and auto-links it to the goal
 - [ ] Cancelling the spawn sheet leaves the goal's linked directives unchanged
-- [ ] Linked directives appear as chip tags on the goal card showing the directive title
-- [ ] "×" button on a chip unlinks that directive from the goal (directive itself is not deleted)
-- [ ] "(deleted directive)" label appears for chips whose task has been deleted from the system
+- [ ] Linked directives appear as chip tags showing the directive title
+- [ ] "×" button on a chip unlinks that directive (directive itself is not deleted)
+- [ ] "(deleted directive)" label appears for chips whose task no longer exists
+- [ ] Decommissioning an operation also deletes all goals linked to that operation
 
 ### Field Intelligence (Ideas)
 

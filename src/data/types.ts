@@ -14,6 +14,8 @@ export type GoalStatus = 'active' | 'achieved' | 'abandoned';
 
 export interface Goal {
     id: string;
+    /** The operation this goal belongs to. */
+    projectId: string | null;
     title: string;
     description: string;
     status: GoalStatus;
