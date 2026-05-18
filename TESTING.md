@@ -369,6 +369,29 @@ Mark each row as you verify in the browser. Reset the localStorage entry
 - [ ] Recurring directive rolled over at startup (period elapsed without completion): totalMisses incremented
 - [ ] skipStreak resets to 0 on directive completion; taskCompletionStreak resets to 0 on skip
 
+### Strategic Objectives (Goals)
+
+- [ ] Menu → "Strategic Objectives" navigates to the goals view
+- [ ] Page shows "STRATEGIC OBJECTIVES" title and subtitle
+- [ ] Empty state shows "No objectives on file. File one above to begin."
+- [ ] "FILE OBJECTIVE" dashed button opens the add form (title, description, target date)
+- [ ] Submitting with a blank title does nothing; form stays open
+- [ ] Submitting with a title creates the goal and shows it in the ACTIVE section
+- [ ] Active goals are sorted: goals with a target date first (soonest first), then no-date goals newest-first
+- [ ] Goal card shows title, description (if any), target date (if set), linked directives section
+- [ ] Target date in the past shows "OVERDUE" in red for active goals
+- [ ] ACTIVE / ACHIEVED / ABANDONED section headers show counts; sections are hidden when empty
+- [ ] EDIT button on a card expands an inline edit form pre-filled with current data; saving updates the card
+- [ ] DELETE button shows a confirmation row; CONFIRM deletes the goal permanently; CANCEL dismisses it
+- [ ] MARK ACHIEVED changes goal status to "achieved"; card moves to ACHIEVED section with green left border; only REACTIVATE and EDIT/DELETE remain as actions
+- [ ] ABANDON changes goal status to "abandoned"; card moves to ABANDONED section with grey left border
+- [ ] REACTIVATE on achieved/abandoned goal returns it to ACTIVE section
+- [ ] "+ SPAWN DIRECTIVE" opens the Add Directive sheet; submitting creates the directive and adds it to the goal's linked directives list automatically
+- [ ] Cancelling the spawn sheet leaves the goal's linked directives unchanged
+- [ ] Linked directives appear as chip tags on the goal card showing the directive title
+- [ ] "×" button on a chip unlinks that directive from the goal (directive itself is not deleted)
+- [ ] "(deleted directive)" label appears for chips whose task has been deleted from the system
+
 ### Field Intelligence (Ideas)
 
 - [ ] Menu → "Field Intelligence" navigates to the ideas view

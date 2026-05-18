@@ -3,10 +3,26 @@
 // ─────────────────────────────────────────────────────────────────────────────
 
 export type ItemKind = 'routine' | 'task';
-export type AppView = 'daily' | 'operations' | 'project' | 'insights' | 'ideas';
+export type AppView = 'daily' | 'operations' | 'project' | 'insights' | 'ideas' | 'goals';
 export type Character = 'director' | 'agent';
 
 export const SCHEMA_VERSION = 2;
+
+// ── Goal ─────────────────────────────────────────────────────────────────────
+
+export type GoalStatus = 'active' | 'achieved' | 'abandoned';
+
+export interface Goal {
+    id: string;
+    title: string;
+    description: string;
+    status: GoalStatus;
+    /** ms timestamp (midnight local); null = no deadline. */
+    targetDate: number | null;
+    /** IDs of tasks/routines that contribute to this goal. */
+    linkedTaskIds: string[];
+    createdAt: number;
+}
 
 // ── Idea ─────────────────────────────────────────────────────────────────────
 
@@ -314,6 +330,7 @@ export interface AppState {
     readonly schemaVersion: number;
     readonly projects: ReadonlyArray<Project>;
     readonly tasks: ReadonlyArray<Task>;
+    readonly goals: ReadonlyArray<Goal>;
     readonly ideas: ReadonlyArray<Idea>;
     readonly view: AppView;
     readonly selectedProjectId: string | null;

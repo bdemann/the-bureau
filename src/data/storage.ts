@@ -1,6 +1,7 @@
 import type {
     AppState,
     ConsequenceTier,
+    Goal,
     Idea,
     ItemKind,
     Task,
@@ -14,6 +15,7 @@ export const DEFAULT_STATE: AppState = {
     schemaVersion: SCHEMA_VERSION,
     projects: [],
     tasks: [],
+    goals: [],
     ideas: [],
     view: 'daily',
     selectedProjectId: null,
