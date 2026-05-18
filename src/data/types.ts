@@ -198,6 +198,13 @@ export interface Task {
     /** Number of times progress has been logged. */
     progressCount: number;
 
+    // ── Radar lead (hard-date directives only) ──
+    /**
+     * Days before suggestedDate at which this directive appears in the RADAR band.
+     * Only applies when windowType === 'hard'. Defaults to 3 when absent.
+     */
+    radarLeadDays?: number;
+
     // ── Pause (deliberate suspension — no score/streak impact) ──
     /**
      * When set, the directive is hidden from the daily view and rollover does

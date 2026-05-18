@@ -106,8 +106,9 @@ function step2Timing(task: Task, today: Date): DailyBand {
 function step2HardDate(task: Task, today: Date): DailyBand {
     if (task.suggestedDate === null) return 'backlog';
     const days = daysBetween(today, task.suggestedDate);
+    const lead = task.radarLeadDays ?? 3;
     if (days <= 0) return 'mandatory'; // safety net (Step 1 should catch this)
-    if (days <= 3) return 'radar';
+    if (days <= lead) return 'radar';
     return 'backlog';
 }
 

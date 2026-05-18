@@ -78,6 +78,7 @@ export const AddTaskDialogElement = defineElement<{
         frequencyPerPeriod: 2,
         scheduleMode: 'fixed' as ScheduleMode,
         windowType: 'hard' as WindowType,
+        radarLeadDays: 3,
         suggestedDate: msToDateString(Date.now()),  // YYYY-MM-DD
         // ── Recurrence anchor (only relevant when isRecurring=true) ──
         /** Selected days of the week for weekly multi-select (0=Sun…6=Sat). */
@@ -443,6 +444,7 @@ export const AddTaskDialogElement = defineElement<{
                 endMode: (cfg?.endMode === 'after_date' ? 'after_date' : 'after_count'),
                 endAfterCount: cfg?.endAfterCount ?? 10,
                 endAfterDate: cfg?.endAfterDate ? msToDateString(cfg.endAfterDate) : '',
+                radarLeadDays: t.radarLeadDays ?? 3,
             });
         }
 
@@ -461,6 +463,7 @@ export const AddTaskDialogElement = defineElement<{
                 frequencyPerPeriod: 2,
                 scheduleMode: 'fixed',
                 windowType: 'hard',
+                radarLeadDays: 3,
                 suggestedDate: msToDateString(Date.now()),
                 daysOfWeek: new Set<number>([new Date().getDay()]),
                 dayOfWeek: new Date().getDay(),
@@ -621,6 +624,7 @@ export const AddTaskDialogElement = defineElement<{
                 timeOfDay: state.timeOfDay,
                 consequenceTier: state.consequenceTier,
                 windowType: state.windowType,
+                radarLeadDays: state.windowType === 'hard' ? state.radarLeadDays : undefined,
                 suggestedDate,
                 windowDeadline,
                 windowLengthDays,
@@ -849,6 +853,24 @@ export const AddTaskDialogElement = defineElement<{
                                 @input=${(e: Event) =>
                                     updateState({suggestedDate: (e.target as HTMLInputElement).value})}
                             />
+                        </div>
+                        ` : html``}
+
+                        ${state.windowType === 'hard' ? html`
+                        <div class="field">
+                            <span class="field-label">Radar lead (days)</span>
+                            <${ViraInput.assign({
+                                value: String(state.radarLeadDays),
+                                type: ViraInputType.Number,
+                                placeholder: '3',
+                            })}
+                                ${listen(ViraInput.events.valueChange, e => {
+                                    const n = parseInt(e.detail, 10);
+                                    if (!Number.isNaN(n) && n >= 0 && n <= 365) {
+                                        updateState({radarLeadDays: n});
+                                    }
+                                })}
+                            ></${ViraInput}>
                         </div>
                         ` : html``}
                     `}

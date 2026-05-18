@@ -369,6 +369,16 @@ Mark each row as you verify in the browser. Reset the localStorage entry
 - [ ] Recurring directive rolled over at startup (period elapsed without completion): totalMisses incremented
 - [ ] skipStreak resets to 0 on directive completion; taskCompletionStreak resets to 0 on skip
 
+### Radar lead days (per-directive)
+
+- [ ] Hard-date directive add/edit form shows a "Radar lead (days)" number field (default 3)
+- [ ] Field is absent for flexible-window and milestone directives
+- [ ] Setting lead to 5: directive appears in RADAR band 5 days before its date
+- [ ] Setting lead to 1: directive stays in BACKLOG until 1 day before its date
+- [ ] Setting lead to 0: directive never appears in RADAR (goes directly BACKLOG → MANDATORY)
+- [ ] Edit dialog re-opens with the saved lead value pre-filled
+- [ ] Existing directives without a saved radarLeadDays behave as if set to 3 (no regression)
+
 ### Strategic Objectives (Goals)
 
 - [ ] Menu → "Strategic Objectives" navigates to the goals view
