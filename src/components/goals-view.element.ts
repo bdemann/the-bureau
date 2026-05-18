@@ -1,5 +1,5 @@
 import {css, defineElement, defineElementEvent, html} from 'element-vir';
-import type {Goal, GoalStatus, Project, Task} from '../data/types.js';
+import type {Goal, GoalStatus, Idea, Project, Task} from '../data/types.js';
 import {generateId} from '../data/storage.js';
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -39,6 +39,7 @@ function sortByTargetDate(goals: Goal[]): Goal[] {
 export const GoalsViewElement = defineElement<{
     goals: ReadonlyArray<Goal>;
     tasks: ReadonlyArray<Task>;
+    ideas: ReadonlyArray<Idea>;
     projects: ReadonlyArray<Project>;
     /** When set, only show goals for this project and hide the project selector. */
     filterProjectId?: string | null;
@@ -46,11 +47,13 @@ export const GoalsViewElement = defineElement<{
     tagName: 'goals-view',
 
     events: {
-        goalAdded:          defineElementEvent<Goal>(),
-        goalUpdated:        defineElementEvent<Goal>(),
-        goalDeleted:        defineElementEvent<string>(),
-        spawnRequested:     defineElementEvent<string>(),       // goal id
-        unlinkRequested:    defineElementEvent<{goalId: string; taskId: string}>(),
+        goalAdded:              defineElementEvent<Goal>(),
+        goalUpdated:            defineElementEvent<Goal>(),
+        goalDeleted:            defineElementEvent<string>(),
+        spawnRequested:         defineElementEvent<string>(),       // goal id
+        unlinkRequested:        defineElementEvent<{goalId: string; taskId: string}>(),
+        ideaUnlinkFromGoal:     defineElementEvent<string>(),       // idea id → set goalId = null
+        promoteIdeaRequested:   defineElementEvent<Idea>(),
     },
 
     state: () => ({
@@ -291,6 +294,31 @@ export const GoalsViewElement = defineElement<{
         }
         .unlink-btn:hover { color: #C41E3A; }
 
+        .idea-chip {
+            font-family: 'Courier Prime', monospace;
+            font-size: 0.72rem;
+            padding: 2px 6px 2px 8px;
+            background: rgba(184,134,11,0.07);
+            border: 1px solid rgba(184,134,11,0.25);
+            color: #6B5300;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .idea-chip-promote {
+            background: none;
+            border: none;
+            cursor: pointer;
+            color: #B8860B;
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 0.65rem;
+            letter-spacing: 0.08em;
+            padding: 0 2px;
+            line-height: 1;
+        }
+        .idea-chip-promote:hover { color: #1B2A4A; }
+
         .linked-empty {
             font-family: 'Courier Prime', monospace;
             font-size: 0.72rem;
@@ -484,6 +512,7 @@ export const GoalsViewElement = defineElement<{
             const isActive      = goal.status === 'active';
             const dateOverdue   = goal.targetDate !== null && goal.targetDate < now && isActive;
             const opName        = !isFiltered ? projectName(goal.projectId) : null;
+            const linkedIdeas   = inputs.ideas.filter(i => i.goalId === goal.id);
 
             return html`
                 <div class=${'goal-card ' + goal.status + (isEditing ? ' editing' : '')}>
@@ -528,6 +557,31 @@ export const GoalsViewElement = defineElement<{
                                         </div>
                                       `
                                     : html`<div class="linked-empty">No directives linked yet.</div>`}
+                            </div>
+
+                            <div class="linked-section">
+                                <div class="linked-label">Linked Intelligence</div>
+                                ${linkedIdeas.length > 0
+                                    ? html`
+                                        <div class="linked-chips">
+                                            ${linkedIdeas.map(idea => html`
+                                                <span class="idea-chip">
+                                                    ${idea.title}
+                                                    <button
+                                                        class="idea-chip-promote"
+                                                        title="Promote to directive"
+                                                        @click=${() => dispatch(new events.promoteIdeaRequested(idea))}
+                                                    >↑</button>
+                                                    <button
+                                                        class="unlink-btn"
+                                                        title="Unlink intelligence"
+                                                        @click=${() => dispatch(new events.ideaUnlinkFromGoal(idea.id))}
+                                                    >×</button>
+                                                </span>
+                                            `)}
+                                        </div>
+                                      `
+                                    : html`<div class="linked-empty">No intelligence linked yet.</div>`}
                             </div>
 
                             <div class="goal-actions">

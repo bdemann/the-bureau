@@ -424,9 +424,10 @@ export const BureauAppElement = defineElement()({
             const ideas = state.promotingIdea
                 ? state.app.ideas.filter(i => i.id !== state.promotingIdea!.id)
                 : state.app.ideas;
-            const goals = state.spawningForGoalId
+            const goalIdToLink = state.spawningForGoalId ?? state.promotingIdea?.goalId ?? null;
+            const goals = goalIdToLink
                 ? state.app.goals.map(g =>
-                    g.id === state.spawningForGoalId
+                    g.id === goalIdToLink
                         ? {...g, linkedTaskIds: [...g.linkedTaskIds, task.id]}
                         : g,
                   )
@@ -446,7 +447,8 @@ export const BureauAppElement = defineElement()({
             const projects = state.app.projects.filter(p => p.id !== projectId);
             const tasks    = state.app.tasks.filter(t => t.projectId !== projectId);
             const goals    = state.app.goals.filter(g => g.projectId !== projectId);
-            commit({projects, tasks, goals, view: 'operations', selectedProjectId: null});
+            const ideas    = state.app.ideas.filter(i => i.projectId !== projectId);
+            commit({projects, tasks, goals, ideas, view: 'operations', selectedProjectId: null});
         }
 
         function onProjectUpdated(project: Project): void {
@@ -513,6 +515,10 @@ export const BureauAppElement = defineElement()({
 
         function onIdeaDeleted(id: string): void {
             commit({ideas: state.app.ideas.filter(i => i.id !== id)});
+        }
+
+        function onIdeaUnlinkFromGoal(ideaId: string): void {
+            commit({ideas: state.app.ideas.map(i => i.id === ideaId ? {...i, goalId: null} : i)});
         }
 
         function onGoalAdded(goal: Goal): void {
@@ -636,6 +642,7 @@ export const BureauAppElement = defineElement()({
                         <${GoalsViewElement.assign({
                             goals: state.app.goals,
                             tasks: state.app.tasks,
+                            ideas: state.app.ideas,
                             projects: state.app.projects,
                         })}
                             ${listen(GoalsViewElement.events.goalAdded, e =>
@@ -648,12 +655,17 @@ export const BureauAppElement = defineElement()({
                                 onSpawnRequested(e.detail))}
                             ${listen(GoalsViewElement.events.unlinkRequested, e =>
                                 onUnlinkRequested(e.detail))}
+                            ${listen(GoalsViewElement.events.ideaUnlinkFromGoal, e =>
+                                onIdeaUnlinkFromGoal(e.detail))}
+                            ${listen(GoalsViewElement.events.promoteIdeaRequested, e =>
+                                onPromoteRequested(e.detail))}
                         ></${GoalsViewElement}>
                       `
                     : view === 'ideas'
                     ? html`
                         <${IdeasViewElement.assign({
                             ideas: state.app.ideas,
+                            goals: state.app.goals,
                             projects: state.app.projects,
                         })}
                             ${listen(IdeasViewElement.events.ideaAdded, e =>
@@ -728,6 +740,7 @@ export const BureauAppElement = defineElement()({
                             goals: state.app.goals.filter(
                                 g => g.projectId === selectedProject.id,
                             ),
+                            ideas: state.app.ideas,
                             projects: state.app.projects,
                         })}
                             ${listen(ProjectDetailElement.events.taskCompleted, e =>
@@ -761,6 +774,16 @@ export const BureauAppElement = defineElement()({
                                 onSpawnRequested(e.detail))}
                             ${listen(ProjectDetailElement.events.goalUnlinkRequested, e =>
                                 onUnlinkRequested(e.detail))}
+                            ${listen(ProjectDetailElement.events.ideaAdded, e =>
+                                onIdeaAdded(e.detail))}
+                            ${listen(ProjectDetailElement.events.ideaUpdated, e =>
+                                onIdeaUpdated(e.detail))}
+                            ${listen(ProjectDetailElement.events.ideaDeleted, e =>
+                                onIdeaDeleted(e.detail))}
+                            ${listen(ProjectDetailElement.events.ideaPromoteRequested, e =>
+                                onPromoteRequested(e.detail))}
+                            ${listen(ProjectDetailElement.events.ideaUnlinkFromGoal, e =>
+                                onIdeaUnlinkFromGoal(e.detail))}
                         ></${ProjectDetailElement}>
                       `
                     : html`

@@ -1,7 +1,8 @@
 import {defineElement, defineElementEvent, css, html, listen} from 'element-vir';
-import type {Goal, Project, ProjectColor, Task} from '../data/types.js';
+import type {Goal, Idea, Project, ProjectColor, Task} from '../data/types.js';
 import {isCurrentlyPaused, isTaskVisible, isTaskOverdue} from '../data/storage.js';
 import {GoalsViewElement} from './goals-view.element.js';
+import {IdeasViewElement} from './ideas-view.element.js';
 
 const COLOR_OPTIONS: ReadonlyArray<{key: ProjectColor; label: string; swatch: string}> = [
     {key: 'red',   label: 'Crimson', swatch: '#C41E3A'},
@@ -21,6 +22,7 @@ export const ProjectDetailElement = defineElement<{
     project: Project;
     tasks: ReadonlyArray<Task>;    // only this project's tasks
     goals: ReadonlyArray<Goal>;    // only this project's goals
+    ideas: ReadonlyArray<Idea>;    // all ideas (filtered internally by project/goal)
     projects: ReadonlyArray<Project>;
 }>()({
     tagName: 'project-detail',
@@ -37,11 +39,16 @@ export const ProjectDetailElement = defineElement<{
         back:               defineElementEvent<void>(),
         projectDeleted:     defineElementEvent<string>(),
         projectUpdated:     defineElementEvent<Project>(),
-        goalAdded:          defineElementEvent<Goal>(),
-        goalUpdated:        defineElementEvent<Goal>(),
-        goalDeleted:        defineElementEvent<string>(),
-        goalSpawnRequested: defineElementEvent<string>(),           // goal id
-        goalUnlinkRequested: defineElementEvent<{goalId: string; taskId: string}>(),
+        goalAdded:              defineElementEvent<Goal>(),
+        goalUpdated:            defineElementEvent<Goal>(),
+        goalDeleted:            defineElementEvent<string>(),
+        goalSpawnRequested:     defineElementEvent<string>(),           // goal id
+        goalUnlinkRequested:    defineElementEvent<{goalId: string; taskId: string}>(),
+        ideaAdded:              defineElementEvent<Idea>(),
+        ideaUpdated:            defineElementEvent<Idea>(),
+        ideaDeleted:            defineElementEvent<string>(),
+        ideaPromoteRequested:   defineElementEvent<Idea>(),
+        ideaUnlinkFromGoal:     defineElementEvent<string>(),           // idea id → set goalId = null
     },
 
     state: () => ({
@@ -520,6 +527,7 @@ export const ProjectDetailElement = defineElement<{
                 <${GoalsViewElement.assign({
                     goals: inputs.goals,
                     tasks: inputs.tasks,
+                    ideas: inputs.ideas,
                     projects: inputs.projects,
                     filterProjectId: project.id,
                 })}
@@ -533,7 +541,31 @@ export const ProjectDetailElement = defineElement<{
                         dispatch(new events.goalSpawnRequested(e.detail)))}
                     ${listen(GoalsViewElement.events.unlinkRequested, e =>
                         dispatch(new events.goalUnlinkRequested(e.detail)))}
+                    ${listen(GoalsViewElement.events.ideaUnlinkFromGoal, e =>
+                        dispatch(new events.ideaUnlinkFromGoal(e.detail)))}
+                    ${listen(GoalsViewElement.events.promoteIdeaRequested, e =>
+                        dispatch(new events.ideaPromoteRequested(e.detail)))}
                 ></${GoalsViewElement}>
+            </div>
+
+            <!-- Intelligence for this operation -->
+            <div class="intel-section">
+                <div class="section-label" style="margin-bottom:0">INTELLIGENCE</div>
+                <${IdeasViewElement.assign({
+                    ideas: inputs.ideas,
+                    goals: inputs.goals,
+                    projects: inputs.projects,
+                    filterProjectId: project.id,
+                })} data-embedded=${''}
+                    ${listen(IdeasViewElement.events.ideaAdded, e =>
+                        dispatch(new events.ideaAdded(e.detail)))}
+                    ${listen(IdeasViewElement.events.ideaUpdated, e =>
+                        dispatch(new events.ideaUpdated(e.detail)))}
+                    ${listen(IdeasViewElement.events.ideaDeleted, e =>
+                        dispatch(new events.ideaDeleted(e.detail)))}
+                    ${listen(IdeasViewElement.events.promoteRequested, e =>
+                        dispatch(new events.ideaPromoteRequested(e.detail)))}
+                ></${IdeasViewElement}>
             </div>
 
             <!-- Edit / delete operation zone -->

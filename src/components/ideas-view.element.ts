@@ -1,32 +1,40 @@
 import {css, defineElement, defineElementEvent, html} from 'element-vir';
-import type {Idea, Project} from '../data/types.js';
+import type {Goal, Idea, Project} from '../data/types.js';
 import {generateId} from '../data/storage.js';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // IdeasViewElement
-// Field Intelligence: capture raw ideas, link to an operation, promote to a
-// directive when ready.
+// Field Intelligence: capture raw ideas, optionally link to an operation and
+// a goal within that operation, promote to a directive when ready.
+//
+// When filterProjectId is set only that project's ideas are shown and the
+// project selector is hidden (used from project-detail). The goal selector
+// always shows goals for the currently selected project.
 // ─────────────────────────────────────────────────────────────────────────────
 
 export const IdeasViewElement = defineElement<{
-    ideas: ReadonlyArray<Idea>;
-    projects: ReadonlyArray<Project>;
+    ideas:           ReadonlyArray<Idea>;
+    projects:        ReadonlyArray<Project>;
+    goals:           ReadonlyArray<Goal>;
+    /** When set, only show ideas for this project and hide the project selector. */
+    filterProjectId?: string | null;
 }>()({
     tagName: 'ideas-view',
 
     events: {
         ideaAdded:        defineElementEvent<Idea>(),
         ideaUpdated:      defineElementEvent<Idea>(),
-        ideaDeleted:      defineElementEvent<string>(),   // idea id
+        ideaDeleted:      defineElementEvent<string>(),
         promoteRequested: defineElementEvent<Idea>(),
     },
 
     state: () => ({
-        formOpen:      false,
-        editingId:     null as string | null,
-        formTitle:     '',
-        formDesc:      '',
-        formProjectId: null as string | null,
+        formOpen:        false,
+        editingId:       null as string | null,
+        formTitle:       '',
+        formDesc:        '',
+        formProjectId:   null as string | null,
+        formGoalId:      null as string | null,
         confirmDeleteId: null as string | null,
     }),
 
@@ -34,6 +42,10 @@ export const IdeasViewElement = defineElement<{
         :host {
             display: block;
             padding: 16px 16px 80px;
+        }
+
+        :host([data-embedded]) {
+            padding: 4px 0 0;
         }
 
         .page-title {
@@ -52,7 +64,6 @@ export const IdeasViewElement = defineElement<{
             margin-bottom: 24px;
         }
 
-        /* ── Add / edit form ── */
         .form-card {
             background: #fff;
             border: 1px solid rgba(0,0,0,0.12);
@@ -69,9 +80,7 @@ export const IdeasViewElement = defineElement<{
             margin-bottom: 12px;
         }
 
-        .field {
-            margin-bottom: 10px;
-        }
+        .field { margin-bottom: 10px; }
 
         .field-label {
             display: block;
@@ -96,10 +105,7 @@ export const IdeasViewElement = defineElement<{
             box-sizing: border-box;
         }
 
-        textarea {
-            resize: vertical;
-            min-height: 64px;
-        }
+        textarea { resize: vertical; min-height: 64px; }
 
         .form-actions {
             display: flex;
@@ -116,26 +122,13 @@ export const IdeasViewElement = defineElement<{
             cursor: pointer;
         }
 
-        .btn-primary {
-            background: #1B2A4A;
-            color: #F5EFE0;
-        }
+        .btn-primary   { background: #1B2A4A; color: #F5EFE0; }
         .btn-primary:hover { background: #243a63; }
-
-        .btn-ghost {
-            background: transparent;
-            border: 1px solid rgba(0,0,0,0.2);
-            color: #1B2A4A;
-        }
+        .btn-ghost     { background: transparent; border: 1px solid rgba(0,0,0,0.2); color: #1B2A4A; }
         .btn-ghost:hover { background: rgba(0,0,0,0.05); }
-
-        .btn-danger {
-            background: #C41E3A;
-            color: #F5EFE0;
-        }
+        .btn-danger    { background: #C41E3A; color: #F5EFE0; }
         .btn-danger:hover { background: #a31830; }
 
-        /* ── File intelligence button ── */
         .file-btn {
             width: 100%;
             font-family: 'Bebas Neue', sans-serif;
@@ -149,12 +142,8 @@ export const IdeasViewElement = defineElement<{
             margin-bottom: 20px;
             text-align: center;
         }
-        .file-btn:hover {
-            border-color: #1B2A4A;
-            color: #1B2A4A;
-        }
+        .file-btn:hover { border-color: #1B2A4A; color: #1B2A4A; }
 
-        /* ── Empty state ── */
         .empty {
             font-family: 'Courier Prime', monospace;
             font-size: 0.8rem;
@@ -163,7 +152,6 @@ export const IdeasViewElement = defineElement<{
             padding: 32px 0;
         }
 
-        /* ── Idea cards ── */
         .idea-card {
             background: #fff;
             border: 1px solid rgba(0,0,0,0.1);
@@ -172,23 +160,13 @@ export const IdeasViewElement = defineElement<{
             margin-bottom: 12px;
         }
 
-        .idea-card.editing {
-            border-left-color: #1B2A4A;
-        }
-
-        .idea-header {
-            display: flex;
-            align-items: flex-start;
-            justify-content: space-between;
-            gap: 8px;
-        }
+        .idea-card.editing { border-left-color: #1B2A4A; }
 
         .idea-title {
             font-family: 'Bebas Neue', sans-serif;
             font-size: 1rem;
             letter-spacing: 0.1em;
             color: #1B2A4A;
-            flex: 1;
         }
 
         .idea-desc {
@@ -199,8 +177,14 @@ export const IdeasViewElement = defineElement<{
             white-space: pre-wrap;
         }
 
-        .idea-project-badge {
-            display: inline-block;
+        .idea-meta {
+            display: flex;
+            gap: 6px;
+            flex-wrap: wrap;
+            margin-top: 6px;
+        }
+
+        .meta-badge {
             font-family: 'Courier Prime', monospace;
             font-size: 0.62rem;
             letter-spacing: 0.08em;
@@ -208,8 +192,9 @@ export const IdeasViewElement = defineElement<{
             padding: 2px 6px;
             border: 1px solid rgba(0,0,0,0.15);
             color: #6B6B6B;
-            margin-top: 6px;
         }
+
+        .meta-badge.goal { border-color: #1B2A4A33; color: #1B2A4A; }
 
         .idea-actions {
             display: flex;
@@ -227,24 +212,11 @@ export const IdeasViewElement = defineElement<{
             cursor: pointer;
         }
 
-        .action-promote {
-            background: #1B2A4A;
-            color: #F5EFE0;
-        }
+        .action-promote { background: #1B2A4A; color: #F5EFE0; }
         .action-promote:hover { background: #243a63; }
-
-        .action-edit {
-            background: transparent;
-            border: 1px solid rgba(0,0,0,0.2);
-            color: #1B2A4A;
-        }
+        .action-edit { background: transparent; border: 1px solid rgba(0,0,0,0.2); color: #1B2A4A; }
         .action-edit:hover { background: rgba(0,0,0,0.05); }
-
-        .action-delete {
-            background: transparent;
-            border: 1px solid #C41E3A;
-            color: #C41E3A;
-        }
+        .action-delete { background: transparent; border: 1px solid #C41E3A; color: #C41E3A; }
         .action-delete:hover { background: rgba(196,30,58,0.08); }
 
         .confirm-delete {
@@ -259,15 +231,40 @@ export const IdeasViewElement = defineElement<{
     `,
 
     render({inputs, state, updateState, dispatch, events}) {
-        const {ideas, projects} = inputs;
+        const {ideas, projects, goals} = inputs;
+        const filterProjectId = inputs.filterProjectId ?? null;
+        const isFiltered = filterProjectId !== null;
 
-        function openAddForm(): void {
+        const visibleIdeas = isFiltered
+            ? ideas.filter(i => i.projectId === filterProjectId)
+            : [...ideas];
+
+        const sortedIdeas = visibleIdeas.sort((a, b) => b.createdAt - a.createdAt);
+
+        // Goals available for the currently selected project (in form)
+        const effectiveProjectId = isFiltered ? filterProjectId : state.formProjectId;
+        const availableGoals = effectiveProjectId
+            ? goals.filter(g => g.projectId === effectiveProjectId && g.status === 'active')
+            : [];
+
+        function projectName(id: string | null): string | null {
+            if (!id) return null;
+            return projects.find(p => p.id === id)?.name ?? null;
+        }
+
+        function goalName(id: string | null): string | null {
+            if (!id) return null;
+            return goals.find(g => g.id === id)?.title ?? null;
+        }
+
+        function openAddForm(prefillGoalId: string | null = null): void {
             updateState({
                 formOpen: true,
                 editingId: null,
                 formTitle: '',
                 formDesc: '',
-                formProjectId: null,
+                formProjectId: filterProjectId,
+                formGoalId: prefillGoalId,
                 confirmDeleteId: null,
             });
         }
@@ -279,6 +276,7 @@ export const IdeasViewElement = defineElement<{
                 formTitle: idea.title,
                 formDesc: idea.description,
                 formProjectId: idea.projectId,
+                formGoalId: idea.goalId,
                 confirmDeleteId: null,
             });
         }
@@ -291,87 +289,101 @@ export const IdeasViewElement = defineElement<{
             const title = state.formTitle.trim();
             if (!title) return;
             if (state.editingId) {
-                const updated: Idea = {
-                    id: state.editingId,
+                const existing = ideas.find(i => i.id === state.editingId)!;
+                dispatch(new events.ideaUpdated({
+                    ...existing,
                     title,
                     description: state.formDesc.trim(),
-                    projectId: state.formProjectId,
-                    createdAt: ideas.find(i => i.id === state.editingId)?.createdAt ?? Date.now(),
-                };
-                dispatch(new events.ideaUpdated(updated));
+                    projectId: isFiltered ? filterProjectId : state.formProjectId,
+                    goalId: state.formGoalId,
+                }));
             } else {
-                const newIdea: Idea = {
+                dispatch(new events.ideaAdded({
                     id: generateId(),
                     title,
                     description: state.formDesc.trim(),
-                    projectId: state.formProjectId,
+                    projectId: isFiltered ? filterProjectId : state.formProjectId,
+                    goalId: state.formGoalId,
                     createdAt: Date.now(),
-                };
-                dispatch(new events.ideaAdded(newIdea));
+                }));
             }
             closeForm();
         }
 
-        function projectName(id: string | null): string | null {
-            if (!id) return null;
-            return projects.find(p => p.id === id)?.name ?? null;
-        }
-
-        const sortedIdeas = [...ideas].sort((a, b) => b.createdAt - a.createdAt);
-
-        return html`
-            <div class="page-title">FIELD INTELLIGENCE</div>
-            <div class="page-subtitle">UNPROCESSED OBSERVATIONS · PROPOSED OPERATIONS</div>
-
-            ${state.formOpen && state.editingId === null
-                ? html`
-                    <div class="form-card">
-                        <div class="form-title">FILE NEW INTELLIGENCE</div>
-                        <div class="field">
-                            <label class="field-label">Title</label>
-                            <input
-                                type="text"
-                                placeholder="Intelligence designation…"
-                                .value=${state.formTitle}
-                                @input=${(e: Event) =>
-                                    updateState({formTitle: (e.target as HTMLInputElement).value})}
-                            />
-                        </div>
-                        <div class="field">
-                            <label class="field-label">Notes (optional)</label>
-                            <textarea
-                                placeholder="Details, context, leads…"
-                                .value=${state.formDesc}
-                                @input=${(e: Event) =>
-                                    updateState({formDesc: (e.target as HTMLTextAreaElement).value})}
-                            ></textarea>
-                        </div>
+        function renderForm(label: string) {
+            return html`
+                <div class="form-card">
+                    <div class="form-title">${label}</div>
+                    <div class="field">
+                        <label class="field-label">Title</label>
+                        <input
+                            type="text"
+                            placeholder="Intelligence designation…"
+                            .value=${state.formTitle}
+                            @input=${(e: Event) =>
+                                updateState({formTitle: (e.target as HTMLInputElement).value})}
+                        />
+                    </div>
+                    <div class="field">
+                        <label class="field-label">Notes (optional)</label>
+                        <textarea
+                            placeholder="Details, context, leads…"
+                            .value=${state.formDesc}
+                            @input=${(e: Event) =>
+                                updateState({formDesc: (e.target as HTMLTextAreaElement).value})}
+                        ></textarea>
+                    </div>
+                    ${!isFiltered ? html`
                         <div class="field">
                             <label class="field-label">Linked Operation (optional)</label>
                             <select
                                 @change=${(e: Event) => {
                                     const val = (e.target as HTMLSelectElement).value;
-                                    updateState({formProjectId: val || null});
+                                    updateState({formProjectId: val || null, formGoalId: null});
                                 }}
                             >
                                 <option value="" ?selected=${state.formProjectId === null}>— None —</option>
                                 ${projects.map(p => html`
-                                    <option
-                                        value=${p.id}
-                                        ?selected=${state.formProjectId === p.id}
-                                    >${p.name}</option>
+                                    <option value=${p.id} ?selected=${state.formProjectId === p.id}>${p.name}</option>
                                 `)}
                             </select>
                         </div>
-                        <div class="form-actions">
-                            <button class="btn btn-primary" @click=${submitForm}>FILE</button>
-                            <button class="btn btn-ghost" @click=${closeForm}>CANCEL</button>
+                    ` : html``}
+                    ${availableGoals.length > 0 ? html`
+                        <div class="field">
+                            <label class="field-label">Linked Objective (optional)</label>
+                            <select
+                                @change=${(e: Event) => {
+                                    const val = (e.target as HTMLSelectElement).value;
+                                    updateState({formGoalId: val || null});
+                                }}
+                            >
+                                <option value="" ?selected=${state.formGoalId === null}>— None —</option>
+                                ${availableGoals.map(g => html`
+                                    <option value=${g.id} ?selected=${state.formGoalId === g.id}>${g.title}</option>
+                                `)}
+                            </select>
                         </div>
+                    ` : html``}
+                    <div class="form-actions">
+                        <button class="btn btn-primary" @click=${submitForm}>FILE</button>
+                        <button class="btn btn-ghost" @click=${closeForm}>CANCEL</button>
                     </div>
+                </div>
+            `;
+        }
+
+        return html`
+            ${!isFiltered
+                ? html`
+                    <div class="page-title">FIELD INTELLIGENCE</div>
+                    <div class="page-subtitle">UNPROCESSED OBSERVATIONS · PROPOSED OPERATIONS</div>
                   `
-                : html`
-                    <button class="file-btn" @click=${openAddForm}>+ FILE INTELLIGENCE</button>
-                  `}
+                : html``}
+
+            ${state.formOpen && state.editingId === null
+                ? renderForm('FILE NEW INTELLIGENCE')
+                : html`<button class="file-btn" @click=${() => openAddForm()}>+ FILE INTELLIGENCE</button>`}
 
             ${sortedIdeas.length === 0 && !state.formOpen
                 ? html`<div class="empty">No intelligence on file. Observations go here.</div>`
@@ -379,63 +391,25 @@ export const IdeasViewElement = defineElement<{
 
             ${sortedIdeas.map(idea => {
                 const isEditing = state.formOpen && state.editingId === idea.id;
-                const linkedProject = projectName(idea.projectId);
                 const confirmingDelete = state.confirmDeleteId === idea.id;
+                const opName = !isFiltered ? projectName(idea.projectId) : null;
+                const gName = goalName(idea.goalId);
 
                 return html`
                     <div class=${'idea-card' + (isEditing ? ' editing' : '')}>
                         ${isEditing
-                            ? html`
-                                <div class="form-title">EDIT INTELLIGENCE</div>
-                                <div class="field">
-                                    <label class="field-label">Title</label>
-                                    <input
-                                        type="text"
-                                        .value=${state.formTitle}
-                                        @input=${(e: Event) =>
-                                            updateState({formTitle: (e.target as HTMLInputElement).value})}
-                                    />
-                                </div>
-                                <div class="field">
-                                    <label class="field-label">Notes (optional)</label>
-                                    <textarea
-                                        .value=${state.formDesc}
-                                        @input=${(e: Event) =>
-                                            updateState({formDesc: (e.target as HTMLTextAreaElement).value})}
-                                    ></textarea>
-                                </div>
-                                <div class="field">
-                                    <label class="field-label">Linked Operation (optional)</label>
-                                    <select
-                                        @change=${(e: Event) => {
-                                            const val = (e.target as HTMLSelectElement).value;
-                                            updateState({formProjectId: val || null});
-                                        }}
-                                    >
-                                        <option value="" ?selected=${state.formProjectId === null}>— None —</option>
-                                        ${projects.map(p => html`
-                                            <option
-                                                value=${p.id}
-                                                ?selected=${state.formProjectId === p.id}
-                                            >${p.name}</option>
-                                        `)}
-                                    </select>
-                                </div>
-                                <div class="form-actions">
-                                    <button class="btn btn-primary" @click=${submitForm}>SAVE</button>
-                                    <button class="btn btn-ghost" @click=${closeForm}>CANCEL</button>
-                                </div>
-                              `
+                            ? renderForm('EDIT INTELLIGENCE')
                             : html`
-                                <div class="idea-header">
-                                    <div class="idea-title">${idea.title}</div>
-                                </div>
+                                <div class="idea-title">${idea.title}</div>
                                 ${idea.description
                                     ? html`<div class="idea-desc">${idea.description}</div>`
                                     : html``}
-                                ${linkedProject
-                                    ? html`<div class="idea-project-badge">⊙ ${linkedProject}</div>`
-                                    : html``}
+                                ${(opName || gName) ? html`
+                                    <div class="idea-meta">
+                                        ${opName ? html`<span class="meta-badge">⊙ ${opName}</span>` : html``}
+                                        ${gName  ? html`<span class="meta-badge goal">→ ${gName}</span>` : html``}
+                                    </div>
+                                ` : html``}
                                 <div class="idea-actions">
                                     <button
                                         class="action-btn action-promote"
@@ -450,26 +424,24 @@ export const IdeasViewElement = defineElement<{
                                         @click=${() => updateState({confirmDeleteId: idea.id})}
                                     >DELETE</button>
                                 </div>
-                                ${confirmingDelete
-                                    ? html`
-                                        <div class="confirm-delete">
-                                            Permanently delete this intelligence?
-                                            <button
-                                                class="btn btn-danger"
-                                                style="font-size:0.72rem;padding:3px 8px;"
-                                                @click=${() => {
-                                                    dispatch(new events.ideaDeleted(idea.id));
-                                                    updateState({confirmDeleteId: null});
-                                                }}
-                                            >CONFIRM</button>
-                                            <button
-                                                class="btn btn-ghost"
-                                                style="font-size:0.72rem;padding:3px 8px;"
-                                                @click=${() => updateState({confirmDeleteId: null})}
-                                            >CANCEL</button>
-                                        </div>
-                                      `
-                                    : html``}
+                                ${confirmingDelete ? html`
+                                    <div class="confirm-delete">
+                                        Permanently delete this intelligence?
+                                        <button
+                                            class="btn btn-danger"
+                                            style="font-size:0.72rem;padding:3px 8px;"
+                                            @click=${() => {
+                                                dispatch(new events.ideaDeleted(idea.id));
+                                                updateState({confirmDeleteId: null});
+                                            }}
+                                        >CONFIRM</button>
+                                        <button
+                                            class="btn btn-ghost"
+                                            style="font-size:0.72rem;padding:3px 8px;"
+                                            @click=${() => updateState({confirmDeleteId: null})}
+                                        >CANCEL</button>
+                                    </div>
+                                ` : html``}
                               `}
                     </div>
                 `;

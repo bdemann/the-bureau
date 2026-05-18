@@ -32,7 +32,10 @@ export interface Idea {
     id: string;
     title: string;
     description: string;
+    /** The operation this idea belongs to. */
     projectId: string | null;
+    /** The goal within the operation this idea is fleshing out (optional). */
+    goalId: string | null;
     createdAt: number;
 }
 

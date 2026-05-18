@@ -410,27 +410,45 @@ Mark each row as you verify in the browser. Reset the localStorage entry
 - [ ] Linked directives appear as chip tags showing the directive title
 - [ ] "×" button on a chip unlinks that directive (directive itself is not deleted)
 - [ ] "(deleted directive)" label appears for chips whose task no longer exists
+- [ ] Goal cards show a "Linked Intelligence" section (see Field Intelligence section for detail)
 - [ ] Decommissioning an operation also deletes all goals linked to that operation
 
 ### Field Intelligence (Ideas)
 
+**Global view (Field Intelligence nav item)**
 - [ ] Menu → "Field Intelligence" navigates to the ideas view
 - [ ] Page shows "FIELD INTELLIGENCE" title and subtitle
 - [ ] Empty state shows "No intelligence on file. Observations go here."
 - [ ] "FILE INTELLIGENCE" dashed button appears when no add-form is open
-- [ ] Clicking "FILE INTELLIGENCE" shows the add form with Title, Notes, and Linked Operation fields
+- [ ] Clicking "FILE INTELLIGENCE" shows the add form with Title, Notes, Linked Operation, and (when an operation is selected) a Linked Objective dropdown
 - [ ] Linked Operation dropdown lists all projects; default is "— None —"
+- [ ] Selecting an operation causes the "Linked Objective" dropdown to appear, listing active goals for that operation
 - [ ] Submitting with a blank title does nothing (form stays open)
 - [ ] Submitting with a title closes the form and the idea card appears immediately
-- [ ] Idea cards show title, notes (if any), and linked project badge (if set)
+- [ ] Idea cards show title, notes (if any), linked project badge (if set), and linked objective badge (if set)
 - [ ] Ideas are listed newest-first
 - [ ] EDIT button on a card expands an inline form pre-filled with the idea's data; saving updates the card
 - [ ] DELETE button shows a "Permanently delete?" confirmation row with CONFIRM and CANCEL buttons
 - [ ] CONFIRM deletes the idea; CANCEL dismisses the confirmation without deleting
 - [ ] PROMOTE TO DIRECTIVE opens the Add Directive sheet with the idea's title and notes pre-filled
 - [ ] If the idea had a linked operation, the directive dialog's operation selector is pre-selected to that operation
+- [ ] If the idea had a linked objective, promoting it auto-links the created directive to that objective
 - [ ] Submitting the promoted directive deletes the idea from the ideas list
 - [ ] Cancelling the directive sheet leaves the idea intact
+
+**Per-operation view (project detail page)**
+- [ ] Project detail page shows an "INTELLIGENCE" section below the Objectives section
+- [ ] Only ideas linked to that operation appear in the per-operation intelligence section
+- [ ] "FILE INTELLIGENCE" button in the embedded view pre-fills the operation; no operation selector is shown
+- [ ] If the operation has active objectives, the Linked Objective dropdown appears in the add form
+- [ ] Ideas added from the per-operation view are visible in the global Field Intelligence view
+
+**Idea–Objective linkage in the goals view**
+- [ ] Goal cards show a "Linked Intelligence" section with chips for each idea linked to that goal
+- [ ] "×" button on an intelligence chip unlinks the idea from the goal (idea.goalId set to null; idea itself is not deleted)
+- [ ] "↑" button on an intelligence chip promotes the idea to a directive (same flow as PROMOTE TO DIRECTIVE)
+- [ ] When no intelligence is linked to a goal, "No intelligence linked yet." placeholder appears
+- [ ] Decommissioning an operation also deletes all ideas linked to that operation
 
 ### Bug regressions
 
