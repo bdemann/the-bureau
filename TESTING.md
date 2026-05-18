@@ -369,6 +369,26 @@ Mark each row as you verify in the browser. Reset the localStorage entry
 - [ ] Recurring directive rolled over at startup (period elapsed without completion): totalMisses incremented
 - [ ] skipStreak resets to 0 on directive completion; taskCompletionStreak resets to 0 on skip
 
+### Field Intelligence (Ideas)
+
+- [ ] Menu → "Field Intelligence" navigates to the ideas view
+- [ ] Page shows "FIELD INTELLIGENCE" title and subtitle
+- [ ] Empty state shows "No intelligence on file. Observations go here."
+- [ ] "FILE INTELLIGENCE" dashed button appears when no add-form is open
+- [ ] Clicking "FILE INTELLIGENCE" shows the add form with Title, Notes, and Linked Operation fields
+- [ ] Linked Operation dropdown lists all projects; default is "— None —"
+- [ ] Submitting with a blank title does nothing (form stays open)
+- [ ] Submitting with a title closes the form and the idea card appears immediately
+- [ ] Idea cards show title, notes (if any), and linked project badge (if set)
+- [ ] Ideas are listed newest-first
+- [ ] EDIT button on a card expands an inline form pre-filled with the idea's data; saving updates the card
+- [ ] DELETE button shows a "Permanently delete?" confirmation row with CONFIRM and CANCEL buttons
+- [ ] CONFIRM deletes the idea; CANCEL dismisses the confirmation without deleting
+- [ ] PROMOTE TO DIRECTIVE opens the Add Directive sheet with the idea's title and notes pre-filled
+- [ ] If the idea had a linked operation, the directive dialog's operation selector is pre-selected to that operation
+- [ ] Submitting the promoted directive deletes the idea from the ideas list
+- [ ] Cancelling the directive sheet leaves the idea intact
+
 ### Bug regressions
 
 - [ ] Skip action (recurring directive) fires NO Whitaker/Briggs dialogue (regression: NEW-2)

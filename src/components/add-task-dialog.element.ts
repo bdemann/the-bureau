@@ -55,6 +55,8 @@ export const AddTaskDialogElement = defineElement<{
     open: boolean;
     editTask?: Task | null;
     projects?: ReadonlyArray<Project>;
+    prefillTitle?: string | null;
+    prefillDescription?: string | null;
 }>()({
     tagName: 'add-task-dialog',
 
@@ -449,8 +451,8 @@ export const AddTaskDialogElement = defineElement<{
             updateState({
                 wasOpen: true,
                 selectedProjectId: inputs.projectId,
-                titleValue: '',
-                description: '',
+                titleValue: inputs.prefillTitle ?? '',
+                description: inputs.prefillDescription ?? '',
                 kind: 'task',
                 consequenceTier: 3,
                 timeOfDay: 'anytime',

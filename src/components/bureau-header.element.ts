@@ -21,6 +21,7 @@ export const BureauHeaderElement = defineElement<{
         homeRequested:       defineElementEvent<void>(),
         operationsRequested: defineElementEvent<void>(),
         insightsRequested:   defineElementEvent<void>(),
+        ideasRequested:      defineElementEvent<void>(),
     },
 
     state: () => ({
@@ -322,6 +323,11 @@ export const BureauHeaderElement = defineElement<{
             dispatch(new events.insightsRequested());
         }
 
+        function onIdeas(): void {
+            closeMenu();
+            dispatch(new events.ideasRequested());
+        }
+
         async function onReportNeighbor(): Promise<void> {
             closeMenu();
             if (navigator.share) {
@@ -405,6 +411,10 @@ export const BureauHeaderElement = defineElement<{
                             <button class="menu-item" @click=${onInsights}>
                                 Intelligence Report
                                 <span class="menu-item-sub">Missed tasks, completions, patterns</span>
+                            </button>
+                            <button class="menu-item" @click=${onIdeas}>
+                                Field Intelligence
+                                <span class="menu-item-sub">Observations and proposed operations</span>
                             </button>
                         </div>
 

@@ -1,5 +1,5 @@
 import {css, defineElement, html, listen} from 'element-vir';
-import type {AppState, AppView, ConsequenceTier, DialogueEntry, Project, Task} from '../data/types.js';
+import type {AppState, AppView, ConsequenceTier, DialogueEntry, Idea, Project, Task} from '../data/types.js';
 import {
     generateId,
     getTodayString,
@@ -16,6 +16,7 @@ import {CharacterDialogueElement} from './character-dialogue.element.js';
 import {DailyViewElement} from './daily-view.element.js';
 import {DashboardViewElement} from './dashboard-view.element.js';
 import {InsightsViewElement} from './insights-view.element.js';
+import {IdeasViewElement} from './ideas-view.element.js';
 import {ProjectDetailElement} from './project-detail.element.js';
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -146,6 +147,7 @@ export const BureauAppElement = defineElement()({
         editingTask: null as Task | null,
         addingTask: false,
         newTaskProjectId: null as string | null,
+        promotingIdea: null as Idea | null,
         undoAction: null as {
             prevTask: Task;
             prevScore: number;
@@ -417,8 +419,11 @@ export const BureauAppElement = defineElement()({
         }
 
         function onTaskAdded(task: Task): void {
-            commit({tasks: [...state.app.tasks, task]});
-            updateState({addingTask: false, newTaskProjectId: null});
+            const ideas = state.promotingIdea
+                ? state.app.ideas.filter(i => i.id !== state.promotingIdea!.id)
+                : state.app.ideas;
+            commit({tasks: [...state.app.tasks, task], ideas});
+            updateState({addingTask: false, newTaskProjectId: null, promotingIdea: null});
             if (Math.random() < 0.6) {
                 triggerDialogue('task_added', false);
             }
@@ -488,6 +493,27 @@ export const BureauAppElement = defineElement()({
             commit({projects: newProjects});
         }
 
+        function onIdeaAdded(idea: Idea): void {
+            commit({ideas: [...state.app.ideas, idea]});
+        }
+
+        function onIdeaUpdated(idea: Idea): void {
+            commit({ideas: state.app.ideas.map(i => i.id === idea.id ? idea : i)});
+        }
+
+        function onIdeaDeleted(id: string): void {
+            commit({ideas: state.app.ideas.filter(i => i.id !== id)});
+        }
+
+        function onPromoteRequested(idea: Idea): void {
+            updateState({
+                promotingIdea: idea,
+                addingTask: true,
+                newTaskProjectId: idea.projectId,
+                editingTask: null,
+            });
+        }
+
         function onTasksReordered(orderedIds: ReadonlyArray<string>): void {
             const orderedSet = new Set(orderedIds);
             const orderedTasks = orderedIds
@@ -549,6 +575,8 @@ export const BureauAppElement = defineElement()({
                         () => setView('operations'))}
                     ${listen(BureauHeaderElement.events.insightsRequested,
                         () => setView('insights'))}
+                    ${listen(BureauHeaderElement.events.ideasRequested,
+                        () => setView('ideas'))}
                 ></${BureauHeaderElement}>
 
                 ${currentDialogue
@@ -559,7 +587,23 @@ export const BureauAppElement = defineElement()({
                       `
                     : html``}
 
-                ${view === 'insights'
+                ${view === 'ideas'
+                    ? html`
+                        <${IdeasViewElement.assign({
+                            ideas: state.app.ideas,
+                            projects: state.app.projects,
+                        })}
+                            ${listen(IdeasViewElement.events.ideaAdded, e =>
+                                onIdeaAdded(e.detail))}
+                            ${listen(IdeasViewElement.events.ideaUpdated, e =>
+                                onIdeaUpdated(e.detail))}
+                            ${listen(IdeasViewElement.events.ideaDeleted, e =>
+                                onIdeaDeleted(e.detail))}
+                            ${listen(IdeasViewElement.events.promoteRequested, e =>
+                                onPromoteRequested(e.detail))}
+                        ></${IdeasViewElement}>
+                      `
+                    : view === 'insights'
                     ? html`
                         <${InsightsViewElement.assign({
                             tasks: state.app.tasks,
@@ -653,6 +697,8 @@ export const BureauAppElement = defineElement()({
                     open: state.editingTask !== null || state.addingTask,
                     editTask: state.editingTask,
                     projects: state.app.projects,
+                    prefillTitle: state.promotingIdea?.title ?? null,
+                    prefillDescription: state.promotingIdea?.description ?? null,
                 })}
                     ${listen(AddTaskDialogElement.events.taskSubmitted, e =>
                         onTaskAdded(e.detail))}
@@ -661,7 +707,7 @@ export const BureauAppElement = defineElement()({
                     ${listen(AddTaskDialogElement.events.taskDeleted, e =>
                         onTaskDeleted(e.detail))}
                     ${listen(AddTaskDialogElement.events.cancelled, () =>
-                        updateState({editingTask: null, addingTask: false, newTaskProjectId: null}))}
+                        updateState({editingTask: null, addingTask: false, newTaskProjectId: null, promotingIdea: null}))}
                 ></${AddTaskDialogElement}>
 
                 ${state.undoAction

@@ -3,10 +3,20 @@
 // ─────────────────────────────────────────────────────────────────────────────
 
 export type ItemKind = 'routine' | 'task';
-export type AppView = 'daily' | 'operations' | 'project' | 'insights';
+export type AppView = 'daily' | 'operations' | 'project' | 'insights' | 'ideas';
 export type Character = 'director' | 'agent';
 
 export const SCHEMA_VERSION = 2;
+
+// ── Idea ─────────────────────────────────────────────────────────────────────
+
+export interface Idea {
+    id: string;
+    title: string;
+    description: string;
+    projectId: string | null;
+    createdAt: number;
+}
 
 // ── Project ──────────────────────────────────────────────────────────────────
 
@@ -304,6 +314,7 @@ export interface AppState {
     readonly schemaVersion: number;
     readonly projects: ReadonlyArray<Project>;
     readonly tasks: ReadonlyArray<Task>;
+    readonly ideas: ReadonlyArray<Idea>;
     readonly view: AppView;
     readonly selectedProjectId: string | null;
     readonly patriotScore: number;
