@@ -245,7 +245,10 @@ Mark each row as you verify in the browser. Reset the localStorage entry
 - [ ] Snooze button → snoozedUntil = +24h, badge appears
 - [ ] Directive moves to Snoozed section
 - [ ] Snooze count escalates color (yellow → orange → red)
-- [ ] Score decreases (tier-weighted)
+- [ ] Score decreases on snooze (tier-weighted, N-scaled by active task count)
+- [ ] Score decreases on skip (penalty > snooze penalty; N-scaled)
+- [ ] Reopening the app after missing tasks decreases the score (auto-skip penalty; auto-skip > skip > snooze)
+- [ ] With fewer active tasks each action has a larger per-task score impact; with more tasks each action has a smaller per-task impact
 - [ ] Hard-date directive whose date is today: button reads "Cannot snooze" and is disabled
 - [ ] At 6 snoozes (any tier), Briggs takes over
 - [ ] Whitaker dialogue escalates with count

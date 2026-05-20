@@ -9,6 +9,7 @@ import {
     startOfDay,
 } from '../data/storage.js';
 import {advanceRecurrence, isMultiplePerPeriod, isRecurrenceEnded, rolloverIfNeeded} from '../data/recurrence.js';
+import {countActiveTasks, missPenalty, skipPenalty, snoozePenalty, taskScaleMultiplier, tierCompletionReward} from '../data/scoring.js';
 import {getDialogueFor} from '../data/dialogues.js';
 import {AddTaskDialogElement} from './add-task-dialog.element.js';
 import {BureauHeaderElement} from './bureau-header.element.js';
@@ -32,8 +33,23 @@ function bootstrap(): AppState {
     // Roll any recurring tasks forward whose period elapsed while we were away.
     const today = new Date();
     const todayMidnight = startOfDay(today).getTime();
+
+    // Compute N-scaling from the pre-rollover active task count so missed tasks
+    // are penalised using the state they were missed in.
+    const activeCount = countActiveTasks(loaded.tasks);
+    const multiplier = taskScaleMultiplier(activeCount);
+    let scoreAdjustment = 0;
+
     const tasks = loaded.tasks.map(t => {
         const rolled = rolloverIfNeeded(t, today);
+
+        // Recurring: period rolled over without completion — charge a miss penalty.
+        if (rolled.totalMisses > t.totalMisses) {
+            scoreAdjustment -= missPenalty(t.consequenceTier as ConsequenceTier)
+                * (rolled.totalMisses - t.totalMisses)
+                * multiplier;
+        }
+
         // One-time hard-date tasks past their date can never be done — mark missed.
         if (!rolled.recurrence
             && rolled.completedAt === null
@@ -41,6 +57,7 @@ function bootstrap(): AppState {
             && rolled.windowType === 'hard'
             && rolled.suggestedDate !== null
             && rolled.suggestedDate < todayMidnight) {
+            scoreAdjustment -= missPenalty(t.consequenceTier as ConsequenceTier) * multiplier;
             return {
                 ...rolled,
                 missedAt: rolled.suggestedDate,
@@ -67,7 +84,8 @@ function bootstrap(): AppState {
         lastActiveDate = todayStr;
     }
 
-    const next: AppState = {...loaded, tasks, dialogueQueue, lastActiveDate};
+    const patriotScore = Math.max(0, loaded.patriotScore + scoreAdjustment);
+    const next: AppState = {...loaded, tasks, dialogueQueue, lastActiveDate, patriotScore};
     saveState(next);
     return next;
 }
@@ -304,7 +322,8 @@ export const BureauAppElement = defineElement()({
             });
 
             const tier = (target.consequenceTier ?? 3) as ConsequenceTier;
-            const reward = tierCompletionReward(tier);
+            const active = countActiveTasks(state.app.tasks);
+            const reward = tierCompletionReward(tier) * taskScaleMultiplier(active);
             const prevScore = state.app.patriotScore;
             const newScore = Math.min(200, prevScore + reward);
             const newStreak = state.app.completionStreak + 1;
@@ -347,7 +366,9 @@ export const BureauAppElement = defineElement()({
             }
 
             const tier = task.consequenceTier as ConsequenceTier;
-            const penalty = Math.min(snoozePenalty(tier) * newSnoozeCount, 30);
+            const active = countActiveTasks(state.app.tasks);
+            const rawPenalty = Math.min(snoozePenalty(tier) * newSnoozeCount, 30);
+            const penalty = rawPenalty * taskScaleMultiplier(active);
             const prevScore = state.app.patriotScore;
             const newScore = Math.max(0, prevScore - penalty);
 
@@ -385,7 +406,9 @@ export const BureauAppElement = defineElement()({
                     ? {...t, progressCount: t.progressCount + 1, snoozedUntil: null}
                     : t,
             );
-            const reward = Math.max(1, Math.round(tierCompletionReward(target.consequenceTier as ConsequenceTier) / 4));
+            const active = countActiveTasks(state.app.tasks);
+            const reward = tierCompletionReward(target.consequenceTier as ConsequenceTier)
+                * taskScaleMultiplier(active) / 4;
             const newScore = Math.min(200, state.app.patriotScore + reward);
             commit({tasks, patriotScore: newScore});
         }
@@ -407,7 +430,8 @@ export const BureauAppElement = defineElement()({
             });
 
             const tier = target.consequenceTier as ConsequenceTier;
-            const penalty = skipPenalty(tier);
+            const active = countActiveTasks(state.app.tasks);
+            const penalty = skipPenalty(tier) * taskScaleMultiplier(active);
             const prevScore = state.app.patriotScore;
             const newScore = Math.max(0, prevScore - penalty);
 
@@ -824,36 +848,6 @@ export const BureauAppElement = defineElement()({
 });
 
 // ── Helpers ─────────────────────────────────────────────────────────────────
-
-/** Score reward for completing a task at a given consequence tier. */
-function tierCompletionReward(tier: ConsequenceTier): number {
-    switch (tier) {
-        case 1: return 25; // hard consequence — biggest payoff
-        case 2: return 18;
-        case 3: return 12;
-        case 4: return 8;  // aspirational — modest reward, not nothing
-    }
-}
-
-/** Score penalty per snooze, scaled by tier. */
-function snoozePenalty(tier: ConsequenceTier): number {
-    switch (tier) {
-        case 1: return 8;
-        case 2: return 5;
-        case 3: return 3;
-        case 4: return 1;
-    }
-}
-
-/** Score penalty for skipping a period entirely, scaled by tier. */
-function skipPenalty(tier: ConsequenceTier): number {
-    switch (tier) {
-        case 1: return 12;
-        case 2: return 7;
-        case 3: return 4;
-        case 4: return 1;
-    }
-}
 
 /** Map (tier, snoozeCount) to the dialogue trigger to emit, if any. */
 function computeSnoozeDialogue(
