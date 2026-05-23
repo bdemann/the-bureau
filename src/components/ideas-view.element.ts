@@ -1,6 +1,5 @@
 import {css, defineElement, defineElementEvent, html} from 'element-vir';
-import type {Goal, Idea, Project} from '../data/types.js';
-import {generateId} from '../data/storage.js';
+import type {FormKind, Goal, Idea, Project} from '../data/types.js';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // IdeasViewElement
@@ -18,27 +17,24 @@ export const IdeasViewElement = defineElement<{
     goals:           ReadonlyArray<Goal>;
     /** When set, only show ideas for this project and hide the project selector. */
     filterProjectId?: string | null;
-    /** Increment to programmatically open the add form (e.g. from a type picker). */
-    openFormTrigger?: number;
 }>()({
     tagName: 'ideas-view',
 
     events: {
-        ideaAdded:        defineElementEvent<Idea>(),
-        ideaUpdated:      defineElementEvent<Idea>(),
-        ideaDeleted:      defineElementEvent<string>(),
-        promoteRequested: defineElementEvent<Idea>(),
+        makeCommitmentRequested: defineElementEvent<FormKind>(),
+        ideaUpdated:             defineElementEvent<Idea>(),
+        ideaDeleted:             defineElementEvent<string>(),
+        promoteRequested:        defineElementEvent<Idea>(),
     },
 
     state: () => ({
-        formOpen:             false,
-        editingId:            null as string | null,
-        formTitle:            '',
-        formDesc:             '',
-        formProjectId:        null as string | null,
-        formGoalId:           null as string | null,
-        confirmDeleteId:      null as string | null,
-        lastOpenFormTrigger:  0,
+        formOpen:        false,
+        editingId:       null as string | null,
+        formTitle:       '',
+        formDesc:        '',
+        formProjectId:   null as string | null,
+        formGoalId:      null as string | null,
+        confirmDeleteId: null as string | null,
     }),
 
     styles: css`
@@ -260,24 +256,6 @@ export const IdeasViewElement = defineElement<{
             return goals.find(g => g.id === id)?.title ?? null;
         }
 
-        if (inputs.openFormTrigger !== undefined
-                && inputs.openFormTrigger !== state.lastOpenFormTrigger) {
-            updateState({lastOpenFormTrigger: inputs.openFormTrigger});
-            openAddForm();
-        }
-
-        function openAddForm(prefillGoalId: string | null = null): void {
-            updateState({
-                formOpen: true,
-                editingId: null,
-                formTitle: '',
-                formDesc: '',
-                formProjectId: filterProjectId,
-                formGoalId: prefillGoalId,
-                confirmDeleteId: null,
-            });
-        }
-
         function openEditForm(idea: Idea): void {
             updateState({
                 formOpen: true,
@@ -296,26 +274,15 @@ export const IdeasViewElement = defineElement<{
 
         function submitForm(): void {
             const title = state.formTitle.trim();
-            if (!title) return;
-            if (state.editingId) {
-                const existing = ideas.find(i => i.id === state.editingId)!;
-                dispatch(new events.ideaUpdated({
-                    ...existing,
-                    title,
-                    description: state.formDesc.trim(),
-                    projectId: isFiltered ? filterProjectId : state.formProjectId,
-                    goalId: state.formGoalId,
-                }));
-            } else {
-                dispatch(new events.ideaAdded({
-                    id: generateId(),
-                    title,
-                    description: state.formDesc.trim(),
-                    projectId: isFiltered ? filterProjectId : state.formProjectId,
-                    goalId: state.formGoalId,
-                    createdAt: Date.now(),
-                }));
-            }
+            if (!title || !state.editingId) return;
+            const existing = ideas.find(i => i.id === state.editingId)!;
+            dispatch(new events.ideaUpdated({
+                ...existing,
+                title,
+                description: state.formDesc.trim(),
+                projectId: isFiltered ? filterProjectId : state.formProjectId,
+                goalId: state.formGoalId,
+            }));
             closeForm();
         }
 
@@ -390,11 +357,12 @@ export const IdeasViewElement = defineElement<{
                   `
                 : html``}
 
-            ${state.formOpen && state.editingId === null
-                ? renderForm('NEW IDEA')
-                : html`<button class="file-btn" @click=${() => openAddForm()}>+ MAKE IDEA</button>`}
+            <button
+                class="file-btn"
+                @click=${() => dispatch(new events.makeCommitmentRequested('idea'))}
+            >+ MAKE IDEA</button>
 
-            ${sortedIdeas.length === 0 && !state.formOpen
+            ${sortedIdeas.length === 0
                 ? html`<div class="empty">No intelligence on file. Observations go here.</div>`
                 : html``}
 

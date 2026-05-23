@@ -3,6 +3,7 @@
 // ─────────────────────────────────────────────────────────────────────────────
 
 export type ItemKind = 'routine' | 'task';
+export type FormKind = 'routine' | 'task' | 'goal' | 'idea';
 export type AppView = 'daily' | 'operations' | 'project' | 'insights' | 'ideas' | 'goals';
 export type Character = 'director' | 'agent';
 

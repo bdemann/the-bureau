@@ -11,6 +11,9 @@ import {
 } from 'vira';
 import type {
     ConsequenceTier,
+    FormKind,
+    Goal,
+    Idea,
     ItemKind,
     Project,
     RecurrenceCadence,
@@ -57,19 +60,22 @@ export const AddTaskDialogElement = defineElement<{
     projects?: ReadonlyArray<Project>;
     prefillTitle?: string | null;
     prefillDescription?: string | null;
-    defaultKind?: ItemKind;
+    defaultKind?: FormKind;
+    goals?: ReadonlyArray<Goal>;
 }>()({
     tagName: 'add-task-dialog',
 
     events: {
-        taskSubmitted: defineElementEvent<Task>(),
-        taskUpdated:   defineElementEvent<Task>(),
-        taskDeleted:   defineElementEvent<string>(),  // task id
-        cancelled:     defineElementEvent<void>(),
+        taskSubmitted:  defineElementEvent<Task>(),
+        taskUpdated:    defineElementEvent<Task>(),
+        taskDeleted:    defineElementEvent<string>(),  // task id
+        goalSubmitted:  defineElementEvent<Goal>(),
+        ideaSubmitted:  defineElementEvent<Idea>(),
+        cancelled:      defineElementEvent<void>(),
     },
 
     state: () => ({
-        kind: 'task' as ItemKind,
+        kind: 'task' as FormKind,
         titleValue: '',
         description: '',
         consequenceTier: 3 as ConsequenceTier,
@@ -117,6 +123,10 @@ export const AddTaskDialogElement = defineElement<{
         endMode: 'after_count' as 'after_count' | 'after_date',
         endAfterCount: 10,
         endAfterDate: '',  // YYYY-MM-DD
+        // ── Goal-specific ──
+        goalTargetDate: '',  // YYYY-MM-DD, optional
+        // ── Idea-specific ──
+        ideaLinkedGoalId: null as string | null,
     }),
 
     styles: css`
@@ -483,6 +493,8 @@ export const AddTaskDialogElement = defineElement<{
                 endMode: 'after_count',
                 endAfterCount: 10,
                 endAfterDate: '',
+                goalTargetDate: '',
+                ideaLinkedGoalId: null,
                 confirmingDelete: false,
                 currentEditId: null,
             });
@@ -499,14 +511,49 @@ export const AddTaskDialogElement = defineElement<{
         const usesYearlyAnchor = state.isRecurring && state.cadence === 'yearly';
         const usesAnchor = usesWeeklyAnchor || usesMonthlyAnchor || usesQuarterlyAnchor || usesYearlyAnchor;
 
+        const isTaskOrRoutine = state.kind === 'routine' || state.kind === 'task';
+
         const canSubmit = state.titleValue.trim().length > 0
             // Hard-date tasks need a date — unless an anchor implies one.
-            && (state.windowType !== 'hard' || usesAnchor || state.suggestedDate.length > 0)
+            && (!isTaskOrRoutine || state.windowType !== 'hard' || usesAnchor || state.suggestedDate.length > 0)
             // Weekly anchor requires at least one day selected.
             && (!usesWeeklyAnchor || state.daysOfWeek.size > 0);
 
         function submit(): void {
             if (!canSubmit) return;
+
+            if (state.kind === 'goal') {
+                const targetMs = state.goalTargetDate
+                    ? startOfDay(new Date(state.goalTargetDate + 'T00:00')).getTime()
+                    : null;
+                const goal: Goal = {
+                    id: generateId(),
+                    projectId: state.selectedProjectId,
+                    title: state.titleValue.trim(),
+                    description: state.description.trim(),
+                    status: 'active',
+                    targetDate: targetMs,
+                    linkedTaskIds: [],
+                    createdAt: Date.now(),
+                };
+                dispatch(new events.goalSubmitted(goal));
+                updateState({currentEditId: null, confirmingDelete: false});
+                return;
+            }
+
+            if (state.kind === 'idea') {
+                const idea: Idea = {
+                    id: generateId(),
+                    projectId: state.selectedProjectId,
+                    title: state.titleValue.trim(),
+                    description: state.description.trim(),
+                    goalId: state.ideaLinkedGoalId,
+                    createdAt: Date.now(),
+                };
+                dispatch(new events.ideaSubmitted(idea));
+                updateState({currentEditId: null, confirmingDelete: false});
+                return;
+            }
 
             const today = new Date();
             const suggestedMs = state.suggestedDate
@@ -619,7 +666,7 @@ export const AddTaskDialogElement = defineElement<{
                 totalCompletions: baseTask?.totalCompletions ?? 0,
                 progressCount: baseTask?.progressCount ?? 0,
                 // Editable fields:
-                kind: state.kind,
+                kind: state.kind as ItemKind,
                 title: state.titleValue.trim(),
                 description: state.description.trim(),
                 timeOfDay: state.timeOfDay,
@@ -691,10 +738,14 @@ export const AddTaskDialogElement = defineElement<{
                     <div class="sheet-title">
                         ${isEditMode
                             ? (state.kind === 'routine' ? 'AMEND ROUTINE' : 'AMEND TASK')
-                            : (state.kind === 'routine' ? 'FILE NEW ROUTINE' : 'FILE NEW TASK')}
+                            : state.kind === 'routine' ? 'MAKE NEW ROUTINE'
+                            : state.kind === 'task'    ? 'MAKE NEW TASK'
+                            : state.kind === 'goal'    ? 'NEW GOAL'
+                            :                            'NEW IDEA'}
                     </div>
 
-                    <!-- Kind toggle (Routine vs Task) — both are types of Commitment -->
+                    <!-- Kind toggle (all four commitment types) — hidden in edit mode -->
+                    ${!isEditMode ? html`
                     <div class="kind-toggle">
                         <${ViraButton.assign({
                             text: 'Routine',
@@ -704,9 +755,7 @@ export const AddTaskDialogElement = defineElement<{
                                 : ViraEmphasis.Subtle,
                             buttonSize: ViraSize.Small,
                         })}
-                            @click=${() => isEditMode
-                                ? updateState({kind: 'routine'})
-                                : updateState({kind: 'routine', isRecurring: true, cadence: 'daily'})}
+                            @click=${() => updateState({kind: 'routine', isRecurring: true, cadence: 'daily'})}
                         ></${ViraButton}>
                         <${ViraButton.assign({
                             text: 'Task',
@@ -716,11 +765,30 @@ export const AddTaskDialogElement = defineElement<{
                                 : ViraEmphasis.Subtle,
                             buttonSize: ViraSize.Small,
                         })}
-                            @click=${() => isEditMode
-                                ? updateState({kind: 'task'})
-                                : updateState({kind: 'task', isRecurring: false, cadence: 'weekly'})}
+                            @click=${() => updateState({kind: 'task', isRecurring: false, cadence: 'weekly'})}
+                        ></${ViraButton}>
+                        <${ViraButton.assign({
+                            text: 'Goal',
+                            color: ViraColorVariant.Info,
+                            buttonEmphasis: state.kind === 'goal'
+                                ? ViraEmphasis.Standard
+                                : ViraEmphasis.Subtle,
+                            buttonSize: ViraSize.Small,
+                        })}
+                            @click=${() => updateState({kind: 'goal'})}
+                        ></${ViraButton}>
+                        <${ViraButton.assign({
+                            text: 'Idea',
+                            color: ViraColorVariant.Info,
+                            buttonEmphasis: state.kind === 'idea'
+                                ? ViraEmphasis.Standard
+                                : ViraEmphasis.Subtle,
+                            buttonSize: ViraSize.Small,
+                        })}
+                            @click=${() => updateState({kind: 'idea'})}
                         ></${ViraButton}>
                     </div>
+                    ` : html``}
 
                     <!-- Title -->
                     <div class="field">
@@ -747,6 +815,7 @@ export const AddTaskDialogElement = defineElement<{
                         ></${ViraTextArea}>
                     </div>
 
+                    ${isTaskOrRoutine ? html`
                     <!-- Consequence tier -->
                     <div class="field">
                         <span class="field-label">Consequence Tier</span>
@@ -1320,6 +1389,47 @@ export const AddTaskDialogElement = defineElement<{
                         `}
                     ` : html``}
 
+                    ` : html``}
+
+                    <!-- Goal: optional target date -->
+                    ${state.kind === 'goal' ? html`
+                        <div class="field">
+                            <span class="field-label">Target Date (optional)</span>
+                            <input
+                                type="date"
+                                .value=${state.goalTargetDate}
+                                @input=${(e: Event) =>
+                                    updateState({goalTargetDate: (e.target as HTMLInputElement).value})}
+                            />
+                        </div>
+                    ` : html``}
+
+                    <!-- Idea: optional linked goal -->
+                    ${state.kind === 'idea' ? html`
+                        <div class="field">
+                            <label class="field-label">Linked Goal (optional)</label>
+                            <select
+                                class="operation-select"
+                                .value=${state.ideaLinkedGoalId ?? ''}
+                                @change=${(e: Event) => {
+                                    const val = (e.target as HTMLSelectElement).value;
+                                    updateState({ideaLinkedGoalId: val === '' ? null : val});
+                                }}
+                            >
+                                <option value="">— None —</option>
+                                ${(inputs.goals ?? [])
+                                    .filter(g => g.status === 'active'
+                                        && (state.selectedProjectId === null || g.projectId === state.selectedProjectId))
+                                    .map(g => html`
+                                        <option
+                                            value="${g.id}"
+                                            .selected=${state.ideaLinkedGoalId === g.id}
+                                        >${g.title}</option>
+                                    `)}
+                            </select>
+                        </div>
+                    ` : html``}
+
                     <!-- Area of Responsibility assignment — always last, always visible -->
                     <div class="field">
                         <label class="field-label">Area of Responsibility</label>
@@ -1384,7 +1494,10 @@ export const AddTaskDialogElement = defineElement<{
                             <${ViraButton.assign({
                                 text: isEditMode
                                     ? 'SAVE CHANGES'
-                                    : state.kind === 'routine' ? 'COMMIT ROUTINE' : 'FILE TASK',
+                                    : state.kind === 'routine' ? 'COMMIT ROUTINE'
+                                    : state.kind === 'goal'    ? 'SET GOAL'
+                                    : state.kind === 'idea'    ? 'FILE IDEA'
+                                    :                            'FILE TASK',
                                 color: ViraColorVariant.Info,
                                 isDisabled: !canSubmit,
                             })}

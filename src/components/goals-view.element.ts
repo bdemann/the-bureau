@@ -1,6 +1,5 @@
 import {css, defineElement, defineElementEvent, html} from 'element-vir';
-import type {Goal, GoalStatus, Idea, Project, Task} from '../data/types.js';
-import {generateId} from '../data/storage.js';
+import type {FormKind, Goal, GoalStatus, Idea, Project, Task} from '../data/types.js';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // GoalsViewElement
@@ -43,30 +42,27 @@ export const GoalsViewElement = defineElement<{
     projects: ReadonlyArray<Project>;
     /** When set, only show goals for this project and hide the project selector. */
     filterProjectId?: string | null;
-    /** Increment to programmatically open the add form (e.g. from a type picker). */
-    openFormTrigger?: number;
 }>()({
     tagName: 'goals-view',
 
     events: {
-        goalAdded:              defineElementEvent<Goal>(),
-        goalUpdated:            defineElementEvent<Goal>(),
-        goalDeleted:            defineElementEvent<string>(),
-        spawnRequested:         defineElementEvent<string>(),       // goal id
-        unlinkRequested:        defineElementEvent<{goalId: string; taskId: string}>(),
-        ideaUnlinkFromGoal:     defineElementEvent<string>(),       // idea id → set goalId = null
-        promoteIdeaRequested:   defineElementEvent<Idea>(),
+        makeCommitmentRequested: defineElementEvent<FormKind>(),
+        goalUpdated:             defineElementEvent<Goal>(),
+        goalDeleted:             defineElementEvent<string>(),
+        spawnRequested:          defineElementEvent<string>(),       // goal id
+        unlinkRequested:         defineElementEvent<{goalId: string; taskId: string}>(),
+        ideaUnlinkFromGoal:      defineElementEvent<string>(),       // idea id → set goalId = null
+        promoteIdeaRequested:    defineElementEvent<Idea>(),
     },
 
     state: () => ({
-        formOpen:             false,
-        editingId:            null as string | null,
-        formTitle:            '',
-        formDesc:             '',
-        formTargetDate:       '',
-        formProjectId:        null as string | null,
-        confirmDeleteId:      null as string | null,
-        lastOpenFormTrigger:  0,
+        formOpen:        false,
+        editingId:       null as string | null,
+        formTitle:       '',
+        formDesc:        '',
+        formTargetDate:  '',
+        formProjectId:   null as string | null,
+        confirmDeleteId: null as string | null,
     }),
 
     styles: css`
@@ -389,24 +385,6 @@ export const GoalsViewElement = defineElement<{
             return projects.find(p => p.id === id)?.name ?? null;
         }
 
-        if (inputs.openFormTrigger !== undefined
-                && inputs.openFormTrigger !== state.lastOpenFormTrigger) {
-            updateState({lastOpenFormTrigger: inputs.openFormTrigger});
-            openAddForm();
-        }
-
-        function openAddForm(): void {
-            updateState({
-                formOpen: true,
-                editingId: null,
-                formTitle: '',
-                formDesc: '',
-                formTargetDate: '',
-                formProjectId: filterProjectId,
-                confirmDeleteId: null,
-            });
-        }
-
         function openEditForm(goal: Goal): void {
             updateState({
                 formOpen: true,
@@ -425,29 +403,15 @@ export const GoalsViewElement = defineElement<{
 
         function submitForm(): void {
             const title = state.formTitle.trim();
-            if (!title) return;
-            const targetDate = parseDateString(state.formTargetDate);
-            if (state.editingId) {
-                const existing = goals.find(g => g.id === state.editingId)!;
-                dispatch(new events.goalUpdated({
-                    ...existing,
-                    title,
-                    description: state.formDesc.trim(),
-                    targetDate,
-                    projectId: state.formProjectId,
-                }));
-            } else {
-                dispatch(new events.goalAdded({
-                    id: generateId(),
-                    projectId: state.formProjectId,
-                    title,
-                    description: state.formDesc.trim(),
-                    status: 'active',
-                    targetDate,
-                    linkedTaskIds: [],
-                    createdAt: Date.now(),
-                }));
-            }
+            if (!title || !state.editingId) return;
+            const existing = goals.find(g => g.id === state.editingId)!;
+            dispatch(new events.goalUpdated({
+                ...existing,
+                title,
+                description: state.formDesc.trim(),
+                targetDate: parseDateString(state.formTargetDate),
+                projectId: state.formProjectId,
+            }));
             closeForm();
         }
 
@@ -655,15 +619,16 @@ export const GoalsViewElement = defineElement<{
                   `
                 : html``}
 
-            ${state.formOpen && state.editingId === null
-                ? renderForm('NEW GOAL')
-                : html`<button class="file-btn" @click=${openAddForm}>+ MAKE GOAL</button>`}
+            <button
+                class="file-btn"
+                @click=${() => dispatch(new events.makeCommitmentRequested('goal'))}
+            >+ MAKE GOAL</button>
 
             ${active.length > 0 ? html`
                 <div class="section-header">ACTIVE (${active.length})</div>
                 ${active.map(renderGoalCard)}
-            ` : visibleGoals.length === 0 && !state.formOpen ? html`
-                <div class="empty">No objectives on file. File one above to begin.</div>
+            ` : visibleGoals.length === 0 ? html`
+                <div class="empty">No objectives on file. Make one above to begin.</div>
             ` : html``}
 
             ${achieved.length > 0 ? html`
