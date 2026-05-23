@@ -1,26 +1,12 @@
 import {css, defineElement, defineElementEvent, html} from 'element-vir';
-import type {FormKind, Goal, GoalStatus, Idea, Project, Task} from '../data/types.js';
+import type {FormKind, Goal, GoalStatus, Project, Task} from '../data/types.js';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // GoalsViewElement
-// Strategic Objectives: long-horizon outcomes scoped to an operation, with
-// linked directives and manual status (active / achieved / abandoned).
-//
-// When filterProjectId is set the view shows only goals for that operation
-// and hides the project selector (used from project-detail). When absent the
-// global view shows all goals with an operation badge on each card.
+// Strategic Objectives list. Each card is clickable to open goal-detail.
+// Status toggles (achieve/abandon/reactivate) are available directly on cards.
+// All editing, task management, and linking happens in goal-detail.
 // ─────────────────────────────────────────────────────────────────────────────
-
-function msToDateString(ms: number): string {
-    const d = new Date(ms);
-    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
-}
-
-function parseDateString(s: string): number | null {
-    if (!s) return null;
-    const d = new Date(s + 'T00:00:00');
-    return isNaN(d.getTime()) ? null : d.getTime();
-}
 
 function fmtDate(ms: number): string {
     return new Date(ms).toLocaleDateString(undefined, {month: 'short', day: 'numeric', year: 'numeric'});
@@ -36,9 +22,8 @@ function sortByTargetDate(goals: Goal[]): Goal[] {
 }
 
 export const GoalsViewElement = defineElement<{
-    goals: ReadonlyArray<Goal>;
-    tasks: ReadonlyArray<Task>;
-    ideas: ReadonlyArray<Idea>;
+    goals:    ReadonlyArray<Goal>;
+    tasks:    ReadonlyArray<Task>;
     projects: ReadonlyArray<Project>;
     /** When set, only show goals for this project and hide the project selector. */
     filterProjectId?: string | null;
@@ -48,22 +33,10 @@ export const GoalsViewElement = defineElement<{
     events: {
         makeCommitmentRequested: defineElementEvent<FormKind>(),
         goalUpdated:             defineElementEvent<Goal>(),
-        goalDeleted:             defineElementEvent<string>(),
-        spawnRequested:          defineElementEvent<string>(),       // goal id
-        unlinkRequested:         defineElementEvent<{goalId: string; taskId: string}>(),
-        ideaUnlinkFromGoal:      defineElementEvent<string>(),       // idea id → set goalId = null
-        promoteIdeaRequested:    defineElementEvent<Idea>(),
+        goalSelected:            defineElementEvent<string>(),  // goal id → open detail
     },
 
-    state: () => ({
-        formOpen:        false,
-        editingId:       null as string | null,
-        formTitle:       '',
-        formDesc:        '',
-        formTargetDate:  '',
-        formProjectId:   null as string | null,
-        confirmDeleteId: null as string | null,
-    }),
+    state: () => ({}),
 
     styles: css`
         :host {
@@ -71,7 +44,6 @@ export const GoalsViewElement = defineElement<{
             padding: 16px 16px 80px;
         }
 
-        /* When embedded inside project-detail, reduce padding */
         :host([data-embedded]) {
             padding: 0 0 24px;
         }
@@ -103,72 +75,6 @@ export const GoalsViewElement = defineElement<{
             margin-top: 24px;
         }
 
-        .form-card {
-            background: #fff;
-            border: 1px solid rgba(0,0,0,0.12);
-            border-top: 3px solid #1B2A4A;
-            padding: 14px;
-            margin-bottom: 20px;
-        }
-
-        .form-title {
-            font-family: 'Bebas Neue', sans-serif;
-            font-size: 0.9rem;
-            letter-spacing: 0.15em;
-            color: #1B2A4A;
-            margin-bottom: 12px;
-        }
-
-        .field { margin-bottom: 10px; }
-
-        .field-label {
-            display: block;
-            font-size: 0.62rem;
-            letter-spacing: 0.12em;
-            text-transform: uppercase;
-            color: #6B6B6B;
-            margin-bottom: 4px;
-            font-family: 'Courier Prime', monospace;
-        }
-
-        input[type="text"],
-        input[type="date"],
-        textarea,
-        select {
-            width: 100%;
-            border: 1px solid rgba(0,0,0,0.18);
-            background: #F5EFE0;
-            padding: 7px 9px;
-            font-family: 'Courier Prime', monospace;
-            font-size: 0.85rem;
-            color: #1B2A4A;
-            box-sizing: border-box;
-        }
-
-        textarea { resize: vertical; min-height: 60px; }
-
-        .form-actions {
-            display: flex;
-            gap: 8px;
-            margin-top: 12px;
-        }
-
-        .btn {
-            font-family: 'Bebas Neue', sans-serif;
-            letter-spacing: 0.12em;
-            font-size: 0.85rem;
-            padding: 7px 16px;
-            border: none;
-            cursor: pointer;
-        }
-
-        .btn-primary   { background: #1B2A4A; color: #F5EFE0; }
-        .btn-primary:hover { background: #243a63; }
-        .btn-ghost     { background: transparent; border: 1px solid rgba(0,0,0,0.2); color: #1B2A4A; }
-        .btn-ghost:hover { background: rgba(0,0,0,0.05); }
-        .btn-danger    { background: #C41E3A; color: #F5EFE0; }
-        .btn-danger:hover { background: #a31830; }
-
         .file-btn {
             width: 100%;
             font-family: 'Bebas Neue', sans-serif;
@@ -192,41 +98,69 @@ export const GoalsViewElement = defineElement<{
             padding: 24px 0;
         }
 
+        /* ── Goal card ── */
         .goal-card {
-            background: #fff;
-            border: 1px solid rgba(0,0,0,0.1);
+            background: #F5EFE0;
+            border: 1px solid rgba(0,0,0,0.12);
             border-left: 4px solid #1B2A4A;
             padding: 12px 14px;
-            margin-bottom: 12px;
+            margin-bottom: 10px;
+            cursor: pointer;
+            transition: box-shadow 0.15s, transform 0.1s;
+            position: relative;
+        }
+
+        .goal-card:hover {
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            transform: translateY(-1px);
         }
 
         .goal-card.achieved { border-left-color: #2E7D32; opacity: 0.85; }
         .goal-card.abandoned { border-left-color: #9E9E9E; opacity: 0.7; }
-        .goal-card.editing  { border-left-color: #B8860B; }
+
+        .card-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 8px;
+        }
 
         .goal-title {
-            font-family: 'Bebas Neue', sans-serif;
+            font-family: 'Special Elite', serif;
             font-size: 1rem;
-            letter-spacing: 0.1em;
             color: #1B2A4A;
+            line-height: 1.3;
+            flex: 1;
+        }
+
+        .card-arrow {
+            font-family: 'Courier Prime', monospace;
+            font-size: 1rem;
+            color: rgba(27,42,74,0.35);
+            flex-shrink: 0;
+            margin-top: 2px;
         }
 
         .goal-desc {
             font-family: 'Courier Prime', monospace;
-            font-size: 0.78rem;
-            color: #444;
+            font-size: 0.75rem;
+            color: #555;
             margin-top: 4px;
             white-space: pre-wrap;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
         }
 
         .goal-meta {
             font-family: 'Courier Prime', monospace;
-            font-size: 0.65rem;
+            font-size: 0.63rem;
             letter-spacing: 0.06em;
             color: #6B6B6B;
             margin-top: 6px;
             display: flex;
-            gap: 12px;
+            gap: 10px;
             flex-wrap: wrap;
             align-items: center;
         }
@@ -235,29 +169,29 @@ export const GoalsViewElement = defineElement<{
         .target-date.overdue { color: #C41E3A; }
 
         .status-badge {
-            text-transform: uppercase;
-            font-weight: bold;
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 0.65rem;
             letter-spacing: 0.1em;
         }
-        .status-badge.achieved { color: #2E7D32; }
+        .status-badge.achieved  { color: #2E7D32; }
         .status-badge.abandoned { color: #9E9E9E; }
 
         .project-badge {
             display: inline-block;
             font-family: 'Courier Prime', monospace;
-            font-size: 0.62rem;
+            font-size: 0.6rem;
             letter-spacing: 0.08em;
             text-transform: uppercase;
-            padding: 2px 6px;
+            padding: 1px 5px;
             border: 1px solid rgba(0,0,0,0.15);
             color: #6B6B6B;
         }
 
-        .linked-section { margin-top: 10px; }
+        .linked-section { margin-top: 8px; }
 
         .linked-label {
             font-family: 'Courier Prime', monospace;
-            font-size: 0.62rem;
+            font-size: 0.6rem;
             letter-spacing: 0.1em;
             text-transform: uppercase;
             color: #6B6B6B;
@@ -272,55 +206,16 @@ export const GoalsViewElement = defineElement<{
 
         .linked-chip {
             font-family: 'Courier Prime', monospace;
-            font-size: 0.72rem;
-            padding: 2px 6px 2px 8px;
+            font-size: 0.7rem;
+            padding: 2px 7px;
             background: rgba(27,42,74,0.07);
             border: 1px solid rgba(27,42,74,0.15);
             color: #1B2A4A;
-            display: flex;
-            align-items: center;
-            gap: 4px;
         }
-
-        .unlink-btn {
-            background: none;
-            border: none;
-            cursor: pointer;
-            color: #9E9E9E;
-            font-size: 0.75rem;
-            padding: 0 2px;
-            line-height: 1;
-        }
-        .unlink-btn:hover { color: #C41E3A; }
-
-        .idea-chip {
-            font-family: 'Courier Prime', monospace;
-            font-size: 0.72rem;
-            padding: 2px 6px 2px 8px;
-            background: rgba(184,134,11,0.07);
-            border: 1px solid rgba(184,134,11,0.25);
-            color: #6B5300;
-            display: flex;
-            align-items: center;
-            gap: 4px;
-        }
-
-        .idea-chip-promote {
-            background: none;
-            border: none;
-            cursor: pointer;
-            color: #B8860B;
-            font-family: 'Bebas Neue', sans-serif;
-            font-size: 0.65rem;
-            letter-spacing: 0.08em;
-            padding: 0 2px;
-            line-height: 1;
-        }
-        .idea-chip-promote:hover { color: #1B2A4A; }
 
         .linked-empty {
             font-family: 'Courier Prime', monospace;
-            font-size: 0.72rem;
+            font-size: 0.7rem;
             color: #9E9E9E;
             font-style: italic;
         }
@@ -335,38 +230,21 @@ export const GoalsViewElement = defineElement<{
         .action-btn {
             font-family: 'Bebas Neue', sans-serif;
             letter-spacing: 0.1em;
-            font-size: 0.72rem;
-            padding: 4px 10px;
+            font-size: 0.68rem;
+            padding: 3px 9px;
             border: none;
             cursor: pointer;
         }
 
-        .action-spawn      { background: #1B2A4A; color: #F5EFE0; }
-        .action-spawn:hover { background: #243a63; }
         .action-achieve    { background: #2E7D32; color: #fff; }
-        .action-achieve:hover { background: #245826; }
+        .action-achieve:hover  { background: #245826; }
         .action-abandon    { background: transparent; border: 1px solid #9E9E9E; color: #6B6B6B; }
-        .action-abandon:hover { background: rgba(0,0,0,0.05); }
+        .action-abandon:hover  { background: rgba(0,0,0,0.05); }
         .action-reactivate { background: transparent; border: 1px solid #1B2A4A; color: #1B2A4A; }
         .action-reactivate:hover { background: rgba(27,42,74,0.05); }
-        .action-edit       { background: transparent; border: 1px solid rgba(0,0,0,0.2); color: #1B2A4A; }
-        .action-edit:hover { background: rgba(0,0,0,0.05); }
-        .action-delete     { background: transparent; border: 1px solid #C41E3A; color: #C41E3A; }
-        .action-delete:hover { background: rgba(196,30,58,0.08); }
-
-        .confirm-delete {
-            font-family: 'Courier Prime', monospace;
-            font-size: 0.75rem;
-            color: #C41E3A;
-            margin-top: 8px;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            flex-wrap: wrap;
-        }
     `,
 
-    render({inputs, state, updateState, dispatch, events}) {
+    render({inputs, dispatch, events}) {
         const {goals, tasks, projects} = inputs;
         const filterProjectId = inputs.filterProjectId ?? null;
         const isFiltered = filterProjectId !== null;
@@ -385,37 +263,8 @@ export const GoalsViewElement = defineElement<{
             return projects.find(p => p.id === id)?.name ?? null;
         }
 
-        function openEditForm(goal: Goal): void {
-            updateState({
-                formOpen: true,
-                editingId: goal.id,
-                formTitle: goal.title,
-                formDesc: goal.description,
-                formTargetDate: goal.targetDate ? msToDateString(goal.targetDate) : '',
-                formProjectId: goal.projectId,
-                confirmDeleteId: null,
-            });
-        }
-
-        function closeForm(): void {
-            updateState({formOpen: false, editingId: null});
-        }
-
-        function submitForm(): void {
-            const title = state.formTitle.trim();
-            if (!title || !state.editingId) return;
-            const existing = goals.find(g => g.id === state.editingId)!;
-            dispatch(new events.goalUpdated({
-                ...existing,
-                title,
-                description: state.formDesc.trim(),
-                targetDate: parseDateString(state.formTargetDate),
-                projectId: state.formProjectId,
-            }));
-            closeForm();
-        }
-
-        function setStatus(goal: Goal, status: GoalStatus): void {
+        function setStatus(goal: Goal, status: GoalStatus, e: Event): void {
+            e.stopPropagation();
             dispatch(new events.goalUpdated({...goal, status}));
         }
 
@@ -423,190 +272,73 @@ export const GoalsViewElement = defineElement<{
         const achieved  = sortByTargetDate(visibleGoals.filter(g => g.status === 'achieved'));
         const abandoned = sortByTargetDate(visibleGoals.filter(g => g.status === 'abandoned'));
 
-        function renderForm(label: string) {
-            return html`
-                <div class="form-card">
-                    <div class="form-title">${label}</div>
-                    <div class="field">
-                        <label class="field-label">Title</label>
-                        <input
-                            type="text"
-                            placeholder="Objective designation…"
-                            .value=${state.formTitle}
-                            @input=${(e: Event) =>
-                                updateState({formTitle: (e.target as HTMLInputElement).value})}
-                        />
-                    </div>
-                    <div class="field">
-                        <label class="field-label">Description (optional)</label>
-                        <textarea
-                            placeholder="Scope, success criteria, context…"
-                            .value=${state.formDesc}
-                            @input=${(e: Event) =>
-                                updateState({formDesc: (e.target as HTMLTextAreaElement).value})}
-                        ></textarea>
-                    </div>
-                    <div class="field">
-                        <label class="field-label">Target Date (optional)</label>
-                        <input
-                            type="date"
-                            .value=${state.formTargetDate}
-                            @change=${(e: Event) =>
-                                updateState({formTargetDate: (e.target as HTMLInputElement).value})}
-                        />
-                    </div>
-                    ${!isFiltered ? html`
-                        <div class="field">
-                            <label class="field-label">Area of Responsibility</label>
-                            <select
-                                @change=${(e: Event) => {
-                                    const val = (e.target as HTMLSelectElement).value;
-                                    updateState({formProjectId: val || null});
-                                }}
-                            >
-                                <option value="" ?selected=${state.formProjectId === null}>— None —</option>
-                                ${projects.map(p => html`
-                                    <option value=${p.id} ?selected=${state.formProjectId === p.id}>${p.name}</option>
-                                `)}
-                            </select>
-                        </div>
-                    ` : html``}
-                    <div class="form-actions">
-                        <button class="btn btn-primary" @click=${submitForm}>FILE</button>
-                        <button class="btn btn-ghost" @click=${closeForm}>CANCEL</button>
-                    </div>
-                </div>
-            `;
-        }
-
         function renderGoalCard(goal: Goal) {
-            const isEditing     = state.formOpen && state.editingId === goal.id;
-            const confirmingDel = state.confirmDeleteId === goal.id;
-            const isActive      = goal.status === 'active';
-            const dateOverdue   = goal.targetDate !== null && goal.targetDate < now && isActive;
-            const opName        = !isFiltered ? projectName(goal.projectId) : null;
-            const linkedIdeas   = inputs.ideas.filter(i => i.goalId === goal.id);
+            const isActive    = goal.status === 'active';
+            const dateOverdue = goal.targetDate !== null && goal.targetDate < now && isActive;
+            const opName      = !isFiltered ? projectName(goal.projectId) : null;
 
             return html`
-                <div class=${'goal-card ' + goal.status + (isEditing ? ' editing' : '')}>
-                    ${isEditing
-                        ? renderForm('EDIT GOAL')
-                        : html`
-                            <div class="goal-title">${goal.title}</div>
-                            ${goal.description
-                                ? html`<div class="goal-desc">${goal.description}</div>`
-                                : html``}
-                            <div class="goal-meta">
-                                ${goal.targetDate
-                                    ? html`<span class=${'target-date' + (dateOverdue ? ' overdue' : '')}>
-                                            ⊙ Target: ${fmtDate(goal.targetDate)}${dateOverdue ? ' · OVERDUE' : ''}
-                                          </span>`
-                                    : html``}
-                                ${!isActive
-                                    ? html`<span class=${'status-badge ' + goal.status}>
-                                            ${goal.status === 'achieved' ? '✓ Achieved' : '✕ Abandoned'}
-                                          </span>`
-                                    : html``}
-                                ${opName
-                                    ? html`<span class="project-badge">⊙ ${opName}</span>`
-                                    : html``}
-                            </div>
+                <div
+                    class=${'goal-card ' + goal.status}
+                    @click=${() => dispatch(new events.goalSelected(goal.id))}
+                >
+                    <div class="card-top">
+                        <div class="goal-title">${goal.title}</div>
+                        <span class="card-arrow">→</span>
+                    </div>
 
-                            <div class="linked-section">
-                                <div class="linked-label">Linked Commitments</div>
-                                ${goal.linkedTaskIds.length > 0
-                                    ? html`
-                                        <div class="linked-chips">
-                                            ${goal.linkedTaskIds.map(tid => html`
-                                                <span class="linked-chip">
-                                                    ${taskTitle(tid)}
-                                                    <button
-                                                        class="unlink-btn"
-                                                        title="Unlink commitment"
-                                                        @click=${() => dispatch(new events.unlinkRequested({goalId: goal.id, taskId: tid}))}
-                                                    >×</button>
-                                                </span>
-                                            `)}
-                                        </div>
-                                      `
-                                    : html`<div class="linked-empty">No commitments linked yet.</div>`}
-                            </div>
+                    ${goal.description
+                        ? html`<div class="goal-desc">${goal.description}</div>`
+                        : html``}
 
-                            <div class="linked-section">
-                                <div class="linked-label">Linked Intelligence</div>
-                                ${linkedIdeas.length > 0
-                                    ? html`
-                                        <div class="linked-chips">
-                                            ${linkedIdeas.map(idea => html`
-                                                <span class="idea-chip">
-                                                    ${idea.title}
-                                                    <button
-                                                        class="idea-chip-promote"
-                                                        title="Promote to commitment"
-                                                        @click=${() => dispatch(new events.promoteIdeaRequested(idea))}
-                                                    >↑</button>
-                                                    <button
-                                                        class="unlink-btn"
-                                                        title="Unlink intelligence"
-                                                        @click=${() => dispatch(new events.ideaUnlinkFromGoal(idea.id))}
-                                                    >×</button>
-                                                </span>
-                                            `)}
-                                        </div>
-                                      `
-                                    : html`<div class="linked-empty">No intelligence linked yet.</div>`}
-                            </div>
+                    <div class="goal-meta">
+                        ${goal.targetDate
+                            ? html`<span class=${'target-date' + (dateOverdue ? ' overdue' : '')}>
+                                    ⊙ Target: ${fmtDate(goal.targetDate)}${dateOverdue ? ' · OVERDUE' : ''}
+                                  </span>`
+                            : html``}
+                        ${!isActive
+                            ? html`<span class=${'status-badge ' + goal.status}>
+                                    ${goal.status === 'achieved' ? '✓ Achieved' : '✕ Abandoned'}
+                                  </span>`
+                            : html``}
+                        ${opName
+                            ? html`<span class="project-badge">⊙ ${opName}</span>`
+                            : html``}
+                    </div>
 
-                            <div class="goal-actions">
-                                ${isActive
-                                    ? html`
-                                        <button
-                                            class="action-btn action-spawn"
-                                            @click=${() => dispatch(new events.spawnRequested(goal.id))}
-                                        >+ SPAWN COMMITMENT</button>
-                                        <button
-                                            class="action-btn action-achieve"
-                                            @click=${() => setStatus(goal, 'achieved')}
-                                        >MARK ACHIEVED</button>
-                                        <button
-                                            class="action-btn action-abandon"
-                                            @click=${() => setStatus(goal, 'abandoned')}
-                                        >ABANDON</button>
-                                      `
-                                    : html`
-                                        <button
-                                            class="action-btn action-reactivate"
-                                            @click=${() => setStatus(goal, 'active')}
-                                        >REACTIVATE</button>
-                                      `}
-                                <button class="action-btn action-edit" @click=${() => openEditForm(goal)}>EDIT</button>
+                    <div class="linked-section">
+                        <div class="linked-label">Linked Commitments</div>
+                        ${goal.linkedTaskIds.length > 0
+                            ? html`
+                                <div class="linked-chips">
+                                    ${goal.linkedTaskIds.map(tid => html`
+                                        <span class="linked-chip">${taskTitle(tid)}</span>
+                                    `)}
+                                </div>
+                              `
+                            : html`<div class="linked-empty">No commitments linked yet.</div>`}
+                    </div>
+
+                    <div class="goal-actions">
+                        ${isActive
+                            ? html`
                                 <button
-                                    class="action-btn action-delete"
-                                    @click=${() => updateState({confirmDeleteId: goal.id})}
-                                >DELETE</button>
-                            </div>
-
-                            ${confirmingDel
-                                ? html`
-                                    <div class="confirm-delete">
-                                        Permanently delete this objective?
-                                        <button
-                                            class="btn btn-danger"
-                                            style="font-size:0.72rem;padding:3px 8px;"
-                                            @click=${() => {
-                                                dispatch(new events.goalDeleted(goal.id));
-                                                updateState({confirmDeleteId: null});
-                                            }}
-                                        >CONFIRM</button>
-                                        <button
-                                            class="btn btn-ghost"
-                                            style="font-size:0.72rem;padding:3px 8px;"
-                                            @click=${() => updateState({confirmDeleteId: null})}
-                                        >CANCEL</button>
-                                    </div>
-                                  `
-                                : html``}
-                          `}
+                                    class="action-btn action-achieve"
+                                    @click=${(e: Event) => setStatus(goal, 'achieved', e)}
+                                >MARK ACHIEVED</button>
+                                <button
+                                    class="action-btn action-abandon"
+                                    @click=${(e: Event) => setStatus(goal, 'abandoned', e)}
+                                >ABANDON</button>
+                              `
+                            : html`
+                                <button
+                                    class="action-btn action-reactivate"
+                                    @click=${(e: Event) => setStatus(goal, 'active', e)}
+                                >REACTIVATE</button>
+                              `}
+                    </div>
                 </div>
             `;
         }
@@ -615,7 +347,7 @@ export const GoalsViewElement = defineElement<{
             ${!isFiltered
                 ? html`
                     <div class="page-title">GOALS</div>
-                    <div class="page-subtitle">LONG-HORIZON OUTCOMES · SPAWN COMMITMENTS TO BUILD MOMENTUM</div>
+                    <div class="page-subtitle">LONG-HORIZON OUTCOMES · CLICK AN OBJECTIVE TO MANAGE COMMITMENTS</div>
                   `
                 : html``}
 
@@ -624,22 +356,28 @@ export const GoalsViewElement = defineElement<{
                 @click=${() => dispatch(new events.makeCommitmentRequested('goal'))}
             >+ MAKE GOAL</button>
 
-            ${active.length > 0 ? html`
-                <div class="section-header">ACTIVE (${active.length})</div>
-                ${active.map(renderGoalCard)}
-            ` : visibleGoals.length === 0 ? html`
-                <div class="empty">No objectives on file. Make one above to begin.</div>
-            ` : html``}
+            ${active.length > 0
+                ? html`
+                    <div class="section-header">ACTIVE (${active.length})</div>
+                    ${active.map(renderGoalCard)}
+                  `
+                : visibleGoals.length === 0
+                ? html`<div class="empty">No objectives on file. Make one above to begin.</div>`
+                : html``}
 
-            ${achieved.length > 0 ? html`
-                <div class="section-header">ACHIEVED (${achieved.length})</div>
-                ${achieved.map(renderGoalCard)}
-            ` : html``}
+            ${achieved.length > 0
+                ? html`
+                    <div class="section-header">ACHIEVED (${achieved.length})</div>
+                    ${achieved.map(renderGoalCard)}
+                  `
+                : html``}
 
-            ${abandoned.length > 0 ? html`
-                <div class="section-header">ABANDONED (${abandoned.length})</div>
-                ${abandoned.map(renderGoalCard)}
-            ` : html``}
+            ${abandoned.length > 0
+                ? html`
+                    <div class="section-header">ABANDONED (${abandoned.length})</div>
+                    ${abandoned.map(renderGoalCard)}
+                  `
+                : html``}
         `;
     },
 });

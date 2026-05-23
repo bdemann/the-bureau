@@ -41,13 +41,10 @@ export const ProjectDetailElement = defineElement<{
         projectDeleted:          defineElementEvent<string>(),
         projectUpdated:          defineElementEvent<Project>(),
         goalUpdated:             defineElementEvent<Goal>(),
-        goalDeleted:             defineElementEvent<string>(),
-        goalSpawnRequested:      defineElementEvent<string>(),
-        goalUnlinkRequested:     defineElementEvent<{goalId: string; taskId: string}>(),
+        goalSelected:            defineElementEvent<string>(),
         ideaUpdated:             defineElementEvent<Idea>(),
         ideaDeleted:             defineElementEvent<string>(),
         ideaPromoteRequested:    defineElementEvent<Idea>(),
-        ideaUnlinkFromGoal:      defineElementEvent<string>(),
     },
 
     state: () => ({
@@ -527,7 +524,6 @@ export const ProjectDetailElement = defineElement<{
                 <${GoalsViewElement.assign({
                     goals: inputs.goals,
                     tasks: inputs.tasks,
-                    ideas: inputs.ideas,
                     projects: inputs.projects,
                     filterProjectId: project.id,
                 })}
@@ -535,16 +531,8 @@ export const ProjectDetailElement = defineElement<{
                         dispatch(new events.newCommitmentRequested({projectId: project.id, kind: e.detail})))}
                     ${listen(GoalsViewElement.events.goalUpdated, e =>
                         dispatch(new events.goalUpdated(e.detail)))}
-                    ${listen(GoalsViewElement.events.goalDeleted, e =>
-                        dispatch(new events.goalDeleted(e.detail)))}
-                    ${listen(GoalsViewElement.events.spawnRequested, e =>
-                        dispatch(new events.goalSpawnRequested(e.detail)))}
-                    ${listen(GoalsViewElement.events.unlinkRequested, e =>
-                        dispatch(new events.goalUnlinkRequested(e.detail)))}
-                    ${listen(GoalsViewElement.events.ideaUnlinkFromGoal, e =>
-                        dispatch(new events.ideaUnlinkFromGoal(e.detail)))}
-                    ${listen(GoalsViewElement.events.promoteIdeaRequested, e =>
-                        dispatch(new events.ideaPromoteRequested(e.detail)))}
+                    ${listen(GoalsViewElement.events.goalSelected, e =>
+                        dispatch(new events.goalSelected(e.detail)))}
                 ></${GoalsViewElement}>
             </div>
 

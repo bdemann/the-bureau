@@ -18,6 +18,7 @@ import {DailyViewElement} from './daily-view.element.js';
 import {DashboardViewElement} from './dashboard-view.element.js';
 import {InsightsViewElement} from './insights-view.element.js';
 import {IdeasViewElement} from './ideas-view.element.js';
+import {GoalDetailElement} from './goal-detail.element.js';
 import {GoalsViewElement} from './goals-view.element.js';
 import {ProjectDetailElement} from './project-detail.element.js';
 
@@ -169,6 +170,7 @@ export const BureauAppElement = defineElement()({
         newTaskDefaultKind: 'task' as FormKind,
         promotingIdea: null as Idea | null,
         spawningForGoalId: null as string | null,
+        selectedGoalId: null as string | null,
         undoAction: null as {
             prevTask: Task;
             prevScore: number;
@@ -190,6 +192,10 @@ export const BureauAppElement = defineElement()({
         const currentDialogue = dialogueQueue.find(d => !d.dismissed) ?? null;
         const selectedProject = selectedProjectId
             ? state.app.projects.find(p => p.id === selectedProjectId) ?? null
+            : null;
+
+        const selectedGoal = state.selectedGoalId
+            ? state.app.goals.find(g => g.id === state.selectedGoalId) ?? null
             : null;
 
         // ── State helpers ──────────────────────────────────────────────────────
@@ -570,14 +576,29 @@ export const BureauAppElement = defineElement()({
             });
         }
 
-        function onSpawnRequested(goalId: string): void {
-            const goal = state.app.goals.find(g => g.id === goalId);
+        function onGoalTaskLinked({goalId, taskId}: {goalId: string; taskId: string}): void {
+            commit({
+                goals: state.app.goals.map(g =>
+                    g.id === goalId
+                        ? {...g, linkedTaskIds: [...g.linkedTaskIds, taskId]}
+                        : g,
+                ),
+            });
+        }
+
+        function onGoalDetailMakeCommitment(kind: FormKind): void {
+            const goal = state.app.goals.find(g => g.id === state.selectedGoalId) ?? null;
             updateState({
-                spawningForGoalId: goalId,
                 addingTask: true,
                 newTaskProjectId: goal?.projectId ?? null,
                 editingTask: null,
+                newTaskDefaultKind: kind,
+                spawningForGoalId: state.selectedGoalId,
             });
+        }
+
+        function onGoalSelected(goalId: string): void {
+            updateState({selectedGoalId: goalId});
         }
 
         function onPromoteRequested(idea: Idea): void {
@@ -622,7 +643,11 @@ export const BureauAppElement = defineElement()({
         }
 
         function onBack(): void {
-            commit({view: 'operations', selectedProjectId: null});
+            if (state.selectedGoalId !== null) {
+                updateState({selectedGoalId: null});
+            } else {
+                commit({view: 'operations', selectedProjectId: null});
+            }
         }
 
         function onDismissDialogue(): void {
@@ -641,8 +666,8 @@ export const BureauAppElement = defineElement()({
                 <${BureauHeaderElement.assign({
                     patriotScore,
                     streak: completionStreak,
-                    onBack: view === 'project' ? onBack : null,
-                    projectName: selectedProject?.name ?? null,
+                    onBack: (view === 'project' || state.selectedGoalId !== null) ? onBack : null,
+                    projectName: selectedGoal?.title ?? selectedProject?.name ?? null,
                 })}
                     ${listen(BureauHeaderElement.events.homeRequested,
                         () => setView('daily'))}
@@ -664,28 +689,52 @@ export const BureauAppElement = defineElement()({
                       `
                     : html``}
 
-                ${view === 'goals'
+                ${selectedGoal !== null
+                    ? html`
+                        <${GoalDetailElement.assign({
+                            goal: selectedGoal,
+                            tasks: state.app.tasks,
+                            projects: state.app.projects,
+                        })}
+                            ${listen(GoalDetailElement.events.goalUpdated, e =>
+                                onGoalUpdated(e.detail))}
+                            ${listen(GoalDetailElement.events.goalDeleted, e => {
+                                onGoalDeleted(e.detail);
+                                updateState({selectedGoalId: null});
+                            })}
+                            ${listen(GoalDetailElement.events.taskCompleted, e =>
+                                onTaskCompleted(e.detail))}
+                            ${listen(GoalDetailElement.events.taskSnoozed, e =>
+                                onTaskSnoozed(e.detail))}
+                            ${listen(GoalDetailElement.events.taskUnSnoozed, e =>
+                                onTaskUnSnoozed(e.detail))}
+                            ${listen(GoalDetailElement.events.taskSkipped, e =>
+                                onTaskSkipped(e.detail))}
+                            ${listen(GoalDetailElement.events.taskProgressLogged, e =>
+                                onTaskProgressLogged(e.detail))}
+                            ${listen(GoalDetailElement.events.taskEditRequested, e =>
+                                onTaskEditRequested(e.detail))}
+                            ${listen(GoalDetailElement.events.makeCommitmentRequested, e =>
+                                onGoalDetailMakeCommitment(e.detail))}
+                            ${listen(GoalDetailElement.events.taskUnlinked, e =>
+                                onUnlinkRequested(e.detail))}
+                            ${listen(GoalDetailElement.events.taskLinked, e =>
+                                onGoalTaskLinked(e.detail))}
+                        ></${GoalDetailElement}>
+                      `
+                    : view === 'goals'
                     ? html`
                         <${GoalsViewElement.assign({
                             goals: state.app.goals,
                             tasks: state.app.tasks,
-                            ideas: state.app.ideas,
                             projects: state.app.projects,
                         })}
                             ${listen(GoalsViewElement.events.makeCommitmentRequested, e =>
                                 onNewTaskRequested(null, e.detail))}
                             ${listen(GoalsViewElement.events.goalUpdated, e =>
                                 onGoalUpdated(e.detail))}
-                            ${listen(GoalsViewElement.events.goalDeleted, e =>
-                                onGoalDeleted(e.detail))}
-                            ${listen(GoalsViewElement.events.spawnRequested, e =>
-                                onSpawnRequested(e.detail))}
-                            ${listen(GoalsViewElement.events.unlinkRequested, e =>
-                                onUnlinkRequested(e.detail))}
-                            ${listen(GoalsViewElement.events.ideaUnlinkFromGoal, e =>
-                                onIdeaUnlinkFromGoal(e.detail))}
-                            ${listen(GoalsViewElement.events.promoteIdeaRequested, e =>
-                                onPromoteRequested(e.detail))}
+                            ${listen(GoalsViewElement.events.goalSelected, e =>
+                                onGoalSelected(e.detail))}
                         ></${GoalsViewElement}>
                       `
                     : view === 'ideas'
@@ -795,20 +844,14 @@ export const BureauAppElement = defineElement()({
                                 onTasksReordered(e.detail))}
                             ${listen(ProjectDetailElement.events.goalUpdated, e =>
                                 onGoalUpdated(e.detail))}
-                            ${listen(ProjectDetailElement.events.goalDeleted, e =>
-                                onGoalDeleted(e.detail))}
-                            ${listen(ProjectDetailElement.events.goalSpawnRequested, e =>
-                                onSpawnRequested(e.detail))}
-                            ${listen(ProjectDetailElement.events.goalUnlinkRequested, e =>
-                                onUnlinkRequested(e.detail))}
+                            ${listen(ProjectDetailElement.events.goalSelected, e =>
+                                onGoalSelected(e.detail))}
                             ${listen(ProjectDetailElement.events.ideaUpdated, e =>
                                 onIdeaUpdated(e.detail))}
                             ${listen(ProjectDetailElement.events.ideaDeleted, e =>
                                 onIdeaDeleted(e.detail))}
                             ${listen(ProjectDetailElement.events.ideaPromoteRequested, e =>
                                 onPromoteRequested(e.detail))}
-                            ${listen(ProjectDetailElement.events.ideaUnlinkFromGoal, e =>
-                                onIdeaUnlinkFromGoal(e.detail))}
                         ></${ProjectDetailElement}>
                       `
                     : html`

@@ -124,7 +124,7 @@ export const AddTaskDialogElement = defineElement<{
         endAfterCount: 10,
         endAfterDate: '',  // YYYY-MM-DD
         // ── Goal-specific ──
-        goalTargetDate: '',  // YYYY-MM-DD, optional
+        goalTargetDate: msToDateString(Date.now()),  // YYYY-MM-DD, defaults to today
         // ── Idea-specific ──
         ideaLinkedGoalId: null as string | null,
     }),
@@ -493,7 +493,7 @@ export const AddTaskDialogElement = defineElement<{
                 endMode: 'after_count',
                 endAfterCount: 10,
                 endAfterDate: '',
-                goalTargetDate: '',
+                goalTargetDate: msToDateString(Date.now()),
                 ideaLinkedGoalId: null,
                 confirmingDelete: false,
                 currentEditId: null,
