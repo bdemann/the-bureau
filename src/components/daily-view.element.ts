@@ -430,7 +430,7 @@ export const DailyViewElement = defineElement<{
             <button
                 class="file-directive-btn"
                 @click=${() => dispatch(new events.newTaskRequested())}
-            >+ FILE COMMITMENT</button>
+            >+ MAKE COMMITMENT</button>
         `;
     },
 });

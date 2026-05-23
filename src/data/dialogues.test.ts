@@ -49,8 +49,8 @@ describe('getDialogueFor', () => {
     });
 
     test('preferDirector falls back to agent when no director line exists', () => {
-        // task_added has only agent lines
-        const line = getDialogueFor('task_added', true);
+        // day_start has only agent lines
+        const line = getDialogueFor('day_start', true);
         assert.strictEquals(line.character, 'agent');
     });
 

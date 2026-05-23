@@ -92,7 +92,7 @@ Mark each row as you verify in the browser. Reset the localStorage entry
 - [ ] Header breadcrumb shows project name
 - [ ] Back button returns to Areas of Responsibility
 - [ ] Empty state shows "No active commitments in this area." + Whitaker quote
-- [ ] `+ FILE NEW COMMITMENT` opens dialog
+- [ ] `+ MAKE NEW COMMITMENT` opens dialog
 - [ ] Active tasks list shows incomplete + un-snoozed (regardless of due date)
 - [ ] Snoozed list shows separately when applicable
 - [ ] Cleared tasks toggle (Show/Hide N cleared commitments) works
@@ -189,7 +189,7 @@ Mark each row as you verify in the browser. Reset the localStorage entry
 - [ ] When multi-per count reaches target: commitment hides until next period
 - [ ] Score goes up by tier-weighted amount
 - [ ] Streak increments
-- [ ] Sometimes Whitaker (or Briggs) speaks
+- [ ] Sometimes Whitaker (or Briggs) speaks; Dir Briggs may deliver "The only good Commie is a Commi-tment."
 
 ### Reordering commitments
 
@@ -214,7 +214,7 @@ Mark each row as you verify in the browser. Reset the localStorage entry
 
 ### Filing commitments from the daily view
 
-- [ ] `+ FILE COMMITMENT` button visible at the bottom of the daily view
+- [ ] `+ MAKE COMMITMENT` button visible at the bottom of the daily view
 - [ ] Clicking it opens the dialog with "No area" pre-selected in the Area of Responsibility dropdown
 - [ ] Commitment can be submitted with "No area" selected — appears in daily view with no project name tag
 - [ ] Area dropdown lists all existing areas; selecting one assigns the commitment to that area

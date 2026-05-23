@@ -32,6 +32,11 @@ export interface DialogueLine {
 export const DIALOGUES: readonly DialogueLine[] = [
     // ── TASK ADDED ────────────────────────────────────────────────────────────
     {
+        character: 'director',
+        trigger: 'task_added',
+        message: 'The only good Commie is a Commi-tment. Welcome to the file, citizen.',
+    },
+    {
         character: 'agent',
         trigger: 'task_added',
         message:

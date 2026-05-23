@@ -481,7 +481,7 @@ export const ProjectDetailElement = defineElement<{
                 class="add-btn"
                 @click=${() => dispatch(new events.newTaskRequested(project.id))}
             >
-                + FILE NEW COMMITMENT
+                + MAKE NEW COMMITMENT
             </button>
 
             <!-- Completed tasks (collapsed by default) -->
