@@ -173,7 +173,7 @@ export const DashboardViewElement = defineElement<{
                     <div class="intel-banner">
                         <div class="intel-title">DAILY STATUS BRIEFING</div>
                         <span class="intel-stat ${pendingCount > 0 ? '' : 'good'}">
-                            ${pendingCount} directive${pendingCount !== 1 ? 's' : ''} pending
+                            ${pendingCount} commitment${pendingCount !== 1 ? 's' : ''} pending
                         </span>
                         ${overdueCount > 0
                             ? html` · <span class="intel-stat alert">${overdueCount} overdue</span>`
@@ -189,7 +189,7 @@ export const DashboardViewElement = defineElement<{
             ${projects.length === 0
                 ? html`
                     <div class="empty-state">
-                        <div class="stamp-text">NO ACTIVE OPERATIONS</div>
+                        <div class="stamp-text">NO AREAS OF RESPONSIBILITY</div>
                         <p>
                             Your docket is empty, citizen.<br />
                             A true patriot doesn't wait for orders — they file their own.
@@ -197,7 +197,7 @@ export const DashboardViewElement = defineElement<{
                     </div>
                   `
                 : html`
-                    <div class="section-heading">ACTIVE OPERATIONS</div>
+                    <div class="section-heading">AREAS OF RESPONSIBILITY</div>
                     <div class="project-grid">
                         ${projects.map(
                             project => html`

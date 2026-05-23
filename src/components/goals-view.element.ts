@@ -378,7 +378,7 @@ export const GoalsViewElement = defineElement<{
             : [...goals];
 
         function taskTitle(id: string): string {
-            return tasks.find(t => t.id === id)?.title ?? '(deleted directive)';
+            return tasks.find(t => t.id === id)?.title ?? '(deleted commitment)';
         }
 
         function projectName(id: string | null): string | null {
@@ -484,7 +484,7 @@ export const GoalsViewElement = defineElement<{
                     </div>
                     ${!isFiltered ? html`
                         <div class="field">
-                            <label class="field-label">Operation</label>
+                            <label class="field-label">Area of Responsibility</label>
                             <select
                                 @change=${(e: Event) => {
                                     const val = (e.target as HTMLSelectElement).value;
@@ -540,7 +540,7 @@ export const GoalsViewElement = defineElement<{
                             </div>
 
                             <div class="linked-section">
-                                <div class="linked-label">Linked Directives</div>
+                                <div class="linked-label">Linked Commitments</div>
                                 ${goal.linkedTaskIds.length > 0
                                     ? html`
                                         <div class="linked-chips">
@@ -549,14 +549,14 @@ export const GoalsViewElement = defineElement<{
                                                     ${taskTitle(tid)}
                                                     <button
                                                         class="unlink-btn"
-                                                        title="Unlink directive"
+                                                        title="Unlink commitment"
                                                         @click=${() => dispatch(new events.unlinkRequested({goalId: goal.id, taskId: tid}))}
                                                     >×</button>
                                                 </span>
                                             `)}
                                         </div>
                                       `
-                                    : html`<div class="linked-empty">No directives linked yet.</div>`}
+                                    : html`<div class="linked-empty">No commitments linked yet.</div>`}
                             </div>
 
                             <div class="linked-section">
@@ -569,7 +569,7 @@ export const GoalsViewElement = defineElement<{
                                                     ${idea.title}
                                                     <button
                                                         class="idea-chip-promote"
-                                                        title="Promote to directive"
+                                                        title="Promote to commitment"
                                                         @click=${() => dispatch(new events.promoteIdeaRequested(idea))}
                                                     >↑</button>
                                                     <button

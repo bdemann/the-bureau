@@ -335,7 +335,7 @@ export const IdeasViewElement = defineElement<{
                     </div>
                     ${!isFiltered ? html`
                         <div class="field">
-                            <label class="field-label">Linked Operation (optional)</label>
+                            <label class="field-label">Linked Area (optional)</label>
                             <select
                                 @change=${(e: Event) => {
                                     const val = (e.target as HTMLSelectElement).value;
@@ -376,8 +376,8 @@ export const IdeasViewElement = defineElement<{
         return html`
             ${!isFiltered
                 ? html`
-                    <div class="page-title">FIELD INTELLIGENCE</div>
-                    <div class="page-subtitle">UNPROCESSED OBSERVATIONS · PROPOSED OPERATIONS</div>
+                    <div class="page-title">IDEAS</div>
+                    <div class="page-subtitle">UNPROCESSED OBSERVATIONS · PROPOSED AREAS</div>
                   `
                 : html``}
 

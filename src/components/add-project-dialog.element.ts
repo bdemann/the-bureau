@@ -184,14 +184,14 @@ export const AddProjectDialogElement = defineElement<{
                 if (e.target === e.currentTarget) dispatch(new events.cancelled());
             }}>
                 <div class="sheet">
-                    <div class="sheet-title">OPEN NEW OPERATION</div>
+                    <div class="sheet-title">NEW AREA OF RESPONSIBILITY</div>
 
                     <div class="field">
-                        <label>Operation Name *</label>
+                        <label>Area Name *</label>
                         <input
                             type="text"
                             .value=${state.name}
-                            placeholder="Name this project / operation."
+                            placeholder="Name this area of responsibility."
                             @input=${(e: Event) =>
                                 updateState({name: (e.target as HTMLInputElement).value})}
                             @keydown=${(e: KeyboardEvent) => {

@@ -312,7 +312,7 @@ export const InsightsViewElement = defineElement<{
                         >Revive</button>
                         <button
                             class="action-btn btn-dismiss"
-                            title="Permanently delete this directive"
+                            title="Permanently delete this commitment"
                             @click=${() => dispatch(new events.missedTaskDismissed(task.id))}
                         >Dismiss</button>
                     </div>
@@ -353,17 +353,17 @@ export const InsightsViewElement = defineElement<{
         const num = (n: number) => html`<span class="${n === 0 ? 'zero' : ''}">${n}</span>`;
 
         return html`
-            <div class="page-title">Intelligence Report</div>
+            <div class="page-title">Insights</div>
             <div class="page-subtitle">Behavioral patterns, compliance gaps, and field performance.</div>
 
-            <!-- Missed directives -->
+            <!-- Missed commitments -->
             <section class="section">
                 <div class="section-header">
-                    <span class="section-title danger">MISSED DIRECTIVES</span>
+                    <span class="section-title danger">MISSED COMMITMENTS</span>
                     <span class="section-count">${hardMissed.length + recurringMissed.length}</span>
                 </div>
                 ${hardMissed.length === 0 && recurringMissed.length === 0
-                    ? html`<div class="section-empty">No missed directives on record. Exemplary.</div>`
+                    ? html`<div class="section-empty">No missed commitments on record. Exemplary.</div>`
                     : html`
                         ${hardMissed.map(renderMissedRow)}
                         ${recurringMissed.map(renderMissedRow)}
@@ -424,12 +424,12 @@ export const InsightsViewElement = defineElement<{
             ${opsRows.length > 0 ? html`
                 <section class="section">
                     <div class="section-header">
-                        <span class="section-title">OPERATIONS OVERVIEW</span>
+                        <span class="section-title">RESPONSIBILITIES OVERVIEW</span>
                     </div>
                     <table class="ops-table">
                         <thead>
                             <tr>
-                                <th>Operation</th>
+                                <th>Responsibility</th>
                                 <th>Miss</th>
                                 <th>Snooze</th>
                                 <th>Skip</th>

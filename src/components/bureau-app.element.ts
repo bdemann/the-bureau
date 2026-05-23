@@ -812,7 +812,7 @@ export const BureauAppElement = defineElement()({
                       `
                     : html`
                         <p class="empty-msg">
-                            Operation not found. Return to dashboard.
+                            Area not found. Return to dashboard.
                         </p>
                       `}
                 <!-- Root-level dialog — handles both creating and editing tasks -->

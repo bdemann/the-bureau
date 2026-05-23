@@ -693,7 +693,7 @@ export const AddTaskDialogElement = defineElement<{
                             : (state.kind === 'routine' ? 'FILE NEW ROUTINE' : 'FILE NEW TASK')}
                     </div>
 
-                    <!-- Kind toggle (Routine vs Task) — both are types of Directive -->
+                    <!-- Kind toggle (Routine vs Task) — both are types of Commitment -->
                     <div class="kind-toggle">
                         <${ViraButton.assign({
                             text: 'Routine',
@@ -726,7 +726,7 @@ export const AddTaskDialogElement = defineElement<{
                         <span class="field-label">Title *</span>
                         <${ViraInput.assign({
                             value: state.titleValue,
-                            placeholder: 'Describe the directive clearly.',
+                            placeholder: 'Describe the commitment clearly.',
                         })}
                             ${listen(ViraInput.events.valueChange, e =>
                                 updateState({titleValue: e.detail}))}
@@ -798,7 +798,7 @@ export const AddTaskDialogElement = defineElement<{
                                 @change=${(e: Event) =>
                                     updateState({isRecurring: (e.target as HTMLInputElement).checked})}
                             />
-                            <label for="recurring-toggle">Recurring directive</label>
+                            <label for="recurring-toggle">Recurring commitment</label>
                         </div>
                     `}
 
@@ -1202,7 +1202,7 @@ export const AddTaskDialogElement = defineElement<{
                         ${isEditMode ? html`
                         <div class="end-condition-section">
                             <div class="field">
-                                <span class="field-label">Pause Directive</span>
+                                <span class="field-label">Pause Commitment</span>
                                 <div class="seg" style="grid-template-columns: repeat(4, 1fr);">
                                     ${(['none', 'indefinite', 'until_date', 'for_days'] as const).map(m => html`
                                         <${ViraButton.assign({
@@ -1319,9 +1319,9 @@ export const AddTaskDialogElement = defineElement<{
                         `}
                     ` : html``}
 
-                    <!-- Operation assignment — always last, always visible -->
+                    <!-- Area of Responsibility assignment — always last, always visible -->
                     <div class="field">
-                        <label class="field-label">Operation</label>
+                        <label class="field-label">Area of Responsibility</label>
                         <select
                             class="operation-select"
                             .value=${state.selectedProjectId ?? ''}

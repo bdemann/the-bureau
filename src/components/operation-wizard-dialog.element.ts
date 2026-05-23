@@ -338,7 +338,7 @@ export const OperationWizardDialogElement = defineElement<{open: boolean}>()({
                     <div class="sheet" style="padding-bottom:24px">
                         <div class="sheet-title">DISCARD CHANGES?</div>
                         <p style="font-family:'Courier Prime',monospace;font-size:0.85rem;color:#2C2C2C;margin:0 0 20px">
-                            Your progress on this operation will be lost.
+                            Your progress on this area will be lost.
                         </p>
                         <div class="actions">
                             <${ViraButton.assign({
@@ -581,14 +581,14 @@ export const OperationWizardDialogElement = defineElement<{open: boolean}>()({
                 }}>
                     <div class="sheet">
                         <div class="step-indicator">STEP 1 OF 3</div>
-                        <div class="sheet-title">OPEN NEW OPERATION</div>
+                        <div class="sheet-title">NEW AREA OF RESPONSIBILITY</div>
 
                         <div class="prompt">
-                            What aspect of your life will this operation track?
+                            What area of your life will you be taking responsibility for?
                         </div>
 
                         <div class="field">
-                            <label class="field-label">Operation Name *</label>
+                            <label class="field-label">Area Name *</label>
                             <input
                                 type="text"
                                 .value=${state.operationName}
@@ -644,7 +644,7 @@ export const OperationWizardDialogElement = defineElement<{open: boolean}>()({
                                 @click=${requestCancel}
                             ></${ViraButton}>
                             <${ViraButton.assign({
-                                text: 'Quick create (no routines)',
+                                text: 'Quick create (no commitments)',
                                 color: ViraColorVariant.Neutral,
                                 buttonEmphasis: ViraEmphasis.Subtle,
                                 isDisabled: !canProceedStep1,
@@ -676,7 +676,7 @@ export const OperationWizardDialogElement = defineElement<{open: boolean}>()({
                 }}>
                     <div class="sheet">
                         <div class="step-indicator">STEP 2 OF 3 · ${state.operationName.toUpperCase()}</div>
-                        <div class="sheet-title">IDENTIFY YOUR ROUTINES</div>
+                        <div class="sheet-title">IDENTIFY YOUR COMMITMENTS</div>
 
                         <div class="prompt">
                             If you told a friend you were into
@@ -686,7 +686,7 @@ export const OperationWizardDialogElement = defineElement<{open: boolean}>()({
                         </div>
 
                         <div class="field">
-                            <label class="field-label">Your Routines (one per line)</label>
+                            <label class="field-label">Your Commitments (one per line)</label>
                             <textarea
                                 .value=${state.brainstormText}
                                 placeholder="e.g.&#10;Bake bread weekly&#10;Try a new technique monthly&#10;Share something I made quarterly"
@@ -712,7 +712,7 @@ export const OperationWizardDialogElement = defineElement<{open: boolean}>()({
                                 @click=${() => updateState({step: 1})}
                             ></${ViraButton}>
                             <${ViraButton.assign({
-                                text: 'Create without routines',
+                                text: 'Create without commitments',
                                 color: ViraColorVariant.Neutral,
                                 buttonEmphasis: ViraEmphasis.Subtle,
                             })}
@@ -721,8 +721,8 @@ export const OperationWizardDialogElement = defineElement<{open: boolean}>()({
                             <span class="actions-grow">
                                 <${ViraButton.assign({
                                     text: routineCount > 0
-                                        ? `Configure ${routineCount} routine${routineCount !== 1 ? 's' : ''} →`
-                                        : 'Create operation →',
+                                        ? `Configure ${routineCount} commitment${routineCount !== 1 ? 's' : ''} →`
+                                        : 'Create area →',
                                     color: ViraColorVariant.Info,
                                 })}
                                     @click=${goToStep3}
@@ -745,9 +745,9 @@ export const OperationWizardDialogElement = defineElement<{open: boolean}>()({
             }}>
                 <div class="sheet">
                     <div class="step-indicator">
-                        STEP 3 OF 3 · ROUTINE ${currentNum} OF ${totalRoutines}
+                        STEP 3 OF 3 · COMMITMENT ${currentNum} OF ${totalRoutines}
                     </div>
-                    <div class="sheet-title">CONFIGURE ROUTINE</div>
+                    <div class="sheet-title">CONFIGURE COMMITMENT</div>
 
                     <div class="routine-counter">
                         ${state.operationName.toUpperCase()} · ${currentNum}/${totalRoutines}
@@ -755,11 +755,11 @@ export const OperationWizardDialogElement = defineElement<{open: boolean}>()({
 
                     <!-- Routine title -->
                     <div class="field">
-                        <label class="field-label">Routine Name *</label>
+                        <label class="field-label">Commitment Name *</label>
                         <input
                             type="text"
                             .value=${state.currentTitle}
-                            placeholder="Describe this routine."
+                            placeholder="Describe this commitment."
                             @input=${(e: Event) =>
                                 updateState({currentTitle: (e.target as HTMLInputElement).value})}
                         />
@@ -1058,8 +1058,8 @@ export const OperationWizardDialogElement = defineElement<{open: boolean}>()({
                     <div class="actions">
                         <${ViraButton.assign({
                             text: state.completedRoutines.length > 0
-                                ? 'Create with routines so far'
-                                : 'Create without routines',
+                                ? 'Create with commitments so far'
+                                : 'Create without commitments',
                             color: ViraColorVariant.Neutral,
                             buttonEmphasis: ViraEmphasis.Subtle,
                         })}
@@ -1067,7 +1067,7 @@ export const OperationWizardDialogElement = defineElement<{open: boolean}>()({
                         ></${ViraButton}>
                         <span class="actions-grow">
                             <${ViraButton.assign({
-                                text: isLastRoutine ? 'Create Operation ✓' : `Next Routine →`,
+                                text: isLastRoutine ? 'Create Area ✓' : `Next Commitment →`,
                                 color: ViraColorVariant.Info,
                                 isDisabled: !canConfigureRoutine,
                             })}

@@ -382,7 +382,7 @@ export const BureauHeaderElement = defineElement<{
                 ${projectName
                     ? html`
                         <div class="breadcrumb">
-                            OPERATIONS &rsaquo;
+                            RESPONSIBILITIES &rsaquo;
                             <span class="project-name">${projectName.toUpperCase()}</span>
                         </div>
                       `
@@ -408,23 +408,23 @@ export const BureauHeaderElement = defineElement<{
                             <div class="menu-section-label">Navigate</div>
                             <button class="menu-item" @click=${onHome}>
                                 Daily
-                                <span class="menu-item-sub">Today's directives by urgency</span>
+                                <span class="menu-item-sub">Today's commitments by urgency</span>
                             </button>
                             <button class="menu-item" @click=${onOperations}>
-                                Operations
-                                <span class="menu-item-sub">Browse operations &amp; directives</span>
+                                Areas of Responsibility
+                                <span class="menu-item-sub">Browse areas &amp; commitments</span>
                             </button>
                             <button class="menu-item" @click=${onInsights}>
-                                Intelligence Report
+                                Insights
                                 <span class="menu-item-sub">Missed tasks, completions, patterns</span>
                             </button>
                             <button class="menu-item" @click=${onIdeas}>
-                                Field Intelligence
-                                <span class="menu-item-sub">Observations and proposed operations</span>
+                                Ideas
+                                <span class="menu-item-sub">Observations and proposed areas</span>
                             </button>
                             <button class="menu-item" @click=${onGoals}>
-                                Strategic Objectives
-                                <span class="menu-item-sub">Long-horizon goals with linked directives</span>
+                                Goals
+                                <span class="menu-item-sub">Long-horizon goals with linked commitments</span>
                             </button>
                         </div>
 
