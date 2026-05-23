@@ -590,7 +590,7 @@ export const GoalsViewElement = defineElement<{
                                         <button
                                             class="action-btn action-spawn"
                                             @click=${() => dispatch(new events.spawnRequested(goal.id))}
-                                        >+ SPAWN DIRECTIVE</button>
+                                        >+ SPAWN COMMITMENT</button>
                                         <button
                                             class="action-btn action-achieve"
                                             @click=${() => setStatus(goal, 'achieved')}
@@ -641,8 +641,8 @@ export const GoalsViewElement = defineElement<{
         return html`
             ${!isFiltered
                 ? html`
-                    <div class="page-title">STRATEGIC OBJECTIVES</div>
-                    <div class="page-subtitle">LONG-HORIZON OUTCOMES · SPAWN DIRECTIVES TO BUILD MOMENTUM</div>
+                    <div class="page-title">GOALS</div>
+                    <div class="page-subtitle">LONG-HORIZON OUTCOMES · SPAWN COMMITMENTS TO BUILD MOMENTUM</div>
                   `
                 : html``}
 

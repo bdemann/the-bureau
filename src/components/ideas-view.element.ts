@@ -414,7 +414,7 @@ export const IdeasViewElement = defineElement<{
                                     <button
                                         class="action-btn action-promote"
                                         @click=${() => dispatch(new events.promoteRequested(idea))}
-                                    >PROMOTE TO DIRECTIVE</button>
+                                    >PROMOTE TO COMMITMENT</button>
                                     <button
                                         class="action-btn action-edit"
                                         @click=${() => openEditForm(idea)}

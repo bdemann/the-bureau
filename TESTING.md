@@ -37,35 +37,35 @@ Mark each row as you verify in the browser. Reset the localStorage entry
 - [ ] Daily is the default landing view
 - [ ] Hamburger (☰) opens slide-in menu from the right
 - [ ] Menu → Daily navigates to daily view and closes menu
-- [ ] Menu → Operations navigates to operations view and closes menu
+- [ ] Menu → Areas of Responsibility navigates to areas view and closes menu
 - [ ] Menu → Report a Neighbor triggers share sheet (or copies link)
 - [ ] Clicking outside the menu panel closes it
 - [ ] Day-start dialogue appears on first load each day; dismiss closes it
 
-### Operations view (project list)
+### Areas of Responsibility view (project list)
 
-- [ ] Empty: shows `NO ACTIVE OPERATIONS` stamp
-- [ ] `+ OPEN NEW OPERATION` opens the operation wizard
+- [ ] Empty: shows `NO AREAS OF RESPONSIBILITY` stamp
+- [ ] `+ NEW AREA OF RESPONSIBILITY` button opens the wizard
 - [ ] Wizard cancel (with no data entered) closes immediately without creating anything
 - [ ] Clicking outside the wizard with data entered shows "DISCARD CHANGES?" confirmation
 - [ ] Confirmation "Keep editing" returns to the wizard with all data intact
 - [ ] Confirmation "Discard" closes the wizard and clears all state
 - [ ] Click card → project-detail opens
 - [ ] Multiple projects render
-- [ ] A project where all `kind=task` directives are completed shows "CLEARED" (regardless of routines)
+- [ ] A project where all `kind=task` commitments are completed shows "CLEARED" (regardless of routines)
 - [ ] A project with only routines (no tasks) never shows "CLEARED"
-- [ ] A project with a mix: CLEARED only when the task directives are all done
+- [ ] A project with a mix: CLEARED only when the task commitments are all done
 
-### Operation creation wizard
+### Area of Responsibility creation wizard
 
-- [ ] Step 1: Continue disabled until operation name is typed
+- [ ] Step 1: Continue disabled until area name is typed
 - [ ] Step 1: Description is optional (Continue works with empty description)
 - [ ] Step 1: Color picker selects a highlight color; swatch updates visually
-- [ ] Step 1: "Quick create (no routines)" skips to project creation with no routines
+- [ ] Step 1: "Quick create (no commitments)" skips to area creation with no commitments
 - [ ] Step 2: Brainstorm textarea accepts free text; parsed names preview below (split on newlines and commas, empties stripped)
-- [ ] Step 2: "Create without routines" creates the project immediately with no routines
-- [ ] Step 2: "Configure N routines →" advances to step 3 with the parsed list
-- [ ] Step 3: Routine title pre-filled from brainstorm text; editable
+- [ ] Step 2: "Create without commitments" creates the area immediately with no commitments
+- [ ] Step 2: "Configure N commitments →" advances to step 3 with the parsed list
+- [ ] Step 3: Commitment name pre-filled from brainstorm text; editable
 - [ ] Step 3: Tier T1–T4 grid selects consequence tier
 - [ ] Step 3: Default cadence is Daily
 - [ ] Step 3: Cadence grid (Daily / Weekly / Monthly / Quarterly / Annually) is selectable
@@ -81,35 +81,35 @@ Mark each row as you verify in the browser. Reset the localStorage entry
 - [ ] Step 3 Monthly (Nth weekday): anchor summary reads "The 2nd Sunday of each month" etc.
 - [ ] Step 3 Monthly (Nth weekday): selecting 5th* shows "(skips months without a 5th)" in summary
 - [ ] Step 3: Time-of-day grid (Anytime / Morning / Afternoon / Evening) is selectable
-- [ ] Step 3: "Create with routines so far" creates the operation using only configured routines up to this point
-- [ ] Step 3: "Next Routine →" advances to the next routine without creating yet
-- [ ] Step 3: Last routine shows "Create Operation ✓" instead of Next
-- [ ] After wizard completes: operation card appears in dashboard
-- [ ] After wizard completes: routines appear with ROUTINE chip in project detail
+- [ ] Step 3: "Create with commitments so far" creates the area using only configured commitments up to this point
+- [ ] Step 3: "Next Commitment →" advances to the next commitment without creating yet
+- [ ] Step 3: Last commitment shows "Create Area ✓" instead of Next
+- [ ] After wizard completes: area card appears in dashboard
+- [ ] After wizard completes: commitments appear with ROUTINE chip in project detail
 
 ### Project-detail
 
 - [ ] Header breadcrumb shows project name
-- [ ] Back button returns to Operations
-- [ ] Empty state shows "No active directives…" + Whitaker quote
-- [ ] `+ FILE NEW DIRECTIVE` opens dialog
+- [ ] Back button returns to Areas of Responsibility
+- [ ] Empty state shows "No active commitments in this area." + Whitaker quote
+- [ ] `+ FILE NEW COMMITMENT` opens dialog
 - [ ] Active tasks list shows incomplete + un-snoozed (regardless of due date)
 - [ ] Snoozed list shows separately when applicable
-- [ ] Cleared tasks toggle (Show/Hide N cleared) works
-- [ ] EDIT OPERATION and DECOMMISSION OPERATION buttons visible at bottom of project detail
-- [ ] Clicking EDIT OPERATION opens inline form pre-filled with current name, briefing, and color
+- [ ] Cleared tasks toggle (Show/Hide N cleared commitments) works
+- [ ] EDIT AREA and DECOMMISSION AREA buttons visible at bottom of project detail
+- [ ] Clicking EDIT AREA opens inline form pre-filled with current name, briefing, and color
 - [ ] Color swatch matching current project color is pre-selected
 - [ ] Changing name/description/color and clicking SAVE CHANGES persists the updates
-- [ ] Saved operation name and color reflect immediately in the project-detail header
+- [ ] Saved area name and color reflect immediately in the project-detail header
 - [ ] CANCEL in edit form closes the form with no changes
-- [ ] Cannot save with blank operation name (SAVE CHANGES does nothing until name is non-empty)
-- [ ] Clicking DECOMMISSION OPERATION shows inline confirmation ("DECOMMISSION" / "CANCEL")
+- [ ] Cannot save with blank area name (SAVE CHANGES does nothing until name is non-empty)
+- [ ] Clicking DECOMMISSION AREA shows inline confirmation ("DECOMMISSION" / "CANCEL")
 - [ ] Cancelling confirmation returns to normal view with no changes
-- [ ] Confirming decommission removes the project and all its tasks, then navigates back to Operations
+- [ ] Confirming decommission removes the area and all its commitments, then navigates back to Areas of Responsibility
 
-### Filing directives — routine vs task kind
+### Filing commitments — routine vs task kind
 
-- [ ] Add-task dialog defaults to TASK kind selected
+- [ ] Add dialog defaults to TASK kind selected
 - [ ] ROUTINE / TASK segmented toggle visible when creating AND when editing
 - [ ] In create mode: selecting ROUTINE forces "Recurring" on and hides the recurring checkbox
 - [ ] Selecting ROUTINE hides the end-condition section entirely
@@ -118,9 +118,9 @@ Mark each row as you verify in the browser. Reset the localStorage entry
 - [ ] Editing an existing routine shows "AMEND ROUTINE"; editing a task shows "AMEND TASK"
 - [ ] In edit mode: switching from ROUTINE → TASK (or vice versa) does not reset recurrence settings
 - [ ] Saving after switching kind persists the new kind (e.g. routine becomes task, ROUTINE chip disappears)
-- [ ] Directives with `kind=routine` show a ROUTINE chip in the task-item card
+- [ ] Commitments with `kind=routine` show a ROUTINE chip in the task-item card
 
-### Task directive creation — one-time
+### Task commitment creation — one-time
 
 - [ ] New task form defaults: recurring OFF, window type Hard, due date = today
 - [ ] Title required (FILE TASK disabled until typed)
@@ -129,10 +129,10 @@ Mark each row as you verify in the browser. Reset the localStorage entry
 - [ ] Flexible / Hard date toggle works
 - [ ] Hard requires a date; flexible date is optional
 - [ ] Date picker visible (not recurring)
-- [ ] Submit creates directive; dialog closes; directive appears in active list
+- [ ] Submit creates commitment; dialog closes; commitment appears in active list
 - [ ] Cancel closes without creating
 
-### Task directive creation — recurring (weekly day-of-week, multi-select)
+### Task commitment creation — recurring (weekly day-of-week, multi-select)
 
 - [ ] Toggle "Recurring task" on
 - [ ] Cadence: Weekly
@@ -150,18 +150,19 @@ Mark each row as you verify in the browser. Reset the localStorage entry
 - [ ] **Single day selected, today doesn't match**: first occurrence = next occurrence
 - [ ] **Multi-day, complete on Wed (Mon/Wed/Fri)**: next occurrence = Fri (same week)
 - [ ] **Multi-day, complete on Fri (Mon/Wed/Fri)**: next occurrence = Mon (next week)
-- [ ] Existing directive with multi-day schedule pre-fills correctly in edit dialog
+- [ ] **Weekly commitment with hardDaysOfWeek**: shows in MANDATORY on each configured day (not Suggested)
+- [ ] Existing commitment with multi-day schedule pre-fills correctly in edit dialog
 
-### Task directive creation — recurring (monthly, day-of-month)
+### Task commitment creation — recurring (monthly, day-of-month)
 
 - [ ] Cadence: Monthly → "Anchor" toggle appears
 - [ ] Day-of-month input accepts 1–31; rejects out-of-range
 - [ ] Anchor summary shows "The Nth of each month"
-- [ ] Submit creates directive; first occurrence is this month's that-day if it
+- [ ] Submit creates commitment; first occurrence is this month's that-day if it
       hasn't passed, else next month's
 - [ ] Card label `Day N of each month · next {date}`
 
-### Task directive creation — recurring (monthly, Nth weekday)
+### Task commitment creation — recurring (monthly, Nth weekday)
 
 - [ ] Switch to "Nth weekday" mode
 - [ ] Ordinal (1st/2nd/3rd/4th/5th (when it occurs)/Last) and day-of-week pickers appear
@@ -172,135 +173,135 @@ Mark each row as you verify in the browser. Reset the localStorage entry
 - [ ] **5th weekday**: skips months that don't have a 5th occurrence (e.g., 5th Sunday skips Sep and Oct 2026, lands Nov 29)
 - [ ] Card label `3rd Thursday of each month · next {date}`
 
-### Task directive creation — multiple-per-period
+### Task commitment creation — multiple-per-period
 
 - [ ] Cadence: Multiple per week (or per-day/month/quarter/year)
 - [ ] "Times per period" input appears; accepts 2–99
 - [ ] Date picker still visible (multi-per uses dates, not anchors)
-- [ ] Submit creates directive with `frequencyPerPeriod`
+- [ ] Submit creates commitment with `frequencyPerPeriod`
 - [ ] Card shows `0 / 3 this week` progress chip
 
-### Directive completion
+### Commitment completion
 
-- [ ] One-time task: ✓ → directive moves to "cleared" (collapsed)
+- [ ] One-time task: ✓ → commitment moves to "cleared" (collapsed)
 - [ ] Standard recurring: ✓ → suggestedDate updates to next period
 - [ ] Multi-per-period: ✓ → progress chip increments
-- [ ] When multi-per count reaches target: directive hides until next period
+- [ ] When multi-per count reaches target: commitment hides until next period
 - [ ] Score goes up by tier-weighted amount
 - [ ] Streak increments
 - [ ] Sometimes Whitaker (or Briggs) speaks
 
-### Reordering directives
+### Reordering commitments
 
-- [ ] Each directive card in project-detail (active directives) shows a `⠿` drag handle on the right
-- [ ] Each directive card in daily view shows a `⠿` drag handle on the right
-- [ ] Dragging a directive by its handle (or anywhere on the card) shows the card at reduced opacity
+- [ ] Each commitment card in project-detail (active commitments) shows a `⠿` drag handle on the right
+- [ ] Each commitment card in daily view shows a `⠿` drag handle on the right
+- [ ] Dragging a commitment by its handle (or anywhere on the card) shows the card at reduced opacity
 - [ ] A blue line appears above the drop target as the dragged card hovers over it
-- [ ] Dropping onto another directive inserts the dragged one before the target
-- [ ] A drop zone at the bottom of each list allows moving a directive to the last position
+- [ ] Dropping onto another commitment inserts the dragged one before the target
+- [ ] A drop zone at the bottom of each list allows moving a commitment to the last position
 - [ ] Reorder persists after navigating away and back (saved to state)
-- [ ] Reordering in project-detail does not affect directives in other operations
-- [ ] Reordering within a daily-view band does not affect directives in other bands
-- [ ] Reordering within one time-slot group does not affect directives in another slot group within the same band
+- [ ] Reordering in project-detail does not affect commitments in other areas
+- [ ] Reordering within a daily-view band does not affect commitments in other bands
+- [ ] Reordering within one time-slot group does not affect commitments in another slot group within the same band
 
-### Reordering operations (dashboard)
+### Reordering areas (dashboard)
 
-- [ ] Dragging an operation card on the dashboard shows the card at reduced opacity
+- [ ] Dragging an area card on the dashboard shows the card at reduced opacity
 - [ ] A blue line appears above the drop target as the dragged card hovers over it
 - [ ] Dropping onto another card inserts the dragged one before the target
-- [ ] A drop zone at the bottom of the list allows moving an operation to the last position
+- [ ] A drop zone at the bottom of the list allows moving an area to the last position
 - [ ] Reorder persists after navigating away and back (saved to state)
 
-### Filing directives from the daily view
+### Filing commitments from the daily view
 
-- [ ] `+ FILE DIRECTIVE` button visible at the bottom of the daily view
-- [ ] Clicking it opens the directive dialog with "No operation" pre-selected in the Operation dropdown
-- [ ] Directive can be submitted with "No operation" selected — appears in daily view with no project name tag
-- [ ] Operation dropdown lists all existing projects; selecting one assigns the directive to that project
-- [ ] After creation, directive appears in the correct project-detail if an operation was selected
+- [ ] `+ FILE COMMITMENT` button visible at the bottom of the daily view
+- [ ] Clicking it opens the dialog with "No area" pre-selected in the Area of Responsibility dropdown
+- [ ] Commitment can be submitted with "No area" selected — appears in daily view with no project name tag
+- [ ] Area dropdown lists all existing areas; selecting one assigns the commitment to that area
+- [ ] After creation, commitment appears in the correct project-detail if an area was selected
 
-### Operation assignment on directives
+### Area of Responsibility assignment on commitments
 
-- [ ] Operation dropdown is the last field in the directive dialog
-- [ ] When opened via `+ FILE NEW DIRECTIVE` in a project, that project is pre-selected in the dropdown
-- [ ] User can change the pre-selected operation before submitting
-- [ ] When editing an existing directive, the current operation is pre-selected in the dropdown
-- [ ] Changing the operation on an existing directive and saving moves it to the new project
-- [ ] "No operation" option always present; selecting it saves the directive with no project assignment
-- [ ] Directives with no operation do not appear in any project-detail view
-- [ ] Directives with no operation do appear in the daily view (with no project name tag above the title)
+- [ ] Area of Responsibility dropdown is the last field in the commitment dialog
+- [ ] When opened via `+ FILE NEW COMMITMENT` in a project, that area is pre-selected in the dropdown
+- [ ] User can change the pre-selected area before submitting
+- [ ] When editing an existing commitment, the current area is pre-selected in the dropdown
+- [ ] Changing the area on an existing commitment and saving moves it to the new area
+- [ ] "No area" option always present; selecting it saves the commitment with no area assignment
+- [ ] Commitments with no area do not appear in any project-detail view
+- [ ] Commitments with no area do appear in the daily view (with no project name tag above the title)
 
-### Directive termination
+### Commitment termination
 
-- [ ] In edit mode (click any directive card), "TERMINATE DIRECTIVE" button appears at the bottom of the dialog
-- [ ] Clicking TERMINATE DIRECTIVE shows inline confirmation: "PERMANENTLY TERMINATE THIS DIRECTIVE?" with TERMINATE and CANCEL buttons
+- [ ] In edit mode (click any commitment card), "TERMINATE COMMITMENT" button appears at the bottom of the dialog
+- [ ] Clicking TERMINATE COMMITMENT shows inline confirmation: "PERMANENTLY TERMINATE THIS COMMITMENT?" with TERMINATE and CANCEL buttons
 - [ ] CANCEL in confirmation returns to the edit form without deleting
-- [ ] Confirming TERMINATE removes the directive and closes the dialog
-- [ ] Terminated directive no longer appears in project-detail or daily view
-- [ ] TERMINATE DIRECTIVE button is NOT present when creating a new directive (add mode)
+- [ ] Confirming TERMINATE removes the commitment and closes the dialog
+- [ ] Terminated commitment no longer appears in project-detail or daily view
+- [ ] TERMINATE COMMITMENT button is NOT present when creating a new commitment (add mode)
 
 ### Snooze
 
 - [ ] Daily routines (kind=routine, cadence=daily or multiple-per-day) show no snooze button — only Skip
 - [ ] Snooze button → snoozedUntil = +24h, badge appears
-- [ ] Directive moves to Snoozed section
+- [ ] Commitment moves to Snoozed section
 - [ ] Snooze count escalates color (yellow → orange → red)
 - [ ] Score decreases on snooze (tier-weighted, N-scaled by active task count)
 - [ ] Score decreases on skip (penalty > snooze penalty; N-scaled)
 - [ ] Reopening the app after missing tasks decreases the score (auto-skip penalty; auto-skip > skip > snooze)
 - [ ] With fewer active tasks each action has a larger per-task score impact; with more tasks each action has a smaller per-task impact
-- [ ] Hard-date directive whose date is today: button reads "Cannot snooze" and is disabled
+- [ ] Hard-date commitment whose date is today: button reads "Cannot snooze" and is disabled
 - [ ] At 6 snoozes (any tier), Briggs takes over
 - [ ] Whitaker dialogue escalates with count
 
 ### Un-snooze
 
-- [ ] In Snoozed list → "Wake up" moves directive back to Active
+- [ ] In Snoozed list → "Wake up" moves commitment back to Active
 - [ ] Snooze count *retained* (un-snooze ≠ reset)
 
 ### Daily view
 
-- [ ] Mandatory: directives due today / hard-overdue / cadence=daily
-- [ ] Suggested: flexible directives past suggestedDate but inside window (regression: suggestedDate = today shows "Due today", not "Suggested [date]")
-- [ ] Radar: directives ≤ 3 days from hard date, or window % low
+- [ ] Mandatory: commitments due today / hard-overdue / cadence=daily / weekly with hardDaysOfWeek on a configured day
+- [ ] Suggested: flexible commitments past suggestedDate but inside window (regression: suggestedDate = today shows "Due today", not "Suggested [date]")
+- [ ] Radar: commitments ≤ 3 days from hard date, or window % low
 - [ ] Backlog: everything else
 - [ ] All four bands (Mandatory, Suggested, Radar, Backlog) start with a chevron ▾/▸ in the header
 - [ ] Clicking a band header collapses/expands it; Mandatory and Suggested start expanded, Radar and Backlog start collapsed
 - [ ] When a band is collapsed only the header + count are visible; tasks are hidden
 - [ ] Empty Mandatory: "No mandatory tasks today. Agent Whitaker approves."
-- [ ] Each card shows project name above title (cross-project context)
-- [ ] When directives span multiple time-of-day slots within a band, each slot has a collapsible header (label · count · chevron)
+- [ ] Each card shows area name above title (cross-area context)
+- [ ] When commitments span multiple time-of-day slots within a band, each slot has a collapsible header (label · count · chevron)
 - [ ] The slot matching the current time of day starts expanded; others start collapsed
 - [ ] Tapping a slot header toggles it open/closed
 - [ ] Switching to background and returning after the time slot changes resets the default to the new slot
 - [ ] Active use (app stays open through a slot transition) does NOT collapse open sections
 - [ ] Complete/snooze actions work from daily view
-- [ ] Snoozing a directive shows an UNDO toast at the bottom of the screen
-- [ ] Skipping a directive shows an UNDO toast at the bottom of the screen
+- [ ] Snoozing a commitment shows an UNDO toast at the bottom of the screen
+- [ ] Skipping a commitment shows an UNDO toast at the bottom of the screen
 - [ ] Clicking UNDO on the toast reverses the skip/snooze (task returns to its pre-action state, score is restored)
-- [ ] The UNDO toast disappears automatically after ~30 seconds
+- [ ] The UNDO toast disappears automatically after ~3 seconds
 - [ ] Performing a second skip/snooze replaces the previous UNDO toast
 
-### Pausing directives
+### Pausing commitments
 
-- [ ] Edit any directive → "Pause Directive" row with 4 options: Active / Indefinitely / Until date / For N days
-- [ ] Active: directive is visible and operates normally
-- [ ] Indefinitely: directive disappears from daily view with no score impact
+- [ ] Edit any commitment → "Pause Commitment" row with 4 options: No / Indefinitely / Until date / For N days
+- [ ] No: commitment is visible and operates normally
+- [ ] Indefinitely: commitment disappears from daily view with no score impact
 - [ ] Until date: hides until the selected date, then reappears automatically
 - [ ] For N days: hides for N days from today
-- [ ] Paused directives do NOT accrue misses during rollover
-- [ ] Paused directives appear in a PAUSED section in their operation's project detail
-- [ ] Clicking the task card for a paused directive opens edit mode where pause can be removed
+- [ ] Paused commitments do NOT accrue misses during rollover
+- [ ] Paused commitments appear in a PAUSED section in their area's project detail
+- [ ] Clicking the task card for a paused commitment opens edit mode where pause can be removed
 
 ### Monthly multi-day scheduling
 
 - [ ] Monthly cadence → "Day of month" mode shows a 7-column grid of buttons 1–31 (not a number input)
 - [ ] Buttons toggle on/off; at least one must stay selected (can't deselect the last one)
 - [ ] Anchor summary reads "The 1st of each month." for one day, "The 1st and 15th of each month." for two
-- [ ] Completing on the 1st when [1,15] are selected advances the directive to the 15th of the same month
+- [ ] Completing on the 1st when [1,15] are selected advances the commitment to the 15th of the same month
 - [ ] Completing on the 15th advances to the 1st of the next month
 - [ ] Edit dialog re-opens with all previously selected days highlighted
-- [ ] Operation wizard monthly: same multi-select grid behaviour
+- [ ] Area wizard monthly: same multi-select grid behaviour
 
 ### Quarterly cadence with month-of-quarter anchor
 
@@ -312,36 +313,36 @@ Mark each row as you verify in the browser. Reset the localStorage entry
 - [ ] Completing on the 1st when [1,15] selected in 2nd month advances to the 15th of that same quarter's 2nd month
 - [ ] Completing on the 15th (last dom in period) advances to the 1st of the 2nd month of the next quarter
 - [ ] Edit dialog re-opens with the correct month-of-quarter button highlighted and all selected days toggled on
-- [ ] Operation wizard quarterly: same month-of-quarter picker and multi-dom grid behavior
+- [ ] Area wizard quarterly: same month-of-quarter picker and multi-dom grid behavior
 
-### Annually cadence (directive dialog)
+### Annually cadence (commitment dialog)
 
 - [ ] Selecting "Annually" from the cadence dropdown shows Season shortcuts, Month grid, and Day-of-month field
 - [ ] Season shortcuts (Spring/Summer/Fall/Winter) set the month to Mar/Jun/Sep/Dec respectively and highlight the corresponding month button
 - [ ] Month grid (Jan–Dec) allows fine selection; clicking any month updates the anchor summary
 - [ ] Day-of-month input updates the anchor summary (e.g., "Every Sep 1st.")
-- [ ] Saving an annually directive: edit dialog re-opens with the same month and day pre-filled
+- [ ] Saving an annual commitment: edit dialog re-opens with the same month and day pre-filled
 - [ ] After advancing one year (or simulating with devtools): suggested date is the same month/day next year
 
 ### Recurring start date
 
 - [ ] "Has a start date" checkbox appears in the recurring section (for both routines and tasks)
 - [ ] Checking it reveals a date picker labeled "Start Date"
-- [ ] A directive with a future start date does NOT appear in the daily view
-- [ ] A directive with a future start date does NOT accrue misses during rollover
-- [ ] Once the start date arrives the directive appears normally
+- [ ] A commitment with a future start date does NOT appear in the daily view
+- [ ] A commitment with a future start date does NOT accrue misses during rollover
+- [ ] Once the start date arrives the commitment appears normally
 - [ ] Edit dialog pre-fills start date checkbox + date if one is set
 
 ### Recurring end conditions
 
 - [ ] "Has an end condition" checkbox is hidden for routines (they never end)
-- [ ] Checkbox appears inside the recurring section for task-kind directives
+- [ ] Checkbox appears inside the recurring section for task-kind commitments
 - [ ] Checking it reveals "N completions" / "A date" toggle
 - [ ] "N completions" shows a number input; "A date" shows a date picker
-- [ ] After N completions: directive disappears permanently (no more periods)
-- [ ] After date: completing on the end date permanently closes the directive
-- [ ] After date: directive is retired on next app load after end date passes (even if not completed)
-- [ ] Edit dialog pre-fills end condition from an existing directive with one set
+- [ ] After N completions: commitment disappears permanently (no more periods)
+- [ ] After date: completing on the end date permanently closes the commitment
+- [ ] After date: commitment is retired on next app load after end date passes (even if not completed)
+- [ ] Edit dialog pre-fills end condition from an existing commitment with one set
 
 ### Recurrence rollover
 
@@ -352,55 +353,55 @@ Mark each row as you verify in the browser. Reset the localStorage entry
 
 ### Insights
 
-- [ ] Menu → Intelligence Report navigates to the insights view
-- [ ] Page shows "INTELLIGENCE REPORT" title and subtitle
-- [ ] MISSED DIRECTIVES section shows directives whose one-time hard-date has passed (missedAt set); empty state shows "No missed directives on record"
-- [ ] Missed one-time hard-date directives no longer appear in daily or project-detail views
-- [ ] Each missed one-time directive row shows REVIVE and DISMISS buttons
-- [ ] REVIVE: directive returns to active; if its suggestedDate was in the past it is reset to today; directive reappears in daily mandatory band
-- [ ] DISMISS: directive is permanently deleted and no longer appears anywhere
-- [ ] Recurring directives with missed periods (totalMisses > 0 but missedAt = null) show the miss count only — no REVIVE/DISMISS buttons
-- [ ] Recurring directives that rolled over without completion appear in MISSED DIRECTIVES with miss count
-- [ ] MOST SNOOZED section shows directives with totalSnoozes > 0, sorted by count desc
-- [ ] Snoozing a directive increments its totalSnoozes (verify by checking insights after snooze)
-- [ ] MOST SKIPPED section shows directives with totalSkips > 0, sorted by count desc
-- [ ] Skipping a recurring directive increments its totalSkips (visible in insights)
-- [ ] TOP COMPLETIONS section shows directives sorted by totalCompletions desc
-- [ ] Completing a directive increments totalCompletions (visible in insights)
+- [ ] Menu → Insights navigates to the insights view
+- [ ] Page shows "Insights" title and subtitle
+- [ ] MISSED COMMITMENTS section shows commitments whose one-time hard-date has passed (missedAt set); empty state shows "No missed commitments on record"
+- [ ] Missed one-time hard-date commitments no longer appear in daily or project-detail views
+- [ ] Each missed one-time commitment row shows REVIVE and DISMISS buttons
+- [ ] REVIVE: commitment returns to active; if its suggestedDate was in the past it is reset to today; commitment reappears in daily mandatory band
+- [ ] DISMISS: commitment is permanently deleted and no longer appears anywhere
+- [ ] Recurring commitments with missed periods (totalMisses > 0 but missedAt = null) show the miss count only — no REVIVE/DISMISS buttons
+- [ ] Recurring commitments that rolled over without completion appear in MISSED COMMITMENTS with miss count
+- [ ] MOST SNOOZED section shows commitments with totalSnoozes > 0, sorted by count desc
+- [ ] Snoozing a commitment increments its totalSnoozes (verify by checking insights after snooze)
+- [ ] MOST SKIPPED section shows commitments with totalSkips > 0, sorted by count desc
+- [ ] Skipping a recurring commitment increments its totalSkips (visible in insights)
+- [ ] TOP COMPLETIONS section shows commitments sorted by totalCompletions desc
+- [ ] Completing a commitment increments totalCompletions (visible in insights)
 - [ ] BEST STREAKS section appears when any task has maxTaskCompletionStreak > 1
-- [ ] OPERATIONS OVERVIEW table appears when projects exist; shows miss/snooze/skip/done counts per operation
-- [ ] Recurring directive rolled over at startup (period elapsed without completion): totalMisses incremented
-- [ ] skipStreak resets to 0 on directive completion; taskCompletionStreak resets to 0 on skip
+- [ ] RESPONSIBILITIES OVERVIEW table appears when projects exist; shows miss/snooze/skip/done counts per area
+- [ ] Recurring commitment rolled over at startup (period elapsed without completion): totalMisses incremented
+- [ ] skipStreak resets to 0 on commitment completion; taskCompletionStreak resets to 0 on skip
 
-### Radar lead days (per-directive)
+### Radar lead days (per-commitment)
 
-- [ ] Hard-date directive add/edit form shows a "Radar lead (days)" number field (default 3)
-- [ ] Field is absent for flexible-window and milestone directives
-- [ ] Setting lead to 5: directive appears in RADAR band 5 days before its date
-- [ ] Setting lead to 1: directive stays in BACKLOG until 1 day before its date
-- [ ] Setting lead to 0: directive never appears in RADAR (goes directly BACKLOG → MANDATORY)
+- [ ] Hard-date commitment add/edit form shows a "Radar lead (days)" number field (default 3)
+- [ ] Field is absent for flexible-window and milestone commitments
+- [ ] Setting lead to 5: commitment appears in RADAR band 5 days before its date
+- [ ] Setting lead to 1: commitment stays in BACKLOG until 1 day before its date
+- [ ] Setting lead to 0: commitment never appears in RADAR (goes directly BACKLOG → MANDATORY)
 - [ ] Edit dialog re-opens with the saved lead value pre-filled
-- [ ] Existing directives without a saved radarLeadDays behave as if set to 3 (no regression)
+- [ ] Existing commitments without a saved radarLeadDays behave as if set to 3 (no regression)
 
-### Strategic Objectives (Goals)
+### Goals
 
-**Global view (Strategic Objectives nav item)**
-- [ ] Menu → "Strategic Objectives" navigates to the goals view
-- [ ] Page shows "STRATEGIC OBJECTIVES" title and subtitle
+**Global view (Goals nav item)**
+- [ ] Menu → "Goals" navigates to the goals view
+- [ ] Page shows "GOALS" title and subtitle
 - [ ] Empty state shows "No objectives on file. File one above to begin."
-- [ ] Add form includes an "Operation" dropdown to link the goal to a project
-- [ ] Goal cards in the global view show an operation badge (⊙ Operation Name)
-- [ ] All goals across all operations are listed, sorted by target date (soonest first, no-date goals last)
+- [ ] Add form includes an "Area of Responsibility" dropdown to link the goal to an area
+- [ ] Goal cards in the global view show an area badge (⊙ Area Name)
+- [ ] All goals across all areas are listed, sorted by target date (soonest first, no-date goals last)
 - [ ] Sorting is per status group: active sorted separately from achieved/abandoned
 
-**Per-operation view (project detail page)**
-- [ ] Project detail page shows an "OBJECTIVES" section below the directives list
-- [ ] Only goals linked to that operation appear; other operations' goals are not shown
-- [ ] "FILE OBJECTIVE" button in the per-operation view opens a form without an operation selector (project pre-filled)
-- [ ] Goals filed from project detail are automatically linked to that operation
+**Per-area view (project detail page)**
+- [ ] Project detail page shows an "OBJECTIVES" section below the commitments list
+- [ ] Only goals linked to that area appear; other areas' goals are not shown
+- [ ] "FILE OBJECTIVE" button in the per-area view opens a form without an area selector (area pre-filled)
+- [ ] Goals filed from project detail are automatically linked to that area
 
 **Shared goal card behaviour**
-- [ ] Goal card shows title, description (if any), target date (if set), linked directives section
+- [ ] Goal card shows title, description (if any), target date (if set), linked commitments section
 - [ ] Target date in the past shows "OVERDUE" in red for active goals
 - [ ] ACTIVE / ACHIEVED / ABANDONED section headers show counts; sections are hidden when empty
 - [ ] EDIT button expands an inline edit form pre-filled with current data; saving updates the card
@@ -408,54 +409,54 @@ Mark each row as you verify in the browser. Reset the localStorage entry
 - [ ] MARK ACHIEVED → card moves to ACHIEVED section (green left border); only REACTIVATE / EDIT / DELETE remain
 - [ ] ABANDON → card moves to ABANDONED section (grey left border)
 - [ ] REACTIVATE returns goal to ACTIVE section
-- [ ] "+ SPAWN DIRECTIVE" opens the Add Directive sheet with the goal's operation pre-selected; submitting creates the directive and auto-links it to the goal
-- [ ] Cancelling the spawn sheet leaves the goal's linked directives unchanged
-- [ ] Linked directives appear as chip tags showing the directive title
-- [ ] "×" button on a chip unlinks that directive (directive itself is not deleted)
-- [ ] "(deleted directive)" label appears for chips whose task no longer exists
-- [ ] Goal cards show a "Linked Intelligence" section (see Field Intelligence section for detail)
-- [ ] Decommissioning an operation also deletes all goals linked to that operation
+- [ ] "+ SPAWN COMMITMENT" opens the Add Commitment sheet with the goal's area pre-selected; submitting creates the commitment and auto-links it to the goal
+- [ ] Cancelling the spawn sheet leaves the goal's linked commitments unchanged
+- [ ] Linked commitments appear as chip tags showing the commitment title
+- [ ] "×" button on a chip unlinks that commitment (commitment itself is not deleted)
+- [ ] "(deleted commitment)" label appears for chips whose task no longer exists
+- [ ] Goal cards show a "Linked Intelligence" section (see Ideas section for detail)
+- [ ] Decommissioning an area also deletes all goals linked to that area
 
-### Field Intelligence (Ideas)
+### Ideas
 
-**Global view (Field Intelligence nav item)**
-- [ ] Menu → "Field Intelligence" navigates to the ideas view
-- [ ] Page shows "FIELD INTELLIGENCE" title and subtitle
+**Global view (Ideas nav item)**
+- [ ] Menu → "Ideas" navigates to the ideas view
+- [ ] Page shows "IDEAS" title and subtitle
 - [ ] Empty state shows "No intelligence on file. Observations go here."
 - [ ] "FILE INTELLIGENCE" dashed button appears when no add-form is open
-- [ ] Clicking "FILE INTELLIGENCE" shows the add form with Title, Notes, Linked Operation, and (when an operation is selected) a Linked Objective dropdown
-- [ ] Linked Operation dropdown lists all projects; default is "— None —"
-- [ ] Selecting an operation causes the "Linked Objective" dropdown to appear, listing active goals for that operation
+- [ ] Clicking "FILE INTELLIGENCE" shows the add form with Title, Notes, Linked Area, and (when an area is selected) a Linked Objective dropdown
+- [ ] Linked Area dropdown lists all areas; default is "— None —"
+- [ ] Selecting an area causes the "Linked Objective" dropdown to appear, listing active goals for that area
 - [ ] Submitting with a blank title does nothing (form stays open)
 - [ ] Submitting with a title closes the form and the idea card appears immediately
-- [ ] Idea cards show title, notes (if any), linked project badge (if set), and linked objective badge (if set)
+- [ ] Idea cards show title, notes (if any), linked area badge (if set), and linked objective badge (if set)
 - [ ] Ideas are listed newest-first
 - [ ] EDIT button on a card expands an inline form pre-filled with the idea's data; saving updates the card
 - [ ] DELETE button shows a "Permanently delete?" confirmation row with CONFIRM and CANCEL buttons
 - [ ] CONFIRM deletes the idea; CANCEL dismisses the confirmation without deleting
-- [ ] PROMOTE TO DIRECTIVE opens the Add Directive sheet with the idea's title and notes pre-filled
-- [ ] If the idea had a linked operation, the directive dialog's operation selector is pre-selected to that operation
-- [ ] If the idea had a linked objective, promoting it auto-links the created directive to that objective
-- [ ] Submitting the promoted directive deletes the idea from the ideas list
-- [ ] Cancelling the directive sheet leaves the idea intact
+- [ ] PROMOTE TO COMMITMENT opens the Add Commitment sheet with the idea's title and notes pre-filled
+- [ ] If the idea had a linked area, the commitment dialog's area selector is pre-selected to that area
+- [ ] If the idea had a linked objective, promoting it auto-links the created commitment to that objective
+- [ ] Submitting the promoted commitment deletes the idea from the ideas list
+- [ ] Cancelling the commitment sheet leaves the idea intact
 
-**Per-operation view (project detail page)**
+**Per-area view (project detail page)**
 - [ ] Project detail page shows an "INTELLIGENCE" section below the Objectives section
-- [ ] Only ideas linked to that operation appear in the per-operation intelligence section
-- [ ] "FILE INTELLIGENCE" button in the embedded view pre-fills the operation; no operation selector is shown
-- [ ] If the operation has active objectives, the Linked Objective dropdown appears in the add form
-- [ ] Ideas added from the per-operation view are visible in the global Field Intelligence view
+- [ ] Only ideas linked to that area appear in the per-area intelligence section
+- [ ] "FILE INTELLIGENCE" button in the embedded view pre-fills the area; no area selector is shown
+- [ ] If the area has active objectives, the Linked Objective dropdown appears in the add form
+- [ ] Ideas added from the per-area view are visible in the global Ideas view
 
 **Idea–Objective linkage in the goals view**
 - [ ] Goal cards show a "Linked Intelligence" section with chips for each idea linked to that goal
 - [ ] "×" button on an intelligence chip unlinks the idea from the goal (idea.goalId set to null; idea itself is not deleted)
-- [ ] "↑" button on an intelligence chip promotes the idea to a directive (same flow as PROMOTE TO DIRECTIVE)
+- [ ] "↑" button on an intelligence chip promotes the idea to a commitment (same flow as PROMOTE TO COMMITMENT)
 - [ ] When no intelligence is linked to a goal, "No intelligence linked yet." placeholder appears
-- [ ] Decommissioning an operation also deletes all ideas linked to that operation
+- [ ] Decommissioning an area also deletes all ideas linked to that area
 
 ### Bug regressions
 
-- [ ] Skip action (recurring directive) fires NO Whitaker/Briggs dialogue (regression: NEW-2)
+- [ ] Skip action (recurring commitment) fires NO Whitaker/Briggs dialogue (regression: NEW-2)
 - [ ] Menu → "Report a Neighbor": menu closes immediately; share sheet appears (or link is copied) (regression: NEW-3)
 - [ ] Patriot score header shows streak when streak is 0 — e.g. "0d · SUSPECTED COMMUNIST" (regression: Bug #8)
 - [ ] Daily view: expand BACKLOG band → previously-expanded time-of-day slots within other bands stay expanded (regression: NEW-4)

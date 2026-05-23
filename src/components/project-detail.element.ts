@@ -481,7 +481,7 @@ export const ProjectDetailElement = defineElement<{
                 class="add-btn"
                 @click=${() => dispatch(new events.newTaskRequested(project.id))}
             >
-                + FILE NEW DIRECTIVE
+                + FILE NEW COMMITMENT
             </button>
 
             <!-- Completed tasks (collapsed by default) -->
@@ -640,7 +640,7 @@ export const ProjectDetailElement = defineElement<{
                     : state.confirmingDelete
                     ? html`
                         <div class="confirm-delete">
-                            <p>PERMANENTLY DECOMMISSION THIS OPERATION AND ALL ITS DIRECTIVES?</p>
+                            <p>PERMANENTLY DECOMMISSION THIS AREA AND ALL ITS COMMITMENTS?</p>
                             <div class="confirm-actions">
                                 <button
                                     class="confirm-yes"
@@ -663,11 +663,11 @@ export const ProjectDetailElement = defineElement<{
                                     editDescription: project.description,
                                     editColor: project.colorKey,
                                 })}
-                            >EDIT OPERATION</button>
+                            >EDIT AREA</button>
                             <button
                                 class="delete-btn"
                                 @click=${() => updateState({confirmingDelete: true})}
-                            >DECOMMISSION OPERATION</button>
+                            >DECOMMISSION AREA</button>
                         </div>
                       `}
             </div>

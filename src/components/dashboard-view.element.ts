@@ -266,7 +266,7 @@ export const DashboardViewElement = defineElement<{
                 class="add-btn"
                 @click=${() => updateState({wizardOpen: true})}
             >
-                + OPEN NEW OPERATION
+                + NEW AREA OF RESPONSIBILITY
             </button>
 
             <!-- Operation wizard dialog -->

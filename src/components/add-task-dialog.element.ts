@@ -1330,7 +1330,7 @@ export const AddTaskDialogElement = defineElement<{
                                 updateState({selectedProjectId: val === '' ? null : val});
                             }}
                         >
-                            <option value="">No operation</option>
+                            <option value="">No area</option>
                             ${(inputs.projects ?? []).map(p => html`
                                 <option
                                     value="${p.id}"
@@ -1345,7 +1345,7 @@ export const AddTaskDialogElement = defineElement<{
                             ${state.confirmingDelete
                                 ? html`
                                     <div class="delete-confirm-row">
-                                        <span class="delete-confirm-label">PERMANENTLY TERMINATE THIS DIRECTIVE?</span>
+                                        <span class="delete-confirm-label">PERMANENTLY TERMINATE THIS COMMITMENT?</span>
                                         <button
                                             class="delete-confirm-yes"
                                             @click=${() => {
@@ -1363,7 +1363,7 @@ export const AddTaskDialogElement = defineElement<{
                                     <button
                                         class="task-delete-btn"
                                         @click=${() => updateState({confirmingDelete: true})}
-                                    >TERMINATE DIRECTIVE</button>
+                                    >TERMINATE COMMITMENT</button>
                                   `}
                         </div>
                     ` : html``}

@@ -248,7 +248,7 @@ export const AddProjectDialogElement = defineElement<{
                             ?disabled=${!canSubmit}
                             @click=${submit}
                         >
-                            OPEN OPERATION
+                            CREATE AREA
                         </button>
                     </div>
                 </div>
