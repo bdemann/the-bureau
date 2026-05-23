@@ -268,6 +268,22 @@ export function getSnoozeSeverity(snoozeCount: number): SnoozeSeverity {
     return 'critical';
 }
 
+// ── Skip severity ────────────────────────────────────────────────────────────
+
+export const SKIP_CAUTION = 2;
+export const SKIP_DANGER  = 4;
+export const SKIP_CRITICAL = 6;
+
+export type SkipSeverity = 'none' | 'warning' | 'caution' | 'danger' | 'critical';
+
+export function getSkipSeverity(skipStreak: number): SkipSeverity {
+    if (skipStreak === 0) return 'none';
+    if (skipStreak < SKIP_CAUTION)  return 'warning';
+    if (skipStreak < SKIP_DANGER)   return 'caution';
+    if (skipStreak < SKIP_CRITICAL) return 'danger';
+    return 'critical';
+}
+
 // ── Cadence helpers ──────────────────────────────────────────────────────────
 
 /** Whether the cadence supports multiple completions per period. */

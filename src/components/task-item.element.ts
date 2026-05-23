@@ -5,6 +5,7 @@ import {cadencePeriodWord, getSnoozeSeverity, tierShortLabel} from '../data/type
 import {isCurrentlySnoozed, isTaskOverdue} from '../data/storage.js';
 import {isMultiplePerPeriod} from '../data/recurrence.js';
 import {SnoozeIndicatorElement} from './snooze-indicator.element.js';
+import {SkipIndicatorElement} from './skip-indicator.element.js';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // TaskItemElement
@@ -348,6 +349,13 @@ export const TaskItemElement = defineElement<{
                         ? html`
                             <${SnoozeIndicatorElement.assign({snoozeCount: task.snoozeCount})}
                             ></${SnoozeIndicatorElement}>
+                        `
+                        : html``}
+
+                    ${task.skipStreak > 0
+                        ? html`
+                            <${SkipIndicatorElement.assign({skipStreak: task.skipStreak})}
+                            ></${SkipIndicatorElement}>
                         `
                         : html``}
 

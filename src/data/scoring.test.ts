@@ -8,6 +8,7 @@ import {
     taskScaleMultiplier,
     tierCompletionReward,
 } from './scoring.js';
+import {getSkipSeverity} from './types.js';
 import type {Task} from './types.js';
 
 // Minimal task stub for tests.
@@ -95,6 +96,27 @@ describe('penalty ordering: higher tier = higher values', () => {
         assert.isAbove(snoozePenalty(1), snoozePenalty(2));
         assert.isAbove(snoozePenalty(2), snoozePenalty(3));
         assert.isAbove(snoozePenalty(3), snoozePenalty(4));
+    });
+});
+
+describe('getSkipSeverity', () => {
+    test('0 skips → none', () => {
+        assert.strictEquals(getSkipSeverity(0), 'none');
+    });
+    test('1 skip → warning', () => {
+        assert.strictEquals(getSkipSeverity(1), 'warning');
+    });
+    test('2–3 skips → caution', () => {
+        assert.strictEquals(getSkipSeverity(2), 'caution');
+        assert.strictEquals(getSkipSeverity(3), 'caution');
+    });
+    test('4–5 skips → danger', () => {
+        assert.strictEquals(getSkipSeverity(4), 'danger');
+        assert.strictEquals(getSkipSeverity(5), 'danger');
+    });
+    test('6+ skips → critical', () => {
+        assert.strictEquals(getSkipSeverity(6), 'critical');
+        assert.strictEquals(getSkipSeverity(10), 'critical');
     });
 });
 

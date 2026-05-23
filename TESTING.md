@@ -114,10 +114,8 @@ Mark each row as you verify in the browser. Reset the localStorage entry
 - [ ] CANCEL button also dismisses
 - [ ] ROUTINE → opens the add-commitment sheet pre-set to Routine mode (recurring on, daily cadence)
 - [ ] TASK → opens the add-commitment sheet pre-set to Task mode (one-time, hard date)
-- [ ] GOAL (daily view) → navigates to Goals view and opens the goal creation form immediately
-- [ ] GOAL (project detail) → the inline Goals section expands and shows the goal creation form, staying on the same page
-- [ ] IDEA (daily view) → navigates to Ideas view and opens the idea creation form immediately
-- [ ] IDEA (project detail) → the inline Intelligence section expands and shows the idea creation form, staying on the same page
+- [ ] GOAL → opens the add-commitment sheet pre-set to Goal mode (title = "FILE NEW GOAL")
+- [ ] IDEA → opens the add-commitment sheet pre-set to Idea mode (title = "FILE NEW IDEA")
 
 ### Filing commitments — routine vs task kind
 
@@ -271,6 +269,15 @@ Mark each row as you verify in the browser. Reset the localStorage entry
 - [ ] In Snoozed list → "Wake up" moves commitment back to Active
 - [ ] Snooze count *retained* (un-snooze ≠ reset)
 
+### Skip indicator
+
+- [ ] After the first skip, a grey "↷ Skipped ×1" badge appears on the commitment card (warning)
+- [ ] After 2–3 skips, badge turns olive and reads "↷ Skipped ×N — Pattern noted" (caution)
+- [ ] After 4–5 skips, badge turns dark and reads "↷ FLAGGED — Skipped ×N" (danger)
+- [ ] At 6+ skips, badge becomes a pulsing navy stamp "CHRONIC AVOIDANCE ×N" (critical)
+- [ ] Completing a commitment resets the skip badge to hidden (skipStreak = 0)
+- [ ] Skip badge is visible on commitment cards in both the daily view and project-detail
+
 ### Daily view
 
 - [ ] Mandatory: commitments due today / hard-overdue / cadence=daily / weekly with hardDaysOfWeek on a configured day
@@ -399,34 +406,41 @@ Mark each row as you verify in the browser. Reset the localStorage entry
 
 **Global view (Goals nav item)**
 - [ ] Menu → "Goals" navigates to the goals view
-- [ ] Page shows "GOALS" title and subtitle
-- [ ] Empty state shows "No objectives on file. File one above to begin."
-- [ ] Add form includes an "Area of Responsibility" dropdown to link the goal to an area
-- [ ] Goal cards in the global view show an area badge (⊙ Area Name)
-- [ ] All goals across all areas are listed, sorted by target date (soonest first, no-date goals last)
-- [ ] Sorting is per status group: active sorted separately from achieved/abandoned
+- [ ] Page shows "GOALS" title and subtitle with "CLICK AN OBJECTIVE TO MANAGE COMMITMENTS" hint
+- [ ] Empty state shows "No objectives on file. Make one above to begin."
+- [ ] "+ MAKE GOAL" button opens the unified commitment sheet pre-set to Goal mode
+- [ ] Goal cards are listed under ACTIVE / ACHIEVED / ABANDONED section headers (counts shown; empty sections hidden)
+- [ ] All goals across all areas are listed, sorted by target date (soonest first, no-date goals last) within each section
+- [ ] Goal cards show: title, description snippet (2-line clamp), target date, area badge (⊙ Area), linked commitment chips (read-only)
+- [ ] Target date in the past shows "OVERDUE" in red for active goals
+- [ ] MARK ACHIEVED and ABANDON action buttons on active cards (clicking does NOT navigate to detail)
+- [ ] REACTIVATE action button on achieved/abandoned cards
+- [ ] Clicking the body of a goal card (not an action button) navigates to the goal-detail view
 
 **Per-area view (project detail page)**
-- [ ] Project detail page shows an "OBJECTIVES" section below the commitments list
+- [ ] Project detail page shows an "OBJECTIVES" section
 - [ ] Only goals linked to that area appear; other areas' goals are not shown
-- [ ] "MAKE GOAL" button in the per-area view opens a form without an area selector (area pre-filled)
+- [ ] "+ MAKE GOAL" button in the per-area view opens the commitment sheet pre-set to Goal mode
 - [ ] Goals filed from project detail are automatically linked to that area
+- [ ] Clicking a goal card in the per-area view navigates to the goal-detail view
 
-**Shared goal card behaviour**
-- [ ] Goal card shows title, description (if any), target date (if set), linked commitments section
-- [ ] Target date in the past shows "OVERDUE" in red for active goals
-- [ ] ACTIVE / ACHIEVED / ABANDONED section headers show counts; sections are hidden when empty
-- [ ] EDIT button expands an inline edit form pre-filled with current data; saving updates the card
-- [ ] DELETE button shows a confirmation row; CONFIRM deletes permanently; CANCEL dismisses it
-- [ ] MARK ACHIEVED → card moves to ACHIEVED section (green left border); only REACTIVATE / EDIT / DELETE remain
-- [ ] ABANDON → card moves to ABANDONED section (grey left border)
-- [ ] REACTIVATE returns goal to ACTIVE section
-- [ ] "+ SPAWN COMMITMENT" opens the Add Commitment sheet with the goal's area pre-selected; submitting creates the commitment and auto-links it to the goal
-- [ ] Cancelling the spawn sheet leaves the goal's linked commitments unchanged
-- [ ] Linked commitments appear as chip tags showing the commitment title
-- [ ] "×" button on a chip unlinks that commitment (commitment itself is not deleted)
-- [ ] "(deleted commitment)" label appears for chips whose task no longer exists
-- [ ] Goal cards show a "Linked Intelligence" section (see Ideas section for detail)
+**Goal-detail view**
+- [ ] Header breadcrumb shows the goal title; back button returns to the previous view
+- [ ] Title, description, target date, status badge, and area badge are shown
+- [ ] EDIT button expands an inline form pre-filled with current title, description, and target date
+- [ ] Target date in the goal creation form defaults to today
+- [ ] Saving the edit form updates the goal and collapses back to read-only view
+- [ ] LINK COMMITMENT button opens a bottom-sheet picker with a search bar
+- [ ] Picker lists all commitments not already linked to the goal; search filters by title
+- [ ] Tapping a commitment in the picker links it to the goal and closes the sheet
+- [ ] "+ MAKE NEW COMMITMENT" button opens the add-commitment sheet with the goal's area pre-selected; created commitment is auto-linked to the goal
+- [ ] Cancelling the commitment sheet leaves the goal's linked commitments unchanged
+- [ ] Active, Paused, Snoozed, and Completed task sections appear for linked commitments
+- [ ] Each linked commitment shows "⊗ unlink from objective" below its card; clicking unlinks it (commitment itself is not deleted)
+- [ ] Completed linked commitments are shown in a collapsible "COMPLETED" section (Show/Hide toggle)
+- [ ] ABANDON OBJECTIVE (active goals only) and DELETE OBJECTIVE buttons appear in the delete zone at the bottom
+- [ ] ABANDON OBJECTIVE moves the goal to the ABANDONED section; navigating back shows it there
+- [ ] DELETE OBJECTIVE shows inline confirmation; confirming deletes the goal and returns to the previous view
 - [ ] Decommissioning an area also deletes all goals linked to that area
 
 ### Ideas
@@ -458,13 +472,6 @@ Mark each row as you verify in the browser. Reset the localStorage entry
 - [ ] "MAKE IDEA" button in the embedded view pre-fills the area; no area selector is shown
 - [ ] If the area has active objectives, the Linked Objective dropdown appears in the add form
 - [ ] Ideas added from the per-area view are visible in the global Ideas view
-
-**Idea–Objective linkage in the goals view**
-- [ ] Goal cards show a "Linked Intelligence" section with chips for each idea linked to that goal
-- [ ] "×" button on an intelligence chip unlinks the idea from the goal (idea.goalId set to null; idea itself is not deleted)
-- [ ] "↑" button on an intelligence chip promotes the idea to a commitment (same flow as PROMOTE TO COMMITMENT)
-- [ ] When no intelligence is linked to a goal, "No intelligence linked yet." placeholder appears
-- [ ] Decommissioning an area also deletes all ideas linked to that area
 
 ### Bug regressions
 

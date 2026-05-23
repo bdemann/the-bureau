@@ -662,10 +662,6 @@ export const GoalDetailElement = defineElement<{
                                         class="action-btn action-achieve"
                                         @click=${() => setStatus('achieved')}
                                     >MARK ACHIEVED</button>
-                                    <button
-                                        class="action-btn action-abandon"
-                                        @click=${() => setStatus('abandoned')}
-                                    >ABANDON</button>
                                   `
                                 : html`
                                     <button
@@ -860,10 +856,19 @@ export const GoalDetailElement = defineElement<{
                         </div>
                       `
                     : html`
-                        <button
-                            class="delete-btn"
-                            @click=${() => updateState({confirmingDelete: true, editingGoal: false})}
-                        >DELETE OBJECTIVE</button>
+                        <div style="display:flex;gap:8px;flex-wrap:wrap;">
+                            ${isActive
+                                ? html`<button
+                                        class="delete-btn"
+                                        style="border-color:#9E9E9E;color:#6B6B6B;"
+                                        @click=${() => setStatus('abandoned')}
+                                    >ABANDON OBJECTIVE</button>`
+                                : html``}
+                            <button
+                                class="delete-btn"
+                                @click=${() => updateState({confirmingDelete: true, editingGoal: false})}
+                            >DELETE OBJECTIVE</button>
+                        </div>
                       `}
             </div>
         `;

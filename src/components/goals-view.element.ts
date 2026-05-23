@@ -100,7 +100,7 @@ export const GoalsViewElement = defineElement<{
 
         /* ── Goal card ── */
         .goal-card {
-            background: #F5EFE0;
+            background: #FDFAF5;
             border: 1px solid rgba(0,0,0,0.12);
             border-left: 4px solid #1B2A4A;
             padding: 12px 14px;
