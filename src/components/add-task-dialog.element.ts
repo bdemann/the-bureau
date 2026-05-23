@@ -57,6 +57,7 @@ export const AddTaskDialogElement = defineElement<{
     projects?: ReadonlyArray<Project>;
     prefillTitle?: string | null;
     prefillDescription?: string | null;
+    defaultKind?: ItemKind;
 }>()({
     tagName: 'add-task-dialog',
 
@@ -455,11 +456,11 @@ export const AddTaskDialogElement = defineElement<{
                 selectedProjectId: inputs.projectId,
                 titleValue: inputs.prefillTitle ?? '',
                 description: inputs.prefillDescription ?? '',
-                kind: 'task',
+                kind: inputs.defaultKind ?? 'task',
                 consequenceTier: 3,
                 timeOfDay: 'anytime',
-                isRecurring: false,
-                cadence: 'weekly',
+                isRecurring: inputs.defaultKind === 'routine',
+                cadence: inputs.defaultKind === 'routine' ? 'daily' : 'weekly',
                 frequencyPerPeriod: 2,
                 scheduleMode: 'fixed',
                 windowType: 'hard',

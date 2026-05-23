@@ -1,5 +1,5 @@
 import {defineElement, defineElementEvent, css, html, listen} from 'element-vir';
-import type {Goal, Idea, Project, ProjectColor, Task} from '../data/types.js';
+import type {Goal, Idea, ItemKind, Project, ProjectColor, Task} from '../data/types.js';
 import {isCurrentlyPaused, isTaskVisible, isTaskOverdue} from '../data/storage.js';
 import {GoalsViewElement} from './goals-view.element.js';
 import {IdeasViewElement} from './ideas-view.element.js';
@@ -34,7 +34,7 @@ export const ProjectDetailElement = defineElement<{
         taskSkipped:        defineElementEvent<string>(),
         taskProgressLogged: defineElementEvent<string>(),
         taskEditRequested:  defineElementEvent<string>(),
-        newTaskRequested:   defineElementEvent<string>(),  // project id to pre-select
+        newTaskRequested:   defineElementEvent<{projectId: string; kind: ItemKind}>(),
         tasksReordered:     defineElementEvent<ReadonlyArray<string>>(),  // ordered task ids
         back:               defineElementEvent<void>(),
         projectDeleted:     defineElementEvent<string>(),
@@ -60,6 +60,9 @@ export const ProjectDetailElement = defineElement<{
         editName: '',
         editDescription: '',
         editColor: 'navy' as ProjectColor,
+        typePicker: false,
+        goalFormTrigger: 0,
+        ideaFormTrigger: 0,
     }),
 
     styles: css`
@@ -320,6 +323,71 @@ export const ProjectDetailElement = defineElement<{
             cursor: pointer;
         }
         .save-btn:hover { background: #2A3F6F; }
+
+        .type-picker-backdrop {
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.55);
+            z-index: 100;
+            display: flex;
+            align-items: flex-end;
+        }
+        .type-picker-panel {
+            background: #1B2A4A;
+            width: 100%;
+            padding: 20px 16px 28px;
+            border-top: 2px solid #2A3F6F;
+        }
+        .type-picker-heading {
+            font-family: 'Bebas Neue', sans-serif;
+            color: #B0A070;
+            letter-spacing: 0.15em;
+            font-size: 0.75rem;
+            text-align: center;
+            margin-bottom: 14px;
+        }
+        .type-picker-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+            margin-bottom: 10px;
+        }
+        .type-picker-option {
+            background: #0B1423;
+            border: 1px solid #2A3F6F;
+            color: #F5EFE0;
+            padding: 14px 8px;
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 1rem;
+            letter-spacing: 0.12em;
+            cursor: pointer;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+            transition: background 0.15s;
+        }
+        .type-picker-option:hover { background: #2A3F6F; }
+        .type-picker-sub {
+            font-family: sans-serif;
+            font-size: 0.6rem;
+            color: #B0A070;
+            letter-spacing: 0.04em;
+            font-weight: normal;
+            text-transform: none;
+        }
+        .type-picker-cancel {
+            width: 100%;
+            background: none;
+            border: 1px solid #2A3F6F;
+            color: #B0A070;
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 0.8rem;
+            letter-spacing: 0.15em;
+            padding: 8px;
+            cursor: pointer;
+        }
+        .type-picker-cancel:hover { background: rgba(255,255,255,0.05); }
     `,
 
     render({inputs, state, updateState, dispatch, events}) {
@@ -479,10 +547,49 @@ export const ProjectDetailElement = defineElement<{
             <!-- Add task button -->
             <button
                 class="add-btn"
-                @click=${() => dispatch(new events.newTaskRequested(project.id))}
+                @click=${() => updateState({typePicker: true})}
             >
                 + MAKE NEW COMMITMENT
             </button>
+
+            ${state.typePicker ? html`
+                <div class="type-picker-backdrop" @click=${() => updateState({typePicker: false})}>
+                    <div class="type-picker-panel" @click=${(e: Event) => e.stopPropagation()}>
+                        <div class="type-picker-heading">WHAT KIND OF COMMITMENT?</div>
+                        <div class="type-picker-grid">
+                            <button class="type-picker-option" @click=${() => {
+                                updateState({typePicker: false});
+                                dispatch(new events.newTaskRequested({projectId: project.id, kind: 'routine'}));
+                            }}>
+                                ROUTINE
+                                <span class="type-picker-sub">Repeating habit</span>
+                            </button>
+                            <button class="type-picker-option" @click=${() => {
+                                updateState({typePicker: false});
+                                dispatch(new events.newTaskRequested({projectId: project.id, kind: 'task'}));
+                            }}>
+                                TASK
+                                <span class="type-picker-sub">One-time action</span>
+                            </button>
+                            <button class="type-picker-option" @click=${() => {
+                                updateState({typePicker: false, goalFormTrigger: state.goalFormTrigger + 1});
+                            }}>
+                                GOAL
+                                <span class="type-picker-sub">Long-horizon outcome</span>
+                            </button>
+                            <button class="type-picker-option" @click=${() => {
+                                updateState({typePicker: false, ideaFormTrigger: state.ideaFormTrigger + 1});
+                            }}>
+                                IDEA
+                                <span class="type-picker-sub">Capture for later</span>
+                            </button>
+                        </div>
+                        <button class="type-picker-cancel"
+                            @click=${() => updateState({typePicker: false})}
+                        >CANCEL</button>
+                    </div>
+                </div>
+            ` : html``}
 
             <!-- Completed tasks (collapsed by default) -->
             ${completedTasks.length > 0
@@ -530,6 +637,7 @@ export const ProjectDetailElement = defineElement<{
                     ideas: inputs.ideas,
                     projects: inputs.projects,
                     filterProjectId: project.id,
+                    openFormTrigger: state.goalFormTrigger,
                 })}
                     ${listen(GoalsViewElement.events.goalAdded, e =>
                         dispatch(new events.goalAdded(e.detail)))}
@@ -556,6 +664,7 @@ export const ProjectDetailElement = defineElement<{
                     goals: inputs.goals,
                     projects: inputs.projects,
                     filterProjectId: project.id,
+                    openFormTrigger: state.ideaFormTrigger,
                 })} data-embedded=${''}
                     ${listen(IdeasViewElement.events.ideaAdded, e =>
                         dispatch(new events.ideaAdded(e.detail)))}

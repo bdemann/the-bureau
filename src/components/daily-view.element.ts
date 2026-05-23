@@ -1,6 +1,6 @@
 import {css, defineElement, defineElementEvent, html, listen} from 'element-vir';
 import {ViraButton, ViraColorVariant, ViraEmphasis, ViraSize} from 'vira';
-import type {DailyBand, Project, Task, TimeOfDay} from '../data/types.js';
+import type {DailyBand, ItemKind, Project, Task, TimeOfDay} from '../data/types.js';
 import {TIME_OF_DAY_SLOTS, timeOfDayLabel} from '../data/types.js';
 import {bandLabel, bandSubtitle, getDailyBand} from '../data/urgency.js';
 import {TaskItemElement} from './task-item.element.js';
@@ -56,7 +56,9 @@ export const DailyViewElement = defineElement<{
         taskSkipped:        defineElementEvent<string>(),
         taskProgressLogged: defineElementEvent<string>(),
         taskEditRequested:  defineElementEvent<string>(),
-        newTaskRequested:   defineElementEvent<void>(),
+        newTaskRequested:   defineElementEvent<ItemKind>(),
+        makeGoalRequested:  defineElementEvent<void>(),
+        makeIdeaRequested:  defineElementEvent<void>(),
         tasksReordered:     defineElementEvent<ReadonlyArray<string>>(),  // ordered task ids
     },
 
@@ -66,6 +68,7 @@ export const DailyViewElement = defineElement<{
         expandRadar:     false,
         expandBacklog:   false,
         expandedSlots: {[getCurrentTimeSlot()]: true} as Partial<Record<TimeOfDay, boolean>>,
+        typePicker: false,
         draggedId: null as string | null,
         dragOverId: null as string | null,
     }),
@@ -222,6 +225,70 @@ export const DailyViewElement = defineElement<{
         }
         .file-directive-btn:hover { background: #2A3F6F; }
 
+        .type-picker-backdrop {
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.55);
+            z-index: 100;
+            display: flex;
+            align-items: flex-end;
+        }
+        .type-picker-panel {
+            background: #1B2A4A;
+            width: 100%;
+            padding: 20px 16px 28px;
+            border-top: 2px solid #2A3F6F;
+        }
+        .type-picker-heading {
+            font-family: 'Bebas Neue', sans-serif;
+            color: #B0A070;
+            letter-spacing: 0.15em;
+            font-size: 0.75rem;
+            text-align: center;
+            margin-bottom: 14px;
+        }
+        .type-picker-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+            margin-bottom: 10px;
+        }
+        .type-picker-option {
+            background: #0B1423;
+            border: 1px solid #2A3F6F;
+            color: #F5EFE0;
+            padding: 14px 8px;
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 1rem;
+            letter-spacing: 0.12em;
+            cursor: pointer;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+            transition: background 0.15s;
+        }
+        .type-picker-option:hover { background: #2A3F6F; }
+        .type-picker-sub {
+            font-family: sans-serif;
+            font-size: 0.6rem;
+            color: #B0A070;
+            letter-spacing: 0.04em;
+            font-weight: normal;
+            text-transform: none;
+        }
+        .type-picker-cancel {
+            width: 100%;
+            background: none;
+            border: 1px solid #2A3F6F;
+            color: #B0A070;
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 0.8rem;
+            letter-spacing: 0.15em;
+            padding: 8px;
+            cursor: pointer;
+        }
+        .type-picker-cancel:hover { background: rgba(255,255,255,0.05); }
     `,
 
     render({inputs, state, updateState, dispatch, events}) {
@@ -429,8 +496,49 @@ export const DailyViewElement = defineElement<{
 
             <button
                 class="file-directive-btn"
-                @click=${() => dispatch(new events.newTaskRequested())}
+                @click=${() => updateState({typePicker: true})}
             >+ MAKE COMMITMENT</button>
+
+            ${state.typePicker ? html`
+                <div class="type-picker-backdrop" @click=${() => updateState({typePicker: false})}>
+                    <div class="type-picker-panel" @click=${(e: Event) => e.stopPropagation()}>
+                        <div class="type-picker-heading">WHAT KIND OF COMMITMENT?</div>
+                        <div class="type-picker-grid">
+                            <button class="type-picker-option" @click=${() => {
+                                updateState({typePicker: false});
+                                dispatch(new events.newTaskRequested('routine'));
+                            }}>
+                                ROUTINE
+                                <span class="type-picker-sub">Repeating habit</span>
+                            </button>
+                            <button class="type-picker-option" @click=${() => {
+                                updateState({typePicker: false});
+                                dispatch(new events.newTaskRequested('task'));
+                            }}>
+                                TASK
+                                <span class="type-picker-sub">One-time action</span>
+                            </button>
+                            <button class="type-picker-option" @click=${() => {
+                                updateState({typePicker: false});
+                                dispatch(new events.makeGoalRequested());
+                            }}>
+                                GOAL
+                                <span class="type-picker-sub">Long-horizon outcome</span>
+                            </button>
+                            <button class="type-picker-option" @click=${() => {
+                                updateState({typePicker: false});
+                                dispatch(new events.makeIdeaRequested());
+                            }}>
+                                IDEA
+                                <span class="type-picker-sub">Capture for later</span>
+                            </button>
+                        </div>
+                        <button class="type-picker-cancel"
+                            @click=${() => updateState({typePicker: false})}
+                        >CANCEL</button>
+                    </div>
+                </div>
+            ` : html``}
         `;
     },
 });

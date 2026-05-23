@@ -107,6 +107,18 @@ Mark each row as you verify in the browser. Reset the localStorage entry
 - [ ] Cancelling confirmation returns to normal view with no changes
 - [ ] Confirming decommission removes the area and all its commitments, then navigates back to Areas of Responsibility
 
+### Filing commitments — type picker
+
+- [ ] `+ MAKE COMMITMENT` (daily view) and `+ MAKE NEW COMMITMENT` (project detail) both show a bottom-sheet type picker with 4 options: ROUTINE / TASK / GOAL / IDEA
+- [ ] Tapping the backdrop outside the panel dismisses the picker without creating anything
+- [ ] CANCEL button also dismisses
+- [ ] ROUTINE → opens the add-commitment sheet pre-set to Routine mode (recurring on, daily cadence)
+- [ ] TASK → opens the add-commitment sheet pre-set to Task mode (one-time, hard date)
+- [ ] GOAL (daily view) → navigates to Goals view and opens the goal creation form immediately
+- [ ] GOAL (project detail) → the inline Goals section expands and shows the goal creation form, staying on the same page
+- [ ] IDEA (daily view) → navigates to Ideas view and opens the idea creation form immediately
+- [ ] IDEA (project detail) → the inline Intelligence section expands and shows the idea creation form, staying on the same page
+
 ### Filing commitments — routine vs task kind
 
 - [ ] Add dialog defaults to TASK kind selected
@@ -397,7 +409,7 @@ Mark each row as you verify in the browser. Reset the localStorage entry
 **Per-area view (project detail page)**
 - [ ] Project detail page shows an "OBJECTIVES" section below the commitments list
 - [ ] Only goals linked to that area appear; other areas' goals are not shown
-- [ ] "FILE OBJECTIVE" button in the per-area view opens a form without an area selector (area pre-filled)
+- [ ] "MAKE GOAL" button in the per-area view opens a form without an area selector (area pre-filled)
 - [ ] Goals filed from project detail are automatically linked to that area
 
 **Shared goal card behaviour**
@@ -443,7 +455,7 @@ Mark each row as you verify in the browser. Reset the localStorage entry
 **Per-area view (project detail page)**
 - [ ] Project detail page shows an "INTELLIGENCE" section below the Objectives section
 - [ ] Only ideas linked to that area appear in the per-area intelligence section
-- [ ] "FILE INTELLIGENCE" button in the embedded view pre-fills the area; no area selector is shown
+- [ ] "MAKE IDEA" button in the embedded view pre-fills the area; no area selector is shown
 - [ ] If the area has active objectives, the Linked Objective dropdown appears in the add form
 - [ ] Ideas added from the per-area view are visible in the global Ideas view
 

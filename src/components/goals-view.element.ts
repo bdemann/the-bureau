@@ -43,6 +43,8 @@ export const GoalsViewElement = defineElement<{
     projects: ReadonlyArray<Project>;
     /** When set, only show goals for this project and hide the project selector. */
     filterProjectId?: string | null;
+    /** Increment to programmatically open the add form (e.g. from a type picker). */
+    openFormTrigger?: number;
 }>()({
     tagName: 'goals-view',
 
@@ -57,13 +59,14 @@ export const GoalsViewElement = defineElement<{
     },
 
     state: () => ({
-        formOpen:        false,
-        editingId:       null as string | null,
-        formTitle:       '',
-        formDesc:        '',
-        formTargetDate:  '',
-        formProjectId:   null as string | null,
-        confirmDeleteId: null as string | null,
+        formOpen:             false,
+        editingId:            null as string | null,
+        formTitle:            '',
+        formDesc:             '',
+        formTargetDate:       '',
+        formProjectId:        null as string | null,
+        confirmDeleteId:      null as string | null,
+        lastOpenFormTrigger:  0,
     }),
 
     styles: css`
@@ -386,6 +389,12 @@ export const GoalsViewElement = defineElement<{
             return projects.find(p => p.id === id)?.name ?? null;
         }
 
+        if (inputs.openFormTrigger !== undefined
+                && inputs.openFormTrigger !== state.lastOpenFormTrigger) {
+            updateState({lastOpenFormTrigger: inputs.openFormTrigger});
+            openAddForm();
+        }
+
         function openAddForm(): void {
             updateState({
                 formOpen: true,
@@ -517,7 +526,7 @@ export const GoalsViewElement = defineElement<{
             return html`
                 <div class=${'goal-card ' + goal.status + (isEditing ? ' editing' : '')}>
                     ${isEditing
-                        ? renderForm('EDIT OBJECTIVE')
+                        ? renderForm('EDIT GOAL')
                         : html`
                             <div class="goal-title">${goal.title}</div>
                             ${goal.description
@@ -647,8 +656,8 @@ export const GoalsViewElement = defineElement<{
                 : html``}
 
             ${state.formOpen && state.editingId === null
-                ? renderForm('FILE NEW OBJECTIVE')
-                : html`<button class="file-btn" @click=${openAddForm}>+ FILE OBJECTIVE</button>`}
+                ? renderForm('NEW GOAL')
+                : html`<button class="file-btn" @click=${openAddForm}>+ MAKE GOAL</button>`}
 
             ${active.length > 0 ? html`
                 <div class="section-header">ACTIVE (${active.length})</div>

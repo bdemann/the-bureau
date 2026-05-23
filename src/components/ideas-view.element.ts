@@ -18,6 +18,8 @@ export const IdeasViewElement = defineElement<{
     goals:           ReadonlyArray<Goal>;
     /** When set, only show ideas for this project and hide the project selector. */
     filterProjectId?: string | null;
+    /** Increment to programmatically open the add form (e.g. from a type picker). */
+    openFormTrigger?: number;
 }>()({
     tagName: 'ideas-view',
 
@@ -29,13 +31,14 @@ export const IdeasViewElement = defineElement<{
     },
 
     state: () => ({
-        formOpen:        false,
-        editingId:       null as string | null,
-        formTitle:       '',
-        formDesc:        '',
-        formProjectId:   null as string | null,
-        formGoalId:      null as string | null,
-        confirmDeleteId: null as string | null,
+        formOpen:             false,
+        editingId:            null as string | null,
+        formTitle:            '',
+        formDesc:             '',
+        formProjectId:        null as string | null,
+        formGoalId:           null as string | null,
+        confirmDeleteId:      null as string | null,
+        lastOpenFormTrigger:  0,
     }),
 
     styles: css`
@@ -257,6 +260,12 @@ export const IdeasViewElement = defineElement<{
             return goals.find(g => g.id === id)?.title ?? null;
         }
 
+        if (inputs.openFormTrigger !== undefined
+                && inputs.openFormTrigger !== state.lastOpenFormTrigger) {
+            updateState({lastOpenFormTrigger: inputs.openFormTrigger});
+            openAddForm();
+        }
+
         function openAddForm(prefillGoalId: string | null = null): void {
             updateState({
                 formOpen: true,
@@ -382,8 +391,8 @@ export const IdeasViewElement = defineElement<{
                 : html``}
 
             ${state.formOpen && state.editingId === null
-                ? renderForm('FILE NEW INTELLIGENCE')
-                : html`<button class="file-btn" @click=${() => openAddForm()}>+ FILE INTELLIGENCE</button>`}
+                ? renderForm('NEW IDEA')
+                : html`<button class="file-btn" @click=${() => openAddForm()}>+ MAKE IDEA</button>`}
 
             ${sortedIdeas.length === 0 && !state.formOpen
                 ? html`<div class="empty">No intelligence on file. Observations go here.</div>`
@@ -398,7 +407,7 @@ export const IdeasViewElement = defineElement<{
                 return html`
                     <div class=${'idea-card' + (isEditing ? ' editing' : '')}>
                         ${isEditing
-                            ? renderForm('EDIT INTELLIGENCE')
+                            ? renderForm('EDIT IDEA')
                             : html`
                                 <div class="idea-title">${idea.title}</div>
                                 ${idea.description

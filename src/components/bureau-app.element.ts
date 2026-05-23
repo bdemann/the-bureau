@@ -1,5 +1,5 @@
 import {css, defineElement, html, listen} from 'element-vir';
-import type {AppState, AppView, ConsequenceTier, DialogueEntry, Goal, Idea, Project, Task} from '../data/types.js';
+import type {AppState, AppView, ConsequenceTier, DialogueEntry, Goal, Idea, ItemKind, Project, Task} from '../data/types.js';
 import {
     generateId,
     getTodayString,
@@ -166,8 +166,11 @@ export const BureauAppElement = defineElement()({
         editingTask: null as Task | null,
         addingTask: false,
         newTaskProjectId: null as string | null,
+        newTaskDefaultKind: 'task' as ItemKind,
         promotingIdea: null as Idea | null,
         spawningForGoalId: null as string | null,
+        goalFormTrigger: 0,
+        ideaFormTrigger: 0,
         undoAction: null as {
             prevTask: Task;
             prevScore: number;
@@ -513,8 +516,18 @@ export const BureauAppElement = defineElement()({
             updateState({editingTask: task});
         }
 
-        function onNewTaskRequested(projectId: string | null): void {
-            updateState({addingTask: true, newTaskProjectId: projectId, editingTask: null});
+        function onNewTaskRequested(projectId: string | null, kind: ItemKind = 'task'): void {
+            updateState({addingTask: true, newTaskProjectId: projectId, editingTask: null, newTaskDefaultKind: kind});
+        }
+
+        function onMakeGoalRequested(): void {
+            setView('goals');
+            updateState({goalFormTrigger: state.goalFormTrigger + 1});
+        }
+
+        function onMakeIdeaRequested(): void {
+            setView('ideas');
+            updateState({ideaFormTrigger: state.ideaFormTrigger + 1});
         }
 
         function onProjectsReordered(orderedIds: ReadonlyArray<string>): void {
@@ -668,6 +681,7 @@ export const BureauAppElement = defineElement()({
                             tasks: state.app.tasks,
                             ideas: state.app.ideas,
                             projects: state.app.projects,
+                            openFormTrigger: state.goalFormTrigger,
                         })}
                             ${listen(GoalsViewElement.events.goalAdded, e =>
                                 onGoalAdded(e.detail))}
@@ -691,6 +705,7 @@ export const BureauAppElement = defineElement()({
                             ideas: state.app.ideas,
                             goals: state.app.goals,
                             projects: state.app.projects,
+                            openFormTrigger: state.ideaFormTrigger,
                         })}
                             ${listen(IdeasViewElement.events.ideaAdded, e =>
                                 onIdeaAdded(e.detail))}
@@ -732,8 +747,12 @@ export const BureauAppElement = defineElement()({
                                 onTaskProgressLogged(e.detail))}
                             ${listen(DailyViewElement.events.taskEditRequested, e =>
                                 onTaskEditRequested(e.detail))}
-                            ${listen(DailyViewElement.events.newTaskRequested, () =>
-                                onNewTaskRequested(null))}
+                            ${listen(DailyViewElement.events.newTaskRequested, e =>
+                                onNewTaskRequested(null, e.detail))}
+                            ${listen(DailyViewElement.events.makeGoalRequested, () =>
+                                onMakeGoalRequested())}
+                            ${listen(DailyViewElement.events.makeIdeaRequested, () =>
+                                onMakeIdeaRequested())}
                             ${listen(DailyViewElement.events.tasksReordered, e =>
                                 onTasksReordered(e.detail))}
                         ></${DailyViewElement}>
@@ -778,7 +797,7 @@ export const BureauAppElement = defineElement()({
                             ${listen(ProjectDetailElement.events.taskProgressLogged, e =>
                                 onTaskProgressLogged(e.detail))}
                             ${listen(ProjectDetailElement.events.newTaskRequested, e =>
-                                onNewTaskRequested(e.detail))}
+                                onNewTaskRequested(e.detail.projectId, e.detail.kind))}
                             ${listen(ProjectDetailElement.events.back, onBack)}
                             ${listen(ProjectDetailElement.events.taskEditRequested, e =>
                                 onTaskEditRequested(e.detail))}
@@ -823,6 +842,7 @@ export const BureauAppElement = defineElement()({
                     projects: state.app.projects,
                     prefillTitle: state.promotingIdea?.title ?? null,
                     prefillDescription: state.promotingIdea?.description ?? null,
+                    defaultKind: state.newTaskDefaultKind,
                 })}
                     ${listen(AddTaskDialogElement.events.taskSubmitted, e =>
                         onTaskAdded(e.detail))}
