@@ -152,7 +152,7 @@ export const IdeasViewElement = defineElement<{
         }
 
         .idea-card {
-            background: #fff;
+            background: #FDFAF5;
             border: 1px solid rgba(0,0,0,0.1);
             border-left: 3px solid #B8860B;
             padding: 12px 14px;

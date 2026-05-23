@@ -4,6 +4,7 @@ import {headerPage} from './pages/header.book.js';
 import {taskItemPage} from './pages/task-item.book.js';
 import {projectCardPage} from './pages/project-card.book.js';
 import {snoozeIndicatorPage} from './pages/snooze-indicator.book.js';
+import {skipIndicatorPage} from './pages/skip-indicator.book.js';
 import {characterDialoguePage} from './pages/character-dialogue.book.js';
 import {addProjectPage, addTaskPage} from './pages/dialogs.book.js';
 
@@ -17,6 +18,7 @@ defineElement()({
                     taskItemPage,
                     projectCardPage,
                     snoozeIndicatorPage,
+                    skipIndicatorPage,
                     characterDialoguePage,
                     addProjectPage,
                     addTaskPage,

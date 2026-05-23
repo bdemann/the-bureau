@@ -218,6 +218,62 @@ export const taskItemPage = defineBookPage({
             },
         });
         defineExample({
+            title: 'Skipped once (warning badge)',
+            render() {
+                return html`
+                    <${TaskItemElement.assign({
+                        task: makeTask({
+                            title: 'Review household budget',
+                            consequenceTier: 3,
+                            skipStreak: 1,
+                        }),
+                    })}></${TaskItemElement}>
+                `;
+            },
+        });
+        defineExample({
+            title: 'Skipped 3× (caution badge)',
+            render() {
+                return html`
+                    <${TaskItemElement.assign({
+                        task: makeTask({
+                            title: 'Organise desk drawers',
+                            consequenceTier: 4,
+                            skipStreak: 3,
+                        }),
+                    })}></${TaskItemElement}>
+                `;
+            },
+        });
+        defineExample({
+            title: 'Skipped 5× (danger badge)',
+            render() {
+                return html`
+                    <${TaskItemElement.assign({
+                        task: makeTask({
+                            title: 'Schedule annual physical',
+                            consequenceTier: 2,
+                            skipStreak: 5,
+                        }),
+                    })}></${TaskItemElement}>
+                `;
+            },
+        });
+        defineExample({
+            title: 'Skipped 8× (critical — CHRONIC AVOIDANCE)',
+            render() {
+                return html`
+                    <${TaskItemElement.assign({
+                        task: makeTask({
+                            title: 'File amended tax return',
+                            consequenceTier: 1,
+                            skipStreak: 8,
+                        }),
+                    })}></${TaskItemElement}>
+                `;
+            },
+        });
+        defineExample({
             title: 'Cannot snooze (hard-date due today)',
             render() {
                 return html`

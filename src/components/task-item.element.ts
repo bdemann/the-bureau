@@ -39,7 +39,7 @@ export const TaskItemElement = defineElement<{
         }
 
         .task-card {
-            background: #F5EFE0;
+            background: #FDFAF5;
             border-left: 4px solid #2C2C2C;
             border-bottom: 1px solid rgba(0,0,0,0.12);
             padding: 12px 14px;

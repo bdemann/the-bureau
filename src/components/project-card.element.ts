@@ -33,7 +33,7 @@ export const ProjectCardElement = defineElement<{
         }
 
         .card {
-            background: #F5EFE0;
+            background: #FDFAF5;
             border: 1px solid rgba(0,0,0,0.12);
             border-top: 5px solid var(--project-color, #1B2A4A);
             padding: 14px 16px 16px;

@@ -63,7 +63,7 @@ export const GoalDetailElement = defineElement<{
         }
 
         .goal-header {
-            background: #F5EFE0;
+            background: #FDFAF5;
             border: 1px solid rgba(0,0,0,0.12);
             border-left: 4px solid #1B2A4A;
             padding: 14px 16px;
@@ -150,7 +150,7 @@ export const GoalDetailElement = defineElement<{
         .action-link:hover { background: rgba(184,134,11,0.07); }
 
         .edit-form {
-            background: #F5EFE0;
+            background: #FDFAF5;
             border: 1px solid rgba(0,0,0,0.12);
             border-top: 3px solid #B8860B;
             padding: 14px;
