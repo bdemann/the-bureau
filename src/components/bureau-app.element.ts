@@ -225,7 +225,7 @@ export const BureauAppElement = defineElement()({
 
         // ── Undo helpers ───────────────────────────────────────────────────────
 
-        const UNDO_TTL_MS = 30_000; // 30 seconds
+        const UNDO_TTL_MS = 3_000; // 3 seconds
 
         function offerUndo(prevTask: Task, prevScore: number, label: string): void {
             // Cancel any existing undo timer.
