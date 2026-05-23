@@ -47,6 +47,15 @@ function makeTask(overrides: Partial<Task> = {}): Task {
     };
 }
 
+describe('miss-to-reward ratio: one bad day cannot be undone by one perfect day', () => {
+    // miss(tier) > reward(tier); with N-scaling both normalize to 10× base,
+    // so the per-tier comparison fully captures the day-level asymmetry.
+    test('tier 1', () => assert.isAbove(missPenalty(1) / tierCompletionReward(1), 10));
+    test('tier 2', () => assert.isAbove(missPenalty(2) / tierCompletionReward(2), 10));
+    test('tier 3', () => assert.isAbove(missPenalty(3) / tierCompletionReward(3), 10));
+    test('tier 4', () => assert.isAbove(missPenalty(4) / tierCompletionReward(4), 10));
+});
+
 describe('penalty ordering: miss > skip > snooze (first snooze)', () => {
     test('tier 1', () => {
         assert.isAbove(missPenalty(1), skipPenalty(1));

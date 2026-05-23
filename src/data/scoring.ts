@@ -6,7 +6,15 @@
 // with fewer tasks each one matters more; with more tasks each one matters less.
 //
 // Penalty ordering (worst → least severe):
-//   auto-skip (missed without interaction) > skip > snooze
+//   auto-skip (missed without interaction) > skip > snooze > completing
+//
+// Design targets (tier 3, N=10 reference tasks):
+//   Perfect day:      +5  pts   (10 × 0.5)
+//   All-snooze day:  −15  pts   (10 × 1.5)
+//   All-skip day:    −30  pts   (10 × 3.0)
+//   Day of nothing:  −75  pts   (10 × 7.5)
+//
+// Asymmetry is intentional: one bad day requires ~15 perfect days to recover.
 // ─────────────────────────────────────────────────────────────────────────────
 
 import type {ConsequenceTier, Task} from './types.js';
@@ -50,29 +58,29 @@ export function tierCompletionReward(tier: ConsequenceTier): number {
 /** Penalty for a task that rolled over without any interaction (worst outcome). */
 export function missPenalty(tier: ConsequenceTier): number {
     switch (tier) {
-        case 1: return 4.5;
-        case 2: return 3.0;
-        case 3: return 1.5;
-        case 4: return 0.75;
+        case 1: return 22.5;
+        case 2: return 15.0;
+        case 3: return 7.5;
+        case 4: return 3.75;
     }
 }
 
 /** Penalty for consciously skipping a period (worse than snooze, better than a miss). */
 export function skipPenalty(tier: ConsequenceTier): number {
     switch (tier) {
-        case 1: return 3.0;
-        case 2: return 2.0;
-        case 3: return 1.0;
-        case 4: return 0.5;
+        case 1: return 9.0;
+        case 2: return 6.0;
+        case 3: return 3.0;
+        case 4: return 1.5;
     }
 }
 
 /** Per-snooze penalty base (multiplied by snooze count upstream). */
 export function snoozePenalty(tier: ConsequenceTier): number {
     switch (tier) {
-        case 1: return 1.5;
-        case 2: return 1.0;
-        case 3: return 0.5;
-        case 4: return 0.25;
+        case 1: return 4.5;
+        case 2: return 3.0;
+        case 3: return 1.5;
+        case 4: return 0.75;
     }
 }
