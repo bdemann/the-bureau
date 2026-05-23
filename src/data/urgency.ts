@@ -75,6 +75,13 @@ function step1HardMandatory(task: Task, today: Date): DailyBand | 'unresolved' {
         return 'mandatory';
     }
 
+    // Weekly task with specific committed days: today being one of those days
+    // means the commitment is due today — mandatory, not merely suggested.
+    if ((cadence === 'weekly' || cadence === 'multiple_per_week')
+            && task.recurrence?.hardDaysOfWeek?.includes(today.getDay())) {
+        return 'mandatory';
+    }
+
     // Hard-date task whose date has arrived.
     if (task.windowType === 'hard' && task.suggestedDate !== null) {
         if (daysBetween(today, task.suggestedDate) <= 0) return 'mandatory';

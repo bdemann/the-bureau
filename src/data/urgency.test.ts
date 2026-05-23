@@ -296,6 +296,49 @@ describe('getSnoozeBand', () => {
     });
 });
 
+describe('weekly tasks with hardDaysOfWeek', () => {
+    // 2026-05-04 is a Monday (getDay() === 1)
+    const monday = date('2026-05-04');
+    const tuesday = date('2026-05-05');
+    const sunday = date('2026-05-03');
+
+    function weeklyTask(daysOfWeek: number[]) {
+        return makeTask({
+            windowType: 'flexible',
+            suggestedDate: monday.getTime(),
+            windowDeadline: date('2026-05-09').getTime(), // Saturday end-of-week
+            windowLengthDays: 7,
+            recurrence: makeRecurrence({cadence: 'weekly', hardDaysOfWeek: daysOfWeek}),
+            currentPeriodStart: sunday.getTime(),
+        });
+    }
+
+    test('mandatory on a configured day', () => {
+        const t = weeklyTask([1, 2, 3, 4, 5]); // Mon–Fri
+        assert.strictEquals(getDailyBand(t, monday), 'mandatory');
+        assert.strictEquals(getDailyBand(t, tuesday), 'mandatory');
+    });
+
+    test('not mandatory on a non-configured day', () => {
+        const t = weeklyTask([1, 2, 3, 4, 5]); // Mon–Fri, Sunday not included
+        const band = getDailyBand(t, sunday);
+        assert.strictEquals(band === 'mandatory', false);
+    });
+
+    test('weekly task with no hardDaysOfWeek is unaffected', () => {
+        const t = makeTask({
+            windowType: 'flexible',
+            suggestedDate: monday.getTime(),
+            windowDeadline: date('2026-05-09').getTime(),
+            windowLengthDays: 7,
+            recurrence: makeRecurrence({cadence: 'weekly'}),
+            currentPeriodStart: sunday.getTime(),
+        });
+        // No hardDaysOfWeek — falls through to flexible-window logic → suggested
+        assert.strictEquals(getDailyBand(t, monday), 'suggested');
+    });
+});
+
 describe('maxBand (final = max(timing, snooze))', () => {
     test('returns the more urgent band', () => {
         assert.strictEquals(maxBand('backlog', 'radar'), 'radar');
