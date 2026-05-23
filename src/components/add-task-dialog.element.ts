@@ -1206,7 +1206,7 @@ export const AddTaskDialogElement = defineElement<{
                                 <div class="seg" style="grid-template-columns: repeat(4, 1fr);">
                                     ${(['none', 'indefinite', 'until_date', 'for_days'] as const).map(m => html`
                                         <${ViraButton.assign({
-                                            text: m === 'none' ? 'Active' : m === 'indefinite' ? 'Indefinitely' : m === 'until_date' ? 'Until date' : 'For N days',
+                                            text: m === 'none' ? 'No' : m === 'indefinite' ? 'Indefinitely' : m === 'until_date' ? 'Until date' : 'For N days',
                                             color: m === 'none' ? ViraColorVariant.Info : ViraColorVariant.Warning,
                                             buttonEmphasis: state.pauseMode === m ? ViraEmphasis.Standard : ViraEmphasis.Subtle,
                                             buttonSize: ViraSize.Small,
