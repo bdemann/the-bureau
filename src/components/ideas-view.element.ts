@@ -1,5 +1,6 @@
 import {css, defineElement, defineElementEvent, html} from 'element-vir';
 import type {FormKind, Goal, Idea, Project} from '../data/types.js';
+import {getActiveSkin} from '../skins/active-skin.js';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // IdeasViewElement
@@ -183,6 +184,7 @@ export const IdeasViewElement = defineElement<{
     `,
 
     render({inputs, state, updateState, dispatch, events}) {
+        const skin = getActiveSkin();
         const {ideas, projects, goals} = inputs;
         const filterProjectId = inputs.filterProjectId ?? null;
         const filterGoalId    = inputs.filterGoalId ?? null;
@@ -210,8 +212,8 @@ export const IdeasViewElement = defineElement<{
         return html`
             ${!isFiltered
                 ? html`
-                    <div class="page-title">IDEAS</div>
-                    <div class="page-subtitle">UNPROCESSED OBSERVATIONS · PROPOSED AREAS</div>
+                    <div class="page-title">${skin.pages.ideasTitle}</div>
+                    <div class="page-subtitle">${skin.pages.ideasSubtitle}</div>
                   `
                 : html``}
 
@@ -221,7 +223,7 @@ export const IdeasViewElement = defineElement<{
             >+ MAKE IDEA</button>
 
             ${sortedIdeas.length === 0
-                ? html`<div class="empty">No intelligence on file. Observations go here.</div>`
+                ? html`<div class="empty">${skin.pages.ideasEmpty}</div>`
                 : html``}
 
             ${sortedIdeas.map(idea => {

@@ -1,5 +1,6 @@
 import {css, defineElement, defineElementEvent, html} from 'element-vir';
 import type {Project, Task} from '../data/types.js';
+import {getActiveSkin} from '../skins/active-skin.js';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // InsightsViewElement
@@ -235,6 +236,7 @@ export const InsightsViewElement = defineElement<{
     `,
 
     render({inputs, dispatch, events}) {
+        const skin = getActiveSkin();
         const {tasks, projects} = inputs;
         const projectsById = new Map(projects.map(p => [p.id, p]));
 
@@ -360,8 +362,8 @@ export const InsightsViewElement = defineElement<{
         const num = (n: number) => html`<span class="${n === 0 ? 'zero' : ''}">${n}</span>`;
 
         return html`
-            <div class="page-title">Insights</div>
-            <div class="page-subtitle">Behavioral patterns, compliance gaps, and field performance.</div>
+            <div class="page-title">${skin.pages.insightsTitle}</div>
+            <div class="page-subtitle">${skin.pages.insightsSubtitle}</div>
 
             <!-- Missed commitments -->
             <section class="section">

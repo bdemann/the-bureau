@@ -1,5 +1,6 @@
 import {css, defineElement, defineElementEvent, html} from 'element-vir';
 import type {FormKind, Goal, GoalStatus, Project, Task} from '../data/types.js';
+import {getActiveSkin} from '../skins/active-skin.js';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // GoalsViewElement
@@ -245,6 +246,7 @@ export const GoalsViewElement = defineElement<{
     `,
 
     render({inputs, dispatch, events}) {
+        const skin = getActiveSkin();
         const {goals, tasks, projects} = inputs;
         const filterProjectId = inputs.filterProjectId ?? null;
         const isFiltered = filterProjectId !== null;
@@ -346,8 +348,8 @@ export const GoalsViewElement = defineElement<{
         return html`
             ${!isFiltered
                 ? html`
-                    <div class="page-title">GOALS</div>
-                    <div class="page-subtitle">LONG-HORIZON OUTCOMES · CLICK AN OBJECTIVE TO MANAGE COMMITMENTS</div>
+                    <div class="page-title">${skin.pages.goalsTitle}</div>
+                    <div class="page-subtitle">${skin.pages.goalsSubtitle}</div>
                   `
                 : html``}
 

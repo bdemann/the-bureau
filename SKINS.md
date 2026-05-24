@@ -56,10 +56,10 @@ Pure addition. No component changes.
 
 ---
 
-### 🔲 Chunk 6 — Page titles, subtitles, empty states
-Files: `ideas-view.element.ts`, `goals-view.element.ts`, `insights-view.element.ts`
-Skin fields: `pages.ideasTitle/Subtitle/Empty`, `pages.goalsTitle/Subtitle`,
-`pages.insightsTitle/Subtitle`
+### ✅ Chunk 6 — Page titles, subtitles, empty states
+- `ideas-view.element.ts` — pages.ideasTitle/Subtitle/Empty
+- `goals-view.element.ts` — pages.goalsTitle/Subtitle
+- `insights-view.element.ts` — pages.insightsTitle/Subtitle
 
 ### 🔲 Chunk 7 — Add-task-dialog action verbs
 File: `add-task-dialog.element.ts`
