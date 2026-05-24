@@ -15,6 +15,7 @@ export const headerPage = defineBookPage({
                         streak: 21,
                         onBack: null,
                         projectName: null,
+                        activeSkinId: 'bcr',
                     })}></${BureauHeaderElement}>
                 `;
             },
@@ -28,6 +29,7 @@ export const headerPage = defineBookPage({
                         streak: 3,
                         onBack: null,
                         projectName: null,
+                        activeSkinId: 'bcr',
                     })}></${BureauHeaderElement}>
                 `;
             },
@@ -41,6 +43,7 @@ export const headerPage = defineBookPage({
                         streak: 0,
                         onBack: null,
                         projectName: null,
+                        activeSkinId: 'bcr',
                     })}></${BureauHeaderElement}>
                 `;
             },
@@ -54,6 +57,7 @@ export const headerPage = defineBookPage({
                         streak: 1,
                         onBack: null,
                         projectName: null,
+                        activeSkinId: 'bcr',
                     })}></${BureauHeaderElement}>
                 `;
             },
@@ -67,6 +71,7 @@ export const headerPage = defineBookPage({
                         streak: 0,
                         onBack: null,
                         projectName: null,
+                        activeSkinId: 'bcr',
                     })}></${BureauHeaderElement}>
                 `;
             },
@@ -80,6 +85,7 @@ export const headerPage = defineBookPage({
                         streak: 5,
                         onBack: () => {},
                         projectName: 'Homeowner',
+                        activeSkinId: 'bcr',
                     })}></${BureauHeaderElement}>
                 `;
             },

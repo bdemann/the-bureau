@@ -1,6 +1,7 @@
 import {css, defineElement, defineElementEvent, html} from 'element-vir';
 import {getRank, rankColor} from '../data/ranks.js';
 import {getActiveSkin, getRankLabel} from '../skins/active-skin.js';
+import {ALL_SKINS} from '../skins/all-skins.js';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // BureauHeaderElement
@@ -15,12 +16,16 @@ export const BureauHeaderElement = defineElement<{
     streak: number;
     onBack: (() => void) | null;
     projectName: string | null;
+    /** Id of the currently active skin — drives the skin picker selection state. */
+    activeSkinId: string;
 }>()({
     tagName: 'bureau-header',
 
     events: {
         /** Fired when the user taps Insights in the hamburger menu. */
         insightsRequested: defineElementEvent<void>(),
+        /** Fired when the user selects a different skin from the picker. */
+        skinChangeRequested: defineElementEvent<string>(),
     },
 
     state: () => ({
@@ -268,6 +273,55 @@ export const BureauHeaderElement = defineElement<{
             letter-spacing: 0.08em;
         }
 
+        /* ── Skin picker ── */
+        .skin-picker {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            padding: 4px 0 8px;
+        }
+
+        .skin-btn {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            width: 100%;
+            background: none;
+            border: 1px solid rgba(245, 239, 224, 0.15);
+            color: rgba(245, 239, 224, 0.7);
+            font-family: var(--font-mono);
+            font-size: 0.75rem;
+            letter-spacing: 0.1em;
+            text-align: left;
+            padding: 9px 12px;
+            cursor: pointer;
+            transition: border-color 0.15s, color 0.15s, background 0.15s;
+        }
+
+        .skin-btn:hover {
+            border-color: rgba(245, 239, 224, 0.4);
+            color: var(--color-surface);
+        }
+
+        .skin-btn.active {
+            border-color: var(--color-warning);
+            color: var(--color-surface);
+            background: rgba(245, 239, 224, 0.06);
+        }
+
+        .skin-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            border: 1.5px solid currentColor;
+            flex-shrink: 0;
+        }
+
+        .skin-btn.active .skin-dot {
+            background: var(--color-warning);
+            border-color: var(--color-warning);
+        }
+
         /* ── Breadcrumb / score bar ── */
         .breadcrumb {
             padding: 0 0 8px;
@@ -296,7 +350,7 @@ export const BureauHeaderElement = defineElement<{
     `,
 
     render({inputs, state, updateState, dispatch, events}) {
-        const {patriotScore, streak, onBack, projectName} = inputs;
+        const {patriotScore, streak, onBack, projectName, activeSkinId} = inputs;
         const skin = getActiveSkin();
 
         const rank = streak === 0 ? 'suspected_communist' : getRank(patriotScore);
@@ -406,6 +460,24 @@ export const BureauHeaderElement = defineElement<{
                                 ${skin.menu.shareItemLabel}
                                 <span class="menu-item-sub">${skin.menu.shareItemSub}</span>
                             </button>
+                        </div>
+
+                        <div class="menu-section">
+                            <div class="menu-section-label">Appearance</div>
+                            <div class="skin-picker">
+                                ${ALL_SKINS.map(s => html`
+                                    <button
+                                        class=${'skin-btn' + (s.id === activeSkinId ? ' active' : '')}
+                                        @click=${() => {
+                                            dispatch(new events.skinChangeRequested(s.id));
+                                            closeMenu();
+                                        }}
+                                    >
+                                        <span class="skin-dot"></span>
+                                        ${s.displayName}
+                                    </button>
+                                `)}
+                            </div>
                         </div>
                     </div>
                 </div>

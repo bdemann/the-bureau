@@ -12,6 +12,8 @@ import {advanceRecurrence, isMultiplePerPeriod, isRecurrenceEnded, rolloverIfNee
 import {countActiveTasks, missPenalty, skipPenalty, snoozePenalty, streakDepthMultiplier, taskScaleMultiplier, tierCompletionReward} from '../data/scoring.js';
 import {computeRemediationOnComplete, computeRemediationOnSkip, computeRemediationOnSnooze} from '../data/remediation.js';
 import {getDialogueFor} from '../data/dialogues.js';
+import {setActiveSkin} from '../skins/active-skin.js';
+import {getSkinById, loadSkinId, saveSkinId} from '../skins/all-skins.js';
 import {AddTaskDialogElement} from './add-task-dialog.element.js';
 import {BureauBottomNavElement} from './bureau-bottom-nav.element.js';
 import {BureauHeaderElement} from './bureau-header.element.js';
@@ -165,25 +167,30 @@ export const BureauAppElement = defineElement()({
         .undo-btn:hover { background: rgba(255,255,255,0.1); }
     `,
 
-    state: () => ({
-        app: bootstrap(),
-        editingTask: null as Task | null,
-        editingGoal: null as Goal | null,
-        editingIdea: null as Idea | null,
-        addingTask: false,
-        newTaskProjectId: null as string | null,
-        newTaskDefaultKind: 'task' as FormKind,
-        promotingIdea: null as Idea | null,
-        spawningForGoalId: null as string | null,
-        selectedGoalId: null as string | null,
-        undoAction: null as {
-            prevTask: Task;
-            prevScore: number;
-            label: string;
-            expiresAt: number;
-            timerId: ReturnType<typeof setTimeout>;
-        } | null,
-    }),
+    state: () => {
+        const savedSkinId = loadSkinId();
+        setActiveSkin(getSkinById(savedSkinId));
+        return {
+            app: bootstrap(),
+            activeSkinId: savedSkinId,
+            editingTask: null as Task | null,
+            editingGoal: null as Goal | null,
+            editingIdea: null as Idea | null,
+            addingTask: false,
+            newTaskProjectId: null as string | null,
+            newTaskDefaultKind: 'task' as FormKind,
+            promotingIdea: null as Idea | null,
+            spawningForGoalId: null as string | null,
+            selectedGoalId: null as string | null,
+            undoAction: null as {
+                prevTask: Task;
+                prevScore: number;
+                label: string;
+                expiresAt: number;
+                timerId: ReturnType<typeof setTimeout>;
+            } | null,
+        };
+    },
 
     render({state, updateState}) {
         // `state.app` is a live reactive ref: updateState mutates it in place,
@@ -739,9 +746,16 @@ export const BureauAppElement = defineElement()({
                     streak: completionStreak,
                     onBack: (view === 'project' || state.selectedGoalId !== null) ? onBack : null,
                     projectName: selectedGoal?.title ?? selectedProject?.name ?? null,
+                    activeSkinId: state.activeSkinId,
                 })}
                     ${listen(BureauHeaderElement.events.insightsRequested,
                         () => setView('insights'))}
+                    ${listen(BureauHeaderElement.events.skinChangeRequested, e => {
+                        const newSkin = getSkinById(e.detail);
+                        setActiveSkin(newSkin);
+                        saveSkinId(e.detail);
+                        updateState({activeSkinId: e.detail});
+                    })}
                 ></${BureauHeaderElement}>
 
                 ${currentDialogue
