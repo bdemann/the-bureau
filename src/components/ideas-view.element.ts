@@ -17,6 +17,8 @@ export const IdeasViewElement = defineElement<{
     goals:           ReadonlyArray<Goal>;
     /** When set, only show ideas for this project and hide the project selector. */
     filterProjectId?: string | null;
+    /** When set, only show ideas for this goal and lock the goal selector to it. */
+    filterGoalId?:    string | null;
 }>()({
     tagName: 'ideas-view',
 
@@ -232,19 +234,26 @@ export const IdeasViewElement = defineElement<{
     render({inputs, state, updateState, dispatch, events}) {
         const {ideas, projects, goals} = inputs;
         const filterProjectId = inputs.filterProjectId ?? null;
+        const filterGoalId    = inputs.filterGoalId ?? null;
         const isFiltered = filterProjectId !== null;
+        const isGoalFiltered = filterGoalId !== null;
 
-        const visibleIdeas = isFiltered
-            ? ideas.filter(i => i.projectId === filterProjectId)
-            : [...ideas];
+        const visibleIdeas = isGoalFiltered
+            ? ideas.filter(i => i.goalId === filterGoalId)
+            : isFiltered
+                ? ideas.filter(i => i.projectId === filterProjectId)
+                : [...ideas];
 
         const sortedIdeas = visibleIdeas.sort((a, b) => b.createdAt - a.createdAt);
 
-        // Goals available for the currently selected project (in form)
+        // Goals available for the currently selected project (in form).
+        // When we're goal-filtered, the goal is locked — no dropdown needed.
         const effectiveProjectId = isFiltered ? filterProjectId : state.formProjectId;
-        const availableGoals = effectiveProjectId
-            ? goals.filter(g => g.projectId === effectiveProjectId && g.status === 'active')
-            : [];
+        const availableGoals = isGoalFiltered
+            ? []   // goal is locked; don't show dropdown
+            : effectiveProjectId
+                ? goals.filter(g => g.projectId === effectiveProjectId && g.status === 'active')
+                : [];
 
         function projectName(id: string | null): string | null {
             if (!id) return null;
@@ -281,7 +290,8 @@ export const IdeasViewElement = defineElement<{
                 title,
                 description: state.formDesc.trim(),
                 projectId: isFiltered ? filterProjectId : state.formProjectId,
-                goalId: state.formGoalId,
+                // When goal-filtered, keep the locked goal; otherwise use the picker
+                goalId: isGoalFiltered ? filterGoalId : state.formGoalId,
             }));
             closeForm();
         }

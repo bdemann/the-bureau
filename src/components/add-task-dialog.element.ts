@@ -62,6 +62,8 @@ export const AddTaskDialogElement = defineElement<{
     prefillDescription?: string | null;
     defaultKind?: FormKind;
     goals?: ReadonlyArray<Goal>;
+    /** Pre-selects a goal in the Linked Objective picker (for task/routine/idea forms). */
+    defaultGoalId?: string | null;
 }>()({
     tagName: 'add-task-dialog',
 
@@ -71,6 +73,8 @@ export const AddTaskDialogElement = defineElement<{
         taskDeleted:    defineElementEvent<string>(),  // task id
         goalSubmitted:  defineElementEvent<Goal>(),
         ideaSubmitted:  defineElementEvent<Idea>(),
+        /** Fired (add mode only) when the submitted task should be linked to a goal. */
+        taskGoalLinked: defineElementEvent<{taskId: string; goalId: string}>(),
         cancelled:      defineElementEvent<void>(),
     },
 
@@ -127,6 +131,8 @@ export const AddTaskDialogElement = defineElement<{
         goalTargetDate: msToDateString(Date.now()),  // YYYY-MM-DD, defaults to today
         // ── Idea-specific ──
         ideaLinkedGoalId: null as string | null,
+        // ── Task/routine linked objective ──
+        linkedGoalId: null as string | null,
     }),
 
     styles: css`
@@ -494,7 +500,8 @@ export const AddTaskDialogElement = defineElement<{
                 endAfterCount: 10,
                 endAfterDate: '',
                 goalTargetDate: msToDateString(Date.now()),
-                ideaLinkedGoalId: null,
+                ideaLinkedGoalId: inputs.defaultGoalId ?? null,
+                linkedGoalId: inputs.defaultGoalId ?? null,
                 confirmingDelete: false,
                 currentEditId: null,
             });
@@ -644,10 +651,11 @@ export const AddTaskDialogElement = defineElement<{
             }
 
             const baseTask = isEditMode ? editTask! : null;
+            const taskId = baseTask?.id ?? generateId();
 
             const task: Task = {
                 // In edit mode: preserve identity and history fields.
-                id: baseTask?.id ?? generateId(),
+                id: taskId,
                 projectId: state.selectedProjectId,
                 createdAt: baseTask?.createdAt ?? Date.now(),
                 pausedUntil,
@@ -686,6 +694,10 @@ export const AddTaskDialogElement = defineElement<{
                 dispatch(new events.taskUpdated(task));
             } else {
                 dispatch(new events.taskSubmitted(task));
+                // If a goal was selected, tell the parent to link the new task.
+                if (state.linkedGoalId) {
+                    dispatch(new events.taskGoalLinked({taskId, goalId: state.linkedGoalId}));
+                }
             }
 
             // Reset
@@ -721,6 +733,8 @@ export const AddTaskDialogElement = defineElement<{
                 endMode: 'after_count',
                 endAfterCount: 10,
                 endAfterDate: '',
+                linkedGoalId: null,
+                ideaLinkedGoalId: null,
             });
         }
 
@@ -1430,6 +1444,36 @@ export const AddTaskDialogElement = defineElement<{
                         </div>
                     ` : html``}
 
+                    <!-- Task / Routine: optional linked objective (add mode only) -->
+                    ${isTaskOrRoutine && !isEditMode ? html`
+                        ${(() => {
+                            const availableGoals = (inputs.goals ?? [])
+                                .filter(g => g.status === 'active'
+                                    && (state.selectedProjectId === null || g.projectId === state.selectedProjectId));
+                            return availableGoals.length > 0 ? html`
+                                <div class="field">
+                                    <label class="field-label">Linked Objective (optional)</label>
+                                    <select
+                                        class="operation-select"
+                                        .value=${state.linkedGoalId ?? ''}
+                                        @change=${(e: Event) => {
+                                            const val = (e.target as HTMLSelectElement).value;
+                                            updateState({linkedGoalId: val === '' ? null : val});
+                                        }}
+                                    >
+                                        <option value="">— None —</option>
+                                        ${availableGoals.map(g => html`
+                                            <option
+                                                value="${g.id}"
+                                                .selected=${state.linkedGoalId === g.id}
+                                            >${g.title}</option>
+                                        `)}
+                                    </select>
+                                </div>
+                            ` : html``;
+                        })()}
+                    ` : html``}
+
                     <!-- Area of Responsibility assignment — always last, always visible -->
                     <div class="field">
                         <label class="field-label">Area of Responsibility</label>
@@ -1438,7 +1482,12 @@ export const AddTaskDialogElement = defineElement<{
                             .value=${state.selectedProjectId ?? ''}
                             @change=${(e: Event) => {
                                 const val = (e.target as HTMLSelectElement).value;
-                                updateState({selectedProjectId: val === '' ? null : val});
+                                // Changing area clears both goal links (goals are area-scoped)
+                                updateState({
+                                    selectedProjectId: val === '' ? null : val,
+                                    linkedGoalId: null,
+                                    ideaLinkedGoalId: null,
+                                });
                             }}
                         >
                             <option value="">No area</option>

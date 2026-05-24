@@ -456,19 +456,15 @@ export const BureauAppElement = defineElement()({
             const ideas = state.promotingIdea
                 ? state.app.ideas.filter(i => i.id !== state.promotingIdea!.id)
                 : state.app.ideas;
-            const goalIdToLink = state.spawningForGoalId ?? state.promotingIdea?.goalId ?? null;
-            const goals = goalIdToLink
-                ? state.app.goals.map(g =>
-                    g.id === goalIdToLink
-                        ? {...g, linkedTaskIds: [...g.linkedTaskIds, task.id]}
-                        : g,
-                  )
-                : state.app.goals;
-            commit({tasks: [...state.app.tasks, task], ideas, goals});
+            commit({tasks: [...state.app.tasks, task], ideas});
             updateState({addingTask: false, newTaskProjectId: null, promotingIdea: null, spawningForGoalId: null});
             if (Math.random() < 0.6) {
                 triggerDialogue('task_added', false);
             }
+        }
+
+        function onTaskGoalLinked({taskId, goalId}: {taskId: string; goalId: string}): void {
+            onGoalTaskLinked({goalId, taskId});
         }
 
         function onProjectAdded(project: Project): void {
@@ -532,7 +528,7 @@ export const BureauAppElement = defineElement()({
 
         function onIdeaSubmitted(idea: Idea): void {
             commit({ideas: [...state.app.ideas, idea]});
-            updateState({addingTask: false, newTaskProjectId: null});
+            updateState({addingTask: false, newTaskProjectId: null, spawningForGoalId: null});
         }
 
         function onProjectsReordered(orderedIds: ReadonlyArray<string>): void {
@@ -608,6 +604,8 @@ export const BureauAppElement = defineElement()({
                 addingTask: true,
                 newTaskProjectId: idea.projectId,
                 editingTask: null,
+                // Pre-fill the linked objective if the idea had one
+                spawningForGoalId: idea.goalId ?? null,
             });
         }
 
@@ -696,6 +694,7 @@ export const BureauAppElement = defineElement()({
                             goal: selectedGoal,
                             tasks: state.app.tasks,
                             projects: state.app.projects,
+                            ideas: state.app.ideas,
                         })}
                             ${listen(GoalDetailElement.events.goalUpdated, e =>
                                 onGoalUpdated(e.detail))}
@@ -721,6 +720,12 @@ export const BureauAppElement = defineElement()({
                                 onUnlinkRequested(e.detail))}
                             ${listen(GoalDetailElement.events.taskLinked, e =>
                                 onGoalTaskLinked(e.detail))}
+                            ${listen(GoalDetailElement.events.ideaUpdated, e =>
+                                onIdeaUpdated(e.detail))}
+                            ${listen(GoalDetailElement.events.ideaDeleted, e =>
+                                onIdeaDeleted(e.detail))}
+                            ${listen(GoalDetailElement.events.ideaPromoteRequested, e =>
+                                onPromoteRequested(e.detail))}
                         ></${GoalDetailElement}>
                       `
                     : view === 'goals'
@@ -870,9 +875,12 @@ export const BureauAppElement = defineElement()({
                     prefillTitle: state.promotingIdea?.title ?? null,
                     prefillDescription: state.promotingIdea?.description ?? null,
                     defaultKind: state.newTaskDefaultKind,
+                    defaultGoalId: state.spawningForGoalId,
                 })}
                     ${listen(AddTaskDialogElement.events.taskSubmitted, e =>
                         onTaskAdded(e.detail))}
+                    ${listen(AddTaskDialogElement.events.taskGoalLinked, e =>
+                        onTaskGoalLinked(e.detail))}
                     ${listen(AddTaskDialogElement.events.taskUpdated, e =>
                         onTaskUpdated(e.detail))}
                     ${listen(AddTaskDialogElement.events.taskDeleted, e =>

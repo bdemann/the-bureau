@@ -1,7 +1,8 @@
 import {css, defineElement, defineElementEvent, html, listen} from 'element-vir';
-import type {FormKind, Goal, GoalStatus, Project, Task} from '../data/types.js';
+import type {FormKind, Goal, GoalStatus, Idea, Project, Task} from '../data/types.js';
 import {isCurrentlyPaused, isTaskVisible} from '../data/storage.js';
 import {TaskItemElement} from './task-item.element.js';
+import {IdeasViewElement} from './ideas-view.element.js';
 
 function msToDateString(ms: number): string {
     const d = new Date(ms);
@@ -28,6 +29,7 @@ export const GoalDetailElement = defineElement<{
     goal: Goal;
     tasks: ReadonlyArray<Task>;
     projects: ReadonlyArray<Project>;
+    ideas: ReadonlyArray<Idea>;
 }>()({
     tagName: 'goal-detail',
 
@@ -43,6 +45,9 @@ export const GoalDetailElement = defineElement<{
         makeCommitmentRequested: defineElementEvent<FormKind>(),
         taskUnlinked:            defineElementEvent<{goalId: string; taskId: string}>(),
         taskLinked:              defineElementEvent<{goalId: string; taskId: string}>(),
+        ideaUpdated:             defineElementEvent<Idea>(),
+        ideaDeleted:             defineElementEvent<string>(),
+        ideaPromoteRequested:    defineElementEvent<Idea>(),
     },
 
     state: () => ({
@@ -836,6 +841,25 @@ export const GoalDetailElement = defineElement<{
                     </div>
                   `
                 : html``}
+
+            <!-- Intelligence linked to this objective -->
+            <div class="section-label" style="margin-bottom:0">INTELLIGENCE</div>
+            <${IdeasViewElement.assign({
+                ideas: inputs.ideas,
+                goals: [],  // no nested goal picker when already inside a goal
+                projects: inputs.projects,
+                filterGoalId: goal.id,
+                filterProjectId: goal.projectId,
+            })} data-embedded=${''}
+                ${listen(IdeasViewElement.events.makeCommitmentRequested, e =>
+                    dispatch(new events.makeCommitmentRequested(e.detail)))}
+                ${listen(IdeasViewElement.events.ideaUpdated, e =>
+                    dispatch(new events.ideaUpdated(e.detail)))}
+                ${listen(IdeasViewElement.events.ideaDeleted, e =>
+                    dispatch(new events.ideaDeleted(e.detail)))}
+                ${listen(IdeasViewElement.events.promoteRequested, e =>
+                    dispatch(new events.ideaPromoteRequested(e.detail)))}
+            ></${IdeasViewElement}>
 
             <!-- Delete zone -->
             <div class="delete-zone">
