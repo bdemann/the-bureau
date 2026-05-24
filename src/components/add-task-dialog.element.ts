@@ -57,6 +57,8 @@ export const AddTaskDialogElement = defineElement<{
     projectId: string | null;
     open: boolean;
     editTask?: Task | null;
+    editGoal?: Goal | null;
+    editIdea?: Idea | null;
     projects?: ReadonlyArray<Project>;
     prefillTitle?: string | null;
     prefillDescription?: string | null;
@@ -68,14 +70,20 @@ export const AddTaskDialogElement = defineElement<{
     tagName: 'add-task-dialog',
 
     events: {
-        taskSubmitted:  defineElementEvent<Task>(),
-        taskUpdated:    defineElementEvent<Task>(),
-        taskDeleted:    defineElementEvent<string>(),  // task id
-        goalSubmitted:  defineElementEvent<Goal>(),
-        ideaSubmitted:  defineElementEvent<Idea>(),
-        /** Fired (add mode only) when the submitted task should be linked to a goal. */
-        taskGoalLinked: defineElementEvent<{taskId: string; goalId: string}>(),
-        cancelled:      defineElementEvent<void>(),
+        taskSubmitted:      defineElementEvent<Task>(),
+        taskUpdated:        defineElementEvent<Task>(),
+        taskDeleted:        defineElementEvent<string>(),  // task id
+        goalSubmitted:      defineElementEvent<Goal>(),
+        goalUpdated:        defineElementEvent<Goal>(),
+        goalDeleted:        defineElementEvent<string>(),  // goal id
+        ideaSubmitted:      defineElementEvent<Idea>(),
+        ideaUpdated:        defineElementEvent<Idea>(),
+        ideaDeleted:        defineElementEvent<string>(),  // idea id
+        /** Fired when the submitted task should be linked to a goal. */
+        taskGoalLinked:     defineElementEvent<{taskId: string; goalId: string}>(),
+        /** Fired when the linked goal on a task changes during edit (oldGoalId may be null). */
+        linkedGoalChanged:  defineElementEvent<{taskId: string; oldGoalId: string|null; newGoalId: string|null}>(),
+        cancelled:          defineElementEvent<void>(),
     },
 
     state: () => ({
@@ -133,6 +141,18 @@ export const AddTaskDialogElement = defineElement<{
         ideaLinkedGoalId: null as string | null,
         // ── Task/routine linked objective ──
         linkedGoalId: null as string | null,
+        /** The goal that linked to this task before editing started (for detecting changes). */
+        originalLinkedGoalId: null as string | null,
+        // ── Goal/idea edit tracking ──
+        editGoalId: null as string | null,
+        editIdeaId: null as string | null,
+        /** Linked task IDs on the goal being edited (for dissociation warning). */
+        goalLinkedTaskIds: [] as string[],
+        // ── Kind-switch warning (when editing a goal with linked commitments) ──
+        confirmingKindSwitch: false,
+        pendingKindSwitch: null as FormKind | null,
+        /** True after user confirmed a goal→other-type switch; clears links on save. */
+        willDissociateLinks: false,
     }),
 
     styles: css`
@@ -419,6 +439,43 @@ export const AddTaskDialogElement = defineElement<{
             cursor: pointer;
         }
         .delete-confirm-no:hover { background: rgba(0,0,0,0.05); }
+
+        .kind-switch-warning {
+            background: #FFF5E6;
+            border: 1px solid #B8860B;
+            padding: 12px 14px;
+            margin-bottom: 14px;
+            font-family: 'Courier Prime', monospace;
+            font-size: 0.8rem;
+            color: #7A5C00;
+        }
+        .kind-switch-warning p { margin: 0 0 10px; }
+        .kind-switch-warning-actions {
+            display: flex;
+            gap: 8px;
+        }
+        .kind-switch-proceed {
+            background: #B8860B;
+            border: none;
+            color: #fff;
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 0.8rem;
+            letter-spacing: 0.15em;
+            padding: 6px 14px;
+            cursor: pointer;
+        }
+        .kind-switch-proceed:hover { background: #8B6600; }
+        .kind-switch-cancel {
+            background: none;
+            border: 1px solid #B8860B;
+            color: #7A5C00;
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 0.8rem;
+            letter-spacing: 0.15em;
+            padding: 6px 14px;
+            cursor: pointer;
+        }
+        .kind-switch-cancel:hover { background: rgba(184,134,11,0.08); }
     `,
 
     render({inputs, state, updateState, dispatch, events}) {
@@ -429,13 +486,15 @@ export const AddTaskDialogElement = defineElement<{
         }
 
         const editTask = inputs.editTask ?? null;
-        const isEditMode = editTask !== null;
+        const editGoal = inputs.editGoal ?? null;
+        const editIdea = inputs.editIdea ?? null;
+        const isEditMode = editTask !== null || editGoal !== null || editIdea !== null;
 
         // On first render for a new editTask, populate form state from the task.
-        // updateState is in-place, so state is immediately correct for the rest of render.
-        if (isEditMode && state.currentEditId !== editTask.id) {
+        if (editTask !== null && state.currentEditId !== editTask.id) {
             const t = editTask;
             const cfg = t.recurrence;
+            const currentLinkedGoal = (inputs.goals ?? []).find(g => g.linkedTaskIds.includes(t.id)) ?? null;
             updateState({
                 currentEditId: t.id,
                 wasOpen: true,
@@ -480,6 +539,59 @@ export const AddTaskDialogElement = defineElement<{
                 endAfterCount: cfg?.endAfterCount ?? 10,
                 endAfterDate: cfg?.endAfterDate ? msToDateString(cfg.endAfterDate) : '',
                 radarLeadDays: t.radarLeadDays ?? 3,
+                linkedGoalId: currentLinkedGoal?.id ?? null,
+                originalLinkedGoalId: currentLinkedGoal?.id ?? null,
+                editGoalId: null,
+                editIdeaId: null,
+                goalLinkedTaskIds: [],
+                confirmingKindSwitch: false,
+                pendingKindSwitch: null,
+                willDissociateLinks: false,
+            });
+        }
+
+        // On first render for a new editGoal, populate form state from the goal.
+        if (editGoal !== null && state.currentEditId !== editGoal.id) {
+            updateState({
+                currentEditId: editGoal.id,
+                wasOpen: true,
+                confirmingDelete: false,
+                kind: 'goal',
+                titleValue: editGoal.title,
+                description: editGoal.description,
+                selectedProjectId: editGoal.projectId,
+                goalTargetDate: editGoal.targetDate ? msToDateString(editGoal.targetDate) : '',
+                editGoalId: editGoal.id,
+                goalLinkedTaskIds: [...editGoal.linkedTaskIds],
+                editIdeaId: null,
+                linkedGoalId: null,
+                originalLinkedGoalId: null,
+                ideaLinkedGoalId: null,
+                confirmingKindSwitch: false,
+                pendingKindSwitch: null,
+                willDissociateLinks: false,
+            });
+        }
+
+        // On first render for a new editIdea, populate form state from the idea.
+        if (editIdea !== null && state.currentEditId !== editIdea.id) {
+            updateState({
+                currentEditId: editIdea.id,
+                wasOpen: true,
+                confirmingDelete: false,
+                kind: 'idea',
+                titleValue: editIdea.title,
+                description: editIdea.description,
+                selectedProjectId: editIdea.projectId,
+                ideaLinkedGoalId: editIdea.goalId,
+                editIdeaId: editIdea.id,
+                editGoalId: null,
+                goalLinkedTaskIds: [],
+                linkedGoalId: null,
+                originalLinkedGoalId: null,
+                confirmingKindSwitch: false,
+                pendingKindSwitch: null,
+                willDissociateLinks: false,
             });
         }
 
@@ -520,6 +632,13 @@ export const AddTaskDialogElement = defineElement<{
                 goalTargetDate: msToDateString(Date.now()),
                 ideaLinkedGoalId: inputs.defaultGoalId ?? null,
                 linkedGoalId: inputs.defaultGoalId ?? null,
+                originalLinkedGoalId: null,
+                editGoalId: null,
+                editIdeaId: null,
+                goalLinkedTaskIds: [],
+                confirmingKindSwitch: false,
+                pendingKindSwitch: null,
+                willDissociateLinks: false,
                 confirmingDelete: false,
                 currentEditId: null,
             });
@@ -538,48 +657,40 @@ export const AddTaskDialogElement = defineElement<{
 
         const isTaskOrRoutine = state.kind === 'routine' || state.kind === 'task';
 
-        const canSubmit = state.titleValue.trim().length > 0
+        const canSubmit = !state.confirmingKindSwitch
+            && state.titleValue.trim().length > 0
             // Hard-date tasks need a date — unless an anchor implies one.
             && (!isTaskOrRoutine || state.windowType !== 'hard' || usesAnchor || state.suggestedDate.length > 0)
             // Weekly anchor requires at least one day selected.
             && (!usesWeeklyAnchor || state.daysOfWeek.size > 0);
 
-        function submit(): void {
-            if (!canSubmit) return;
+        // ── Kind-switch helpers ─────────────────────────────────────────────────
 
-            if (state.kind === 'goal') {
-                const targetMs = state.goalTargetDate
-                    ? startOfDay(new Date(state.goalTargetDate + 'T00:00')).getTime()
-                    : null;
-                const goal: Goal = {
-                    id: generateId(),
-                    projectId: state.selectedProjectId,
-                    title: state.titleValue.trim(),
-                    description: state.description.trim(),
-                    status: 'active',
-                    targetDate: targetMs,
-                    linkedTaskIds: [],
-                    createdAt: Date.now(),
-                };
-                dispatch(new events.goalSubmitted(goal));
-                updateState({currentEditId: null, confirmingDelete: false});
+        function doKindSwitch(newKind: FormKind): void {
+            const updates: Parameters<typeof updateState>[0] = {
+                kind: newKind,
+                confirmingKindSwitch: false,
+                pendingKindSwitch: null,
+            };
+            // Routines must be recurring; only force it if not already set.
+            if (newKind === 'routine' && !state.isRecurring) {
+                updates.isRecurring = true;
+            }
+            updateState(updates);
+        }
+
+        function onKindClick(newKind: FormKind): void {
+            // Warn if we're converting a goal that has linked commitments.
+            if (state.kind === 'goal' && state.goalLinkedTaskIds.length > 0 && newKind !== 'goal') {
+                updateState({confirmingKindSwitch: true, pendingKindSwitch: newKind});
                 return;
             }
+            doKindSwitch(newKind);
+        }
 
-            if (state.kind === 'idea') {
-                const idea: Idea = {
-                    id: generateId(),
-                    projectId: state.selectedProjectId,
-                    title: state.titleValue.trim(),
-                    description: state.description.trim(),
-                    goalId: state.ideaLinkedGoalId,
-                    createdAt: Date.now(),
-                };
-                dispatch(new events.ideaSubmitted(idea));
-                updateState({currentEditId: null, confirmingDelete: false});
-                return;
-            }
+        // ── Task builder (shared by add + edit task/routine paths) ───────────────
 
+        function buildTask(baseTask: Task | null): Task {
             const today = new Date();
             const suggestedMs = state.suggestedDate
                 ? startOfDay(new Date(state.suggestedDate + 'T00:00')).getTime()
@@ -668,11 +779,8 @@ export const AddTaskDialogElement = defineElement<{
                 pausedUntil = startOfDay(new Date()).getTime() + state.pauseForDays * 86_400_000;
             }
 
-            const baseTask = isEditMode ? editTask! : null;
             const taskId = baseTask?.id ?? generateId();
-
-            const task: Task = {
-                // In edit mode: preserve identity and history fields.
+            return {
                 id: taskId,
                 projectId: state.selectedProjectId,
                 createdAt: baseTask?.createdAt ?? Date.now(),
@@ -691,7 +799,6 @@ export const AddTaskDialogElement = defineElement<{
                 completionsThisPeriod: baseTask?.completionsThisPeriod ?? 0,
                 totalCompletions: baseTask?.totalCompletions ?? 0,
                 progressCount: baseTask?.progressCount ?? 0,
-                // Editable fields:
                 kind: state.kind as ItemKind,
                 title: state.titleValue.trim(),
                 description: state.description.trim(),
@@ -704,56 +811,153 @@ export const AddTaskDialogElement = defineElement<{
                 windowLengthDays,
                 recurrence,
                 currentPeriodStart,
-                // Legacy compatibility — retain deprecated dueDate field
                 dueDate: suggestedDate,
             };
+        }
 
-            if (isEditMode) {
+        function buildGoal(existing: Goal | null): Goal {
+            const targetMs = state.goalTargetDate
+                ? startOfDay(new Date(state.goalTargetDate + 'T00:00')).getTime()
+                : null;
+            return {
+                id: existing?.id ?? generateId(),
+                projectId: state.selectedProjectId,
+                title: state.titleValue.trim(),
+                description: state.description.trim(),
+                status: existing?.status ?? 'active',
+                targetDate: targetMs,
+                // Preserve links unless the user confirmed dissociation.
+                linkedTaskIds: (state.willDissociateLinks || existing === null)
+                    ? []
+                    : existing.linkedTaskIds,
+                createdAt: existing?.createdAt ?? Date.now(),
+            };
+        }
+
+        function buildIdea(existing: Idea | null): Idea {
+            return {
+                id: existing?.id ?? generateId(),
+                projectId: state.selectedProjectId,
+                title: state.titleValue.trim(),
+                description: state.description.trim(),
+                goalId: state.ideaLinkedGoalId,
+                createdAt: existing?.createdAt ?? Date.now(),
+            };
+        }
+
+        // ── Submit ───────────────────────────────────────────────────────────────
+
+        function submit(): void {
+            if (!canSubmit) return;
+
+            const newKind = state.kind;
+            // Determine original type
+            const origKind: 'goal' | 'idea' | 'task' | 'routine' | null =
+                editGoal !== null ? 'goal' :
+                editIdea !== null ? 'idea' :
+                editTask !== null ? (editTask.kind === 'routine' ? 'routine' : 'task') :
+                null;
+
+            function resetForm(): void {
+                updateState({
+                    kind: 'task',
+                    titleValue: '',
+                    description: '',
+                    consequenceTier: 3,
+                    timeOfDay: 'anytime',
+                    isRecurring: false,
+                    cadence: 'weekly',
+                    frequencyPerPeriod: 2,
+                    scheduleMode: 'rolling',
+                    windowType: 'hard',
+                    suggestedDate: msToDateString(Date.now()),
+                    daysOfWeek: new Set<number>([new Date().getDay()]),
+                    dayOfWeek: new Date().getDay(),
+                    dayOfMonth: 1,
+                    daysOfMonth: new Set<number>([1]),
+                    quarterMonth: 0 as 0 | 1 | 2,
+                    monthAnchorMode: 'dom',
+                    ordinalWeek: 3,
+                    annualMonth: new Date().getMonth(),
+                    currentEditId: null,
+                    selectedProjectId: null,
+                    wasOpen: false,
+                    hasStartDate: false,
+                    startDate: '',
+                    pauseMode: 'none',
+                    pauseUntilDate: '',
+                    pauseForDays: 7,
+                    hasEndCondition: false,
+                    endMode: 'after_count',
+                    endAfterCount: 10,
+                    endAfterDate: '',
+                    linkedGoalId: null,
+                    originalLinkedGoalId: null,
+                    ideaLinkedGoalId: null,
+                    editGoalId: null,
+                    editIdeaId: null,
+                    goalLinkedTaskIds: [],
+                    confirmingKindSwitch: false,
+                    pendingKindSwitch: null,
+                    willDissociateLinks: false,
+                    confirmingDelete: false,
+                });
+            }
+
+            // ── Goal output ──
+            if (newKind === 'goal') {
+                const goal = buildGoal(origKind === 'goal' ? editGoal : null);
+                if (origKind === 'goal') {
+                    dispatch(new events.goalUpdated(goal));
+                } else {
+                    dispatch(new events.goalSubmitted(goal));
+                    if (origKind === 'task' || origKind === 'routine') dispatch(new events.taskDeleted(editTask!.id));
+                    if (origKind === 'idea') dispatch(new events.ideaDeleted(editIdea!.id));
+                }
+                resetForm();
+                return;
+            }
+
+            // ── Idea output ──
+            if (newKind === 'idea') {
+                const idea = buildIdea(origKind === 'idea' ? editIdea : null);
+                if (origKind === 'idea') {
+                    dispatch(new events.ideaUpdated(idea));
+                } else {
+                    dispatch(new events.ideaSubmitted(idea));
+                    if (origKind === 'task' || origKind === 'routine') dispatch(new events.taskDeleted(editTask!.id));
+                    if (origKind === 'goal') dispatch(new events.goalDeleted(editGoal!.id));
+                }
+                resetForm();
+                return;
+            }
+
+            // ── Task / Routine output ──
+            const isInKindEdit = origKind === 'task' || origKind === 'routine';
+            const task = buildTask(isInKindEdit ? editTask : null);
+
+            if (isInKindEdit) {
                 dispatch(new events.taskUpdated(task));
+                // If the linked goal changed, notify parent to rewire links.
+                if (state.linkedGoalId !== state.originalLinkedGoalId) {
+                    dispatch(new events.linkedGoalChanged({
+                        taskId: task.id,
+                        oldGoalId: state.originalLinkedGoalId,
+                        newGoalId: state.linkedGoalId,
+                    }));
+                }
             } else {
+                // Converting from goal/idea to task/routine (or brand-new add).
                 dispatch(new events.taskSubmitted(task));
-                // If a goal was selected, tell the parent to link the new task.
+                if (origKind === 'goal') dispatch(new events.goalDeleted(editGoal!.id));
+                if (origKind === 'idea') dispatch(new events.ideaDeleted(editIdea!.id));
+                // Link to goal if selected.
                 if (state.linkedGoalId) {
-                    dispatch(new events.taskGoalLinked({taskId, goalId: state.linkedGoalId}));
+                    dispatch(new events.taskGoalLinked({taskId: task.id, goalId: state.linkedGoalId}));
                 }
             }
 
-            // Reset
-            updateState({
-                kind: 'task',
-                titleValue: '',
-                description: '',
-                consequenceTier: 3,
-                timeOfDay: 'anytime',
-                isRecurring: false,
-                cadence: 'weekly',
-                frequencyPerPeriod: 2,
-                scheduleMode: 'rolling',
-                windowType: 'hard',
-                suggestedDate: msToDateString(Date.now()),
-                daysOfWeek: new Set<number>([new Date().getDay()]),
-                dayOfWeek: new Date().getDay(),
-                dayOfMonth: 1,
-                daysOfMonth: new Set<number>([1]),
-                quarterMonth: 0 as 0 | 1 | 2,
-                monthAnchorMode: 'dom',
-                ordinalWeek: 3,
-                annualMonth: new Date().getMonth(),
-                currentEditId: null,
-                selectedProjectId: null,
-                wasOpen: false,
-                hasStartDate: false,
-                startDate: '',
-                pauseMode: 'none',
-                pauseUntilDate: '',
-                pauseForDays: 7,
-                hasEndCondition: false,
-                endMode: 'after_count',
-                endAfterCount: 10,
-                endAfterDate: '',
-                linkedGoalId: null,
-                ideaLinkedGoalId: null,
-            });
+            resetForm();
         }
 
         return html`
@@ -769,15 +973,17 @@ export const AddTaskDialogElement = defineElement<{
                 <div class="sheet">
                     <div class="sheet-title">
                         ${isEditMode
-                            ? (state.kind === 'routine' ? 'AMEND ROUTINE' : 'AMEND TASK')
+                            ? (state.kind === 'routine' ? 'AMEND ROUTINE'
+                               : state.kind === 'task'  ? 'AMEND TASK'
+                               : state.kind === 'goal'  ? 'AMEND OBJECTIVE'
+                               :                          'AMEND IDEA')
                             : state.kind === 'routine' ? 'MAKE NEW ROUTINE'
                             : state.kind === 'task'    ? 'MAKE NEW TASK'
                             : state.kind === 'goal'    ? 'NEW GOAL'
                             :                            'NEW IDEA'}
                     </div>
 
-                    <!-- Kind toggle (all four commitment types) — hidden in edit mode -->
-                    ${!isEditMode ? html`
+                    <!-- Kind toggle — always visible (create and edit mode) -->
                     <div class="kind-toggle">
                         <${ViraButton.assign({
                             text: 'Routine',
@@ -787,7 +993,7 @@ export const AddTaskDialogElement = defineElement<{
                                 : ViraEmphasis.Subtle,
                             buttonSize: ViraSize.Small,
                         })}
-                            @click=${() => updateState({kind: 'routine', isRecurring: true, cadence: 'daily'})}
+                            @click=${() => onKindClick('routine')}
                         ></${ViraButton}>
                         <${ViraButton.assign({
                             text: 'Task',
@@ -797,7 +1003,7 @@ export const AddTaskDialogElement = defineElement<{
                                 : ViraEmphasis.Subtle,
                             buttonSize: ViraSize.Small,
                         })}
-                            @click=${() => updateState({kind: 'task', isRecurring: false, cadence: 'weekly'})}
+                            @click=${() => onKindClick('task')}
                         ></${ViraButton}>
                         <${ViraButton.assign({
                             text: 'Goal',
@@ -807,7 +1013,7 @@ export const AddTaskDialogElement = defineElement<{
                                 : ViraEmphasis.Subtle,
                             buttonSize: ViraSize.Small,
                         })}
-                            @click=${() => updateState({kind: 'goal'})}
+                            @click=${() => onKindClick('goal')}
                         ></${ViraButton}>
                         <${ViraButton.assign({
                             text: 'Idea',
@@ -817,9 +1023,28 @@ export const AddTaskDialogElement = defineElement<{
                                 : ViraEmphasis.Subtle,
                             buttonSize: ViraSize.Small,
                         })}
-                            @click=${() => updateState({kind: 'idea'})}
+                            @click=${() => onKindClick('idea')}
                         ></${ViraButton}>
                     </div>
+
+                    <!-- Warning: switching away from a goal that has linked commitments -->
+                    ${state.confirmingKindSwitch ? html`
+                        <div class="kind-switch-warning">
+                            <p>⚠ This objective has ${state.goalLinkedTaskIds.length} linked commitment${state.goalLinkedTaskIds.length !== 1 ? 's' : ''}. Switching type will dissociate them from this entry.</p>
+                            <div class="kind-switch-warning-actions">
+                                <button
+                                    class="kind-switch-proceed"
+                                    @click=${() => {
+                                        updateState({willDissociateLinks: true});
+                                        doKindSwitch(state.pendingKindSwitch!);
+                                    }}
+                                >PROCEED</button>
+                                <button
+                                    class="kind-switch-cancel"
+                                    @click=${() => updateState({confirmingKindSwitch: false, pendingKindSwitch: null})}
+                                >CANCEL</button>
+                            </div>
+                        </div>
                     ` : html``}
 
                     <!-- Title -->
@@ -1462,8 +1687,8 @@ export const AddTaskDialogElement = defineElement<{
                         </div>
                     ` : html``}
 
-                    <!-- Task / Routine: optional linked objective (add mode only) -->
-                    ${isTaskOrRoutine && !isEditMode ? html`
+                    <!-- Task / Routine: optional linked objective -->
+                    ${isTaskOrRoutine ? html`
                         ${(() => {
                             const availableGoals = (inputs.goals ?? [])
                                 .filter(g => g.status === 'active'
@@ -1523,14 +1748,24 @@ export const AddTaskDialogElement = defineElement<{
                             ${state.confirmingDelete
                                 ? html`
                                     <div class="delete-confirm-row">
-                                        <span class="delete-confirm-label">PERMANENTLY TERMINATE THIS COMMITMENT?</span>
+                                        <span class="delete-confirm-label">
+                                            ${state.kind === 'goal' ? 'PERMANENTLY DELETE THIS OBJECTIVE?'
+                                              : state.kind === 'idea' ? 'PERMANENTLY DELETE THIS IDEA?'
+                                              : 'PERMANENTLY TERMINATE THIS COMMITMENT?'}
+                                        </span>
                                         <button
                                             class="delete-confirm-yes"
                                             @click=${() => {
-                                                dispatch(new events.taskDeleted(editTask!.id));
+                                                if (state.kind === 'goal' && editGoal) {
+                                                    dispatch(new events.goalDeleted(editGoal.id));
+                                                } else if (state.kind === 'idea' && editIdea) {
+                                                    dispatch(new events.ideaDeleted(editIdea.id));
+                                                } else if (editTask) {
+                                                    dispatch(new events.taskDeleted(editTask.id));
+                                                }
                                                 updateState({currentEditId: null, confirmingDelete: false});
                                             }}
-                                        >TERMINATE</button>
+                                        >${state.kind === 'goal' ? 'DELETE' : state.kind === 'idea' ? 'DELETE' : 'TERMINATE'}</button>
                                         <button
                                             class="delete-confirm-no"
                                             @click=${() => updateState({confirmingDelete: false})}
@@ -1541,7 +1776,9 @@ export const AddTaskDialogElement = defineElement<{
                                     <button
                                         class="task-delete-btn"
                                         @click=${() => updateState({confirmingDelete: true})}
-                                    >TERMINATE COMMITMENT</button>
+                                    >${state.kind === 'goal' ? 'DELETE OBJECTIVE'
+                                       : state.kind === 'idea' ? 'DELETE IDEA'
+                                       : 'TERMINATE COMMITMENT'}</button>
                                   `}
                         </div>
                     ` : html``}
@@ -1560,7 +1797,10 @@ export const AddTaskDialogElement = defineElement<{
                         <span class="grow">
                             <${ViraButton.assign({
                                 text: isEditMode
-                                    ? 'SAVE CHANGES'
+                                    ? (state.kind === 'routine' ? 'SAVE ROUTINE'
+                                       : state.kind === 'goal'  ? 'SAVE OBJECTIVE'
+                                       : state.kind === 'idea'  ? 'SAVE IDEA'
+                                       :                          'SAVE TASK')
                                     : state.kind === 'routine' ? 'COMMIT ROUTINE'
                                     : state.kind === 'goal'    ? 'SET GOAL'
                                     : state.kind === 'idea'    ? 'FILE IDEA'

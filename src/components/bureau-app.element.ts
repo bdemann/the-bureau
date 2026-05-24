@@ -167,6 +167,8 @@ export const BureauAppElement = defineElement()({
     state: () => ({
         app: bootstrap(),
         editingTask: null as Task | null,
+        editingGoal: null as Goal | null,
+        editingIdea: null as Idea | null,
         addingTask: false,
         newTaskProjectId: null as string | null,
         newTaskDefaultKind: 'task' as FormKind,
@@ -547,10 +549,12 @@ export const BureauAppElement = defineElement()({
 
         function onIdeaUpdated(idea: Idea): void {
             commit({ideas: state.app.ideas.map(i => i.id === idea.id ? idea : i)});
+            updateState({editingIdea: null});
         }
 
         function onIdeaDeleted(id: string): void {
             commit({ideas: state.app.ideas.filter(i => i.id !== id)});
+            updateState({editingIdea: null});
         }
 
         function onIdeaUnlinkFromGoal(ideaId: string): void {
@@ -559,10 +563,39 @@ export const BureauAppElement = defineElement()({
 
         function onGoalUpdated(goal: Goal): void {
             commit({goals: state.app.goals.map(g => g.id === goal.id ? goal : g)});
+            updateState({editingGoal: null});
         }
 
         function onGoalDeleted(id: string): void {
             commit({goals: state.app.goals.filter(g => g.id !== id)});
+            updateState({editingGoal: null});
+        }
+
+        function onGoalEditRequested(goal: Goal): void {
+            updateState({editingGoal: goal, editingTask: null, addingTask: false, editingIdea: null});
+        }
+
+        function onIdeaEditRequested(idea: Idea): void {
+            updateState({editingIdea: idea, editingTask: null, addingTask: false, editingGoal: null});
+        }
+
+        function onLinkedGoalChanged({taskId, oldGoalId, newGoalId}: {taskId: string; oldGoalId: string|null; newGoalId: string|null}): void {
+            let goals = state.app.goals;
+            if (oldGoalId) {
+                goals = goals.map(g =>
+                    g.id === oldGoalId
+                        ? {...g, linkedTaskIds: g.linkedTaskIds.filter(id => id !== taskId)}
+                        : g,
+                );
+            }
+            if (newGoalId) {
+                goals = goals.map(g =>
+                    g.id === newGoalId && !g.linkedTaskIds.includes(taskId)
+                        ? {...g, linkedTaskIds: [...g.linkedTaskIds, taskId]}
+                        : g,
+                );
+            }
+            commit({goals});
         }
 
         function onUnlinkRequested({goalId, taskId}: {goalId: string; taskId: string}): void {
@@ -694,6 +727,8 @@ export const BureauAppElement = defineElement()({
                         })}
                             ${listen(GoalDetailElement.events.goalUpdated, e =>
                                 onGoalUpdated(e.detail))}
+                            ${listen(GoalDetailElement.events.goalEditRequested, e =>
+                                onGoalEditRequested(e.detail))}
                             ${listen(GoalDetailElement.events.goalDeleted, e => {
                                 onGoalDeleted(e.detail);
                                 updateState({selectedGoalId: null});
@@ -720,6 +755,8 @@ export const BureauAppElement = defineElement()({
                                 onIdeaUpdated(e.detail))}
                             ${listen(GoalDetailElement.events.ideaDeleted, e =>
                                 onIdeaDeleted(e.detail))}
+                            ${listen(GoalDetailElement.events.ideaEditRequested, e =>
+                                onIdeaEditRequested(e.detail))}
                             ${listen(GoalDetailElement.events.ideaPromoteRequested, e =>
                                 onPromoteRequested(e.detail))}
                         ></${GoalDetailElement}>
@@ -752,6 +789,8 @@ export const BureauAppElement = defineElement()({
                                 onIdeaUpdated(e.detail))}
                             ${listen(IdeasViewElement.events.ideaDeleted, e =>
                                 onIdeaDeleted(e.detail))}
+                            ${listen(IdeasViewElement.events.ideaEditRequested, e =>
+                                onIdeaEditRequested(e.detail))}
                             ${listen(IdeasViewElement.events.promoteRequested, e =>
                                 onPromoteRequested(e.detail))}
                         ></${IdeasViewElement}>
@@ -861,11 +900,13 @@ export const BureauAppElement = defineElement()({
                             Area not found. Return to dashboard.
                         </p>
                       `}
-                <!-- Root-level dialog — handles both creating and editing tasks -->
+                <!-- Root-level dialog — handles creating and editing all commitment types -->
                 <${AddTaskDialogElement.assign({
-                    projectId: state.editingTask?.projectId ?? state.newTaskProjectId,
-                    open: state.editingTask !== null || state.addingTask,
+                    projectId: state.editingTask?.projectId ?? state.editingGoal?.projectId ?? state.editingIdea?.projectId ?? state.newTaskProjectId,
+                    open: state.editingTask !== null || state.addingTask || state.editingGoal !== null || state.editingIdea !== null,
                     editTask: state.editingTask,
+                    editGoal: state.editingGoal,
+                    editIdea: state.editingIdea,
                     projects: state.app.projects,
                     goals: state.app.goals,
                     prefillTitle: state.promotingIdea?.title ?? null,
@@ -883,10 +924,20 @@ export const BureauAppElement = defineElement()({
                         onTaskDeleted(e.detail))}
                     ${listen(AddTaskDialogElement.events.goalSubmitted, e =>
                         onGoalSubmitted(e.detail))}
+                    ${listen(AddTaskDialogElement.events.goalUpdated, e =>
+                        onGoalUpdated(e.detail))}
+                    ${listen(AddTaskDialogElement.events.goalDeleted, e =>
+                        onGoalDeleted(e.detail))}
                     ${listen(AddTaskDialogElement.events.ideaSubmitted, e =>
                         onIdeaSubmitted(e.detail))}
+                    ${listen(AddTaskDialogElement.events.ideaUpdated, e =>
+                        onIdeaUpdated(e.detail))}
+                    ${listen(AddTaskDialogElement.events.ideaDeleted, e =>
+                        onIdeaDeleted(e.detail))}
+                    ${listen(AddTaskDialogElement.events.linkedGoalChanged, e =>
+                        onLinkedGoalChanged(e.detail))}
                     ${listen(AddTaskDialogElement.events.cancelled, () =>
-                        updateState({editingTask: null, addingTask: false, newTaskProjectId: null, promotingIdea: null, spawningForGoalId: null}))}
+                        updateState({editingTask: null, editingGoal: null, editingIdea: null, addingTask: false, newTaskProjectId: null, promotingIdea: null, spawningForGoalId: null}))}
                 ></${AddTaskDialogElement}>
 
                 ${state.undoAction

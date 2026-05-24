@@ -26,16 +26,11 @@ export const IdeasViewElement = defineElement<{
         makeCommitmentRequested: defineElementEvent<FormKind>(),
         ideaUpdated:             defineElementEvent<Idea>(),
         ideaDeleted:             defineElementEvent<string>(),
+        ideaEditRequested:       defineElementEvent<Idea>(),
         promoteRequested:        defineElementEvent<Idea>(),
     },
 
     state: () => ({
-        formOpen:        false,
-        editingId:       null as string | null,
-        formTitle:       '',
-        formDesc:        '',
-        formProjectId:   null as string | null,
-        formGoalId:      null as string | null,
         confirmDeleteId: null as string | null,
     }),
 
@@ -63,55 +58,6 @@ export const IdeasViewElement = defineElement<{
             letter-spacing: 0.1em;
             color: #6B6B6B;
             margin-bottom: 24px;
-        }
-
-        .form-card {
-            background: #fff;
-            border: 1px solid rgba(0,0,0,0.12);
-            border-top: 3px solid #1B2A4A;
-            padding: 14px;
-            margin-bottom: 20px;
-        }
-
-        .form-title {
-            font-family: 'Bebas Neue', sans-serif;
-            font-size: 0.9rem;
-            letter-spacing: 0.15em;
-            color: #1B2A4A;
-            margin-bottom: 12px;
-        }
-
-        .field { margin-bottom: 10px; }
-
-        .field-label {
-            display: block;
-            font-size: 0.62rem;
-            letter-spacing: 0.12em;
-            text-transform: uppercase;
-            color: #6B6B6B;
-            margin-bottom: 4px;
-            font-family: 'Courier Prime', monospace;
-        }
-
-        input[type="text"],
-        textarea,
-        select {
-            width: 100%;
-            border: 1px solid rgba(0,0,0,0.18);
-            background: #F5EFE0;
-            padding: 7px 9px;
-            font-family: 'Courier Prime', monospace;
-            font-size: 0.85rem;
-            color: #1B2A4A;
-            box-sizing: border-box;
-        }
-
-        textarea { resize: vertical; min-height: 64px; }
-
-        .form-actions {
-            display: flex;
-            gap: 8px;
-            margin-top: 12px;
         }
 
         .btn {
@@ -159,9 +105,14 @@ export const IdeasViewElement = defineElement<{
             border-left: 3px solid #B8860B;
             padding: 12px 14px;
             margin-bottom: 12px;
+            cursor: pointer;
+            transition: box-shadow 0.15s, transform 0.1s;
         }
 
-        .idea-card.editing { border-left-color: #1B2A4A; }
+        .idea-card:hover {
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            transform: translateY(-1px);
+        }
 
         .idea-title {
             font-family: 'Bebas Neue', sans-serif;
@@ -246,15 +197,6 @@ export const IdeasViewElement = defineElement<{
 
         const sortedIdeas = visibleIdeas.sort((a, b) => b.createdAt - a.createdAt);
 
-        // Goals available for the currently selected project (in form).
-        // When we're goal-filtered, the goal is locked — no dropdown needed.
-        const effectiveProjectId = isFiltered ? filterProjectId : state.formProjectId;
-        const availableGoals = isGoalFiltered
-            ? []   // goal is locked; don't show dropdown
-            : effectiveProjectId
-                ? goals.filter(g => g.projectId === effectiveProjectId && g.status === 'active')
-                : [];
-
         function projectName(id: string | null): string | null {
             if (!id) return null;
             return projects.find(p => p.id === id)?.name ?? null;
@@ -263,100 +205,6 @@ export const IdeasViewElement = defineElement<{
         function goalName(id: string | null): string | null {
             if (!id) return null;
             return goals.find(g => g.id === id)?.title ?? null;
-        }
-
-        function openEditForm(idea: Idea): void {
-            updateState({
-                formOpen: true,
-                editingId: idea.id,
-                formTitle: idea.title,
-                formDesc: idea.description,
-                formProjectId: idea.projectId,
-                formGoalId: idea.goalId,
-                confirmDeleteId: null,
-            });
-        }
-
-        function closeForm(): void {
-            updateState({formOpen: false, editingId: null});
-        }
-
-        function submitForm(): void {
-            const title = state.formTitle.trim();
-            if (!title || !state.editingId) return;
-            const existing = ideas.find(i => i.id === state.editingId)!;
-            dispatch(new events.ideaUpdated({
-                ...existing,
-                title,
-                description: state.formDesc.trim(),
-                projectId: isFiltered ? filterProjectId : state.formProjectId,
-                // When goal-filtered, keep the locked goal; otherwise use the picker
-                goalId: isGoalFiltered ? filterGoalId : state.formGoalId,
-            }));
-            closeForm();
-        }
-
-        function renderForm(label: string) {
-            return html`
-                <div class="form-card">
-                    <div class="form-title">${label}</div>
-                    <div class="field">
-                        <label class="field-label">Title</label>
-                        <input
-                            type="text"
-                            placeholder="Intelligence designation…"
-                            .value=${state.formTitle}
-                            @input=${(e: Event) =>
-                                updateState({formTitle: (e.target as HTMLInputElement).value})}
-                        />
-                    </div>
-                    <div class="field">
-                        <label class="field-label">Notes (optional)</label>
-                        <textarea
-                            placeholder="Details, context, leads…"
-                            .value=${state.formDesc}
-                            @input=${(e: Event) =>
-                                updateState({formDesc: (e.target as HTMLTextAreaElement).value})}
-                        ></textarea>
-                    </div>
-                    ${!isFiltered ? html`
-                        <div class="field">
-                            <label class="field-label">Linked Area (optional)</label>
-                            <select
-                                @change=${(e: Event) => {
-                                    const val = (e.target as HTMLSelectElement).value;
-                                    updateState({formProjectId: val || null, formGoalId: null});
-                                }}
-                            >
-                                <option value="" ?selected=${state.formProjectId === null}>— None —</option>
-                                ${projects.map(p => html`
-                                    <option value=${p.id} ?selected=${state.formProjectId === p.id}>${p.name}</option>
-                                `)}
-                            </select>
-                        </div>
-                    ` : html``}
-                    ${availableGoals.length > 0 ? html`
-                        <div class="field">
-                            <label class="field-label">Linked Objective (optional)</label>
-                            <select
-                                @change=${(e: Event) => {
-                                    const val = (e.target as HTMLSelectElement).value;
-                                    updateState({formGoalId: val || null});
-                                }}
-                            >
-                                <option value="" ?selected=${state.formGoalId === null}>— None —</option>
-                                ${availableGoals.map(g => html`
-                                    <option value=${g.id} ?selected=${state.formGoalId === g.id}>${g.title}</option>
-                                `)}
-                            </select>
-                        </div>
-                    ` : html``}
-                    <div class="form-actions">
-                        <button class="btn btn-primary" @click=${submitForm}>FILE</button>
-                        <button class="btn btn-ghost" @click=${closeForm}>CANCEL</button>
-                    </div>
-                </div>
-            `;
         }
 
         return html`
@@ -377,59 +225,74 @@ export const IdeasViewElement = defineElement<{
                 : html``}
 
             ${sortedIdeas.map(idea => {
-                const isEditing = state.formOpen && state.editingId === idea.id;
                 const confirmingDelete = state.confirmDeleteId === idea.id;
                 const opName = !isFiltered ? projectName(idea.projectId) : null;
                 const gName = goalName(idea.goalId);
 
                 return html`
-                    <div class=${'idea-card' + (isEditing ? ' editing' : '')}>
-                        ${isEditing
-                            ? renderForm('EDIT IDEA')
-                            : html`
-                                <div class="idea-title">${idea.title}</div>
-                                ${idea.description
-                                    ? html`<div class="idea-desc">${idea.description}</div>`
-                                    : html``}
-                                ${(opName || gName) ? html`
-                                    <div class="idea-meta">
-                                        ${opName ? html`<span class="meta-badge">⊙ ${opName}</span>` : html``}
-                                        ${gName  ? html`<span class="meta-badge goal">→ ${gName}</span>` : html``}
-                                    </div>
-                                ` : html``}
-                                <div class="idea-actions">
-                                    <button
-                                        class="action-btn action-promote"
-                                        @click=${() => dispatch(new events.promoteRequested(idea))}
-                                    >PROMOTE TO COMMITMENT</button>
-                                    <button
-                                        class="action-btn action-edit"
-                                        @click=${() => openEditForm(idea)}
-                                    >EDIT</button>
-                                    <button
-                                        class="action-btn action-delete"
-                                        @click=${() => updateState({confirmDeleteId: idea.id})}
-                                    >DELETE</button>
-                                </div>
-                                ${confirmingDelete ? html`
-                                    <div class="confirm-delete">
-                                        Permanently delete this intelligence?
-                                        <button
-                                            class="btn btn-danger"
-                                            style="font-size:0.72rem;padding:3px 8px;"
-                                            @click=${() => {
-                                                dispatch(new events.ideaDeleted(idea.id));
-                                                updateState({confirmDeleteId: null});
-                                            }}
-                                        >CONFIRM</button>
-                                        <button
-                                            class="btn btn-ghost"
-                                            style="font-size:0.72rem;padding:3px 8px;"
-                                            @click=${() => updateState({confirmDeleteId: null})}
-                                        >CANCEL</button>
-                                    </div>
-                                ` : html``}
-                              `}
+                    <div
+                        class="idea-card"
+                        @click=${(e: Event) => {
+                            const target = e.target as HTMLElement;
+                            if (target.closest('.idea-actions') || target.closest('.confirm-delete')) return;
+                            dispatch(new events.ideaEditRequested(idea));
+                        }}
+                    >
+                        <div class="idea-title">${idea.title}</div>
+                        ${idea.description
+                            ? html`<div class="idea-desc">${idea.description}</div>`
+                            : html``}
+                        ${(opName || gName) ? html`
+                            <div class="idea-meta">
+                                ${opName ? html`<span class="meta-badge">⊙ ${opName}</span>` : html``}
+                                ${gName  ? html`<span class="meta-badge goal">→ ${gName}</span>` : html``}
+                            </div>
+                        ` : html``}
+                        <div class="idea-actions">
+                            <button
+                                class="action-btn action-promote"
+                                @click=${(e: Event) => {
+                                    e.stopPropagation();
+                                    dispatch(new events.promoteRequested(idea));
+                                }}
+                            >PROMOTE TO COMMITMENT</button>
+                            <button
+                                class="action-btn action-edit"
+                                @click=${(e: Event) => {
+                                    e.stopPropagation();
+                                    dispatch(new events.ideaEditRequested(idea));
+                                }}
+                            >EDIT</button>
+                            <button
+                                class="action-btn action-delete"
+                                @click=${(e: Event) => {
+                                    e.stopPropagation();
+                                    updateState({confirmDeleteId: idea.id});
+                                }}
+                            >DELETE</button>
+                        </div>
+                        ${confirmingDelete ? html`
+                            <div class="confirm-delete">
+                                Permanently delete this intelligence?
+                                <button
+                                    class="btn btn-danger"
+                                    style="font-size:0.72rem;padding:3px 8px;"
+                                    @click=${(e: Event) => {
+                                        e.stopPropagation();
+                                        dispatch(new events.ideaDeleted(idea.id));
+                                        updateState({confirmDeleteId: null});
+                                    }}
+                                >CONFIRM</button>
+                                <button
+                                    class="btn btn-ghost"
+                                    style="font-size:0.72rem;padding:3px 8px;"
+                                    @click=${(e: Event) => {
+                                        e.stopPropagation();
+                                        updateState({confirmDeleteId: null});
+                                    }}
+                                >CANCEL</button>
+                            </div>
+                        ` : html``}
                     </div>
                 `;
             })}

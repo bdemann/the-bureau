@@ -4,17 +4,6 @@ import {isCurrentlyPaused, isTaskVisible} from '../data/storage.js';
 import {TaskItemElement} from './task-item.element.js';
 import {IdeasViewElement} from './ideas-view.element.js';
 
-function msToDateString(ms: number): string {
-    const d = new Date(ms);
-    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
-}
-
-function parseDateString(s: string): number | null {
-    if (!s) return null;
-    const d = new Date(s + 'T00:00:00');
-    return isNaN(d.getTime()) ? null : d.getTime();
-}
-
 function fmtDate(ms: number): string {
     return new Date(ms).toLocaleDateString(undefined, {month: 'short', day: 'numeric', year: 'numeric'});
 }
@@ -36,6 +25,7 @@ export const GoalDetailElement = defineElement<{
     events: {
         goalUpdated:             defineElementEvent<Goal>(),
         goalDeleted:             defineElementEvent<string>(),
+        goalEditRequested:       defineElementEvent<Goal>(),
         taskCompleted:           defineElementEvent<string>(),
         taskSnoozed:             defineElementEvent<string>(),
         taskUnSnoozed:           defineElementEvent<string>(),
@@ -47,15 +37,12 @@ export const GoalDetailElement = defineElement<{
         taskLinked:              defineElementEvent<{goalId: string; taskId: string}>(),
         ideaUpdated:             defineElementEvent<Idea>(),
         ideaDeleted:             defineElementEvent<string>(),
+        ideaEditRequested:       defineElementEvent<Idea>(),
         ideaPromoteRequested:    defineElementEvent<Idea>(),
     },
 
     state: () => ({
         confirmingDelete: false,
-        editingGoal:      false,
-        editTitle:        '',
-        editDesc:         '',
-        editTargetDate:   '',
         linkPickerOpen:   false,
         linkSearchQuery:  '',
         showCompleted:    false,
@@ -153,56 +140,6 @@ export const GoalDetailElement = defineElement<{
         .action-edit:hover { background: rgba(0,0,0,0.05); }
         .action-link       { background: transparent; border: 1px solid #B8860B; color: #B8860B; }
         .action-link:hover { background: rgba(184,134,11,0.07); }
-
-        .edit-form {
-            background: #FDFAF5;
-            border: 1px solid rgba(0,0,0,0.12);
-            border-top: 3px solid #B8860B;
-            padding: 14px;
-            margin-bottom: 16px;
-        }
-
-        .edit-section-title {
-            font-family: 'Bebas Neue', sans-serif;
-            font-size: 0.85rem;
-            letter-spacing: 0.15em;
-            color: #1B2A4A;
-            margin-bottom: 10px;
-        }
-
-        .field { margin-bottom: 10px; }
-
-        .field-label {
-            display: block;
-            font-family: 'Courier Prime', monospace;
-            font-size: 0.62rem;
-            letter-spacing: 0.12em;
-            text-transform: uppercase;
-            color: #6B6B6B;
-            margin-bottom: 3px;
-        }
-
-        input[type="text"],
-        input[type="date"],
-        textarea,
-        select {
-            width: 100%;
-            border: 1px solid rgba(0,0,0,0.18);
-            background: #fff;
-            padding: 7px 9px;
-            font-family: 'Courier Prime', monospace;
-            font-size: 0.85rem;
-            color: #1B2A4A;
-            box-sizing: border-box;
-        }
-
-        textarea { resize: vertical; min-height: 60px; }
-
-        .edit-actions {
-            display: flex;
-            gap: 8px;
-            margin-top: 10px;
-        }
 
         .btn {
             font-family: 'Bebas Neue', sans-serif;
@@ -545,28 +482,6 @@ export const GoalDetailElement = defineElement<{
             dispatch(new events.goalUpdated({...goal, status}));
         }
 
-        function saveEdit(): void {
-            const title = state.editTitle.trim();
-            if (!title) return;
-            dispatch(new events.goalUpdated({
-                ...goal,
-                title,
-                description: state.editDesc.trim(),
-                targetDate: parseDateString(state.editTargetDate),
-            }));
-            updateState({editingGoal: false});
-        }
-
-        function openEdit(): void {
-            updateState({
-                editingGoal:    true,
-                editTitle:      goal.title,
-                editDesc:       goal.description,
-                editTargetDate: goal.targetDate ? msToDateString(goal.targetDate) : '',
-                confirmingDelete: false,
-            });
-        }
-
         function renderTaskWithUnlink(task: Task, showManageActions: boolean) {
             return html`
                 <div class="task-with-unlink">
@@ -598,92 +513,52 @@ export const GoalDetailElement = defineElement<{
 
         return html`
             <!-- Goal header -->
-            ${state.editingGoal
-                ? html`
-                    <div class="edit-form">
-                        <div class="edit-section-title">EDIT OBJECTIVE</div>
-                        <div class="field">
-                            <label class="field-label">Title</label>
-                            <input
-                                type="text"
-                                placeholder="Objective designation…"
-                                .value=${state.editTitle}
-                                @input=${(e: Event) =>
-                                    updateState({editTitle: (e.target as HTMLInputElement).value})}
-                            />
-                        </div>
-                        <div class="field">
-                            <label class="field-label">Description (optional)</label>
-                            <textarea
-                                placeholder="Scope, success criteria, context…"
-                                .value=${state.editDesc}
-                                @input=${(e: Event) =>
-                                    updateState({editDesc: (e.target as HTMLTextAreaElement).value})}
-                            ></textarea>
-                        </div>
-                        <div class="field">
-                            <label class="field-label">Target Date (optional)</label>
-                            <input
-                                type="date"
-                                .value=${state.editTargetDate}
-                                @change=${(e: Event) =>
-                                    updateState({editTargetDate: (e.target as HTMLInputElement).value})}
-                            />
-                        </div>
-                        <div class="edit-actions">
-                            <button class="btn btn-primary" @click=${saveEdit}>SAVE</button>
+            <div class=${'goal-header ' + goal.status}>
+                <div class="goal-title">${goal.title}</div>
+                ${goal.description
+                    ? html`<div class="goal-desc">${goal.description}</div>`
+                    : html``}
+                <div class="goal-meta">
+                    ${goal.targetDate
+                        ? html`<span class=${'target-date' + (dateOverdue ? ' overdue' : '')}>
+                                ⊙ Target: ${fmtDate(goal.targetDate)}${dateOverdue ? ' · OVERDUE' : ''}
+                              </span>`
+                        : html``}
+                    ${!isActive
+                        ? html`<span class=${'status-badge ' + goal.status}>
+                                ${goal.status === 'achieved' ? '✓ Achieved' : '✕ Abandoned'}
+                              </span>`
+                        : html``}
+                    ${projectName
+                        ? html`<span class="project-badge">⊙ ${projectName}</span>`
+                        : html``}
+                </div>
+                <div class="goal-actions">
+                    ${isActive
+                        ? html`
                             <button
-                                class="btn btn-ghost"
-                                @click=${() => updateState({editingGoal: false})}
-                            >CANCEL</button>
-                        </div>
-                    </div>
-                  `
-                : html`
-                    <div class=${'goal-header ' + goal.status}>
-                        <div class="goal-title">${goal.title}</div>
-                        ${goal.description
-                            ? html`<div class="goal-desc">${goal.description}</div>`
-                            : html``}
-                        <div class="goal-meta">
-                            ${goal.targetDate
-                                ? html`<span class=${'target-date' + (dateOverdue ? ' overdue' : '')}>
-                                        ⊙ Target: ${fmtDate(goal.targetDate)}${dateOverdue ? ' · OVERDUE' : ''}
-                                      </span>`
-                                : html``}
-                            ${!isActive
-                                ? html`<span class=${'status-badge ' + goal.status}>
-                                        ${goal.status === 'achieved' ? '✓ Achieved' : '✕ Abandoned'}
-                                      </span>`
-                                : html``}
-                            ${projectName
-                                ? html`<span class="project-badge">⊙ ${projectName}</span>`
-                                : html``}
-                        </div>
-                        <div class="goal-actions">
-                            ${isActive
-                                ? html`
-                                    <button
-                                        class="action-btn action-achieve"
-                                        @click=${() => setStatus('achieved')}
-                                    >MARK ACHIEVED</button>
-                                  `
-                                : html`
-                                    <button
-                                        class="action-btn action-reactivate"
-                                        @click=${() => setStatus('active')}
-                                    >REACTIVATE</button>
-                                  `}
-                            <button class="action-btn action-edit" @click=${openEdit}>EDIT</button>
-                            ${linkableTasks.length > 0
-                                ? html`<button
-                                        class="action-btn action-link"
-                                        @click=${() => updateState({linkPickerOpen: true, linkSearchQuery: ''})}
-                                    >LINK COMMITMENT</button>`
-                                : html``}
-                        </div>
-                    </div>
-                  `}
+                                class="action-btn action-achieve"
+                                @click=${() => setStatus('achieved')}
+                            >MARK ACHIEVED</button>
+                          `
+                        : html`
+                            <button
+                                class="action-btn action-reactivate"
+                                @click=${() => setStatus('active')}
+                            >REACTIVATE</button>
+                          `}
+                    <button
+                        class="action-btn action-edit"
+                        @click=${() => dispatch(new events.goalEditRequested(goal))}
+                    >EDIT</button>
+                    ${linkableTasks.length > 0
+                        ? html`<button
+                                class="action-btn action-link"
+                                @click=${() => updateState({linkPickerOpen: true, linkSearchQuery: ''})}
+                            >LINK COMMITMENT</button>`
+                        : html``}
+                </div>
+            </div>
 
             <!-- Add commitment button -->
             <button
@@ -857,6 +732,8 @@ export const GoalDetailElement = defineElement<{
                     dispatch(new events.ideaUpdated(e.detail)))}
                 ${listen(IdeasViewElement.events.ideaDeleted, e =>
                     dispatch(new events.ideaDeleted(e.detail)))}
+                ${listen(IdeasViewElement.events.ideaEditRequested, e =>
+                    dispatch(new events.ideaEditRequested(e.detail)))}
                 ${listen(IdeasViewElement.events.promoteRequested, e =>
                     dispatch(new events.ideaPromoteRequested(e.detail)))}
             ></${IdeasViewElement}>
@@ -890,7 +767,7 @@ export const GoalDetailElement = defineElement<{
                                 : html``}
                             <button
                                 class="delete-btn"
-                                @click=${() => updateState({confirmingDelete: true, editingGoal: false})}
+                                @click=${() => updateState({confirmingDelete: true})}
                             >DELETE OBJECTIVE</button>
                         </div>
                       `}

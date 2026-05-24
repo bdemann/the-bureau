@@ -131,18 +131,39 @@ Mark each row as you verify in the browser. Reset the localStorage entry
 - [ ] GOAL → opens the add-commitment sheet pre-set to Goal mode (title = "FILE NEW GOAL")
 - [ ] IDEA → opens the add-commitment sheet pre-set to Idea mode (title = "FILE NEW IDEA")
 
-### Filing commitments — routine vs task kind
+### Filing commitments — type switcher (create and edit)
 
 - [ ] Add dialog defaults to TASK kind selected
-- [ ] ROUTINE / TASK segmented toggle visible when creating AND when editing
-- [ ] In create mode: selecting ROUTINE forces "Recurring" on and hides the recurring checkbox
-- [ ] Selecting ROUTINE hides the end-condition section entirely
-- [ ] Selecting ROUTINE changes sheet title to "FILE NEW ROUTINE" and submit button to "COMMIT ROUTINE"
-- [ ] Selecting TASK shows sheet title "FILE NEW TASK" and submit button "FILE TASK"
-- [ ] Editing an existing routine shows "AMEND ROUTINE"; editing a task shows "AMEND TASK"
-- [ ] In edit mode: switching from ROUTINE → TASK (or vice versa) does not reset recurrence settings
-- [ ] Saving after switching kind persists the new kind (e.g. routine becomes task, ROUTINE chip disappears)
+- [ ] ROUTINE / TASK / GOAL / IDEA type toggle is visible in BOTH create and edit mode
+- [ ] Switching type in create mode shows the correct fields for each type
+- [ ] Switching type in edit mode shows the correct fields and preserves previously-entered data
+- [ ] Switching to ROUTINE forces recurring ON (if it was off); does not clobber other recurrence settings
+- [ ] Switching to TASK from ROUTINE preserves the isRecurring state (doesn't force it off)
+- [ ] Selecting ROUTINE changes sheet title to "MAKE NEW ROUTINE" / "AMEND ROUTINE" and submit to "COMMIT ROUTINE" / "SAVE ROUTINE"
+- [ ] Selecting TASK shows "MAKE NEW TASK" / "AMEND TASK" and "FILE TASK" / "SAVE TASK"
+- [ ] Selecting GOAL shows "NEW GOAL" / "AMEND OBJECTIVE" and "SET GOAL" / "SAVE OBJECTIVE"
+- [ ] Selecting IDEA shows "NEW IDEA" / "AMEND IDEA" and "FILE IDEA" / "SAVE IDEA"
 - [ ] Commitments with `kind=routine` show a ROUTINE chip in the task-item card
+
+### Cross-type conversion (edit mode)
+
+- [ ] Edit a task → switch to GOAL → save: original task is removed; a new goal appears in Goals view
+- [ ] Edit a routine → switch to IDEA → save: original routine is removed; idea appears in Ideas view
+- [ ] Edit a goal → switch to TASK → save: original goal is removed; new task appears in commitment lists
+- [ ] Edit an idea → switch to TASK → save: original idea is removed; new commitment appears
+- [ ] Linked objective picker is visible in edit mode for TASK/ROUTINE (shows current linked goal pre-selected)
+- [ ] Changing the linked objective in edit mode and saving rewires the goal linkages correctly
+- [ ] Removing the linked objective in edit mode and saving removes the task from the old goal's linked list
+
+### Goal → other type conversion (dissociation warning)
+
+- [ ] Editing a goal that has linked commitments: switching to any other type shows a yellow warning banner
+- [ ] Warning reads "This objective has N linked commitment(s). Switching type will dissociate them."
+- [ ] Clicking CANCEL in the warning returns to goal edit mode; no type switch occurs
+- [ ] Clicking PROCEED dismisses the warning and switches to the new type
+- [ ] Save button is disabled while the warning is visible
+- [ ] After confirming PROCEED: saving removes the goal (its linked commitments are no longer under any goal)
+- [ ] Editing a goal with NO linked commitments: switching type immediately (no warning shown)
 
 ### Task commitment creation — one-time
 
@@ -441,9 +462,10 @@ Mark each row as you verify in the browser. Reset the localStorage entry
 **Goal-detail view**
 - [ ] Header breadcrumb shows the goal title; back button returns to the previous view
 - [ ] Title, description, target date, status badge, and area badge are shown
-- [ ] EDIT button expands an inline form pre-filled with current title, description, and target date
-- [ ] Target date in the goal creation form defaults to today
-- [ ] Saving the edit form updates the goal and collapses back to read-only view
+- [ ] EDIT button opens the unified bottom-sheet dialog pre-filled with current title, description, target date, and area — in GOAL type mode
+- [ ] The type switcher is visible; all four types are available; the dialog opens on GOAL
+- [ ] Target date in the goal edit form is pre-filled from the saved value
+- [ ] Saving the dialog updates the goal and closes the sheet
 - [ ] LINK COMMITMENT button opens a bottom-sheet picker with a search bar
 - [ ] Picker lists all commitments not already linked to the goal; search filters by title
 - [ ] Tapping a commitment in the picker links it to the goal and closes the sheet
@@ -471,7 +493,10 @@ Mark each row as you verify in the browser. Reset the localStorage entry
 - [ ] Submitting with a title closes the form and the idea card appears immediately
 - [ ] Idea cards show title, notes (if any), linked area badge (if set), and linked objective badge (if set)
 - [ ] Ideas are listed newest-first
-- [ ] EDIT button on a card expands an inline form pre-filled with the idea's data; saving updates the card
+- [ ] Clicking anywhere on an idea card (except the action buttons) opens the unified bottom-sheet dialog pre-filled with the idea's data, in IDEA type mode
+- [ ] EDIT button on a card also opens the unified dialog (same behavior as clicking the card body)
+- [ ] The type switcher is visible in the edit dialog; switching to TASK/ROUTINE/GOAL converts the idea
+- [ ] Saving the dialog with IDEA type updates the idea in place; dialog closes
 - [ ] DELETE button shows a "Permanently delete?" confirmation row with CONFIRM and CANCEL buttons
 - [ ] CONFIRM deletes the idea; CANCEL dismisses the confirmation without deleting
 - [ ] PROMOTE TO COMMITMENT opens the Add Commitment sheet with the idea's title and notes pre-filled
