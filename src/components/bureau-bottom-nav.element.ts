@@ -1,5 +1,6 @@
 import {css, defineElement, defineElementEvent, html} from 'element-vir';
 import type {AppView} from '../data/types.js';
+import {getActiveSkin} from '../skins/active-skin.js';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // BureauBottomNavElement
@@ -14,11 +15,12 @@ interface NavTab {
     view: AppView;
 }
 
-const TABS: ReadonlyArray<NavTab> = [
-    {label: 'Daily',  icon: '◈', view: 'daily'},
-    {label: 'Areas',  icon: '⊟', view: 'operations'},
-    {label: 'Ideas',  icon: '◇', view: 'ideas'},
-    {label: 'Goals',  icon: '▲', view: 'goals'},
+// Icons and target views are skin-agnostic; labels are resolved in render().
+const TAB_BASES: ReadonlyArray<{icon: string; view: AppView; navKey: keyof ReturnType<typeof getActiveSkin>['nav']}> = [
+    {icon: '◈', view: 'daily',      navKey: 'daily'},
+    {icon: '⊟', view: 'operations', navKey: 'areas'},
+    {icon: '◇', view: 'ideas',      navKey: 'ideas'},
+    {icon: '▲', view: 'goals',      navKey: 'goals'},
 ];
 
 export const BureauBottomNavElement = defineElement<{
@@ -113,6 +115,8 @@ export const BureauBottomNavElement = defineElement<{
 
     render({inputs, dispatch, events}) {
         const {currentView, goalDetailActive} = inputs;
+        const nav = getActiveSkin().nav;
+        const TABS: ReadonlyArray<NavTab> = TAB_BASES.map(t => ({...t, label: nav[t.navKey]}));
 
         function isActive(tab: NavTab): boolean {
             // Project detail → Areas tab stays lit
