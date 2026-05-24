@@ -38,6 +38,7 @@ export const BureauHeaderElement = defineElement<{
             background: #1B2A4A;
             color: #F5EFE0;
             padding: 0 16px;
+            padding-top: env(safe-area-inset-top, 0px);
             position: relative;
             overflow: hidden;
         }
@@ -72,7 +73,11 @@ export const BureauHeaderElement = defineElement<{
             font-family: 'Bebas Neue', sans-serif;
             font-size: 0.75rem;
             letter-spacing: 0.1em;
-            padding: 3px 8px;
+            padding: 0 12px;
+            min-height: 44px;
+            min-width: 44px;
+            display: flex;
+            align-items: center;
             cursor: pointer;
             transition: background 0.15s, border-color 0.15s;
             flex-shrink: 0;
@@ -127,9 +132,13 @@ export const BureauHeaderElement = defineElement<{
             background: none;
             border: none;
             cursor: pointer;
-            padding: 4px 2px;
+            padding: 0;
+            min-width: 44px;
+            min-height: 44px;
             display: flex;
             flex-direction: column;
+            align-items: center;
+            justify-content: center;
             gap: 4px;
             flex-shrink: 0;
             align-self: center;

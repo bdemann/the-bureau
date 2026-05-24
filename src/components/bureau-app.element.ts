@@ -107,7 +107,7 @@ export const BureauAppElement = defineElement()({
         .app-shell {
             max-width: 640px;
             margin: 0 auto;
-            padding-bottom: 60px;
+            padding-bottom: max(60px, env(safe-area-inset-bottom, 0px));
         }
 
         .empty-msg {

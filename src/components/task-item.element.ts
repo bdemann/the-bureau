@@ -95,19 +95,19 @@ export const TaskItemElement = defineElement<{
 
         .complete-checkbox {
             flex-shrink: 0;
-            width: 20px;
-            height: 20px;
+            width: 44px;
+            height: 44px;
             border: 2px solid #6B6B6B;
             background: none;
             cursor: pointer;
-            border-radius: 2px;
-            margin-top: 1px;
+            border-radius: 4px;
+            margin-top: 0;
             transition: border-color 0.15s, background 0.15s;
             display: flex;
             align-items: center;
             justify-content: center;
             font-family: 'Special Elite', serif;
-            font-size: 0.85rem;
+            font-size: 1.1rem;
             color: transparent;
             line-height: 1;
             padding: 0;
@@ -157,7 +157,7 @@ export const TaskItemElement = defineElement<{
 
         .task-meta {
             margin-top: 6px;
-            padding-left: 30px;
+            padding-left: 54px;  /* 44px checkbox + 10px gap */
             display: flex;
             flex-wrap: wrap;
             gap: 6px;
@@ -165,7 +165,7 @@ export const TaskItemElement = defineElement<{
         }
 
         .task-description {
-            padding-left: 30px;
+            padding-left: 54px;  /* 44px checkbox + 10px gap */
             margin-top: 4px;
             font-size: 0.78rem;
             color: #6B6B6B;
@@ -194,9 +194,11 @@ export const TaskItemElement = defineElement<{
 
         .task-actions {
             margin-top: 10px;
-            padding-left: 30px;
+            padding-left: 54px;  /* 44px checkbox + 10px gap */
             display: flex;
             gap: 8px;
+            align-items: center;
+            min-height: 44px;
         }
 
         .snoozed-until {
