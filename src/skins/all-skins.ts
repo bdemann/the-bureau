@@ -1,6 +1,7 @@
 import {bcrSkin} from './bcr.skin.js';
 import {vanillaSkin} from './vanilla.skin.js';
 import {freemasonSkin} from './freemason.skin.js';
+import {dresdenSkin} from './dresden.skin.js';
 import type {Skin} from './types.js';
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -12,6 +13,7 @@ export const ALL_SKINS: ReadonlyArray<Skin> = [
     bcrSkin,
     vanillaSkin,
     freemasonSkin,
+    dresdenSkin,
 ];
 
 export const DEFAULT_SKIN_ID = bcrSkin.id;

@@ -2,4 +2,5 @@ export type {Skin, SkinActions, SkinBand, SkinBands, SkinCharacter, SkinCharacte
 export {bcrSkin} from './bcr.skin.js';
 export {vanillaSkin} from './vanilla.skin.js';
 export {freemasonSkin} from './freemason.skin.js';
+export {dresdenSkin} from './dresden.skin.js';
 export {getActiveSkin, getRankLabel, setActiveSkin} from './active-skin.js';

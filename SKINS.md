@@ -25,7 +25,7 @@ Components call `getActiveSkin()` inside `render()` — no prop drilling.
 | `bcr` | BCR Clear | ✅ done |
 | `vanilla` | Default / plain English | ✅ done |
 | `freemason` | The Trestle Board | ✅ done |
-| `dresden` | Dresden Files (for wife) | 🔲 not started |
+| `dresden` | Dresden's Docket | ✅ draft (wife review pending) |
 
 ---
 
@@ -82,21 +82,25 @@ Pure addition. No component changes.
   prior overrides then writes `skin.cssVars` entries to `document.documentElement.style`
 - BCR skin `cssVars: undefined` — base stylesheet is the BCR look, no overrides needed
 
-### 🔲 Chunk 10 — Dresden Files skin
-After all string slots are proven (see Freemason skin as template), write:
-`src/skins/dresden.skin.ts`
-Key flavour decisions (draft — iterate with wife):
+### ✅ Chunk 10 — Dresden Files skin
+`src/skins/dresden.skin.ts` — rough draft for wife review.
+Key flavour decisions implemented:
 - App: "Dresden's Docket" / "DOCKET"
 - Score: "White Council Standing"
 - Areas: "Cases"
 - Routines: "Rituals" / Tasks: "Obligations" / Goals: "Investigations" / Ideas: "Hunches"
 - Bands: "BINDING OBLIGATIONS" / "RECOMMENDED TODAY" / "CLOSING IN" / "COLD CASES"
-- Ally character: Harry Dresden (warm, self-deprecating)
-- Overseer character: Bob the Skull (snarky, analytical, slightly cruel)
-- Skip critical: "RUNNING FROM IT ×N"
+- Ally: Harry Dresden (warm, self-deprecating, dry noir)
+- Overseer: Bob the Skull (snarky, analytical, slightly cruel but secretly invested)
+- Skip critical: "WARDEN WILL HEAR ABOUT THIS ×N"
 - Snooze critical: "WARDEN INQUIRY ×N"
 - Remediation high: "WHITE COUNCIL REVIEW ×N"
 - Ranks: "Vanilla Mortal" / "Apprentice" / "Practitioner" / "Warden" / "Wizard of the White Council"
+- cssVars: noir charcoal-navy primary, off-white paper surface, amber streetlight warning
+- 13 dialogue trigger pools — Harry & Bob voice lines throughout
+- Registered in ALL_SKINS; appears in the skin picker immediately
+
+**Wife review pending** — adjust terminology, character voices, and colour palette to taste.
 
 ---
 
