@@ -795,6 +795,7 @@ export const AddTaskDialogElement = defineElement<{
                 taskCompletionStreak: baseTask?.taskCompletionStreak ?? 0,
                 maxTaskCompletionStreak: baseTask?.maxTaskCompletionStreak ?? 0,
                 skipStreak: baseTask?.skipStreak ?? 0,
+                remediationCount: baseTask?.remediationCount ?? 0,
                 completedAt: baseTask?.completedAt ?? null,
                 completionsThisPeriod: baseTask?.completionsThisPeriod ?? 0,
                 totalCompletions: baseTask?.totalCompletions ?? 0,

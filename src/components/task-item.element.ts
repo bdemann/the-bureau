@@ -6,6 +6,7 @@ import {isCurrentlySnoozed, isTaskOverdue} from '../data/storage.js';
 import {isMultiplePerPeriod} from '../data/recurrence.js';
 import {SnoozeIndicatorElement} from './snooze-indicator.element.js';
 import {SkipIndicatorElement} from './skip-indicator.element.js';
+import {RemediationIndicatorElement} from './remediation-indicator.element.js';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // TaskItemElement
@@ -358,6 +359,13 @@ export const TaskItemElement = defineElement<{
                         ? html`
                             <${SkipIndicatorElement.assign({skipStreak: task.skipStreak})}
                             ></${SkipIndicatorElement}>
+                        `
+                        : html``}
+
+                    ${task.remediationCount > 0
+                        ? html`
+                            <${RemediationIndicatorElement.assign({remediationCount: task.remediationCount})}
+                            ></${RemediationIndicatorElement}>
                         `
                         : html``}
 

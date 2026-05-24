@@ -147,6 +147,7 @@ function ensureTaskShape(raw: any): Task {
         taskCompletionStreak: raw.taskCompletionStreak ?? 0,
         maxTaskCompletionStreak: raw.maxTaskCompletionStreak ?? 0,
         skipStreak: raw.skipStreak ?? 0,
+        remediationCount: raw.remediationCount ?? 0,
         completedAt: raw.completedAt ?? null,
         createdAt: raw.createdAt ?? Date.now(),
         dueDate: raw.dueDate ?? null,

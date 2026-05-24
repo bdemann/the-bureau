@@ -241,6 +241,17 @@ export interface Task {
     /** Consecutive periods skipped (advanced without completion). */
     skipStreak: number;
 
+    // ── Remediation ──
+    /**
+     * Number of consecutive completions still needed before the skip/snooze
+     * streak is forgiven.  Set to max(skipStreak, snoozeCount) on the first
+     * completion after a streak; decremented by each subsequent completion;
+     * reset to 0 when cleared.  If the task is skipped/snoozed again while
+     * remediationCount > 0, the new streak starts at remediationCount rather
+     * than 1.
+     */
+    remediationCount: number;
+
     // ── Completion ──
     /** ms timestamp; null = incomplete for the current period. */
     completedAt: number | null;

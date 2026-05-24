@@ -10,6 +10,7 @@ import {
 } from '../data/storage.js';
 import {advanceRecurrence, isMultiplePerPeriod, isRecurrenceEnded, rolloverIfNeeded} from '../data/recurrence.js';
 import {countActiveTasks, missPenalty, skipPenalty, snoozePenalty, taskScaleMultiplier, tierCompletionReward} from '../data/scoring.js';
+import {computeRemediationOnComplete, computeRemediationOnSkip, computeRemediationOnSnooze} from '../data/remediation.js';
 import {getDialogueFor} from '../data/dialogues.js';
 import {AddTaskDialogElement} from './add-task-dialog.element.js';
 import {BureauBottomNavElement} from './bureau-bottom-nav.element.js';
@@ -280,6 +281,13 @@ export const BureauAppElement = defineElement()({
                 const newTotalCompletions = t.totalCompletions + 1;
                 const withCount = {...t, totalCompletions: newTotalCompletions};
 
+                // Compute remediation state from the current skip/snooze streak.
+                const remediation = computeRemediationOnComplete(
+                    t.skipStreak,
+                    t.snoozeCount,
+                    t.remediationCount,
+                );
+
                 // If end condition is met, permanently retire the task.
                 if (isRecurrenceEnded(withCount, now)) {
                     return {
@@ -288,6 +296,8 @@ export const BureauAppElement = defineElement()({
                         recurrence: null,
                         snoozeCount: 0,
                         snoozedUntil: null,
+                        skipStreak: 0,
+                        remediationCount: 0,
                     };
                 }
 
@@ -302,11 +312,16 @@ export const BureauAppElement = defineElement()({
                     return {
                         ...withCount,
                         completionsThisPeriod: t.completionsThisPeriod + 1,
-                        snoozeCount: 0,
                         snoozedUntil: null,
                         taskCompletionStreak: newStreak,
                         maxTaskCompletionStreak: Math.max(t.maxTaskCompletionStreak, newStreak),
-                        skipStreak: isFullPeriodComplete ? 0 : t.skipStreak,
+                        ...(isFullPeriodComplete
+                            ? {
+                                skipStreak: remediation.skipStreak,
+                                snoozeCount: remediation.snoozeCount,
+                                remediationCount: remediation.remediationCount,
+                            }
+                            : {}),
                     };
                 }
 
@@ -317,7 +332,9 @@ export const BureauAppElement = defineElement()({
                         ...advanceRecurrence(withCount, now),
                         taskCompletionStreak: newStreak,
                         maxTaskCompletionStreak: Math.max(t.maxTaskCompletionStreak, newStreak),
-                        skipStreak: 0,
+                        skipStreak: remediation.skipStreak,
+                        snoozeCount: remediation.snoozeCount,
+                        remediationCount: remediation.remediationCount,
                     };
                 }
 
@@ -325,8 +342,10 @@ export const BureauAppElement = defineElement()({
                 return {
                     ...withCount,
                     completedAt: now.getTime(),
-                    snoozeCount: 0,
+                    snoozeCount: remediation.snoozeCount,
                     snoozedUntil: null,
+                    skipStreak: remediation.skipStreak,
+                    remediationCount: remediation.remediationCount,
                     taskCompletionStreak: t.taskCompletionStreak + 1,
                     maxTaskCompletionStreak: Math.max(t.maxTaskCompletionStreak, t.taskCompletionStreak + 1),
                 };
@@ -370,7 +389,11 @@ export const BureauAppElement = defineElement()({
                 return;
             }
 
-            const newSnoozeCount = task.snoozeCount + 1;
+            const snoozeRemediation = computeRemediationOnSnooze(
+                task.snoozeCount,
+                task.remediationCount,
+            );
+            const newSnoozeCount = snoozeRemediation.snoozeCount;
             let snoozedUntil = Date.now() + 24 * 60 * 60 * 1000;
             if (task.windowType === 'hard' && task.suggestedDate !== null) {
                 snoozedUntil = Math.min(snoozedUntil, task.suggestedDate);
@@ -385,7 +408,13 @@ export const BureauAppElement = defineElement()({
 
             const tasks = state.app.tasks.map(t =>
                 t.id === taskId
-                    ? {...t, snoozeCount: newSnoozeCount, snoozedUntil, totalSnoozes: t.totalSnoozes + 1}
+                    ? {
+                        ...t,
+                        snoozeCount: newSnoozeCount,
+                        snoozedUntil,
+                        totalSnoozes: t.totalSnoozes + 1,
+                        remediationCount: snoozeRemediation.remediationCount,
+                    }
                     : t,
             );
             commit({tasks, patriotScore: newScore});
@@ -431,11 +460,13 @@ export const BureauAppElement = defineElement()({
             const now = new Date();
             const tasks = state.app.tasks.map(t => {
                 if (t.id !== taskId || !t.recurrence) return t;
+                const skipRemediation = computeRemediationOnSkip(t.skipStreak, t.remediationCount);
                 const advanced = advanceRecurrence(t, now);
                 return {
                     ...advanced,
                     totalSkips: t.totalSkips + 1,
-                    skipStreak: t.skipStreak + 1,
+                    skipStreak: skipRemediation.skipStreak,
+                    remediationCount: skipRemediation.remediationCount,
                     taskCompletionStreak: 0,
                 };
             });

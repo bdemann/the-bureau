@@ -479,6 +479,7 @@ export const OperationWizardDialogElement = defineElement<{open: boolean}>()({
                 taskCompletionStreak: 0,
                 maxTaskCompletionStreak: 0,
                 skipStreak: 0,
+                remediationCount: 0,
                 completedAt: null,
                 createdAt: Date.now(),
                 dueDate: init.suggestedDate,

@@ -310,8 +310,34 @@ Mark each row as you verify in the browser. Reset the localStorage entry
 - [ ] After 2–3 skips, badge turns olive and reads "↷ Skipped ×N — Pattern noted" (caution)
 - [ ] After 4–5 skips, badge turns dark and reads "↷ FLAGGED — Skipped ×N" (danger)
 - [ ] At 6+ skips, badge becomes a pulsing navy stamp "CHRONIC AVOIDANCE ×N" (critical)
-- [ ] Completing a commitment resets the skip badge to hidden (skipStreak = 0)
+- [ ] Completing a commitment replaces the skip badge with the remediation badge (skip → recovery)
 - [ ] Skip badge is visible on commitment cards in both the daily view and project-detail
+
+### Remediation (recovery after skip/snooze streak)
+
+Remediation fires whenever a commitment that had a skip streak OR high snooze count is completed for the first time. The agent must demonstrate consecutive completions to clear the record.
+
+**Basic remediation flow**
+- [ ] Complete a routine that had skipStreak ≥ 1 → skip badge disappears and a teal "↺ Recovering — N left" badge appears (remediationCount = previous skipStreak)
+- [ ] Complete it again → badge counts down (N − 1 left)
+- [ ] Complete it enough times → badge disappears entirely (fully cleared)
+- [ ] Completing a routine with NO prior streak or remediation → no remediation badge appears
+
+**Snooze-triggered remediation**
+- [ ] Complete a routine that had snoozeCount ≥ 1 → snooze badge disappears and remediation badge appears (remediationCount = previous snoozeCount)
+- [ ] When both skipStreak and snoozeCount are > 0, remediationCount = max(skipStreak, snoozeCount)
+
+**Severity escalation**
+- [ ] remediationCount 1–2 → teal low-severity badge "↺ Recovering — N left"
+- [ ] remediationCount 3–4 → amber medium-severity badge "↺ Remediation — N needed"
+- [ ] remediationCount 5+ → pulsing rust badge "↺ INTEGRITY AUDIT ×N"
+
+**Relapse mid-remediation**
+- [ ] While remediation badge is showing (e.g. remediationCount = 3), skip the routine → skip badge reappears with skipStreak = 3 (starts at the remediation level, NOT at 1); remediation badge gone
+- [ ] While remediation badge is showing (e.g. remediationCount = 3), snooze the routine → snooze badge reappears with snoozeCount = 3 (starts at remediation level); remediation badge gone
+
+**Score / penalty**
+- [ ] A snooze while in remediation applies the same score penalty as a regular snooze at the resulting count level
 
 ### Daily view
 

@@ -44,6 +44,7 @@ function makeTask(projectId: string, overrides: Partial<Task> & {title: string})
         taskCompletionStreak: 0,
         maxTaskCompletionStreak: 0,
         skipStreak: 0,
+        remediationCount: 0,
         completedAt: null,
         createdAt: NOW - DAY,
         dueDate: null,

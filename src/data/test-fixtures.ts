@@ -31,6 +31,7 @@ export function makeTask(overrides: Partial<Task> = {}): Task {
         taskCompletionStreak: 0,
         maxTaskCompletionStreak: 0,
         skipStreak: 0,
+        remediationCount: 0,
         completedAt: null,
         createdAt: 0,
         dueDate: null,
