@@ -1,5 +1,6 @@
 import {defineElement, css, html} from 'element-vir';
 import {getSnoozeSeverity} from '../data/types.js';
+import {getActiveSkin} from '../skins/active-skin.js';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // SnoozeIndicatorElement
@@ -83,6 +84,7 @@ export const SnoozeIndicatorElement = defineElement<{
     render({inputs}) {
         const {snoozeCount} = inputs;
         const severity = getSnoozeSeverity(snoozeCount);
+        const skin = getActiveSkin();
 
         if (severity === 'none') {
             return html``;
@@ -90,20 +92,20 @@ export const SnoozeIndicatorElement = defineElement<{
 
         if (severity === 'critical') {
             return html`
-                <span class="stamp">UNDER REVIEW ×${snoozeCount}</span>
+                <span class="stamp">${skin.streaks.snoozeCritical(snoozeCount)}</span>
             `;
         }
 
         const labels: Record<string, string> = {
-            warning: `Snoozed ×${snoozeCount}`,
-            caution: `Snoozed ×${snoozeCount} — Noted`,
-            danger: `FLAGGED — Snoozed ×${snoozeCount}`,
+            warning: skin.streaks.snoozeWarning(snoozeCount),
+            caution: skin.streaks.snoozeCaution(snoozeCount),
+            danger:  skin.streaks.snoozeDanger(snoozeCount),
         };
 
         return html`
             <span class="badge ${severity}">
                 <span class="snooze-icon">⏱</span>
-                ${labels[severity] ?? `Snoozed ×${snoozeCount}`}
+                ${labels[severity] ?? skin.streaks.snoozeWarning(snoozeCount)}
             </span>
         `;
     },

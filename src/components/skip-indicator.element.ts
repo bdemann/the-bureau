@@ -1,5 +1,6 @@
 import {defineElement, css, html} from 'element-vir';
 import {getSkipSeverity} from '../data/types.js';
+import {getActiveSkin} from '../skins/active-skin.js';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // SkipIndicatorElement
@@ -81,23 +82,24 @@ export const SkipIndicatorElement = defineElement<{
     render({inputs}) {
         const {skipStreak} = inputs;
         const severity = getSkipSeverity(skipStreak);
+        const skin = getActiveSkin();
 
         if (severity === 'none') return html``;
 
         if (severity === 'critical') {
-            return html`<span class="stamp">CHRONIC AVOIDANCE ×${skipStreak}</span>`;
+            return html`<span class="stamp">${skin.streaks.skipCritical(skipStreak)}</span>`;
         }
 
         const labels: Record<string, string> = {
-            warning: `Skipped ×${skipStreak}`,
-            caution: `Skipped ×${skipStreak} — Pattern noted`,
-            danger:  `FLAGGED — Skipped ×${skipStreak}`,
+            warning: skin.streaks.skipWarning(skipStreak),
+            caution: skin.streaks.skipCaution(skipStreak),
+            danger:  skin.streaks.skipDanger(skipStreak),
         };
 
         return html`
             <span class="badge ${severity}">
                 <span class="skip-icon">↷</span>
-                ${labels[severity] ?? `Skipped ×${skipStreak}`}
+                ${labels[severity] ?? skin.streaks.skipWarning(skipStreak)}
             </span>
         `;
     },

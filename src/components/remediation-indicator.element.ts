@@ -1,5 +1,6 @@
 import {defineElement, css, html} from 'element-vir';
 import {getRemediationSeverity} from '../data/remediation.js';
+import {getActiveSkin} from '../skins/active-skin.js';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // RemediationIndicatorElement
@@ -67,19 +68,20 @@ export const RemediationIndicatorElement = defineElement<{
     render({inputs}) {
         const {remediationCount} = inputs;
         const severity = getRemediationSeverity(remediationCount);
+        const skin = getActiveSkin();
 
         if (severity === 'none') return html``;
 
         const labels: Record<string, string> = {
-            low:    `Recovering — ${remediationCount} left`,
-            medium: `Remediation — ${remediationCount} needed`,
-            high:   `INTEGRITY AUDIT ×${remediationCount}`,
+            low:    skin.streaks.remediationLow(remediationCount),
+            medium: skin.streaks.remediationMedium(remediationCount),
+            high:   skin.streaks.remediationHigh(remediationCount),
         };
 
         return html`
             <span class="badge ${severity}">
                 <span class="icon">↺</span>
-                ${labels[severity] ?? `Remediation ×${remediationCount}`}
+                ${labels[severity] ?? skin.streaks.remediationLow(remediationCount)}
             </span>
         `;
     },
