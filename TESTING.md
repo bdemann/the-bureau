@@ -35,12 +35,26 @@ Mark each row as you verify in the browser. Reset the localStorage entry
 - [ ] Header shows `CLEAR` + `BUREAU OF CIVIC RESPONSIBILITY` subtitle
 - [ ] Patriot score + streak render top-right
 - [ ] Daily is the default landing view
-- [ ] Hamburger (☰) opens slide-in menu from the right
-- [ ] Menu → Daily navigates to daily view and closes menu
-- [ ] Menu → Areas of Responsibility navigates to areas view and closes menu
+- [ ] Hamburger (☰) opens slide-in menu from the right; menu shows Insights and Report a Neighbor only
+- [ ] Menu → Insights navigates to insights view and closes menu
 - [ ] Menu → Report a Neighbor triggers share sheet (or copies link)
 - [ ] Clicking outside the menu panel closes it
 - [ ] Day-start dialogue appears on first load each day; dismiss closes it
+
+### Bottom navigation bar
+
+- [ ] Fixed bottom nav bar is visible on all primary views: Daily, Areas, Ideas, Goals
+- [ ] Bar shows four tabs: Daily · Areas · Ideas · Goals
+- [ ] Active tab is highlighted in amber with an amber indicator line at its top edge
+- [ ] Tapping Daily tab navigates to the daily view
+- [ ] Tapping Areas tab navigates to the areas of responsibility list
+- [ ] Tapping Ideas tab navigates to the ideas view
+- [ ] Tapping Goals tab navigates to the goals list
+- [ ] While in a project detail (area drill-down), the Areas tab stays highlighted
+- [ ] While in a goal detail, the Goals tab stays highlighted
+- [ ] Tapping Areas or Goals tab from their detail view returns to the top-level list
+- [ ] On iOS PWA: nav bar sits above the home-indicator safe area (no content clipped)
+- [ ] Undo toast appears above the nav bar, not behind it
 
 ### Areas of Responsibility view (project list)
 
@@ -372,7 +386,7 @@ Mark each row as you verify in the browser. Reset the localStorage entry
 
 ### Insights
 
-- [ ] Menu → Insights navigates to the insights view
+- [ ] Hamburger → Insights navigates to the insights view; bottom nav has no active tab while on this view
 - [ ] Page shows "Insights" title and subtitle
 - [ ] MISSED COMMITMENTS section shows commitments whose one-time hard-date has passed (missedAt set); empty state shows "No missed commitments on record"
 - [ ] Missed one-time hard-date commitments no longer appear in daily or project-detail views
@@ -405,7 +419,7 @@ Mark each row as you verify in the browser. Reset the localStorage entry
 ### Goals
 
 **Global view (Goals nav item)**
-- [ ] Menu → "Goals" navigates to the goals view
+- [ ] Bottom nav → Goals tab navigates to the goals view
 - [ ] Page shows "GOALS" title and subtitle with "CLICK AN OBJECTIVE TO MANAGE COMMITMENTS" hint
 - [ ] Empty state shows "No objectives on file. Make one above to begin."
 - [ ] "+ MAKE GOAL" button opens the unified commitment sheet pre-set to Goal mode
@@ -446,7 +460,7 @@ Mark each row as you verify in the browser. Reset the localStorage entry
 ### Ideas
 
 **Global view (Ideas nav item)**
-- [ ] Menu → "Ideas" navigates to the ideas view
+- [ ] Bottom nav → Ideas tab navigates to the ideas view
 - [ ] Page shows "IDEAS" title and subtitle
 - [ ] Empty state shows "No intelligence on file. Observations go here."
 - [ ] "FILE INTELLIGENCE" dashed button appears when no add-form is open

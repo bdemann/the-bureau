@@ -18,11 +18,8 @@ export const BureauHeaderElement = defineElement<{
     tagName: 'bureau-header',
 
     events: {
-        homeRequested:       defineElementEvent<void>(),
-        operationsRequested: defineElementEvent<void>(),
-        insightsRequested:   defineElementEvent<void>(),
-        ideasRequested:      defineElementEvent<void>(),
-        goalsRequested:      defineElementEvent<void>(),
+        /** Fired when the user taps Insights in the hamburger menu. */
+        insightsRequested: defineElementEvent<void>(),
     },
 
     state: () => ({
@@ -318,29 +315,9 @@ export const BureauHeaderElement = defineElement<{
             updateState({menuOpen: false});
         }
 
-        function onHome(): void {
-            closeMenu();
-            dispatch(new events.homeRequested());
-        }
-
-        function onOperations(): void {
-            closeMenu();
-            dispatch(new events.operationsRequested());
-        }
-
         function onInsights(): void {
             closeMenu();
             dispatch(new events.insightsRequested());
-        }
-
-        function onIdeas(): void {
-            closeMenu();
-            dispatch(new events.ideasRequested());
-        }
-
-        function onGoals(): void {
-            closeMenu();
-            dispatch(new events.goalsRequested());
         }
 
         async function onReportNeighbor(): Promise<void> {
@@ -414,26 +391,10 @@ export const BureauHeaderElement = defineElement<{
                         </div>
 
                         <div class="menu-section">
-                            <div class="menu-section-label">Navigate</div>
-                            <button class="menu-item" @click=${onHome}>
-                                Daily
-                                <span class="menu-item-sub">Today's commitments by urgency</span>
-                            </button>
-                            <button class="menu-item" @click=${onOperations}>
-                                Areas of Responsibility
-                                <span class="menu-item-sub">Browse areas &amp; commitments</span>
-                            </button>
+                            <div class="menu-section-label">Intelligence</div>
                             <button class="menu-item" @click=${onInsights}>
                                 Insights
                                 <span class="menu-item-sub">Missed tasks, completions, patterns</span>
-                            </button>
-                            <button class="menu-item" @click=${onIdeas}>
-                                Ideas
-                                <span class="menu-item-sub">Observations and proposed areas</span>
-                            </button>
-                            <button class="menu-item" @click=${onGoals}>
-                                Goals
-                                <span class="menu-item-sub">Long-horizon goals with linked commitments</span>
                             </button>
                         </div>
 

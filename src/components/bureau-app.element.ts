@@ -12,6 +12,7 @@ import {advanceRecurrence, isMultiplePerPeriod, isRecurrenceEnded, rolloverIfNee
 import {countActiveTasks, missPenalty, skipPenalty, snoozePenalty, taskScaleMultiplier, tierCompletionReward} from '../data/scoring.js';
 import {getDialogueFor} from '../data/dialogues.js';
 import {AddTaskDialogElement} from './add-task-dialog.element.js';
+import {BureauBottomNavElement} from './bureau-bottom-nav.element.js';
 import {BureauHeaderElement} from './bureau-header.element.js';
 import {CharacterDialogueElement} from './character-dialogue.element.js';
 import {DailyViewElement} from './daily-view.element.js';
@@ -107,7 +108,8 @@ export const BureauAppElement = defineElement()({
         .app-shell {
             max-width: 640px;
             margin: 0 auto;
-            padding-bottom: max(60px, env(safe-area-inset-bottom, 0px));
+            /* Leave room for the fixed bottom nav bar (64px) + safe area */
+            padding-bottom: calc(64px + max(16px, env(safe-area-inset-bottom, 0px)));
         }
 
         .empty-msg {
@@ -119,7 +121,7 @@ export const BureauAppElement = defineElement()({
 
         .undo-toast {
             position: fixed;
-            bottom: 80px;
+            bottom: calc(64px + max(16px, env(safe-area-inset-bottom, 0px)) + 8px);
             left: 50%;
             transform: translateX(-50%);
             background: #1B2A4A;
@@ -639,6 +641,8 @@ export const BureauAppElement = defineElement()({
 
         function setView(next: AppView): void {
             commit({view: next, selectedProjectId: null});
+            // Clear any sub-detail state so the target view shows its top level.
+            updateState({selectedGoalId: null});
         }
 
         function onBack(): void {
@@ -668,16 +672,8 @@ export const BureauAppElement = defineElement()({
                     onBack: (view === 'project' || state.selectedGoalId !== null) ? onBack : null,
                     projectName: selectedGoal?.title ?? selectedProject?.name ?? null,
                 })}
-                    ${listen(BureauHeaderElement.events.homeRequested,
-                        () => setView('daily'))}
-                    ${listen(BureauHeaderElement.events.operationsRequested,
-                        () => setView('operations'))}
                     ${listen(BureauHeaderElement.events.insightsRequested,
                         () => setView('insights'))}
-                    ${listen(BureauHeaderElement.events.ideasRequested,
-                        () => setView('ideas'))}
-                    ${listen(BureauHeaderElement.events.goalsRequested,
-                        () => setView('goals'))}
                 ></${BureauHeaderElement}>
 
                 ${currentDialogue
@@ -902,6 +898,15 @@ export const BureauAppElement = defineElement()({
                       `
                     : html``}
             </div>
+
+            <!-- Fixed bottom navigation bar — primary view switching -->
+            <${BureauBottomNavElement.assign({
+                currentView: view,
+                goalDetailActive: state.selectedGoalId !== null,
+            })}
+                ${listen(BureauBottomNavElement.events.viewChangeRequested,
+                    e => setView(e.detail))}
+            ></${BureauBottomNavElement}>
         `;
     },
 });
