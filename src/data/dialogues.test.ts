@@ -1,6 +1,7 @@
 import {assert} from '@augment-vir/assert';
 import {describe, test} from 'node:test';
-import {DIALOGUES, getDialogueFor, type DialogueTrigger} from './dialogues.js';
+import {getDialogueFor, type DialogueTrigger} from './dialogues.js';
+import {bcrSkin} from '../skins/bcr.skin.js';
 
 const ALL_TRIGGERS: ReadonlyArray<DialogueTrigger> = [
     'task_added',
@@ -18,18 +19,25 @@ const ALL_TRIGGERS: ReadonlyArray<DialogueTrigger> = [
     'streak',
 ];
 
-describe('DIALOGUES coverage', () => {
+describe('BCR skin dialogue coverage', () => {
     test('every trigger has at least one line', () => {
         for (const trigger of ALL_TRIGGERS) {
-            const lines = DIALOGUES.filter(d => d.trigger === trigger);
+            const lines = bcrSkin.dialogues[trigger];
             assert.isTrue(lines.length > 0, `no lines for trigger: ${trigger}`);
         }
     });
 
-    test('Briggs-only triggers (snooze ×6+) have only director lines', () => {
-        const briggsOnly = DIALOGUES.filter(d => d.trigger === 'task_snoozed_6plus');
-        for (const line of briggsOnly) {
+    test('task_snoozed_6plus has only director lines', () => {
+        const lines = bcrSkin.dialogues['task_snoozed_6plus'];
+        for (const line of lines) {
             assert.strictEquals(line.character, 'director');
+        }
+    });
+
+    test('day_start has only agent lines', () => {
+        const lines = bcrSkin.dialogues['day_start'];
+        for (const line of lines) {
+            assert.strictEquals(line.character, 'agent');
         }
     });
 });

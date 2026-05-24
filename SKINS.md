@@ -67,13 +67,12 @@ Pure addition. No component changes.
   buttons (→ types.*), submit/save buttons, delete label/confirm/btn
 - `daily-view.element.ts` — `makeCommitmentCta` CTA button
 
-### 🔲 Chunk 8 — Character dialogue system
-File: `src/data/dialogues.ts`
-This is the biggest chunk. The trigger keys (`task_completed`, `streak`,
-`score_low`, etc.) are universal and stay in code. The dialogue *content*
-(all Briggs/Whitaker lines) moves into the skin.
-Skin field: `dialogues: DialogueMap` (same type as current dialogues.ts output).
-`getDialogueFor(trigger, preferDirector)` becomes `getActiveSkin().dialogues[trigger]`.
+### ✅ Chunk 8 — Character dialogue system
+- `src/skins/types.ts` — new `SkinDialogueLine` + `DialogueMap` types; `dialogues: DialogueMap` added to `Skin`
+- `src/data/dialogues.ts` — `DIALOGUES` array removed; `getDialogueFor` now reads `getActiveSkin().dialogues`; trigger keys + `DialogueLine` return type kept here
+- `src/skins/bcr.skin.ts` — all 13 BCR trigger pools (Briggs + Whitaker lines)
+- `src/skins/vanilla.skin.ts` — all 13 neutral trigger pools
+- `src/data/dialogues.test.ts` — updated to use `bcrSkin.dialogues`; added `day_start` agent-only assertion
 
 ### 🔲 Chunk 9 — CSS custom properties (colour + font theming)
 Convert hardcoded hex colours and font names to CSS custom properties on
@@ -115,6 +114,7 @@ Skin
 │                 insightsTitle/Subtitle
 ├── actions       new*/edit* sheet titles, submit*/save* buttons,
 │                 delete*Label/Confirm/Btn, makeCommitmentCta
+├── dialogues     DialogueMap — 13 trigger pools, each ReadonlyArray<SkinDialogueLine>
 ├── menu          menuTitle, insightsSectionLabel, shareSectionLabel,
 │                 shareItemLabel, shareItemSub
 ├── dialogues     (chunk 8 — not yet in interface)

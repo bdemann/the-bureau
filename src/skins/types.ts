@@ -9,6 +9,22 @@
 // For now, import the skin object directly where needed.
 // ─────────────────────────────────────────────────────────────────────────────
 
+import type {DialogueTrigger} from '../data/dialogues.js';
+
+// ── Dialogue pool ─────────────────────────────────────────────────────────────
+
+/** A single voice line in a skin's dialogue pool (trigger is implicit via the map key). */
+export interface SkinDialogueLine {
+    character: 'agent' | 'director';
+    message: string;
+}
+
+/**
+ * Complete set of voice lines for a skin.
+ * Every trigger key must have at least one entry.
+ */
+export type DialogueMap = Record<DialogueTrigger, ReadonlyArray<SkinDialogueLine>>;
+
 // ── Rank tiers (5 levels, low → high) ────────────────────────────────────────
 
 export interface SkinRanks {
@@ -204,6 +220,7 @@ export interface Skin {
     pages:       SkinPages;
     menu:        SkinMenu;
     actions:     SkinActions;
+    dialogues:   DialogueMap;
 
     /**
      * Optional CSS custom-property overrides injected into :root.
