@@ -78,10 +78,12 @@ export interface SkinCommitmentTypes {
 // ── Navigation labels ─────────────────────────────────────────────────────────
 
 export interface SkinNav {
-    daily:      string;   // "Daily"     / "Today's Case"
-    areas:      string;   // "Areas"     / "Open Cases"
-    ideas:      string;   // "Ideas"     / "Hunches"
-    goals:      string;   // "Goals"     / "Long Game"
+    daily:           string;   // "Daily"           / "Today's Case"
+    areas:           string;   // "Areas"           / "Open Cases"
+    ideas:           string;   // "Ideas"           / "Hunches"
+    goals:           string;   // "Goals"           / "Long Game"
+    /** Used in the breadcrumb inside a project: "RESPONSIBILITIES › NAME" */
+    areasBreadcrumb: string;   // "RESPONSIBILITIES" / "AREAS"
 }
 
 // ── Page titles & subtitles ───────────────────────────────────────────────────
@@ -103,9 +105,23 @@ export interface SkinPages {
 export interface SkinIdentity {
     appName:     string;   // "BCR Clear"   / "Dresden's Docket"
     appShort:    string;   // "CLEAR"       / "DOCKET"
+    /** Sub-brand line shown under the logotype. */
+    appTagline:  string;   // "BUREAU OF CIVIC RESPONSIBILITY" / "COMMITMENT TRACKER"
     scoreName:   string;   // "Patriot Score" / "White Council Standing"
-    /** One-line install/share pitch used in the share sheet. */
+    /** Title used in the OS share sheet. */
+    shareTitle:  string;   // "CLEAR — Civic Engagement Tracking System"
+    /** Body text used in the OS share sheet. */
     sharePitch:  string;
+}
+
+// ── Hamburger menu strings ────────────────────────────────────────────────────
+
+export interface SkinMenu {
+    menuTitle:          string;   // "Bureau Menu"   / "Menu"
+    insightsSectionLabel: string; // "Intelligence"  / "Insights"
+    shareSectionLabel:  string;   // "Community Duty" / "Share"
+    shareItemLabel:     string;   // "Report a Neighbor" / "Invite a Friend"
+    shareItemSub:       string;   // "Refer a civic non-compliant to CLEAR" / "Share the app"
 }
 
 // ── Characters ────────────────────────────────────────────────────────────────
@@ -137,6 +153,7 @@ export interface Skin {
     types:       SkinCommitmentTypes;
     nav:         SkinNav;
     pages:       SkinPages;
+    menu:        SkinMenu;
 
     /**
      * Optional CSS custom-property overrides injected into :root.

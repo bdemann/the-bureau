@@ -10,9 +10,11 @@ export const bcrSkin: Skin = {
     displayName: 'BCR Clear',
 
     identity: {
-        appName:   'BCR Clear',
-        appShort:  'CLEAR',
-        scoreName: 'Patriot Score',
+        appName:    'BCR Clear',
+        appShort:   'CLEAR',
+        appTagline: 'BUREAU OF CIVIC RESPONSIBILITY',
+        scoreName:  'Patriot Score',
+        shareTitle: 'CLEAR — Civic Engagement Tracking System',
         sharePitch:
             "A neighbor has flagged you for potential civic disengagement. " +
             "Install CLEAR — the BCR's official self-monitoring application — " +
@@ -92,10 +94,19 @@ export const bcrSkin: Skin = {
     },
 
     nav: {
-        daily: 'Daily',
-        areas: 'Areas',
-        ideas: 'Ideas',
-        goals: 'Goals',
+        daily:           'Daily',
+        areas:           'Areas',
+        ideas:           'Ideas',
+        goals:           'Goals',
+        areasBreadcrumb: 'RESPONSIBILITIES',
+    },
+
+    menu: {
+        menuTitle:           'Bureau Menu',
+        insightsSectionLabel: 'Intelligence',
+        shareSectionLabel:   'Community Duty',
+        shareItemLabel:      'Report a Neighbor',
+        shareItemSub:        'Refer a civic non-compliant to CLEAR',
     },
 
     pages: {

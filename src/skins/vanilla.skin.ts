@@ -10,9 +10,11 @@ export const vanillaSkin: Skin = {
     displayName: 'Default',
 
     identity: {
-        appName:   'Commitment Tracker',
-        appShort:  'TRACK',
-        scoreName: 'Score',
+        appName:    'Commitment Tracker',
+        appShort:   'TRACK',
+        appTagline: 'COMMITMENT TRACKER',
+        scoreName:  'Score',
+        shareTitle: 'Commitment Tracker — Stay accountable',
         sharePitch:
             'Stay on top of your commitments with a tool that tracks ' +
             'what actually matters — not just due dates.',
@@ -90,10 +92,19 @@ export const vanillaSkin: Skin = {
     },
 
     nav: {
-        daily: 'Daily',
-        areas: 'Areas',
-        ideas: 'Ideas',
-        goals: 'Goals',
+        daily:           'Daily',
+        areas:           'Areas',
+        ideas:           'Ideas',
+        goals:           'Goals',
+        areasBreadcrumb: 'AREAS',
+    },
+
+    menu: {
+        menuTitle:            'Menu',
+        insightsSectionLabel: 'Insights',
+        shareSectionLabel:    'Share',
+        shareItemLabel:       'Invite a Friend',
+        shareItemSub:         'Share the app with someone',
     },
 
     pages: {

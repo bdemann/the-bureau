@@ -13,16 +13,6 @@ export function getRank(score: number): Rank {
     return 'suspected_communist';
 }
 
-export function rankLabel(rank: Rank): string {
-    switch (rank) {
-        case 'patriot':              return 'Patriot';
-        case 'loyal_citizen':        return 'Loyal Citizen';
-        case 'citizen':              return 'Citizen';
-        case 'disengaged_citizen':   return 'Disengaged Citizen';
-        case 'suspected_communist':  return 'Suspected Communist';
-    }
-}
-
 export function rankColor(rank: Rank): string {
     switch (rank) {
         case 'patriot':             return '#FFD700';

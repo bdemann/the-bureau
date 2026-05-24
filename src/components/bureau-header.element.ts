@@ -1,5 +1,6 @@
 import {css, defineElement, defineElementEvent, html} from 'element-vir';
-import {getRank, rankColor, rankLabel} from '../data/ranks.js';
+import {getRank, rankColor} from '../data/ranks.js';
+import {getActiveSkin, getRankLabel} from '../skins/active-skin.js';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // BureauHeaderElement
@@ -296,6 +297,7 @@ export const BureauHeaderElement = defineElement<{
 
     render({inputs, state, updateState, dispatch, events}) {
         const {patriotScore, streak, onBack, projectName} = inputs;
+        const skin = getActiveSkin();
 
         const rank = streak === 0 ? 'suspected_communist' : getRank(patriotScore);
         const scoreColor = rankColor(rank);
@@ -325,9 +327,9 @@ export const BureauHeaderElement = defineElement<{
             if (navigator.share) {
                 try {
                     await navigator.share({
-                        title: 'CLEAR — Civic Engagement Tracking System',
-                        text: 'A neighbor has flagged you for potential civic disengagement. Install CLEAR — the BCR\'s official self-monitoring application — to verify your compliance record and demonstrate to the BCR that your patriotism is beyond question.',
-                        url: CLEAR_URL,
+                        title: skin.identity.shareTitle,
+                        text:  skin.identity.sharePitch,
+                        url:   CLEAR_URL,
                     });
                 } catch {
                     // User cancelled — no action.
@@ -347,14 +349,14 @@ export const BureauHeaderElement = defineElement<{
                         : html`<div style="width:56px"></div>`}
 
                     <div class="wordmark">
-                        CLEAR
-                        <span class="sub">BUREAU OF CIVIC RESPONSIBILITY</span>
+                        ${skin.identity.appShort}
+                        <span class="sub">${skin.identity.appTagline}</span>
                     </div>
 
-                    <div class="score-block" title="Patriot Score">
+                    <div class="score-block" title="${skin.identity.scoreName}">
                         <span class="score-number">${Math.round(patriotScore)}</span>
                         <span class="score-label">
-                            ${streak > 0 ? `🔥 ${streak}d · ` : `${streak}d · `}${rankLabel(rank).toUpperCase()}
+                            ${streak > 0 ? `🔥 ${streak}d · ` : `${streak}d · `}${getRankLabel(rank).toUpperCase()}
                         </span>
                     </div>
 
@@ -368,7 +370,7 @@ export const BureauHeaderElement = defineElement<{
                 ${projectName
                     ? html`
                         <div class="breadcrumb">
-                            RESPONSIBILITIES &rsaquo;
+                            ${skin.nav.areasBreadcrumb} &rsaquo;
                             <span class="project-name">${projectName.toUpperCase()}</span>
                         </div>
                       `
@@ -386,12 +388,12 @@ export const BureauHeaderElement = defineElement<{
                 >
                     <div class="menu-panel">
                         <div class="menu-header">
-                            <span class="menu-title">Bureau Menu</span>
+                            <span class="menu-title">${skin.menu.menuTitle}</span>
                             <button class="menu-close" @click=${closeMenu}>×</button>
                         </div>
 
                         <div class="menu-section">
-                            <div class="menu-section-label">Intelligence</div>
+                            <div class="menu-section-label">${skin.menu.insightsSectionLabel}</div>
                             <button class="menu-item" @click=${onInsights}>
                                 Insights
                                 <span class="menu-item-sub">Missed tasks, completions, patterns</span>
@@ -399,10 +401,10 @@ export const BureauHeaderElement = defineElement<{
                         </div>
 
                         <div class="menu-section">
-                            <div class="menu-section-label">Community Duty</div>
+                            <div class="menu-section-label">${skin.menu.shareSectionLabel}</div>
                             <button class="menu-item" @click=${onReportNeighbor}>
-                                Report a Neighbor
-                                <span class="menu-item-sub">Refer a civic non-compliant to CLEAR</span>
+                                ${skin.menu.shareItemLabel}
+                                <span class="menu-item-sub">${skin.menu.shareItemSub}</span>
                             </button>
                         </div>
                     </div>

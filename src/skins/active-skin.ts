@@ -1,4 +1,5 @@
 import type {Skin} from './types.js';
+import type {Rank} from '../data/ranks.js';
 import {bcrSkin} from './bcr.skin.js';
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -22,4 +23,16 @@ export function getActiveSkin(): Skin {
 
 export function setActiveSkin(skin: Skin): void {
     _activeSkin = skin;
+}
+
+/** Maps a Rank value to the active skin's display label. */
+export function getRankLabel(rank: Rank): string {
+    const r = _activeSkin.ranks;
+    switch (rank) {
+        case 'suspected_communist': return r.level0;
+        case 'disengaged_citizen':  return r.level1;
+        case 'citizen':             return r.level2;
+        case 'loyal_citizen':       return r.level3;
+        case 'patriot':             return r.level4;
+    }
 }
