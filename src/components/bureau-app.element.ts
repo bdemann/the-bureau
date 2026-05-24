@@ -444,7 +444,8 @@ export const BureauAppElement = defineElement()({
 
             commit({tasks, patriotScore: newScore});
             offerUndo(target, prevScore, `Skipped "${target.title}"`);
-            triggerDialogue('task_skipped', tier <= 2);
+            // Skip is intentionally silent — no character dialogue fires.
+            // The skip-indicator badge on the card provides the feedback.
 
             if (newScore < 40 && prevScore >= 40) {
                 setTimeout(() => triggerDialogue('score_low', true), 600);
