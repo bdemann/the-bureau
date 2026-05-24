@@ -202,22 +202,3 @@ export function getSnoozeBand(tier: ConsequenceTier, snoozeCount: number): Daily
 
 // ── Public helpers used by UI / tests ───────────────────────────────────────
 
-export function bandLabel(band: DailyBand): string {
-    switch (band) {
-        case 'mandatory': return "TODAY'S MANDATORY";
-        case 'suggested': return 'SUGGESTED FOR TODAY';
-        case 'radar':     return 'ON YOUR RADAR';
-        case 'backlog':   return 'BACKLOG';
-        case 'hidden':    return '';
-    }
-}
-
-export function bandSubtitle(band: DailyBand): string {
-    switch (band) {
-        case 'mandatory': return 'Must happen today. No exceptions.';
-        case 'suggested': return 'Recommended. Moveable if life intervenes.';
-        case 'radar':     return "Approaching. Don't forget.";
-        case 'backlog':   return 'No pressure today.';
-        case 'hidden':    return '';
-    }
-}

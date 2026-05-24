@@ -2,7 +2,8 @@ import {css, defineElement, defineElementEvent, html, listen} from 'element-vir'
 import {ViraButton, ViraColorVariant, ViraEmphasis, ViraSize} from 'vira';
 import type {DailyBand, Project, Task, TimeOfDay} from '../data/types.js';
 import {TIME_OF_DAY_SLOTS, timeOfDayLabel} from '../data/types.js';
-import {bandLabel, bandSubtitle, getDailyBand} from '../data/urgency.js';
+import {getDailyBand} from '../data/urgency.js';
+import {getActiveSkin} from '../skins/active-skin.js';
 import {TaskItemElement} from './task-item.element.js';
 
 
@@ -360,6 +361,13 @@ export const DailyViewElement = defineElement<{
             `;
         };
 
+        // 'hidden' is a valid DailyBand but is never rendered; return empty strings for it.
+        const skinBand = (band: DailyBand) => {
+            const skin = getActiveSkin();
+            if (band === 'hidden') return {label: '', subtitle: '', empty: ''};
+            return skin.bands[band];
+        };
+
         const renderBand = (
             band: DailyBand,
             opts?: {
@@ -383,8 +391,8 @@ export const DailyViewElement = defineElement<{
                         @click=${isCollapsible ? (opts?.onToggle ?? (() => {})) : null}
                     >
                         <div>
-                            <div class="band-title">${bandLabel(band)}</div>
-                            <div class="band-subtitle">${bandSubtitle(band)}</div>
+                            <div class="band-title">${skinBand(band).label}</div>
+                            <div class="band-subtitle">${skinBand(band).subtitle}</div>
                         </div>
                         <div style="display:flex;align-items:center;gap:8px;">
                             <span class="band-count">${tasks.length}</span>
@@ -405,7 +413,7 @@ export const DailyViewElement = defineElement<{
 
         return html`
             ${renderBand('mandatory', {
-                emptyMessage: 'No mandatory tasks today. Agent Whitaker approves.',
+                emptyMessage: skinBand('mandatory').empty,
                 collapsible: true,
                 alwaysCollapse: true,
                 expanded: state.expandMandatory,
