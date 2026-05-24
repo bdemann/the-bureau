@@ -133,10 +133,17 @@ export const InsightsViewElement = defineElement<{
         .badge-done  { background: #2E6B3E; color: #fff; }
         .badge-neutral { background: #1B2A4A; color: #F5EFE0; }
 
-        /* Operations overview table */
+        /* Operations overview table — scrolls horizontally on very narrow screens */
+        .ops-table-wrap {
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+
         .ops-table {
             width: 100%;
+            min-width: 280px;
             border-collapse: collapse;
+            table-layout: fixed;
             font-family: 'Courier Prime', monospace;
             font-size: 0.68rem;
         }
@@ -149,7 +156,8 @@ export const InsightsViewElement = defineElement<{
             border-bottom: 1px solid rgba(0,0,0,0.15);
         }
 
-        .ops-table th:not(:first-child) { text-align: center; }
+        .ops-table th:first-child  { width: 45%; }
+        .ops-table th:not(:first-child) { width: calc(55% / 4); text-align: center; }
 
         .ops-table td {
             padding: 6px 6px;
@@ -167,7 +175,6 @@ export const InsightsViewElement = defineElement<{
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
-            max-width: 130px;
         }
 
         .zero { color: #CCCCCC; }
@@ -426,28 +433,30 @@ export const InsightsViewElement = defineElement<{
                     <div class="section-header">
                         <span class="section-title">RESPONSIBILITIES OVERVIEW</span>
                     </div>
-                    <table class="ops-table">
-                        <thead>
-                            <tr>
-                                <th>Responsibility</th>
-                                <th>Miss</th>
-                                <th>Snooze</th>
-                                <th>Skip</th>
-                                <th>Done</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            ${opsRows.map(row => html`
+                    <div class="ops-table-wrap">
+                        <table class="ops-table">
+                            <thead>
                                 <tr>
-                                    <td><div class="ops-name">${row.project.name}</div></td>
-                                    <td>${num(row.misses)}</td>
-                                    <td>${num(row.snoozes)}</td>
-                                    <td>${num(row.skips)}</td>
-                                    <td>${num(row.completions)}</td>
+                                    <th>Responsibility</th>
+                                    <th>Miss</th>
+                                    <th>Snooze</th>
+                                    <th>Skip</th>
+                                    <th>Done</th>
                                 </tr>
-                            `)}
-                        </tbody>
-                    </table>
+                            </thead>
+                            <tbody>
+                                ${opsRows.map(row => html`
+                                    <tr>
+                                        <td><div class="ops-name">${row.project.name}</div></td>
+                                        <td>${num(row.misses)}</td>
+                                        <td>${num(row.snoozes)}</td>
+                                        <td>${num(row.skips)}</td>
+                                        <td>${num(row.completions)}</td>
+                                    </tr>
+                                `)}
+                            </tbody>
+                        </table>
+                    </div>
                 </section>
             ` : html``}
         `;

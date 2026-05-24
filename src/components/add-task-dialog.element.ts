@@ -164,9 +164,12 @@ export const AddTaskDialogElement = defineElement<{
             max-width: 600px;
             border-top: 4px solid #C41E3A;
             padding: 20px 20px 32px;
+            padding-bottom: max(32px, env(safe-area-inset-bottom, 0px));
             animation: sheet-in 0.2s ease-out;
-            max-height: 90vh;
+            max-height: 92dvh;
             overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
+            overscroll-behavior: contain;
         }
 
         @keyframes sheet-in {
@@ -218,6 +221,17 @@ export const AddTaskDialogElement = defineElement<{
         }
         input[type="date"]:focus { border-color: #1B2A4A; }
 
+        /* All pill/toggle/grid button groups get a 44px minimum touch height */
+        .tier-grid ${ViraButton},
+        .tod-grid  ${ViraButton},
+        .seg       ${ViraButton},
+        .kind-toggle ${ViraButton},
+        .dow-grid  ${ViraButton},
+        .ord-grid  ${ViraButton},
+        .month-grid ${ViraButton} {
+            min-height: 44px;
+        }
+
         .tier-grid {
             display: grid;
             grid-template-columns: repeat(4, 1fr);
@@ -229,13 +243,14 @@ export const AddTaskDialogElement = defineElement<{
         }
 
         .tod-grid {
-            display: grid;
-            grid-template-columns: repeat(5, 1fr);
+            display: flex;
+            flex-wrap: wrap;
             gap: 6px;
         }
 
         .tod-grid ${ViraButton} {
-            width: 100%;
+            flex: 1 1 calc(33% - 6px);
+            min-width: 80px;
         }
 
         .tier-help {
@@ -275,13 +290,16 @@ export const AddTaskDialogElement = defineElement<{
 
         .grow { flex: 1; }
 
-        /* Day-of-week segmented picker (Sun..Sat) */
+        /* Day-of-week segmented picker (Sun..Sat) — 7 per row on wide, wraps on narrow */
         .dow-grid {
-            display: grid;
-            grid-template-columns: repeat(7, 1fr);
+            display: flex;
+            flex-wrap: wrap;
             gap: 4px;
         }
-        .dow-grid ${ViraButton} { width: 100%; }
+        .dow-grid ${ViraButton} {
+            flex: 1 1 calc(14% - 4px);
+            min-width: 36px;
+        }
 
         /* Ordinal-week segmented picker (1st..4th, Last) */
         .ord-grid {
