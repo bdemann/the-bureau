@@ -74,11 +74,12 @@ Pure addition. No component changes.
 - `src/skins/vanilla.skin.ts` — all 13 neutral trigger pools
 - `src/data/dialogues.test.ts` — updated to use `bcrSkin.dialogues`; added `day_start` agent-only assertion
 
-### 🔲 Chunk 9 — CSS custom properties (colour + font theming)
-Convert hardcoded hex colours and font names to CSS custom properties on
-`:root`. BCR skin's `cssVars` stays undefined (base stylesheet = BCR look).
-Other skins override via `cssVars` which bureau-app injects into `:root`.
-This is the biggest CSS change but purely mechanical find-and-replace.
+### ✅ Chunk 9 — CSS custom properties (colour + font theming)
+- `index.html` `:root` block — 19 CSS vars (palette + typography)
+- All 20 `src/components/*.ts` files — hardcoded hex / font strings → `var(--*)`
+- `src/skins/active-skin.ts` — `setActiveSkin` now calls `applyCssVars`; clears
+  prior overrides then writes `skin.cssVars` entries to `document.documentElement.style`
+- BCR skin `cssVars: undefined` — base stylesheet is the BCR look, no overrides needed
 
 ### 🔲 Chunk 10 — Dresden Files skin
 After chunks 1–8 are done, all string slots exist. Write:

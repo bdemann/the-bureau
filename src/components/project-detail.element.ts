@@ -5,9 +5,9 @@ import {GoalsViewElement} from './goals-view.element.js';
 import {IdeasViewElement} from './ideas-view.element.js';
 
 const COLOR_OPTIONS: ReadonlyArray<{key: ProjectColor; label: string; swatch: string}> = [
-    {key: 'red',   label: 'Crimson', swatch: '#C41E3A'},
-    {key: 'navy',  label: 'Navy',    swatch: '#1B2A4A'},
-    {key: 'gold',  label: 'Gold',    swatch: '#B8860B'},
+    {key: 'red',   label: 'Crimson', swatch: 'var(--color-danger)'},
+    {key: 'navy',  label: 'Navy',    swatch: 'var(--color-primary)'},
+    {key: 'gold',  label: 'Gold',    swatch: 'var(--color-warning)'},
     {key: 'olive', label: 'Olive',   swatch: '#4A5E2A'},
     {key: 'slate', label: 'Slate',   swatch: '#4A5568'},
 ];
@@ -67,10 +67,10 @@ export const ProjectDetailElement = defineElement<{
         }
 
         .section-label {
-            font-family: 'Bebas Neue', sans-serif;
+            font-family: var(--font-display);
             font-size: 0.7rem;
             letter-spacing: 0.2em;
-            color: #6B6B6B;
+            color: var(--color-text-muted);
             padding: 16px 2px 6px;
             border-bottom: 1px solid rgba(0,0,0,0.1);
             margin-bottom: 2px;
@@ -85,8 +85,8 @@ export const ProjectDetailElement = defineElement<{
         .empty-state {
             text-align: center;
             padding: 40px 20px;
-            color: #6B6B6B;
-            font-family: 'Special Elite', serif;
+            color: var(--color-text-muted);
+            font-family: var(--font-accent);
         }
 
         .empty-state p {
@@ -109,11 +109,11 @@ export const ProjectDetailElement = defineElement<{
             width: 100%;
             margin: 14px 0 0;
             padding: 16px;
-            background: #1B2A4A;
-            color: #F5EFE0;
+            background: var(--color-primary);
+            color: var(--color-surface);
             border: none;
             border-top: 1px solid rgba(0,0,0,0.18);
-            font-family: 'Bebas Neue', sans-serif;
+            font-family: var(--font-display);
             font-size: 0.9rem;
             letter-spacing: 0.2em;
             cursor: pointer;
@@ -123,14 +123,14 @@ export const ProjectDetailElement = defineElement<{
             bottom: env(safe-area-inset-bottom, 0px);
             z-index: 10;
         }
-        .add-btn:hover { background: #2A3F6F; }
+        .add-btn:hover { background: var(--color-primary-hover); }
 
         .toggle-completed {
             background: none;
             border: none;
-            font-family: 'Courier Prime', monospace;
+            font-family: var(--font-mono);
             font-size: 0.72rem;
-            color: #6B6B6B;
+            color: var(--color-text-muted);
             cursor: pointer;
             padding: 4px 2px;
             text-decoration: underline;
@@ -150,7 +150,7 @@ export const ProjectDetailElement = defineElement<{
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%) rotate(-5deg);
-            font-family: 'Bebas Neue', sans-serif;
+            font-family: var(--font-display);
             font-size: 1.1rem;
             letter-spacing: 0.3em;
             color: rgba(46, 94, 46, 0.3);
@@ -170,14 +170,14 @@ export const ProjectDetailElement = defineElement<{
             content: '';
             display: block;
             height: 2px;
-            background: #1B2A4A;
+            background: var(--color-primary);
             margin-bottom: 1px;
         }
         .drop-zone-end {
             height: 20px;
         }
         .drop-zone-end.is-drag-over {
-            border-top: 2px solid #1B2A4A;
+            border-top: 2px solid var(--color-primary);
         }
 
         .delete-zone {
@@ -188,16 +188,16 @@ export const ProjectDetailElement = defineElement<{
 
         .delete-btn {
             background: none;
-            border: 1px solid #C41E3A;
-            color: #C41E3A;
-            font-family: 'Bebas Neue', sans-serif;
+            border: 1px solid var(--color-danger);
+            color: var(--color-danger);
+            font-family: var(--font-display);
             font-size: 0.85rem;
             letter-spacing: 0.2em;
             padding: 8px 16px;
             cursor: pointer;
             transition: background 0.15s, color 0.15s;
         }
-        .delete-btn:hover { background: #C41E3A; color: #F5EFE0; }
+        .delete-btn:hover { background: var(--color-danger); color: var(--color-surface); }
 
         .confirm-delete {
             display: flex;
@@ -205,13 +205,13 @@ export const ProjectDetailElement = defineElement<{
             gap: 8px;
             padding: 12px;
             background: #FFF5F5;
-            border: 1px solid #C41E3A;
+            border: 1px solid var(--color-danger);
         }
 
         .confirm-delete p {
-            font-family: 'Courier Prime', monospace;
+            font-family: var(--font-mono);
             font-size: 0.8rem;
-            color: #8B0000;
+            color: var(--color-danger-dark);
             margin: 0;
         }
 
@@ -221,22 +221,22 @@ export const ProjectDetailElement = defineElement<{
         }
 
         .confirm-yes {
-            background: #C41E3A;
+            background: var(--color-danger);
             border: none;
-            color: #F5EFE0;
-            font-family: 'Bebas Neue', sans-serif;
+            color: var(--color-surface);
+            font-family: var(--font-display);
             font-size: 0.85rem;
             letter-spacing: 0.15em;
             padding: 8px 16px;
             cursor: pointer;
         }
-        .confirm-yes:hover { background: #8B0000; }
+        .confirm-yes:hover { background: var(--color-danger-dark); }
 
         .confirm-no {
             background: none;
-            border: 1px solid #6B6B6B;
-            color: #6B6B6B;
-            font-family: 'Bebas Neue', sans-serif;
+            border: 1px solid var(--color-text-muted);
+            color: var(--color-text-muted);
+            font-family: var(--font-display);
             font-size: 0.85rem;
             letter-spacing: 0.15em;
             padding: 8px 16px;
@@ -252,16 +252,16 @@ export const ProjectDetailElement = defineElement<{
 
         .edit-btn {
             background: none;
-            border: 1px solid #1B2A4A;
-            color: #1B2A4A;
-            font-family: 'Bebas Neue', sans-serif;
+            border: 1px solid var(--color-primary);
+            color: var(--color-primary);
+            font-family: var(--font-display);
             font-size: 0.85rem;
             letter-spacing: 0.2em;
             padding: 8px 16px;
             cursor: pointer;
             transition: background 0.15s, color 0.15s;
         }
-        .edit-btn:hover { background: #1B2A4A; color: #F5EFE0; }
+        .edit-btn:hover { background: var(--color-primary); color: var(--color-surface); }
 
         .edit-form {
             display: flex;
@@ -274,22 +274,22 @@ export const ProjectDetailElement = defineElement<{
             font-size: 0.65rem;
             letter-spacing: 0.12em;
             text-transform: uppercase;
-            font-family: 'Courier Prime', monospace;
-            color: #6B6B6B;
+            font-family: var(--font-mono);
+            color: var(--color-text-muted);
             margin-bottom: 3px;
         }
 
         .edit-input {
             width: 100%;
-            font-family: 'Special Elite', serif;
+            font-family: var(--font-accent);
             font-size: 0.9rem;
-            background: #FDFAF5;
+            background: var(--color-card);
             border: 1px solid rgba(0,0,0,0.2);
             padding: 8px 10px;
-            color: #2C2C2C;
+            color: var(--color-text);
             box-sizing: border-box;
         }
-        .edit-input:focus { outline: none; border-color: #1B2A4A; }
+        .edit-input:focus { outline: none; border-color: var(--color-primary); }
 
         .edit-textarea { min-height: 60px; resize: vertical; }
 
@@ -308,21 +308,21 @@ export const ProjectDetailElement = defineElement<{
             transition: border-color 0.15s, transform 0.1s;
         }
         .color-swatch.selected {
-            border-color: #2C2C2C;
+            border-color: var(--color-text);
             transform: scale(1.15);
         }
 
         .save-btn {
-            background: #1B2A4A;
+            background: var(--color-primary);
             border: none;
-            color: #F5EFE0;
-            font-family: 'Bebas Neue', sans-serif;
+            color: var(--color-surface);
+            font-family: var(--font-display);
             font-size: 0.85rem;
             letter-spacing: 0.15em;
             padding: 8px 16px;
             cursor: pointer;
         }
-        .save-btn:hover { background: #2A3F6F; }
+        .save-btn:hover { background: var(--color-primary-hover); }
 
     `,
 

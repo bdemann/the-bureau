@@ -17,13 +17,51 @@
     />
     <title>Clear — BCR</title>
     <style>
+      /* ── Skin custom properties — BCR Clear defaults ────────────────────────
+         These are the canonical BCR colour values. Any skin that defines
+         cssVars will override individual entries at runtime via
+         document.documentElement.style.setProperty().
+         CSS custom properties pierce shadow DOM boundaries so all components
+         pick up overrides automatically.
+         ──────────────────────────────────────────────────────────────────── */
+      :root {
+        /* Brand */
+        --color-primary:        #1B2A4A;
+        --color-primary-hover:  #243a63;
+        --color-primary-rgb:    27, 42, 74;
+
+        /* Surfaces */
+        --color-surface:        #F5EFE0;
+        --color-card:           #FDFAF5;
+        --color-input-bg:       #FFFDF7;
+
+        /* Text */
+        --color-text:           #2C2C2C;
+        --color-text-muted:     #6B6B6B;
+        --color-text-faint:     #9E9E9E;
+
+        /* Semantic */
+        --color-danger:         #C41E3A;
+        --color-danger-dark:    #8B0000;
+        --color-danger-rgb:     196, 30, 58;
+        --color-warning:        #B8860B;
+        --color-success:        #2E7D32;
+        --color-success-dark:   #245826;
+        --color-snooze:         #E8821A;
+
+        /* Typography */
+        --font-display:         'Bebas Neue', sans-serif;
+        --font-mono:            'Courier Prime', monospace;
+        --font-accent:          'Special Elite', serif;
+      }
+
       *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
       html, body {
         height: 100%;
-        background-color: #F5EFE0;
+        background-color: var(--color-surface);
       }
       body {
-        font-family: 'Courier Prime', 'Courier New', monospace;
+        font-family: var(--font-mono);
         -webkit-font-smoothing: antialiased;
       }
       bureau-app {

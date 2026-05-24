@@ -29,9 +29,9 @@ import {initialiseRecurrence} from '../data/recurrence.js';
 type WizardCadence = 'daily' | 'weekly' | 'monthly' | 'quarterly' | 'yearly';
 
 const COLOR_OPTIONS: {key: ProjectColor; label: string; swatch: string}[] = [
-    {key: 'red',   label: 'Crimson', swatch: '#C41E3A'},
-    {key: 'navy',  label: 'Navy',    swatch: '#1B2A4A'},
-    {key: 'gold',  label: 'Gold',    swatch: '#B8860B'},
+    {key: 'red',   label: 'Crimson', swatch: 'var(--color-danger)'},
+    {key: 'navy',  label: 'Navy',    swatch: 'var(--color-primary)'},
+    {key: 'gold',  label: 'Gold',    swatch: 'var(--color-warning)'},
     {key: 'olive', label: 'Olive',   swatch: '#4A5E2A'},
     {key: 'slate', label: 'Slate',   swatch: '#4A5568'},
 ];
@@ -98,7 +98,7 @@ export const OperationWizardDialogElement = defineElement<{open: boolean}>()({
         .overlay {
             position: fixed;
             inset: 0;
-            background: rgba(27, 42, 74, 0.65);
+            background: rgba(var(--color-primary-rgb), 0.65);
             z-index: 200;
             display: flex;
             align-items: flex-end;
@@ -114,10 +114,10 @@ export const OperationWizardDialogElement = defineElement<{open: boolean}>()({
         :host *, :host *::before, :host *::after { box-sizing: border-box; }
 
         .sheet {
-            background: #F5EFE0;
+            background: var(--color-surface);
             width: 100%;
             max-width: 600px;
-            border-top: 4px solid #B8860B;
+            border-top: 4px solid var(--color-warning);
             padding: 20px 20px 32px;
             animation: sheet-in 0.2s ease-out;
             max-height: 90vh;
@@ -130,35 +130,35 @@ export const OperationWizardDialogElement = defineElement<{open: boolean}>()({
         }
 
         .step-indicator {
-            font-family: 'Courier Prime', monospace;
+            font-family: var(--font-mono);
             font-size: 0.6rem;
             letter-spacing: 0.15em;
-            color: #B8860B;
+            color: var(--color-warning);
             margin-bottom: 4px;
         }
 
         .sheet-title {
-            font-family: 'Bebas Neue', sans-serif;
+            font-family: var(--font-display);
             font-size: 1.1rem;
             letter-spacing: 0.2em;
-            color: #1B2A4A;
+            color: var(--color-primary);
             border-bottom: 1px solid rgba(0,0,0,0.15);
             padding-bottom: 8px;
             margin-bottom: 14px;
         }
 
         .prompt {
-            font-family: 'Special Elite', serif;
+            font-family: var(--font-accent);
             font-size: 0.85rem;
-            color: #2C2C2C;
+            color: var(--color-text);
             line-height: 1.5;
             margin-bottom: 16px;
         }
 
         .prompt em {
-            color: #B8860B;
+            color: var(--color-warning);
             font-style: normal;
-            font-family: 'Bebas Neue', sans-serif;
+            font-family: var(--font-display);
             letter-spacing: 0.05em;
         }
 
@@ -169,25 +169,25 @@ export const OperationWizardDialogElement = defineElement<{open: boolean}>()({
             font-size: 0.65rem;
             letter-spacing: 0.12em;
             text-transform: uppercase;
-            color: #6B6B6B;
+            color: var(--color-text-muted);
             margin-bottom: 4px;
-            font-family: 'Courier Prime', monospace;
+            font-family: var(--font-mono);
         }
 
         input[type="text"], textarea {
             width: 100%;
-            background: #FFFDF7;
+            background: var(--color-input-bg);
             border: 1px solid rgba(0,0,0,0.25);
             border-bottom: 2px solid rgba(0,0,0,0.3);
             padding: 8px 10px;
-            font-family: 'Courier Prime', 'Courier New', monospace;
+            font-family: var(--font-mono);
             font-size: 0.9rem;
-            color: #2C2C2C;
+            color: var(--color-text);
             border-radius: 1px;
             outline: none;
             transition: border-color 0.15s;
         }
-        input:focus, textarea:focus { border-color: #1B2A4A; }
+        input:focus, textarea:focus { border-color: var(--color-primary); }
 
         textarea {
             resize: vertical;
@@ -212,7 +212,7 @@ export const OperationWizardDialogElement = defineElement<{open: boolean}>()({
         }
 
         .color-swatch.selected {
-            border-color: #2C2C2C;
+            border-color: var(--color-text);
             transform: scale(1.1);
         }
 
@@ -220,23 +220,23 @@ export const OperationWizardDialogElement = defineElement<{open: boolean}>()({
         .routine-preview {
             margin-top: 10px;
             padding: 8px 12px;
-            background: rgba(27, 42, 74, 0.04);
-            border-left: 3px solid #B8860B;
-            font-family: 'Courier Prime', monospace;
+            background: rgba(var(--color-primary-rgb), 0.04);
+            border-left: 3px solid var(--color-warning);
+            font-family: var(--font-mono);
             font-size: 0.8rem;
-            color: #2C2C2C;
+            color: var(--color-text);
             line-height: 1.8;
         }
 
         .routine-preview-item::before {
             content: '▸ ';
-            color: #B8860B;
+            color: var(--color-warning);
         }
 
         .routine-counter {
-            font-family: 'Courier Prime', monospace;
+            font-family: var(--font-mono);
             font-size: 0.72rem;
-            color: #6B6B6B;
+            color: var(--color-text-muted);
             margin-bottom: 12px;
         }
 
@@ -251,8 +251,8 @@ export const OperationWizardDialogElement = defineElement<{open: boolean}>()({
         .tier-help {
             margin-top: 6px;
             font-size: 0.72rem;
-            color: #6B6B6B;
-            font-family: 'Courier Prime', monospace;
+            color: var(--color-text-muted);
+            font-family: var(--font-mono);
             min-height: 1.1em;
         }
 
@@ -297,19 +297,19 @@ export const OperationWizardDialogElement = defineElement<{open: boolean}>()({
         .tod-grid ${ViraButton} { width: 100%; }
 
         .dom-input {
-            background: #FFFDF7;
+            background: var(--color-input-bg);
             border: 1px solid rgba(0,0,0,0.25);
             border-bottom: 2px solid rgba(0,0,0,0.3);
             padding: 8px 10px;
-            font-family: 'Courier Prime', monospace;
+            font-family: var(--font-mono);
             font-size: 0.9rem;
-            color: #2C2C2C;
+            color: var(--color-text);
             border-radius: 1px;
             outline: none;
             width: 6ch;
             transition: border-color 0.15s;
         }
-        .dom-input:focus { border-color: #1B2A4A; }
+        .dom-input:focus { border-color: var(--color-primary); }
 
         .actions {
             display: flex;
@@ -324,8 +324,8 @@ export const OperationWizardDialogElement = defineElement<{open: boolean}>()({
         .anchor-summary {
             margin-top: 6px;
             font-size: 0.72rem;
-            color: #6B6B6B;
-            font-family: 'Courier Prime', monospace;
+            color: var(--color-text-muted);
+            font-family: var(--font-mono);
         }
     `,
 
@@ -337,7 +337,7 @@ export const OperationWizardDialogElement = defineElement<{open: boolean}>()({
                 <div class="overlay">
                     <div class="sheet" style="padding-bottom:24px">
                         <div class="sheet-title">DISCARD CHANGES?</div>
-                        <p style="font-family:'Courier Prime',monospace;font-size:0.85rem;color:#2C2C2C;margin:0 0 20px">
+                        <p style="font-family:var(--font-mono);font-size:0.85rem;color:var(--color-text);margin:0 0 20px">
                             Your progress on this area will be lost.
                         </p>
                         <div class="actions">

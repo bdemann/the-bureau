@@ -10,9 +10,9 @@ import {SNOOZE_CRITICAL} from '../data/types.js';
 // ─────────────────────────────────────────────────────────────────────────────
 
 const PROJECT_COLORS: Record<string, string> = {
-    red:   '#C41E3A',
-    navy:  '#1B2A4A',
-    gold:  '#B8860B',
+    red:   'var(--color-danger)',
+    navy:  'var(--color-primary)',
+    gold:  'var(--color-warning)',
     olive: '#4A5E2A',
     slate: '#4A5568',
 };
@@ -33,9 +33,9 @@ export const ProjectCardElement = defineElement<{
         }
 
         .card {
-            background: #FDFAF5;
+            background: var(--color-card);
             border: 1px solid rgba(0,0,0,0.12);
-            border-top: 5px solid var(--project-color, #1B2A4A);
+            border-top: 5px solid var(--project-color, var(--color-primary));
             padding: 14px 16px 16px;
             cursor: pointer;
             transition: transform 0.12s, box-shadow 0.12s;
@@ -60,23 +60,23 @@ export const ProjectCardElement = defineElement<{
             right: 20px;
             width: 40px;
             height: 5px;
-            background: var(--project-color-light, #2A3F6F);
+            background: var(--project-color-light, var(--color-primary-hover));
         }
 
         .project-name {
-            font-family: 'Special Elite', serif;
+            font-family: var(--font-accent);
             font-size: 1rem;
-            color: #2C2C2C;
+            color: var(--color-text);
             line-height: 1.3;
             margin-bottom: 6px;
         }
 
         .project-desc {
             font-size: 0.75rem;
-            color: #6B6B6B;
+            color: var(--color-text-muted);
             line-height: 1.4;
             margin-bottom: 12px;
-            font-family: 'Courier Prime', monospace;
+            font-family: var(--font-mono);
         }
 
         .stats {
@@ -87,22 +87,22 @@ export const ProjectCardElement = defineElement<{
         }
 
         .stat {
-            font-family: 'Courier Prime', monospace;
+            font-family: var(--font-mono);
             font-size: 0.7rem;
-            color: #6B6B6B;
+            color: var(--color-text-muted);
         }
 
         .stat strong {
-            font-family: 'Bebas Neue', sans-serif;
+            font-family: var(--font-display);
             font-size: 1rem;
-            color: #2C2C2C;
+            color: var(--color-text);
             display: block;
             line-height: 1;
         }
 
         .flag {
             font-size: 0.65rem;
-            font-family: 'Courier Prime', monospace;
+            font-family: var(--font-mono);
             font-weight: 700;
             padding: 2px 6px;
             border-radius: 1px;
@@ -110,14 +110,14 @@ export const ProjectCardElement = defineElement<{
         }
 
         .flag-overdue {
-            background: rgba(196, 30, 58, 0.12);
-            color: #C41E3A;
-            border: 1px solid rgba(196, 30, 58, 0.3);
+            background: rgba(var(--color-danger-rgb), 0.12);
+            color: var(--color-danger);
+            border: 1px solid rgba(var(--color-danger-rgb), 0.3);
         }
 
         .flag-critical {
             background: rgba(139, 0, 0, 0.1);
-            color: #8B0000;
+            color: var(--color-danger-dark);
             border: 1px solid rgba(139, 0, 0, 0.3);
             animation: pulse-flag 2s ease-in-out infinite;
         }
@@ -138,9 +138,9 @@ export const ProjectCardElement = defineElement<{
             right: 14px;
             top: 50%;
             transform: translateY(-50%);
-            font-family: 'Bebas Neue', sans-serif;
+            font-family: var(--font-display);
             font-size: 1rem;
-            color: var(--project-color, #1B2A4A);
+            color: var(--project-color, var(--color-primary));
             opacity: 0.4;
             transition: opacity 0.15s, transform 0.15s;
         }
@@ -154,7 +154,7 @@ export const ProjectCardElement = defineElement<{
     render({inputs, dispatch, events}) {
         const {project, tasks} = inputs;
 
-        const color = PROJECT_COLORS[project.colorKey] ?? '#1B2A4A';
+        const color = PROJECT_COLORS[project.colorKey] ?? 'var(--color-primary)';
         const visibleTasks = tasks.filter(isTaskVisible);
         const overdueTasks = visibleTasks.filter(isTaskOverdue);
         const criticalSnooze = tasks.filter(

@@ -23,7 +23,7 @@ export const SnoozeIndicatorElement = defineElement<{
             display: inline-flex;
             align-items: center;
             gap: 4px;
-            font-family: 'Courier Prime', monospace;
+            font-family: var(--font-mono);
             font-size: 0.65rem;
             font-weight: 700;
             letter-spacing: 0.06em;
@@ -45,15 +45,15 @@ export const SnoozeIndicatorElement = defineElement<{
         }
 
         .badge.danger {
-            background: rgba(196, 30, 58, 0.15);
-            color: #8B0000;
-            border: 1px solid rgba(196, 30, 58, 0.4);
+            background: rgba(var(--color-danger-rgb), 0.15);
+            color: var(--color-danger-dark);
+            border: 1px solid rgba(var(--color-danger-rgb), 0.4);
         }
 
         .badge.critical {
             background: rgba(139, 0, 0, 0.12);
-            color: #8B0000;
-            border: 1px solid #8B0000;
+            color: var(--color-danger-dark);
+            border: 1px solid var(--color-danger-dark);
             animation: pulse-red 1.8s ease-in-out infinite;
         }
 
@@ -65,11 +65,11 @@ export const SnoozeIndicatorElement = defineElement<{
         /* UNDER REVIEW stamp — shown at critical level */
         .stamp {
             display: inline-block;
-            font-family: 'Bebas Neue', sans-serif;
+            font-family: var(--font-display);
             font-size: 0.7rem;
             letter-spacing: 0.2em;
-            color: #8B0000;
-            border: 2px solid #8B0000;
+            color: var(--color-danger-dark);
+            border: 2px solid var(--color-danger-dark);
             padding: 1px 6px;
             transform: rotate(-1.5deg);
             opacity: 0.75;

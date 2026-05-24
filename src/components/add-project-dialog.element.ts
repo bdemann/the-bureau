@@ -8,9 +8,9 @@ import {generateId} from '../data/storage.js';
 // ─────────────────────────────────────────────────────────────────────────────
 
 const COLOR_OPTIONS: {key: ProjectColor; label: string; swatch: string}[] = [
-    {key: 'red',   label: 'Crimson', swatch: '#C41E3A'},
-    {key: 'navy',  label: 'Navy',    swatch: '#1B2A4A'},
-    {key: 'gold',  label: 'Gold',    swatch: '#B8860B'},
+    {key: 'red',   label: 'Crimson', swatch: 'var(--color-danger)'},
+    {key: 'navy',  label: 'Navy',    swatch: 'var(--color-primary)'},
+    {key: 'gold',  label: 'Gold',    swatch: 'var(--color-warning)'},
     {key: 'olive', label: 'Olive',   swatch: '#4A5E2A'},
     {key: 'slate', label: 'Slate',   swatch: '#4A5568'},
 ];
@@ -37,7 +37,7 @@ export const AddProjectDialogElement = defineElement<{
         .overlay {
             position: fixed;
             inset: 0;
-            background: rgba(27, 42, 74, 0.65);
+            background: rgba(var(--color-primary-rgb), 0.65);
             z-index: 200;
             display: flex;
             align-items: flex-end;
@@ -53,10 +53,10 @@ export const AddProjectDialogElement = defineElement<{
         :host *, :host *::before, :host *::after { box-sizing: border-box; }
 
         .sheet {
-            background: #F5EFE0;
+            background: var(--color-surface);
             width: 100%;
             max-width: 600px;
-            border-top: 4px solid #B8860B;
+            border-top: 4px solid var(--color-warning);
             padding: 20px 20px 32px;
             animation: sheet-in 0.2s ease-out;
         }
@@ -67,10 +67,10 @@ export const AddProjectDialogElement = defineElement<{
         }
 
         .sheet-title {
-            font-family: 'Bebas Neue', sans-serif;
+            font-family: var(--font-display);
             font-size: 1.1rem;
             letter-spacing: 0.2em;
-            color: #1B2A4A;
+            color: var(--color-primary);
             border-bottom: 1px solid rgba(0,0,0,0.15);
             padding-bottom: 8px;
             margin-bottom: 16px;
@@ -83,25 +83,25 @@ export const AddProjectDialogElement = defineElement<{
             font-size: 0.65rem;
             letter-spacing: 0.12em;
             text-transform: uppercase;
-            color: #6B6B6B;
+            color: var(--color-text-muted);
             margin-bottom: 4px;
-            font-family: 'Courier Prime', monospace;
+            font-family: var(--font-mono);
         }
 
         input[type="text"], textarea {
             width: 100%;
-            background: #FFFDF7;
+            background: var(--color-input-bg);
             border: 1px solid rgba(0,0,0,0.25);
             border-bottom: 2px solid rgba(0,0,0,0.3);
             padding: 8px 10px;
-            font-family: 'Courier Prime', 'Courier New', monospace;
+            font-family: var(--font-mono);
             font-size: 0.9rem;
-            color: #2C2C2C;
+            color: var(--color-text);
             border-radius: 1px;
             outline: none;
             transition: border-color 0.15s;
         }
-        input:focus, textarea:focus { border-color: #1B2A4A; }
+        input:focus, textarea:focus { border-color: var(--color-primary); }
 
         textarea { resize: none; height: 60px; }
 
@@ -123,7 +123,7 @@ export const AddProjectDialogElement = defineElement<{
         }
 
         .color-swatch.selected {
-            border-color: #2C2C2C;
+            border-color: var(--color-text);
             transform: scale(1.1);
         }
 
@@ -135,30 +135,30 @@ export const AddProjectDialogElement = defineElement<{
 
         .btn-submit {
             flex: 1;
-            background: #1B2A4A;
-            color: #F5EFE0;
+            background: var(--color-primary);
+            color: var(--color-surface);
             border: none;
             padding: 12px;
-            font-family: 'Bebas Neue', sans-serif;
+            font-family: var(--font-display);
             font-size: 0.95rem;
             letter-spacing: 0.2em;
             cursor: pointer;
             transition: background 0.15s;
         }
-        .btn-submit:hover { background: #2A3F6F; }
+        .btn-submit:hover { background: var(--color-primary-hover); }
         .btn-submit:disabled { opacity: 0.4; cursor: default; }
 
         .btn-cancel {
             background: none;
             border: 1px solid rgba(0,0,0,0.3);
             padding: 12px 16px;
-            font-family: 'Courier Prime', monospace;
+            font-family: var(--font-mono);
             font-size: 0.8rem;
-            color: #6B6B6B;
+            color: var(--color-text-muted);
             cursor: pointer;
             transition: border-color 0.15s;
         }
-        .btn-cancel:hover { border-color: #2C2C2C; color: #2C2C2C; }
+        .btn-cancel:hover { border-color: var(--color-text); color: var(--color-text); }
     `,
 
     render({inputs, state, updateState, dispatch, events}) {

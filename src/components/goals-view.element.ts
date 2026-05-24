@@ -50,26 +50,26 @@ export const GoalsViewElement = defineElement<{
         }
 
         .page-title {
-            font-family: 'Bebas Neue', sans-serif;
+            font-family: var(--font-display);
             font-size: 1.4rem;
             letter-spacing: 0.25em;
-            color: #1B2A4A;
+            color: var(--color-primary);
             margin-bottom: 4px;
         }
 
         .page-subtitle {
-            font-family: 'Courier Prime', monospace;
+            font-family: var(--font-mono);
             font-size: 0.65rem;
             letter-spacing: 0.1em;
-            color: #6B6B6B;
+            color: var(--color-text-muted);
             margin-bottom: 24px;
         }
 
         .section-header {
-            font-family: 'Bebas Neue', sans-serif;
+            font-family: var(--font-display);
             font-size: 0.85rem;
             letter-spacing: 0.2em;
-            color: #6B6B6B;
+            color: var(--color-text-muted);
             border-bottom: 1px solid rgba(0,0,0,0.12);
             padding-bottom: 4px;
             margin-bottom: 10px;
@@ -78,32 +78,32 @@ export const GoalsViewElement = defineElement<{
 
         .file-btn {
             width: 100%;
-            font-family: 'Bebas Neue', sans-serif;
+            font-family: var(--font-display);
             font-size: 0.9rem;
             letter-spacing: 0.15em;
             padding: 10px;
             background: transparent;
             border: 1.5px dashed rgba(0,0,0,0.25);
-            color: #6B6B6B;
+            color: var(--color-text-muted);
             cursor: pointer;
             margin-bottom: 20px;
             text-align: center;
         }
-        .file-btn:hover { border-color: #1B2A4A; color: #1B2A4A; }
+        .file-btn:hover { border-color: var(--color-primary); color: var(--color-primary); }
 
         .empty {
-            font-family: 'Courier Prime', monospace;
+            font-family: var(--font-mono);
             font-size: 0.8rem;
-            color: #6B6B6B;
+            color: var(--color-text-muted);
             text-align: center;
             padding: 24px 0;
         }
 
         /* ── Goal card ── */
         .goal-card {
-            background: #FDFAF5;
+            background: var(--color-card);
             border: 1px solid rgba(0,0,0,0.12);
-            border-left: 4px solid #1B2A4A;
+            border-left: 4px solid var(--color-primary);
             padding: 12px 14px;
             margin-bottom: 10px;
             cursor: pointer;
@@ -116,8 +116,8 @@ export const GoalsViewElement = defineElement<{
             transform: translateY(-1px);
         }
 
-        .goal-card.achieved { border-left-color: #2E7D32; opacity: 0.85; }
-        .goal-card.abandoned { border-left-color: #9E9E9E; opacity: 0.7; }
+        .goal-card.achieved { border-left-color: var(--color-success); opacity: 0.85; }
+        .goal-card.abandoned { border-left-color: var(--color-text-faint); opacity: 0.7; }
 
         .card-top {
             display: flex;
@@ -127,23 +127,23 @@ export const GoalsViewElement = defineElement<{
         }
 
         .goal-title {
-            font-family: 'Special Elite', serif;
+            font-family: var(--font-accent);
             font-size: 1rem;
-            color: #1B2A4A;
+            color: var(--color-primary);
             line-height: 1.3;
             flex: 1;
         }
 
         .card-arrow {
-            font-family: 'Courier Prime', monospace;
+            font-family: var(--font-mono);
             font-size: 1rem;
-            color: rgba(27,42,74,0.35);
+            color: rgba(var(--color-primary-rgb),0.35);
             flex-shrink: 0;
             margin-top: 2px;
         }
 
         .goal-desc {
-            font-family: 'Courier Prime', monospace;
+            font-family: var(--font-mono);
             font-size: 0.75rem;
             color: #555;
             margin-top: 4px;
@@ -155,10 +155,10 @@ export const GoalsViewElement = defineElement<{
         }
 
         .goal-meta {
-            font-family: 'Courier Prime', monospace;
+            font-family: var(--font-mono);
             font-size: 0.63rem;
             letter-spacing: 0.06em;
-            color: #6B6B6B;
+            color: var(--color-text-muted);
             margin-top: 6px;
             display: flex;
             gap: 10px;
@@ -166,36 +166,36 @@ export const GoalsViewElement = defineElement<{
             align-items: center;
         }
 
-        .target-date { color: #B8860B; }
-        .target-date.overdue { color: #C41E3A; }
+        .target-date { color: var(--color-warning); }
+        .target-date.overdue { color: var(--color-danger); }
 
         .status-badge {
-            font-family: 'Bebas Neue', sans-serif;
+            font-family: var(--font-display);
             font-size: 0.65rem;
             letter-spacing: 0.1em;
         }
-        .status-badge.achieved  { color: #2E7D32; }
-        .status-badge.abandoned { color: #9E9E9E; }
+        .status-badge.achieved  { color: var(--color-success); }
+        .status-badge.abandoned { color: var(--color-text-faint); }
 
         .project-badge {
             display: inline-block;
-            font-family: 'Courier Prime', monospace;
+            font-family: var(--font-mono);
             font-size: 0.6rem;
             letter-spacing: 0.08em;
             text-transform: uppercase;
             padding: 1px 5px;
             border: 1px solid rgba(0,0,0,0.15);
-            color: #6B6B6B;
+            color: var(--color-text-muted);
         }
 
         .linked-section { margin-top: 8px; }
 
         .linked-label {
-            font-family: 'Courier Prime', monospace;
+            font-family: var(--font-mono);
             font-size: 0.6rem;
             letter-spacing: 0.1em;
             text-transform: uppercase;
-            color: #6B6B6B;
+            color: var(--color-text-muted);
             margin-bottom: 4px;
         }
 
@@ -206,18 +206,18 @@ export const GoalsViewElement = defineElement<{
         }
 
         .linked-chip {
-            font-family: 'Courier Prime', monospace;
+            font-family: var(--font-mono);
             font-size: 0.7rem;
             padding: 2px 7px;
-            background: rgba(27,42,74,0.07);
-            border: 1px solid rgba(27,42,74,0.15);
-            color: #1B2A4A;
+            background: rgba(var(--color-primary-rgb),0.07);
+            border: 1px solid rgba(var(--color-primary-rgb),0.15);
+            color: var(--color-primary);
         }
 
         .linked-empty {
-            font-family: 'Courier Prime', monospace;
+            font-family: var(--font-mono);
             font-size: 0.7rem;
-            color: #9E9E9E;
+            color: var(--color-text-faint);
             font-style: italic;
         }
 
@@ -229,7 +229,7 @@ export const GoalsViewElement = defineElement<{
         }
 
         .action-btn {
-            font-family: 'Bebas Neue', sans-serif;
+            font-family: var(--font-display);
             letter-spacing: 0.1em;
             font-size: 0.68rem;
             padding: 3px 9px;
@@ -237,12 +237,12 @@ export const GoalsViewElement = defineElement<{
             cursor: pointer;
         }
 
-        .action-achieve    { background: #2E7D32; color: #fff; }
-        .action-achieve:hover  { background: #245826; }
-        .action-abandon    { background: transparent; border: 1px solid #9E9E9E; color: #6B6B6B; }
+        .action-achieve    { background: var(--color-success); color: #fff; }
+        .action-achieve:hover  { background: var(--color-success-dark); }
+        .action-abandon    { background: transparent; border: 1px solid var(--color-text-faint); color: var(--color-text-muted); }
         .action-abandon:hover  { background: rgba(0,0,0,0.05); }
-        .action-reactivate { background: transparent; border: 1px solid #1B2A4A; color: #1B2A4A; }
-        .action-reactivate:hover { background: rgba(27,42,74,0.05); }
+        .action-reactivate { background: transparent; border: 1px solid var(--color-primary); color: var(--color-primary); }
+        .action-reactivate:hover { background: rgba(var(--color-primary-rgb),0.05); }
     `,
 
     render({inputs, dispatch, events}) {

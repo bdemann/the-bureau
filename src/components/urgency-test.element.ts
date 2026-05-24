@@ -20,11 +20,11 @@ export const UrgencyTestElement = defineElement()({
         :host {
             display: block;
             padding: 16px;
-            font-family: 'Courier Prime', 'Courier New', monospace;
-            color: #2C2C2C;
+            font-family: var(--font-mono);
+            color: var(--color-text);
         }
         h1 {
-            font-family: 'Bebas Neue', sans-serif;
+            font-family: var(--font-display);
             letter-spacing: 0.1em;
             font-size: 1.4rem;
             margin: 0 0 4px;
@@ -32,7 +32,7 @@ export const UrgencyTestElement = defineElement()({
         p.lede {
             margin: 0 0 16px;
             font-size: 0.85rem;
-            color: #6B6B6B;
+            color: var(--color-text-muted);
         }
         .legend {
             display: flex;
@@ -65,21 +65,21 @@ export const UrgencyTestElement = defineElement()({
         th.label, td.label {
             text-align: left;
             min-width: 280px;
-            background: #F5EFE0;
-            font-family: 'Special Elite', serif;
+            background: var(--color-surface);
+            font-family: var(--font-accent);
             font-weight: normal;
         }
         td.label small {
             display: block;
-            color: #6B6B6B;
+            color: var(--color-text-muted);
             font-size: 0.6rem;
             margin-top: 2px;
         }
-        th { background: #F5EFE0; font-weight: 700; }
-        th.day-header { font-family: 'Bebas Neue', sans-serif; letter-spacing: 0.05em; }
+        th { background: var(--color-surface); font-weight: 700; }
+        th.day-header { font-family: var(--font-display); letter-spacing: 0.05em; }
 
-        .band-mandatory { background: #C41E3A; color: white; }
-        .band-suggested { background: #E8821A; color: white; }
+        .band-mandatory { background: var(--color-danger); color: white; }
+        .band-suggested { background: var(--color-snooze); color: white; }
         .band-radar     { background: #F5D67A; color: #5A4500; }
         .band-backlog   { background: #E8E2D2; color: #5A5A5A; }
         .band-hidden    { background: #FAFAFA; color: #BBB; }
@@ -108,7 +108,7 @@ export const UrgencyTestElement = defineElement()({
             </div>
 
             ${cases.map(group => html`
-                <h2 style="font-family:'Bebas Neue';margin:24px 0 6px;letter-spacing:0.08em;">
+                <h2 style="font-family:var(--font-display);margin:24px 0 6px;letter-spacing:0.08em;">
                     ${group.title}
                 </h2>
                 <table>

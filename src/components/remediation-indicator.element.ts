@@ -23,7 +23,7 @@ export const RemediationIndicatorElement = defineElement<{
             display: inline-flex;
             align-items: center;
             gap: 4px;
-            font-family: 'Courier Prime', monospace;
+            font-family: var(--font-mono);
             font-size: 0.65rem;
             font-weight: 700;
             letter-spacing: 0.06em;

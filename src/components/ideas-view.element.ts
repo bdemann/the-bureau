@@ -46,23 +46,23 @@ export const IdeasViewElement = defineElement<{
         }
 
         .page-title {
-            font-family: 'Bebas Neue', sans-serif;
+            font-family: var(--font-display);
             font-size: 1.4rem;
             letter-spacing: 0.25em;
-            color: #1B2A4A;
+            color: var(--color-primary);
             margin-bottom: 4px;
         }
 
         .page-subtitle {
-            font-family: 'Courier Prime', monospace;
+            font-family: var(--font-mono);
             font-size: 0.65rem;
             letter-spacing: 0.1em;
-            color: #6B6B6B;
+            color: var(--color-text-muted);
             margin-bottom: 24px;
         }
 
         .btn {
-            font-family: 'Bebas Neue', sans-serif;
+            font-family: var(--font-display);
             letter-spacing: 0.12em;
             font-size: 0.85rem;
             padding: 7px 16px;
@@ -70,40 +70,40 @@ export const IdeasViewElement = defineElement<{
             cursor: pointer;
         }
 
-        .btn-primary   { background: #1B2A4A; color: #F5EFE0; }
-        .btn-primary:hover { background: #243a63; }
-        .btn-ghost     { background: transparent; border: 1px solid rgba(0,0,0,0.2); color: #1B2A4A; }
+        .btn-primary   { background: var(--color-primary); color: var(--color-surface); }
+        .btn-primary:hover { background: var(--color-primary-hover); }
+        .btn-ghost     { background: transparent; border: 1px solid rgba(0,0,0,0.2); color: var(--color-primary); }
         .btn-ghost:hover { background: rgba(0,0,0,0.05); }
-        .btn-danger    { background: #C41E3A; color: #F5EFE0; }
-        .btn-danger:hover { background: #a31830; }
+        .btn-danger    { background: var(--color-danger); color: var(--color-surface); }
+        .btn-danger:hover { background: var(--color-danger-dark); }
 
         .file-btn {
             width: 100%;
-            font-family: 'Bebas Neue', sans-serif;
+            font-family: var(--font-display);
             font-size: 0.9rem;
             letter-spacing: 0.15em;
             padding: 10px;
             background: transparent;
             border: 1.5px dashed rgba(0,0,0,0.25);
-            color: #6B6B6B;
+            color: var(--color-text-muted);
             cursor: pointer;
             margin-bottom: 20px;
             text-align: center;
         }
-        .file-btn:hover { border-color: #1B2A4A; color: #1B2A4A; }
+        .file-btn:hover { border-color: var(--color-primary); color: var(--color-primary); }
 
         .empty {
-            font-family: 'Courier Prime', monospace;
+            font-family: var(--font-mono);
             font-size: 0.8rem;
-            color: #6B6B6B;
+            color: var(--color-text-muted);
             text-align: center;
             padding: 32px 0;
         }
 
         .idea-card {
-            background: #FDFAF5;
+            background: var(--color-card);
             border: 1px solid rgba(0,0,0,0.1);
-            border-left: 3px solid #B8860B;
+            border-left: 3px solid var(--color-warning);
             padding: 12px 14px;
             margin-bottom: 12px;
             cursor: pointer;
@@ -116,14 +116,14 @@ export const IdeasViewElement = defineElement<{
         }
 
         .idea-title {
-            font-family: 'Bebas Neue', sans-serif;
+            font-family: var(--font-display);
             font-size: 1rem;
             letter-spacing: 0.1em;
-            color: #1B2A4A;
+            color: var(--color-primary);
         }
 
         .idea-desc {
-            font-family: 'Courier Prime', monospace;
+            font-family: var(--font-mono);
             font-size: 0.78rem;
             color: #444;
             margin-top: 4px;
@@ -138,16 +138,16 @@ export const IdeasViewElement = defineElement<{
         }
 
         .meta-badge {
-            font-family: 'Courier Prime', monospace;
+            font-family: var(--font-mono);
             font-size: 0.62rem;
             letter-spacing: 0.08em;
             text-transform: uppercase;
             padding: 2px 6px;
             border: 1px solid rgba(0,0,0,0.15);
-            color: #6B6B6B;
+            color: var(--color-text-muted);
         }
 
-        .meta-badge.goal { border-color: #1B2A4A33; color: #1B2A4A; }
+        .meta-badge.goal { border-color: var(--color-primary)33; color: var(--color-primary); }
 
         .idea-actions {
             display: flex;
@@ -157,7 +157,7 @@ export const IdeasViewElement = defineElement<{
         }
 
         .action-btn {
-            font-family: 'Bebas Neue', sans-serif;
+            font-family: var(--font-display);
             letter-spacing: 0.1em;
             font-size: 0.72rem;
             padding: 4px 10px;
@@ -165,17 +165,17 @@ export const IdeasViewElement = defineElement<{
             cursor: pointer;
         }
 
-        .action-promote { background: #1B2A4A; color: #F5EFE0; }
-        .action-promote:hover { background: #243a63; }
-        .action-edit { background: transparent; border: 1px solid rgba(0,0,0,0.2); color: #1B2A4A; }
+        .action-promote { background: var(--color-primary); color: var(--color-surface); }
+        .action-promote:hover { background: var(--color-primary-hover); }
+        .action-edit { background: transparent; border: 1px solid rgba(0,0,0,0.2); color: var(--color-primary); }
         .action-edit:hover { background: rgba(0,0,0,0.05); }
-        .action-delete { background: transparent; border: 1px solid #C41E3A; color: #C41E3A; }
-        .action-delete:hover { background: rgba(196,30,58,0.08); }
+        .action-delete { background: transparent; border: 1px solid var(--color-danger); color: var(--color-danger); }
+        .action-delete:hover { background: rgba(var(--color-danger-rgb),0.08); }
 
         .confirm-delete {
-            font-family: 'Courier Prime', monospace;
+            font-family: var(--font-mono);
             font-size: 0.75rem;
-            color: #C41E3A;
+            color: var(--color-danger);
             margin-top: 8px;
             display: flex;
             align-items: center;

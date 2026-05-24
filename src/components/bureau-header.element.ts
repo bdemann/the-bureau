@@ -33,8 +33,8 @@ export const BureauHeaderElement = defineElement<{
         }
 
         header {
-            background: #1B2A4A;
-            color: #F5EFE0;
+            background: var(--color-primary);
+            color: var(--color-surface);
             padding: 0 16px;
             padding-top: env(safe-area-inset-top, 0px);
             position: relative;
@@ -67,8 +67,8 @@ export const BureauHeaderElement = defineElement<{
         .back-btn {
             background: none;
             border: 1px solid rgba(245, 239, 224, 0.4);
-            color: #F5EFE0;
-            font-family: 'Bebas Neue', sans-serif;
+            color: var(--color-surface);
+            font-family: var(--font-display);
             font-size: 0.75rem;
             letter-spacing: 0.1em;
             padding: 0 12px;
@@ -87,10 +87,10 @@ export const BureauHeaderElement = defineElement<{
         }
 
         .wordmark {
-            font-family: 'Bebas Neue', 'Special Elite', sans-serif;
+            font-family: var(--font-display);
             font-size: 1.5rem;
             letter-spacing: 0.2em;
-            color: #F5EFE0;
+            color: var(--color-surface);
             line-height: 1;
             flex: 1;
             text-align: center;
@@ -98,10 +98,10 @@ export const BureauHeaderElement = defineElement<{
 
         .wordmark .sub {
             display: block;
-            font-family: 'Special Elite', serif;
+            font-family: var(--font-accent);
             font-size: 0.45rem;
             letter-spacing: 0.3em;
-            color: #B8860B;
+            color: var(--color-warning);
             margin-top: 1px;
         }
 
@@ -111,10 +111,10 @@ export const BureauHeaderElement = defineElement<{
         }
 
         .score-number {
-            font-family: 'Bebas Neue', sans-serif;
+            font-family: var(--font-display);
             font-size: 1.3rem;
             line-height: 1;
-            color: var(--score-color, #F5EFE0);
+            color: var(--score-color, var(--color-surface));
         }
 
         .score-label {
@@ -146,12 +146,12 @@ export const BureauHeaderElement = defineElement<{
             display: block;
             width: 20px;
             height: 2px;
-            background: #F5EFE0;
+            background: var(--color-surface);
             transition: background 0.15s;
         }
 
         .hamburger-btn:hover .hamburger-line {
-            background: #B8860B;
+            background: var(--color-warning);
         }
 
         /* ── Slide-in menu panel ── */
@@ -174,8 +174,8 @@ export const BureauHeaderElement = defineElement<{
             right: 0;
             bottom: 0;
             width: 260px;
-            background: #1B2A4A;
-            border-left: 2px solid #B8860B;
+            background: var(--color-primary);
+            border-left: 2px solid var(--color-warning);
             display: flex;
             flex-direction: column;
             overflow-y: auto;
@@ -196,10 +196,10 @@ export const BureauHeaderElement = defineElement<{
         }
 
         .menu-title {
-            font-family: 'Bebas Neue', sans-serif;
+            font-family: var(--font-display);
             font-size: 0.7rem;
             letter-spacing: 0.3em;
-            color: #B8860B;
+            color: var(--color-warning);
         }
 
         .menu-close {
@@ -214,7 +214,7 @@ export const BureauHeaderElement = defineElement<{
         }
 
         .menu-close:hover {
-            color: #F5EFE0;
+            color: var(--color-surface);
         }
 
         .menu-section {
@@ -222,7 +222,7 @@ export const BureauHeaderElement = defineElement<{
         }
 
         .menu-section-label {
-            font-family: 'Courier Prime', monospace;
+            font-family: var(--font-mono);
             font-size: 0.58rem;
             letter-spacing: 0.2em;
             color: rgba(245, 239, 224, 0.35);
@@ -236,8 +236,8 @@ export const BureauHeaderElement = defineElement<{
             background: none;
             border: none;
             border-bottom: 1px solid rgba(245, 239, 224, 0.08);
-            color: #F5EFE0;
-            font-family: 'Bebas Neue', sans-serif;
+            color: var(--color-surface);
+            font-family: var(--font-display);
             font-size: 1.05rem;
             letter-spacing: 0.2em;
             text-align: left;
@@ -247,12 +247,12 @@ export const BureauHeaderElement = defineElement<{
         }
 
         .menu-item:hover {
-            color: #B8860B;
+            color: var(--color-warning);
         }
 
         .menu-item-sub {
             display: block;
-            font-family: 'Courier Prime', monospace;
+            font-family: var(--font-mono);
             font-size: 0.58rem;
             letter-spacing: 0.1em;
             color: rgba(245, 239, 224, 0.4);
@@ -261,9 +261,9 @@ export const BureauHeaderElement = defineElement<{
         }
 
         .menu-copied {
-            font-family: 'Courier Prime', monospace;
+            font-family: var(--font-mono);
             font-size: 0.62rem;
-            color: #B8860B;
+            color: var(--color-warning);
             padding: 4px 0 8px;
             letter-spacing: 0.08em;
         }
@@ -274,12 +274,12 @@ export const BureauHeaderElement = defineElement<{
             font-size: 0.7rem;
             letter-spacing: 0.1em;
             color: rgba(245, 239, 224, 0.55);
-            font-family: 'Courier Prime', monospace;
+            font-family: var(--font-mono);
             position: relative;
         }
 
         .breadcrumb .project-name {
-            color: #B8860B;
+            color: var(--color-warning);
         }
 
         .score-bar {
@@ -290,7 +290,7 @@ export const BureauHeaderElement = defineElement<{
 
         .score-bar-fill {
             height: 100%;
-            background: var(--score-bar-color, #B8860B);
+            background: var(--score-bar-color, var(--color-warning));
             transition: width 0.4s ease;
         }
     `,
@@ -302,8 +302,8 @@ export const BureauHeaderElement = defineElement<{
         const rank = streak === 0 ? 'suspected_communist' : getRank(patriotScore);
         const scoreColor = rankColor(rank);
 
-        let barColor = '#B8860B';
-        if (patriotScore < 40)       { barColor = '#C41E3A'; }
+        let barColor = 'var(--color-warning)';
+        if (patriotScore < 40)       { barColor = 'var(--color-danger)'; }
         else if (patriotScore < 70)  { barColor = '#F5A623'; }
         else if (patriotScore >= 130){ barColor = '#FFD700'; }
 

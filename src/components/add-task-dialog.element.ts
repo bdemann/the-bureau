@@ -164,7 +164,7 @@ export const AddTaskDialogElement = defineElement<{
         .overlay {
             position: fixed;
             inset: 0;
-            background: rgba(27, 42, 74, 0.65);
+            background: rgba(var(--color-primary-rgb), 0.65);
             z-index: 400;
             display: flex;
             align-items: flex-end;
@@ -180,10 +180,10 @@ export const AddTaskDialogElement = defineElement<{
         :host *, :host *::before, :host *::after { box-sizing: border-box; }
 
         .sheet {
-            background: #F5EFE0;
+            background: var(--color-surface);
             width: 100%;
             max-width: 600px;
-            border-top: 4px solid #C41E3A;
+            border-top: 4px solid var(--color-danger);
             padding: 20px 20px 32px;
             padding-bottom: max(32px, env(safe-area-inset-bottom, 0px));
             animation: sheet-in 0.2s ease-out;
@@ -199,10 +199,10 @@ export const AddTaskDialogElement = defineElement<{
         }
 
         .sheet-title {
-            font-family: 'Bebas Neue', sans-serif;
+            font-family: var(--font-display);
             font-size: 1.1rem;
             letter-spacing: 0.2em;
-            color: #1B2A4A;
+            color: var(--color-primary);
             border-bottom: 1px solid rgba(0,0,0,0.15);
             padding-bottom: 8px;
             margin-bottom: 16px;
@@ -217,9 +217,9 @@ export const AddTaskDialogElement = defineElement<{
             font-size: 0.65rem;
             letter-spacing: 0.12em;
             text-transform: uppercase;
-            color: #6B6B6B;
+            color: var(--color-text-muted);
             margin-bottom: 4px;
-            font-family: 'Courier Prime', monospace;
+            font-family: var(--font-mono);
         }
 
         /* Vira inputs are inline-flex by default; expand them to full width inside our sheet */
@@ -230,17 +230,17 @@ export const AddTaskDialogElement = defineElement<{
         /* Native date input — Vira doesn't ship a date picker. */
         input[type="date"] {
             width: 100%;
-            background: #FFFDF7;
+            background: var(--color-input-bg);
             border: 1px solid rgba(0,0,0,0.25);
             padding: 8px 10px;
-            font-family: 'Courier Prime', 'Courier New', monospace;
+            font-family: var(--font-mono);
             font-size: 0.9rem;
-            color: #2C2C2C;
+            color: var(--color-text);
             border-radius: 1px;
             outline: none;
             transition: border-color 0.15s;
         }
-        input[type="date"]:focus { border-color: #1B2A4A; }
+        input[type="date"]:focus { border-color: var(--color-primary); }
 
         /* All pill/toggle/grid button groups get a 44px minimum touch height */
         .tier-grid ${ViraButton},
@@ -277,8 +277,8 @@ export const AddTaskDialogElement = defineElement<{
         .tier-help {
             margin-top: 6px;
             font-size: 0.72rem;
-            color: #6B6B6B;
-            font-family: 'Courier Prime', monospace;
+            color: var(--color-text-muted);
+            font-family: var(--font-mono);
             min-height: 1.1em;
         }
 
@@ -296,9 +296,9 @@ export const AddTaskDialogElement = defineElement<{
             margin-bottom: 14px;
         }
         .recurring-row label {
-            font-family: 'Courier Prime', monospace;
+            font-family: var(--font-mono);
             font-size: 0.85rem;
-            color: #2C2C2C;
+            color: var(--color-text);
             cursor: pointer;
             user-select: none;
         }
@@ -352,8 +352,8 @@ export const AddTaskDialogElement = defineElement<{
         .anchor-summary {
             margin-top: 6px;
             font-size: 0.72rem;
-            color: #6B6B6B;
-            font-family: 'Courier Prime', monospace;
+            color: var(--color-text-muted);
+            font-family: var(--font-mono);
         }
 
         .end-condition-section {
@@ -372,36 +372,36 @@ export const AddTaskDialogElement = defineElement<{
 
         .operation-select {
             width: 100%;
-            font-family: 'Special Elite', serif;
+            font-family: var(--font-accent);
             font-size: 0.9rem;
-            background: #FDFAF5;
+            background: var(--color-card);
             border: 1px solid rgba(0,0,0,0.2);
             padding: 8px 10px;
-            color: #2C2C2C;
+            color: var(--color-text);
             appearance: none;
             cursor: pointer;
             box-sizing: border-box;
         }
-        .operation-select:focus { outline: none; border-color: #1B2A4A; }
+        .operation-select:focus { outline: none; border-color: var(--color-primary); }
 
         .delete-section {
-            border-top: 1px solid rgba(196,30,58,0.2);
+            border-top: 1px solid rgba(var(--color-danger-rgb),0.2);
             margin-top: 20px;
             padding-top: 14px;
         }
 
         .task-delete-btn {
             background: none;
-            border: 1px solid #C41E3A;
-            color: #C41E3A;
-            font-family: 'Bebas Neue', sans-serif;
+            border: 1px solid var(--color-danger);
+            color: var(--color-danger);
+            font-family: var(--font-display);
             font-size: 0.8rem;
             letter-spacing: 0.2em;
             padding: 6px 14px;
             cursor: pointer;
             transition: background 0.15s, color 0.15s;
         }
-        .task-delete-btn:hover { background: #C41E3A; color: #F5EFE0; }
+        .task-delete-btn:hover { background: var(--color-danger); color: var(--color-surface); }
 
         .delete-confirm-row {
             display: flex;
@@ -411,29 +411,29 @@ export const AddTaskDialogElement = defineElement<{
         }
 
         .delete-confirm-label {
-            font-family: 'Courier Prime', monospace;
+            font-family: var(--font-mono);
             font-size: 0.78rem;
-            color: #8B0000;
+            color: var(--color-danger-dark);
             flex: 1;
         }
 
         .delete-confirm-yes {
-            background: #C41E3A;
+            background: var(--color-danger);
             border: none;
-            color: #F5EFE0;
-            font-family: 'Bebas Neue', sans-serif;
+            color: var(--color-surface);
+            font-family: var(--font-display);
             font-size: 0.8rem;
             letter-spacing: 0.15em;
             padding: 6px 14px;
             cursor: pointer;
         }
-        .delete-confirm-yes:hover { background: #8B0000; }
+        .delete-confirm-yes:hover { background: var(--color-danger-dark); }
 
         .delete-confirm-no {
             background: none;
-            border: 1px solid #6B6B6B;
-            color: #6B6B6B;
-            font-family: 'Bebas Neue', sans-serif;
+            border: 1px solid var(--color-text-muted);
+            color: var(--color-text-muted);
+            font-family: var(--font-display);
             font-size: 0.8rem;
             letter-spacing: 0.15em;
             padding: 6px 14px;
@@ -443,10 +443,10 @@ export const AddTaskDialogElement = defineElement<{
 
         .kind-switch-warning {
             background: #FFF5E6;
-            border: 1px solid #B8860B;
+            border: 1px solid var(--color-warning);
             padding: 12px 14px;
             margin-bottom: 14px;
-            font-family: 'Courier Prime', monospace;
+            font-family: var(--font-mono);
             font-size: 0.8rem;
             color: #7A5C00;
         }
@@ -456,10 +456,10 @@ export const AddTaskDialogElement = defineElement<{
             gap: 8px;
         }
         .kind-switch-proceed {
-            background: #B8860B;
+            background: var(--color-warning);
             border: none;
             color: #fff;
-            font-family: 'Bebas Neue', sans-serif;
+            font-family: var(--font-display);
             font-size: 0.8rem;
             letter-spacing: 0.15em;
             padding: 6px 14px;
@@ -468,9 +468,9 @@ export const AddTaskDialogElement = defineElement<{
         .kind-switch-proceed:hover { background: #8B6600; }
         .kind-switch-cancel {
             background: none;
-            border: 1px solid #B8860B;
+            border: 1px solid var(--color-warning);
             color: #7A5C00;
-            font-family: 'Bebas Neue', sans-serif;
+            font-family: var(--font-display);
             font-size: 0.8rem;
             letter-spacing: 0.15em;
             padding: 6px 14px;

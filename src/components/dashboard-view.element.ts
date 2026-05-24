@@ -37,20 +37,20 @@ export const DashboardViewElement = defineElement<{
 
         .intel-banner {
             margin: 14px 0 0;
-            background: #1B2A4A;
-            color: #F5EFE0;
+            background: var(--color-primary);
+            color: var(--color-surface);
             padding: 10px 14px;
-            font-family: 'Courier Prime', monospace;
+            font-family: var(--font-mono);
             font-size: 0.75rem;
             line-height: 1.5;
-            border-left: 4px solid #B8860B;
+            border-left: 4px solid var(--color-warning);
         }
 
         .intel-banner .intel-title {
-            font-family: 'Bebas Neue', sans-serif;
+            font-family: var(--font-display);
             font-size: 0.7rem;
             letter-spacing: 0.2em;
-            color: #B8860B;
+            color: var(--color-warning);
             margin-bottom: 3px;
         }
 
@@ -68,10 +68,10 @@ export const DashboardViewElement = defineElement<{
         }
 
         .section-heading {
-            font-family: 'Bebas Neue', sans-serif;
+            font-family: var(--font-display);
             font-size: 0.75rem;
             letter-spacing: 0.25em;
-            color: #6B6B6B;
+            color: var(--color-text-muted);
             margin: 20px 0 10px 2px;
             display: flex;
             align-items: center;
@@ -94,15 +94,15 @@ export const DashboardViewElement = defineElement<{
         .empty-state {
             text-align: center;
             padding: 60px 20px 40px;
-            font-family: 'Special Elite', serif;
+            font-family: var(--font-accent);
         }
 
         .empty-state .stamp-text {
-            font-family: 'Bebas Neue', sans-serif;
+            font-family: var(--font-display);
             font-size: 2rem;
             letter-spacing: 0.3em;
-            color: rgba(196, 30, 58, 0.15);
-            border: 4px solid rgba(196, 30, 58, 0.1);
+            color: rgba(var(--color-danger-rgb), 0.15);
+            border: 4px solid rgba(var(--color-danger-rgb), 0.1);
             display: inline-block;
             padding: 8px 24px;
             margin-bottom: 16px;
@@ -111,7 +111,7 @@ export const DashboardViewElement = defineElement<{
 
         .empty-state p {
             font-size: 0.9rem;
-            color: #6B6B6B;
+            color: var(--color-text-muted);
             line-height: 1.6;
             margin-bottom: 8px;
         }
@@ -125,17 +125,17 @@ export const DashboardViewElement = defineElement<{
             margin-top: 14px;
             padding: 14px;
             background: none;
-            color: #1B2A4A;
-            border: 2px dashed rgba(27, 42, 74, 0.3);
-            font-family: 'Bebas Neue', sans-serif;
+            color: var(--color-primary);
+            border: 2px dashed rgba(var(--color-primary-rgb), 0.3);
+            font-family: var(--font-display);
             font-size: 0.9rem;
             letter-spacing: 0.2em;
             cursor: pointer;
             transition: background 0.15s, border-color 0.15s;
         }
         .add-btn:hover {
-            background: rgba(27, 42, 74, 0.05);
-            border-color: rgba(27, 42, 74, 0.6);
+            background: rgba(var(--color-primary-rgb), 0.05);
+            border-color: rgba(var(--color-primary-rgb), 0.6);
         }
 
         .card-drag-wrapper { position: relative; }
@@ -144,11 +144,11 @@ export const DashboardViewElement = defineElement<{
             content: '';
             display: block;
             height: 2px;
-            background: #1B2A4A;
+            background: var(--color-primary);
             margin-bottom: 2px;
         }
         .drop-zone-end { height: 20px; }
-        .drop-zone-end.is-drag-over { border-top: 2px solid #1B2A4A; }
+        .drop-zone-end.is-drag-over { border-top: 2px solid var(--color-primary); }
     `,
 
     render({inputs, state, updateState, dispatch, events}) {

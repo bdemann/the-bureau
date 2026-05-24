@@ -40,8 +40,8 @@ export const TaskItemElement = defineElement<{
         }
 
         .task-card {
-            background: #FDFAF5;
-            border-left: 4px solid #2C2C2C;
+            background: var(--color-card);
+            border-left: 4px solid var(--color-text);
             border-bottom: 1px solid rgba(0,0,0,0.12);
             padding: 12px 14px;
             position: relative;
@@ -51,9 +51,9 @@ export const TaskItemElement = defineElement<{
         }
 
         /* Tier border colours (replaces priority colours). */
-        .task-card.tier-1 { border-left-color: #C41E3A; } /* hard consequence — red */
-        .task-card.tier-2 { border-left-color: #E8821A; } /* soft consequence — orange */
-        .task-card.tier-3 { border-left-color: #B8860B; } /* quality — gold */
+        .task-card.tier-1 { border-left-color: var(--color-danger); } /* hard consequence — red */
+        .task-card.tier-2 { border-left-color: var(--color-snooze); } /* soft consequence — orange */
+        .task-card.tier-3 { border-left-color: var(--color-warning); } /* quality — gold */
         .task-card.tier-4 { border-left-color: #6B9E6E; } /* aspirational — green */
 
         /* Snooze degradation — the card looks increasingly worn */
@@ -72,7 +72,7 @@ export const TaskItemElement = defineElement<{
             top: 50%;
             right: -10px;
             transform: translateY(-50%) rotate(90deg);
-            font-family: 'Bebas Neue', sans-serif;
+            font-family: var(--font-display);
             font-size: 0.6rem;
             letter-spacing: 0.25em;
             color: rgba(139, 0, 0, 0.18);
@@ -81,10 +81,10 @@ export const TaskItemElement = defineElement<{
         }
 
         .project-tag {
-            font-family: 'Bebas Neue', sans-serif;
+            font-family: var(--font-display);
             font-size: 0.6rem;
             letter-spacing: 0.18em;
-            color: #6B6B6B;
+            color: var(--color-text-muted);
             margin-bottom: 4px;
         }
 
@@ -98,7 +98,7 @@ export const TaskItemElement = defineElement<{
             flex-shrink: 0;
             width: 44px;
             height: 44px;
-            border: 2px solid #6B6B6B;
+            border: 2px solid var(--color-text-muted);
             background: none;
             cursor: pointer;
             border-radius: 4px;
@@ -107,7 +107,7 @@ export const TaskItemElement = defineElement<{
             display: flex;
             align-items: center;
             justify-content: center;
-            font-family: 'Special Elite', serif;
+            font-family: var(--font-accent);
             font-size: 1.1rem;
             color: transparent;
             line-height: 1;
@@ -115,18 +115,18 @@ export const TaskItemElement = defineElement<{
         }
         @media (hover: hover) {
             .complete-checkbox:hover {
-                border-color: #1B2A4A;
-                background: rgba(27, 42, 74, 0.05);
-                color: #1B2A4A;
+                border-color: var(--color-primary);
+                background: rgba(var(--color-primary-rgb), 0.05);
+                color: var(--color-primary);
             }
         }
 
         .task-title {
             flex: 1;
-            font-family: 'Special Elite', serif;
+            font-family: var(--font-accent);
             font-size: 0.9rem;
             line-height: 1.4;
-            color: #2C2C2C;
+            color: var(--color-text);
         }
 
         .task-card.snooze-critical .task-title { color: #5A0000; }
@@ -145,13 +145,13 @@ export const TaskItemElement = defineElement<{
         .tier-pip {
             flex-shrink: 0;
             font-size: 0.62rem;
-            font-family: 'Bebas Neue', sans-serif;
+            font-family: var(--font-display);
             letter-spacing: 0.1em;
             padding: 2px 6px;
             border-radius: 1px;
             margin-top: 2px;
         }
-        .tier-pip.t-1 { background: #FFCCCC; color: #8B0000; }
+        .tier-pip.t-1 { background: #FFCCCC; color: var(--color-danger-dark); }
         .tier-pip.t-2 { background: #FDDAC4; color: #7A3000; }
         .tier-pip.t-3 { background: #FAEBC8; color: #6B4A00; }
         .tier-pip.t-4 { background: #D8EDD8; color: #2E5E2E; }
@@ -169,27 +169,27 @@ export const TaskItemElement = defineElement<{
             padding-left: 54px;  /* 44px checkbox + 10px gap */
             margin-top: 4px;
             font-size: 0.78rem;
-            color: #6B6B6B;
+            color: var(--color-text-muted);
             line-height: 1.45;
         }
 
         .meta-chip {
             font-size: 0.68rem;
-            color: #6B6B6B;
-            font-family: 'Courier Prime', monospace;
+            color: var(--color-text-muted);
+            font-family: var(--font-mono);
         }
         .meta-chip.overdue {
-            color: #C41E3A;
+            color: var(--color-danger);
             font-weight: 700;
         }
 
         .progress-chip {
             font-size: 0.7rem;
-            font-family: 'Bebas Neue', sans-serif;
+            font-family: var(--font-display);
             letter-spacing: 0.1em;
             padding: 1px 6px;
-            background: #1B2A4A;
-            color: #F5EFE0;
+            background: var(--color-primary);
+            color: var(--color-surface);
             border-radius: 1px;
         }
 
@@ -204,34 +204,34 @@ export const TaskItemElement = defineElement<{
 
         .snoozed-until {
             font-size: 0.68rem;
-            color: #6B6B6B;
+            color: var(--color-text-muted);
             font-style: italic;
         }
 
         .progress-log-chip {
             font-size: 0.68rem;
-            font-family: 'Courier Prime', monospace;
+            font-family: var(--font-mono);
             color: #4A6741;
         }
 
         .kind-chip {
             font-size: 0.6rem;
-            font-family: 'Bebas Neue', sans-serif;
+            font-family: var(--font-display);
             letter-spacing: 0.15em;
             padding: 1px 5px;
             border-radius: 1px;
-            background: rgba(27, 42, 74, 0.08);
-            color: #1B2A4A;
-            border: 1px solid rgba(27, 42, 74, 0.2);
+            background: rgba(var(--color-primary-rgb), 0.08);
+            color: var(--color-primary);
+            border: 1px solid rgba(var(--color-primary-rgb), 0.2);
         }
 
         .milestone-complete-btn {
-            font-family: 'Bebas Neue', sans-serif;
+            font-family: var(--font-display);
             font-size: 0.72rem;
             letter-spacing: 0.12em;
             background: none;
-            border: 1px solid #1B2A4A;
-            color: #1B2A4A;
+            border: 1px solid var(--color-primary);
+            color: var(--color-primary);
             padding: 3px 10px;
             cursor: pointer;
             transition: background 0.15s, color 0.15s;
@@ -239,8 +239,8 @@ export const TaskItemElement = defineElement<{
 
         @media (hover: hover) {
             .milestone-complete-btn:hover {
-                background: #1B2A4A;
-                color: #F5EFE0;
+                background: var(--color-primary);
+                color: var(--color-surface);
             }
         }
 
@@ -248,7 +248,7 @@ export const TaskItemElement = defineElement<{
             display: flex;
             align-items: center;
             gap: 8px;
-            font-family: 'Special Elite', serif;
+            font-family: var(--font-accent);
             font-size: 0.75rem;
             color: #4A4A4A;
         }

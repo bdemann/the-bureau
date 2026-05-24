@@ -47,7 +47,7 @@ export const BureauBottomNavElement = defineElement<{
         nav {
             max-width: 640px;
             margin: 0 auto;
-            background: #1B2A4A;
+            background: var(--color-primary);
             border-top: 2px solid rgba(184, 134, 11, 0.5);
             display: flex;
             align-items: stretch;
@@ -86,7 +86,7 @@ export const BureauBottomNavElement = defineElement<{
         }
 
         .tab.active {
-            color: #B8860B;
+            color: var(--color-warning);
         }
 
         /* Amber indicator bar at the top of the active tab */
@@ -97,7 +97,7 @@ export const BureauBottomNavElement = defineElement<{
             left: 20%;
             right: 20%;
             height: 2px;
-            background: #B8860B;
+            background: var(--color-warning);
         }
 
         .tab-icon {
@@ -106,7 +106,7 @@ export const BureauBottomNavElement = defineElement<{
         }
 
         .tab-label {
-            font-family: 'Bebas Neue', sans-serif;
+            font-family: var(--font-display);
             font-size: 0.68rem;
             letter-spacing: 0.15em;
             line-height: 1;

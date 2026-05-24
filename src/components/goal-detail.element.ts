@@ -55,26 +55,26 @@ export const GoalDetailElement = defineElement<{
         }
 
         .goal-header {
-            background: #FDFAF5;
+            background: var(--color-card);
             border: 1px solid rgba(0,0,0,0.12);
-            border-left: 4px solid #1B2A4A;
+            border-left: 4px solid var(--color-primary);
             padding: 14px 16px;
             margin-bottom: 16px;
         }
 
-        .goal-header.achieved { border-left-color: #2E7D32; }
-        .goal-header.abandoned { border-left-color: #9E9E9E; opacity: 0.85; }
+        .goal-header.achieved { border-left-color: var(--color-success); }
+        .goal-header.abandoned { border-left-color: var(--color-text-faint); opacity: 0.85; }
 
         .goal-title {
-            font-family: 'Special Elite', serif;
+            font-family: var(--font-accent);
             font-size: 1.15rem;
-            color: #1B2A4A;
+            color: var(--color-primary);
             margin-bottom: 6px;
             line-height: 1.35;
         }
 
         .goal-desc {
-            font-family: 'Courier Prime', monospace;
+            font-family: var(--font-mono);
             font-size: 0.8rem;
             color: #444;
             margin-bottom: 8px;
@@ -88,31 +88,31 @@ export const GoalDetailElement = defineElement<{
             flex-wrap: wrap;
             align-items: center;
             margin-bottom: 10px;
-            font-family: 'Courier Prime', monospace;
+            font-family: var(--font-mono);
             font-size: 0.65rem;
             letter-spacing: 0.06em;
-            color: #6B6B6B;
+            color: var(--color-text-muted);
         }
 
-        .target-date { color: #B8860B; }
-        .target-date.overdue { color: #C41E3A; }
+        .target-date { color: var(--color-warning); }
+        .target-date.overdue { color: var(--color-danger); }
 
         .status-badge {
-            font-family: 'Bebas Neue', sans-serif;
+            font-family: var(--font-display);
             font-size: 0.72rem;
             letter-spacing: 0.12em;
             padding: 2px 7px;
         }
-        .status-badge.achieved  { background: #2E7D32; color: #fff; }
-        .status-badge.abandoned { background: #9E9E9E; color: #fff; }
+        .status-badge.achieved  { background: var(--color-success); color: #fff; }
+        .status-badge.abandoned { background: var(--color-text-faint); color: #fff; }
 
         .project-badge {
-            font-family: 'Courier Prime', monospace;
+            font-family: var(--font-mono);
             font-size: 0.62rem;
             letter-spacing: 0.08em;
             padding: 2px 6px;
             border: 1px solid rgba(0,0,0,0.15);
-            color: #6B6B6B;
+            color: var(--color-text-muted);
         }
 
         .goal-actions {
@@ -122,7 +122,7 @@ export const GoalDetailElement = defineElement<{
         }
 
         .action-btn {
-            font-family: 'Bebas Neue', sans-serif;
+            font-family: var(--font-display);
             letter-spacing: 0.1em;
             font-size: 0.72rem;
             padding: 4px 10px;
@@ -130,19 +130,19 @@ export const GoalDetailElement = defineElement<{
             cursor: pointer;
         }
 
-        .action-achieve    { background: #2E7D32; color: #fff; }
-        .action-achieve:hover  { background: #245826; }
-        .action-abandon    { background: transparent; border: 1px solid #9E9E9E; color: #6B6B6B; }
+        .action-achieve    { background: var(--color-success); color: #fff; }
+        .action-achieve:hover  { background: var(--color-success-dark); }
+        .action-abandon    { background: transparent; border: 1px solid var(--color-text-faint); color: var(--color-text-muted); }
         .action-abandon:hover  { background: rgba(0,0,0,0.05); }
-        .action-reactivate { background: transparent; border: 1px solid #1B2A4A; color: #1B2A4A; }
-        .action-reactivate:hover { background: rgba(27,42,74,0.05); }
-        .action-edit       { background: transparent; border: 1px solid rgba(0,0,0,0.2); color: #1B2A4A; }
+        .action-reactivate { background: transparent; border: 1px solid var(--color-primary); color: var(--color-primary); }
+        .action-reactivate:hover { background: rgba(var(--color-primary-rgb),0.05); }
+        .action-edit       { background: transparent; border: 1px solid rgba(0,0,0,0.2); color: var(--color-primary); }
         .action-edit:hover { background: rgba(0,0,0,0.05); }
-        .action-link       { background: transparent; border: 1px solid #B8860B; color: #B8860B; }
+        .action-link       { background: transparent; border: 1px solid var(--color-warning); color: var(--color-warning); }
         .action-link:hover { background: rgba(184,134,11,0.07); }
 
         .btn {
-            font-family: 'Bebas Neue', sans-serif;
+            font-family: var(--font-display);
             letter-spacing: 0.12em;
             font-size: 0.85rem;
             padding: 7px 16px;
@@ -150,18 +150,18 @@ export const GoalDetailElement = defineElement<{
             cursor: pointer;
         }
 
-        .btn-primary { background: #1B2A4A; color: #F5EFE0; }
-        .btn-primary:hover { background: #243a63; }
-        .btn-ghost   { background: transparent; border: 1px solid rgba(0,0,0,0.2); color: #1B2A4A; }
+        .btn-primary { background: var(--color-primary); color: var(--color-surface); }
+        .btn-primary:hover { background: var(--color-primary-hover); }
+        .btn-ghost   { background: transparent; border: 1px solid rgba(0,0,0,0.2); color: var(--color-primary); }
         .btn-ghost:hover { background: rgba(0,0,0,0.05); }
-        .btn-danger  { background: #C41E3A; color: #F5EFE0; }
-        .btn-danger:hover { background: #a31830; }
+        .btn-danger  { background: var(--color-danger); color: var(--color-surface); }
+        .btn-danger:hover { background: var(--color-danger-dark); }
 
         .section-label {
-            font-family: 'Bebas Neue', sans-serif;
+            font-family: var(--font-display);
             font-size: 0.7rem;
             letter-spacing: 0.2em;
-            color: #6B6B6B;
+            color: var(--color-text-muted);
             padding: 16px 2px 6px;
             border-bottom: 1px solid rgba(0,0,0,0.1);
             margin-bottom: 2px;
@@ -187,22 +187,22 @@ export const GoalDetailElement = defineElement<{
         .unlink-task-btn {
             background: none;
             border: none;
-            font-family: 'Courier Prime', monospace;
+            font-family: var(--font-mono);
             font-size: 0.65rem;
             letter-spacing: 0.08em;
-            color: #9E9E9E;
+            color: var(--color-text-faint);
             cursor: pointer;
             padding: 0;
             text-decoration: underline;
             text-underline-offset: 2px;
         }
-        .unlink-task-btn:hover { color: #C41E3A; }
+        .unlink-task-btn:hover { color: var(--color-danger); }
 
         .empty-state {
             text-align: center;
             padding: 32px 20px;
-            color: #6B6B6B;
-            font-family: 'Special Elite', serif;
+            color: var(--color-text-muted);
+            font-family: var(--font-accent);
             font-size: 0.9rem;
         }
 
@@ -213,23 +213,23 @@ export const GoalDetailElement = defineElement<{
             width: 100%;
             margin: 14px 0 0;
             padding: 12px;
-            background: #1B2A4A;
-            color: #F5EFE0;
+            background: var(--color-primary);
+            color: var(--color-surface);
             border: none;
-            font-family: 'Bebas Neue', sans-serif;
+            font-family: var(--font-display);
             font-size: 0.9rem;
             letter-spacing: 0.2em;
             cursor: pointer;
             transition: background 0.15s;
         }
-        .add-btn:hover { background: #2A3F6F; }
+        .add-btn:hover { background: var(--color-primary-hover); }
 
         .toggle-completed {
             background: none;
             border: none;
-            font-family: 'Courier Prime', monospace;
+            font-family: var(--font-mono);
             font-size: 0.72rem;
-            color: #6B6B6B;
+            color: var(--color-text-muted);
             cursor: pointer;
             padding: 4px 2px;
             text-decoration: underline;
@@ -251,7 +251,7 @@ export const GoalDetailElement = defineElement<{
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%) rotate(-5deg);
-            font-family: 'Bebas Neue', sans-serif;
+            font-family: var(--font-display);
             font-size: 1.1rem;
             letter-spacing: 0.3em;
             color: rgba(46, 94, 46, 0.3);
@@ -280,8 +280,8 @@ export const GoalDetailElement = defineElement<{
         .picker-panel {
             width: 100%;
             max-height: 70vh;
-            background: #FDFAF5;
-            border-top: 3px solid #B8860B;
+            background: var(--color-card);
+            border-top: 3px solid var(--color-warning);
             display: flex;
             flex-direction: column;
             animation: panel-up 0.2s ease-out;
@@ -302,10 +302,10 @@ export const GoalDetailElement = defineElement<{
         }
 
         .picker-title {
-            font-family: 'Bebas Neue', sans-serif;
+            font-family: var(--font-display);
             font-size: 0.9rem;
             letter-spacing: 0.2em;
-            color: #1B2A4A;
+            color: var(--color-primary);
         }
 
         .picker-close {
@@ -313,11 +313,11 @@ export const GoalDetailElement = defineElement<{
             border: none;
             font-size: 1.3rem;
             line-height: 1;
-            color: #6B6B6B;
+            color: var(--color-text-muted);
             cursor: pointer;
             padding: 0 2px;
         }
-        .picker-close:hover { color: #1B2A4A; }
+        .picker-close:hover { color: var(--color-primary); }
 
         .picker-search {
             padding: 10px 16px;
@@ -330,9 +330,9 @@ export const GoalDetailElement = defineElement<{
             border: 1px solid rgba(0,0,0,0.18);
             background: #fff;
             padding: 8px 10px;
-            font-family: 'Courier Prime', monospace;
+            font-family: var(--font-mono);
             font-size: 0.88rem;
-            color: #1B2A4A;
+            color: var(--color-primary);
             box-sizing: border-box;
         }
 
@@ -350,12 +350,12 @@ export const GoalDetailElement = defineElement<{
             border-bottom: 1px solid rgba(0,0,0,0.06);
             transition: background 0.1s;
         }
-        .picker-item:hover { background: rgba(27,42,74,0.05); }
+        .picker-item:hover { background: rgba(var(--color-primary-rgb),0.05); }
 
         .picker-item-title {
-            font-family: 'Special Elite', serif;
+            font-family: var(--font-accent);
             font-size: 0.9rem;
-            color: #1B2A4A;
+            color: var(--color-primary);
         }
 
         .picker-item-meta {
@@ -366,21 +366,21 @@ export const GoalDetailElement = defineElement<{
         }
 
         .picker-badge {
-            font-family: 'Courier Prime', monospace;
+            font-family: var(--font-mono);
             font-size: 0.6rem;
             letter-spacing: 0.08em;
             text-transform: uppercase;
             padding: 1px 5px;
             border: 1px solid rgba(0,0,0,0.15);
-            color: #6B6B6B;
+            color: var(--color-text-muted);
         }
 
-        .picker-badge.kind-routine { border-color: rgba(27,42,74,0.25); color: #1B2A4A; }
+        .picker-badge.kind-routine { border-color: rgba(var(--color-primary-rgb),0.25); color: var(--color-primary); }
 
         .picker-empty {
-            font-family: 'Courier Prime', monospace;
+            font-family: var(--font-mono);
             font-size: 0.8rem;
-            color: #9E9E9E;
+            color: var(--color-text-faint);
             text-align: center;
             padding: 24px 16px;
         }
@@ -393,15 +393,15 @@ export const GoalDetailElement = defineElement<{
 
         .delete-btn {
             background: none;
-            border: 1px solid #C41E3A;
-            color: #C41E3A;
-            font-family: 'Bebas Neue', sans-serif;
+            border: 1px solid var(--color-danger);
+            color: var(--color-danger);
+            font-family: var(--font-display);
             font-size: 0.85rem;
             letter-spacing: 0.2em;
             padding: 8px 16px;
             cursor: pointer;
         }
-        .delete-btn:hover { background: #C41E3A; color: #F5EFE0; }
+        .delete-btn:hover { background: var(--color-danger); color: var(--color-surface); }
 
         .confirm-delete {
             display: flex;
@@ -409,13 +409,13 @@ export const GoalDetailElement = defineElement<{
             gap: 8px;
             padding: 12px;
             background: #FFF5F5;
-            border: 1px solid #C41E3A;
+            border: 1px solid var(--color-danger);
         }
 
         .confirm-delete p {
-            font-family: 'Courier Prime', monospace;
+            font-family: var(--font-mono);
             font-size: 0.8rem;
-            color: #8B0000;
+            color: var(--color-danger-dark);
             margin: 0;
         }
 
@@ -425,22 +425,22 @@ export const GoalDetailElement = defineElement<{
         }
 
         .confirm-yes {
-            background: #C41E3A;
+            background: var(--color-danger);
             border: none;
-            color: #F5EFE0;
-            font-family: 'Bebas Neue', sans-serif;
+            color: var(--color-surface);
+            font-family: var(--font-display);
             font-size: 0.85rem;
             letter-spacing: 0.15em;
             padding: 8px 16px;
             cursor: pointer;
         }
-        .confirm-yes:hover { background: #8B0000; }
+        .confirm-yes:hover { background: var(--color-danger-dark); }
 
         .confirm-no {
             background: none;
-            border: 1px solid #6B6B6B;
-            color: #6B6B6B;
-            font-family: 'Bebas Neue', sans-serif;
+            border: 1px solid var(--color-text-muted);
+            color: var(--color-text-muted);
+            font-family: var(--font-display);
             font-size: 0.85rem;
             letter-spacing: 0.15em;
             padding: 8px 16px;
@@ -761,7 +761,7 @@ export const GoalDetailElement = defineElement<{
                             ${isActive
                                 ? html`<button
                                         class="delete-btn"
-                                        style="border-color:#9E9E9E;color:#6B6B6B;"
+                                        style="border-color:var(--color-text-faint);color:var(--color-text-muted);"
                                         @click=${() => setStatus('abandoned')}
                                     >ABANDON OBJECTIVE</button>`
                                 : html``}

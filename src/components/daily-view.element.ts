@@ -91,9 +91,9 @@ export const DailyViewElement = defineElement<{
             min-height: 44px;
             border-bottom: 1px solid rgba(0,0,0,0.15);
         }
-        .band-header.mandatory  { border-bottom-color: #C41E3A; }
-        .band-header.suggested  { border-bottom-color: #E8821A; }
-        .band-header.radar      { border-bottom-color: #B8860B; }
+        .band-header.mandatory  { border-bottom-color: var(--color-danger); }
+        .band-header.suggested  { border-bottom-color: var(--color-snooze); }
+        .band-header.radar      { border-bottom-color: var(--color-warning); }
         .band-header.backlog    { border-bottom-color: rgba(0,0,0,0.2); }
 
         .band-header.collapsible {
@@ -112,31 +112,31 @@ export const DailyViewElement = defineElement<{
         }
 
         .band-title {
-            font-family: 'Bebas Neue', sans-serif;
+            font-family: var(--font-display);
             font-size: 1rem;
             letter-spacing: 0.18em;
-            color: #1B2A4A;
+            color: var(--color-primary);
         }
-        .band-header.mandatory .band-title { color: #C41E3A; }
+        .band-header.mandatory .band-title { color: var(--color-danger); }
         .band-header.suggested .band-title { color: #7A3000; }
 
         .band-subtitle {
-            font-family: 'Courier Prime', monospace;
+            font-family: var(--font-mono);
             font-size: 0.7rem;
-            color: #6B6B6B;
+            color: var(--color-text-muted);
             letter-spacing: 0.05em;
         }
 
         .band-count {
-            font-family: 'Courier Prime', monospace;
+            font-family: var(--font-mono);
             font-size: 0.7rem;
-            color: #6B6B6B;
+            color: var(--color-text-muted);
         }
 
         .band-empty {
-            font-family: 'Special Elite', serif;
+            font-family: var(--font-accent);
             font-size: 0.85rem;
-            color: #6B6B6B;
+            color: var(--color-text-muted);
             padding: 14px 8px;
             background: rgba(255,253,247,0.6);
             border: 1px dashed rgba(0,0,0,0.15);
@@ -165,16 +165,16 @@ export const DailyViewElement = defineElement<{
             min-height: 44px;
             cursor: pointer;
             -webkit-tap-highlight-color: transparent;
-            font-family: 'Courier Prime', monospace;
+            font-family: var(--font-mono);
             font-size: 0.65rem;
             letter-spacing: 0.12em;
             text-transform: uppercase;
-            color: #6B6B6B;
+            color: var(--color-text-muted);
             text-align: left;
         }
 
         @media (hover: hover) {
-            .time-group-header:hover { color: #2C2C2C; }
+            .time-group-header:hover { color: var(--color-text); }
         }
 
         .time-group-label { flex: 1; }
@@ -202,11 +202,11 @@ export const DailyViewElement = defineElement<{
             content: '';
             display: block;
             height: 2px;
-            background: #1B2A4A;
+            background: var(--color-primary);
             margin-bottom: 1px;
         }
         .drop-zone-end { height: 20px; }
-        .drop-zone-end.is-drag-over { border-top: 2px solid #1B2A4A; }
+        .drop-zone-end.is-drag-over { border-top: 2px solid var(--color-primary); }
 
         .file-directive-btn {
             display: flex;
@@ -216,16 +216,16 @@ export const DailyViewElement = defineElement<{
             width: 100%;
             margin-top: 8px;
             padding: 12px;
-            background: #1B2A4A;
-            color: #F5EFE0;
+            background: var(--color-primary);
+            color: var(--color-surface);
             border: none;
-            font-family: 'Bebas Neue', sans-serif;
+            font-family: var(--font-display);
             font-size: 0.9rem;
             letter-spacing: 0.2em;
             cursor: pointer;
             transition: background 0.15s;
         }
-        .file-directive-btn:hover { background: #2A3F6F; }
+        .file-directive-btn:hover { background: var(--color-primary-hover); }
     `,
 
     render({inputs, state, updateState, dispatch, events}) {

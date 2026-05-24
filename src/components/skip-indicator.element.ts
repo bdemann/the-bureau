@@ -22,7 +22,7 @@ export const SkipIndicatorElement = defineElement<{
             display: inline-flex;
             align-items: center;
             gap: 4px;
-            font-family: 'Courier Prime', monospace;
+            font-family: var(--font-mono);
             font-size: 0.65rem;
             font-weight: 700;
             letter-spacing: 0.06em;
@@ -50,9 +50,9 @@ export const SkipIndicatorElement = defineElement<{
         }
 
         .badge.critical {
-            background: rgba(27, 42, 74, 0.12);
-            color: #1B2A4A;
-            border: 1px solid #1B2A4A;
+            background: rgba(var(--color-primary-rgb), 0.12);
+            color: var(--color-primary);
+            border: 1px solid var(--color-primary);
             animation: pulse-slate 2s ease-in-out infinite;
         }
 
@@ -63,11 +63,11 @@ export const SkipIndicatorElement = defineElement<{
 
         .stamp {
             display: inline-block;
-            font-family: 'Bebas Neue', sans-serif;
+            font-family: var(--font-display);
             font-size: 0.7rem;
             letter-spacing: 0.2em;
-            color: #1B2A4A;
-            border: 2px solid #1B2A4A;
+            color: var(--color-primary);
+            border: 2px solid var(--color-primary);
             padding: 1px 6px;
             transform: rotate(-1.5deg);
             opacity: 0.7;

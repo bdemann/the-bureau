@@ -21,8 +21,55 @@ export function getActiveSkin(): Skin {
     return _activeSkin;
 }
 
+/**
+ * Swap the active skin and apply its CSS custom-property overrides to :root.
+ * CSS custom properties pierce shadow DOM, so all components update immediately.
+ *
+ * Skins that want BCR's base look set cssVars to undefined — no overrides applied.
+ * To switch back to BCR, call setActiveSkin(bcrSkin) which clears any prior overrides.
+ */
 export function setActiveSkin(skin: Skin): void {
     _activeSkin = skin;
+    applyCssVars(skin.cssVars);
+}
+
+/**
+ * The set of CSS variable names managed by the skin system.
+ * When a skin without an override for a variable is activated, its :root value
+ * is explicitly reset to the BCR default so previous skin values don't bleed through.
+ */
+const SKIN_CSS_VAR_NAMES: ReadonlyArray<string> = [
+    '--color-primary',
+    '--color-primary-hover',
+    '--color-primary-rgb',
+    '--color-surface',
+    '--color-card',
+    '--color-input-bg',
+    '--color-text',
+    '--color-text-muted',
+    '--color-text-faint',
+    '--color-danger',
+    '--color-danger-dark',
+    '--color-danger-rgb',
+    '--color-warning',
+    '--color-success',
+    '--color-success-dark',
+    '--color-snooze',
+    '--font-display',
+    '--font-mono',
+    '--font-accent',
+];
+
+function applyCssVars(cssVars: Record<string, string> | undefined): void {
+    const root = document.documentElement;
+    // Remove any previously-applied overrides so stale values don't carry over.
+    for (const name of SKIN_CSS_VAR_NAMES) {
+        root.style.removeProperty(name);
+    }
+    if (!cssVars) return;
+    for (const [name, value] of Object.entries(cssVars)) {
+        root.style.setProperty(name, value);
+    }
 }
 
 /** Maps a Rank value to the active skin's display label. */

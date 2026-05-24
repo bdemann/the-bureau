@@ -100,10 +100,10 @@ export const BureauAppElement = defineElement()({
         :host {
             display: block;
             min-height: 100vh;
-            background-color: #F5EFE0;
+            background-color: var(--color-surface);
             background-image:
                 radial-gradient(ellipse at 0% 100%, rgba(184,134,11,0.03) 0%, transparent 60%),
-                radial-gradient(ellipse at 100% 0%, rgba(196,30,58,0.03) 0%, transparent 60%);
+                radial-gradient(ellipse at 100% 0%, rgba(var(--color-danger-rgb),0.03) 0%, transparent 60%);
         }
 
         .app-shell {
@@ -116,8 +116,8 @@ export const BureauAppElement = defineElement()({
         .empty-msg {
             padding: 40px;
             text-align: center;
-            font-family: 'Special Elite', serif;
-            color: #6B6B6B;
+            font-family: var(--font-accent);
+            color: var(--color-text-muted);
         }
 
         .undo-toast {
@@ -125,13 +125,13 @@ export const BureauAppElement = defineElement()({
             bottom: calc(64px + max(16px, env(safe-area-inset-bottom, 0px)) + 8px);
             left: 50%;
             transform: translateX(-50%);
-            background: #1B2A4A;
-            color: #F5EFE0;
+            background: var(--color-primary);
+            color: var(--color-surface);
             display: flex;
             align-items: center;
             gap: 12px;
             padding: 10px 16px;
-            font-family: 'Courier Prime', monospace;
+            font-family: var(--font-mono);
             font-size: 0.8rem;
             letter-spacing: 0.04em;
             z-index: 300;
@@ -153,9 +153,9 @@ export const BureauAppElement = defineElement()({
 
         .undo-btn {
             background: none;
-            border: 1px solid #F5EFE0;
-            color: #F5EFE0;
-            font-family: 'Bebas Neue', sans-serif;
+            border: 1px solid var(--color-surface);
+            color: var(--color-surface);
+            font-family: var(--font-display);
             font-size: 0.8rem;
             letter-spacing: 0.15em;
             padding: 4px 10px;

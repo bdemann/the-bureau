@@ -32,18 +32,18 @@ export const InsightsViewElement = defineElement<{
         }
 
         .page-title {
-            font-family: 'Bebas Neue', sans-serif;
+            font-family: var(--font-display);
             font-size: 1.4rem;
             letter-spacing: 0.25em;
-            color: #1B2A4A;
+            color: var(--color-primary);
             margin-bottom: 4px;
         }
 
         .page-subtitle {
-            font-family: 'Courier Prime', monospace;
+            font-family: var(--font-mono);
             font-size: 0.65rem;
             letter-spacing: 0.1em;
-            color: #6B6B6B;
+            color: var(--color-text-muted);
             margin-bottom: 24px;
         }
 
@@ -61,25 +61,25 @@ export const InsightsViewElement = defineElement<{
         }
 
         .section-title {
-            font-family: 'Bebas Neue', sans-serif;
+            font-family: var(--font-display);
             font-size: 0.95rem;
             letter-spacing: 0.18em;
-            color: #1B2A4A;
+            color: var(--color-primary);
             flex: 1;
         }
 
-        .section-title.danger { color: #C41E3A; }
+        .section-title.danger { color: var(--color-danger); }
 
         .section-count {
-            font-family: 'Courier Prime', monospace;
+            font-family: var(--font-mono);
             font-size: 0.65rem;
-            color: #6B6B6B;
+            color: var(--color-text-muted);
         }
 
         .section-empty {
-            font-family: 'Special Elite', serif;
+            font-family: var(--font-accent);
             font-size: 0.82rem;
-            color: #6B6B6B;
+            color: var(--color-text-muted);
             text-align: center;
             padding: 14px;
             background: rgba(255,253,247,0.6);
@@ -102,23 +102,23 @@ export const InsightsViewElement = defineElement<{
         }
 
         .insight-title {
-            font-family: 'Special Elite', serif;
+            font-family: var(--font-accent);
             font-size: 0.85rem;
-            color: #1B2A4A;
+            color: var(--color-primary);
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
         }
 
         .insight-sub {
-            font-family: 'Courier Prime', monospace;
+            font-family: var(--font-mono);
             font-size: 0.62rem;
-            color: #6B6B6B;
+            color: var(--color-text-muted);
             margin-top: 1px;
         }
 
         .badge {
-            font-family: 'Bebas Neue', sans-serif;
+            font-family: var(--font-display);
             font-size: 0.85rem;
             letter-spacing: 0.05em;
             min-width: 32px;
@@ -128,11 +128,11 @@ export const InsightsViewElement = defineElement<{
             flex-shrink: 0;
         }
 
-        .badge-miss  { background: #C41E3A; color: #fff; }
-        .badge-snooze { background: #E8821A; color: #fff; }
-        .badge-skip  { background: #B8860B; color: #fff; }
-        .badge-done  { background: #2E6B3E; color: #fff; }
-        .badge-neutral { background: #1B2A4A; color: #F5EFE0; }
+        .badge-miss  { background: var(--color-danger); color: #fff; }
+        .badge-snooze { background: var(--color-snooze); color: #fff; }
+        .badge-skip  { background: var(--color-warning); color: #fff; }
+        .badge-done  { background: var(--color-success); color: #fff; }
+        .badge-neutral { background: var(--color-primary); color: var(--color-surface); }
 
         /* Operations overview table — scrolls horizontally on very narrow screens */
         .ops-table-wrap {
@@ -145,13 +145,13 @@ export const InsightsViewElement = defineElement<{
             min-width: 280px;
             border-collapse: collapse;
             table-layout: fixed;
-            font-family: 'Courier Prime', monospace;
+            font-family: var(--font-mono);
             font-size: 0.68rem;
         }
 
         .ops-table th {
             text-align: left;
-            color: #6B6B6B;
+            color: var(--color-text-muted);
             letter-spacing: 0.08em;
             padding: 4px 6px;
             border-bottom: 1px solid rgba(0,0,0,0.15);
@@ -163,7 +163,7 @@ export const InsightsViewElement = defineElement<{
         .ops-table td {
             padding: 6px 6px;
             border-bottom: 1px solid rgba(0,0,0,0.06);
-            color: #1B2A4A;
+            color: var(--color-primary);
         }
 
         .ops-table td:not(:first-child) { text-align: center; }
@@ -171,7 +171,7 @@ export const InsightsViewElement = defineElement<{
         .ops-table tr:last-child td { border-bottom: none; }
 
         .ops-name {
-            font-family: 'Special Elite', serif;
+            font-family: var(--font-accent);
             font-size: 0.78rem;
             white-space: nowrap;
             overflow: hidden;
@@ -189,21 +189,21 @@ export const InsightsViewElement = defineElement<{
         }
         .streak-row:last-child { border-bottom: none; }
         .streak-title {
-            font-family: 'Special Elite', serif;
+            font-family: var(--font-accent);
             font-size: 0.82rem;
-            color: #1B2A4A;
+            color: var(--color-primary);
             flex: 1;
         }
         .streak-current {
-            font-family: 'Bebas Neue', sans-serif;
+            font-family: var(--font-display);
             font-size: 0.8rem;
             letter-spacing: 0.05em;
-            color: #2E6B3E;
+            color: var(--color-success);
         }
         .streak-max {
-            font-family: 'Courier Prime', monospace;
+            font-family: var(--font-mono);
             font-size: 0.62rem;
-            color: #6B6B6B;
+            color: var(--color-text-muted);
         }
 
         .missed-actions {
@@ -214,7 +214,7 @@ export const InsightsViewElement = defineElement<{
         }
 
         .action-btn {
-            font-family: 'Bebas Neue', sans-serif;
+            font-family: var(--font-display);
             font-size: 0.68rem;
             letter-spacing: 0.12em;
             border: none;
@@ -226,12 +226,12 @@ export const InsightsViewElement = defineElement<{
 
         .btn-dismiss {
             background: rgba(0,0,0,0.08);
-            color: #6B6B6B;
+            color: var(--color-text-muted);
         }
 
         .btn-revive {
-            background: #1B2A4A;
-            color: #F5EFE0;
+            background: var(--color-primary);
+            color: var(--color-surface);
         }
     `,
 

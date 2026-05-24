@@ -20,7 +20,7 @@ export const CharacterDialogueElement = defineElement<{
     styles: css`
         :host {
             display: block;
-            font-family: 'Courier Prime', 'Courier New', monospace;
+            font-family: var(--font-mono);
         }
 
         .memo {
@@ -37,15 +37,15 @@ export const CharacterDialogueElement = defineElement<{
 
         /* ── Director Briggs: red, double border ── */
         .memo.director {
-            border-color: #8B0000;
+            border-color: var(--color-danger-dark);
             background: #FFF8F8;
-            outline: 2px solid #8B0000;
+            outline: 2px solid var(--color-danger-dark);
             outline-offset: 3px;
         }
 
         .memo.director .memo-header {
-            background: #8B0000;
-            color: #F5EFE0;
+            background: var(--color-danger-dark);
+            color: var(--color-surface);
         }
 
         .memo.director .from-label {
@@ -54,13 +54,13 @@ export const CharacterDialogueElement = defineElement<{
 
         /* ── Agent Whitaker: navy, single border ── */
         .memo.agent {
-            border-color: #1B2A4A;
+            border-color: var(--color-primary);
             background: #F5F8FF;
         }
 
         .memo.agent .memo-header {
-            background: #1B2A4A;
-            color: #F5EFE0;
+            background: var(--color-primary);
+            color: var(--color-surface);
         }
 
         .memo.agent .from-label {
@@ -75,7 +75,7 @@ export const CharacterDialogueElement = defineElement<{
         }
 
         .memo-type {
-            font-family: 'Bebas Neue', 'Special Elite', sans-serif;
+            font-family: var(--font-display);
             font-size: 0.7rem;
             letter-spacing: 0.15em;
         }
@@ -90,7 +90,7 @@ export const CharacterDialogueElement = defineElement<{
             border: none;
             cursor: pointer;
             padding: 2px 6px;
-            font-family: 'Bebas Neue', sans-serif;
+            font-family: var(--font-display);
             font-size: 0.7rem;
             letter-spacing: 0.1em;
             opacity: 0.7;
@@ -133,8 +133,8 @@ export const CharacterDialogueElement = defineElement<{
             text-align: right;
         }
 
-        .memo.director .character-name { color: #8B0000; }
-        .memo.agent .character-name { color: #1B2A4A; }
+        .memo.director .character-name { color: var(--color-danger-dark); }
+        .memo.agent .character-name { color: var(--color-primary); }
     `,
 
     render({inputs, dispatch, events}) {
