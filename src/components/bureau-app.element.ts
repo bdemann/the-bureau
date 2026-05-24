@@ -9,7 +9,7 @@ import {
     startOfDay,
 } from '../data/storage.js';
 import {advanceRecurrence, isMultiplePerPeriod, isRecurrenceEnded, rolloverIfNeeded} from '../data/recurrence.js';
-import {countActiveTasks, missPenalty, skipPenalty, snoozePenalty, taskScaleMultiplier, tierCompletionReward} from '../data/scoring.js';
+import {countActiveTasks, missPenalty, skipPenalty, snoozePenalty, streakDepthMultiplier, taskScaleMultiplier, tierCompletionReward} from '../data/scoring.js';
 import {computeRemediationOnComplete, computeRemediationOnSkip, computeRemediationOnSnooze} from '../data/remediation.js';
 import {getDialogueFor} from '../data/dialogues.js';
 import {AddTaskDialogElement} from './add-task-dialog.element.js';
@@ -401,7 +401,10 @@ export const BureauAppElement = defineElement()({
 
             const tier = task.consequenceTier as ConsequenceTier;
             const active = countActiveTasks(state.app.tasks);
-            const rawPenalty = Math.min(snoozePenalty(tier) * newSnoozeCount, 30);
+            const rawPenalty = Math.min(
+                snoozePenalty(tier) * newSnoozeCount * streakDepthMultiplier(newSnoozeCount),
+                30,
+            );
             const penalty = rawPenalty * taskScaleMultiplier(active);
             const prevScore = state.app.patriotScore;
             const newScore = Math.max(0, prevScore - penalty);
@@ -473,7 +476,8 @@ export const BureauAppElement = defineElement()({
 
             const tier = target.consequenceTier as ConsequenceTier;
             const active = countActiveTasks(state.app.tasks);
-            const penalty = skipPenalty(tier) * taskScaleMultiplier(active);
+            const newSkipStreak = tasks.find(t => t.id === taskId)?.skipStreak ?? 1;
+            const penalty = skipPenalty(tier) * streakDepthMultiplier(newSkipStreak) * taskScaleMultiplier(active);
             const prevScore = state.app.patriotScore;
             const newScore = Math.max(0, prevScore - penalty);
 

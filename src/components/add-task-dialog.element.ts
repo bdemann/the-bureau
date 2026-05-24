@@ -164,7 +164,7 @@ export const AddTaskDialogElement = defineElement<{
             position: fixed;
             inset: 0;
             background: rgba(27, 42, 74, 0.65);
-            z-index: 200;
+            z-index: 400;
             display: flex;
             align-items: flex-end;
             justify-content: center;

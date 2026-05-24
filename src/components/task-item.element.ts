@@ -90,7 +90,7 @@ export const TaskItemElement = defineElement<{
 
         .task-top {
             display: flex;
-            align-items: flex-start;
+            align-items: center;
             gap: 10px;
         }
 

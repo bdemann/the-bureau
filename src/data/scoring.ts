@@ -84,3 +84,22 @@ export function snoozePenalty(tier: ConsequenceTier): number {
         case 4: return 0.75;
     }
 }
+
+/**
+ * Escalating multiplier applied to skip and snooze penalties based on the
+ * current streak depth (the count AFTER the action is taken).
+ *
+ * Starts at ×1.25 on the first offence and rises by 0.25 every level,
+ * capping at ×3.0 at depth 8+.  Streaks that start from a remediation
+ * level already arrive at a higher depth, so they immediately pay more.
+ *
+ * depth 0 → ×1.0 (no streak)
+ * depth 1 → ×1.25
+ * depth 2 → ×1.5
+ * depth 4 → ×2.0
+ * depth 8+ → ×3.0 (cap)
+ */
+export function streakDepthMultiplier(streakDepth: number): number {
+    if (streakDepth <= 0) return 1;
+    return 1 + 0.25 * Math.min(streakDepth, 8);
+}
