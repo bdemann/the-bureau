@@ -1130,8 +1130,8 @@ export const AddTaskDialogElement = defineElement<{
                         </div>
                     `}
 
-                    <!-- Window type + date — only relevant for one-time tasks -->
-                    ${state.isRecurring ? html`` : html`
+                    <!-- Window type — relevant for ALL task/routine kinds (recurring or not) -->
+                    ${isTaskOrRoutine ? html`
                         <div class="field">
                             <span class="field-label">Timing Type</span>
                             <div class="seg">
@@ -1167,7 +1167,10 @@ export const AddTaskDialogElement = defineElement<{
                                 ></${ViraButton}>
                             </div>
                         </div>
+                    ` : html``}
 
+                    <!-- Date fields — only for one-time (non-recurring) tasks -->
+                    ${!state.isRecurring && isTaskOrRoutine ? html`
                         ${state.windowType !== 'milestone' ? html`
                         <div class="field">
                             <span class="field-label">
@@ -1201,7 +1204,7 @@ export const AddTaskDialogElement = defineElement<{
                             ></${ViraInput}>
                         </div>
                         ` : html``}
-                    `}
+                    ` : html``}
 
                     ${state.isRecurring ? html`
                         <!-- Cadence -->
@@ -1239,10 +1242,10 @@ export const AddTaskDialogElement = defineElement<{
 
                         <!-- Schedule mode -->
                         <div class="field">
-                            <span class="field-label">Schedule Mode</span>
+                            <span class="field-label">Repeat Cycle</span>
                             <div class="seg">
                                 <${ViraButton.assign({
-                                    text: 'Rolling',
+                                    text: 'After last done',
                                     color: ViraColorVariant.Info,
                                     buttonEmphasis: state.scheduleMode === 'rolling'
                                         ? ViraEmphasis.Standard
@@ -1252,7 +1255,7 @@ export const AddTaskDialogElement = defineElement<{
                                     @click=${() => updateState({scheduleMode: 'rolling'})}
                                 ></${ViraButton}>
                                 <${ViraButton.assign({
-                                    text: 'Fixed',
+                                    text: 'Calendar date',
                                     color: ViraColorVariant.Info,
                                     buttonEmphasis: state.scheduleMode === 'fixed'
                                         ? ViraEmphasis.Standard
