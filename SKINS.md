@@ -24,6 +24,7 @@ Components call `getActiveSkin()` inside `render()` — no prop drilling.
 |----|------|--------|
 | `bcr` | BCR Clear | ✅ done |
 | `vanilla` | Default / plain English | ✅ done |
+| `freemason` | The Trestle Board | ✅ done |
 | `dresden` | Dresden Files (for wife) | 🔲 not started |
 
 ---
@@ -82,7 +83,7 @@ Pure addition. No component changes.
 - BCR skin `cssVars: undefined` — base stylesheet is the BCR look, no overrides needed
 
 ### 🔲 Chunk 10 — Dresden Files skin
-After chunks 1–8 are done, all string slots exist. Write:
+After all string slots are proven (see Freemason skin as template), write:
 `src/skins/dresden.skin.ts`
 Key flavour decisions (draft — iterate with wife):
 - App: "Dresden's Docket" / "DOCKET"
