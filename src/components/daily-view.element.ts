@@ -229,6 +229,7 @@ export const DailyViewElement = defineElement<{
     `,
 
     render({inputs, state, updateState, dispatch, events}) {
+        const skin = getActiveSkin();
         // Keep the callback current every render so it captures the latest updateState.
         _onSlotChange = (newSlot: TimeOfDay) => {
             updateState({expandedSlots: {[newSlot]: true}});
@@ -363,7 +364,6 @@ export const DailyViewElement = defineElement<{
 
         // 'hidden' is a valid DailyBand but is never rendered; return empty strings for it.
         const skinBand = (band: DailyBand) => {
-            const skin = getActiveSkin();
             if (band === 'hidden') return {label: '', subtitle: '', empty: ''};
             return skin.bands[band];
         };
@@ -441,7 +441,7 @@ export const DailyViewElement = defineElement<{
             <button
                 class="file-directive-btn"
                 @click=${() => dispatch(new events.newTaskRequested())}
-            >+ MAKE COMMITMENT</button>
+            >${skin.actions.makeCommitmentCta}</button>
         `;
     },
 });

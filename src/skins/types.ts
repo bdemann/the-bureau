@@ -86,6 +86,55 @@ export interface SkinNav {
     areasBreadcrumb: string;   // "RESPONSIBILITIES" / "AREAS"
 }
 
+// ── Action verbs (dialog titles, submit/delete buttons, CTA) ─────────────────
+
+export interface SkinActions {
+    // Sheet titles — creating
+    newRoutineTitle:  string;   // "MAKE NEW ROUTINE"
+    newTaskTitle:     string;   // "MAKE NEW TASK"
+    newGoalTitle:     string;   // "NEW GOAL"
+    newIdeaTitle:     string;   // "NEW IDEA"
+
+    // Sheet titles — editing
+    editRoutineTitle: string;   // "AMEND ROUTINE"
+    editTaskTitle:    string;   // "AMEND TASK"
+    editGoalTitle:    string;   // "AMEND OBJECTIVE"
+    editIdeaTitle:    string;   // "AMEND IDEA"
+
+    // Submit button — creating
+    submitRoutine:    string;   // "COMMIT ROUTINE"
+    submitTask:       string;   // "FILE TASK"
+    submitGoal:       string;   // "SET GOAL"
+    submitIdea:       string;   // "FILE IDEA"
+
+    // Submit button — editing / saving
+    saveRoutine:      string;   // "SAVE ROUTINE"
+    saveTask:         string;   // "SAVE TASK"
+    saveGoal:         string;   // "SAVE OBJECTIVE"
+    saveIdea:         string;   // "SAVE IDEA"
+
+    // Delete section — initial button (before confirmation)
+    deleteRoutineLabel:   string;   // "TERMINATE COMMITMENT"
+    deleteTaskLabel:      string;   // "TERMINATE COMMITMENT"
+    deleteGoalLabel:      string;   // "DELETE OBJECTIVE"
+    deleteIdeaLabel:      string;   // "DELETE IDEA"
+
+    // Delete section — confirmation question
+    deleteRoutineConfirm: string;   // "PERMANENTLY TERMINATE THIS COMMITMENT?"
+    deleteTaskConfirm:    string;   // "PERMANENTLY TERMINATE THIS COMMITMENT?"
+    deleteGoalConfirm:    string;   // "PERMANENTLY DELETE THIS OBJECTIVE?"
+    deleteIdeaConfirm:    string;   // "PERMANENTLY DELETE THIS IDEA?"
+
+    // Delete section — confirm button
+    deleteRoutineBtn:     string;   // "TERMINATE"
+    deleteTaskBtn:        string;   // "TERMINATE"
+    deleteGoalBtn:        string;   // "DELETE"
+    deleteIdeaBtn:        string;   // "DELETE"
+
+    /** Floating CTA on the daily view. */
+    makeCommitmentCta:    string;   // "+ MAKE COMMITMENT"
+}
+
 // ── Page titles & subtitles ───────────────────────────────────────────────────
 
 export interface SkinPages {
@@ -154,6 +203,7 @@ export interface Skin {
     nav:         SkinNav;
     pages:       SkinPages;
     menu:        SkinMenu;
+    actions:     SkinActions;
 
     /**
      * Optional CSS custom-property overrides injected into :root.

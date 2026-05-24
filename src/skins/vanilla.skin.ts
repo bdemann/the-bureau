@@ -119,5 +119,44 @@ export const vanillaSkin: Skin = {
         insightsSubtitle: 'Patterns, gaps, and performance over time.',
     },
 
+    actions: {
+        newRoutineTitle:  'NEW ROUTINE',
+        newTaskTitle:     'NEW TASK',
+        newGoalTitle:     'NEW GOAL',
+        newIdeaTitle:     'NEW IDEA',
+
+        editRoutineTitle: 'EDIT ROUTINE',
+        editTaskTitle:    'EDIT TASK',
+        editGoalTitle:    'EDIT GOAL',
+        editIdeaTitle:    'EDIT IDEA',
+
+        submitRoutine:    'ADD ROUTINE',
+        submitTask:       'ADD TASK',
+        submitGoal:       'ADD GOAL',
+        submitIdea:       'ADD IDEA',
+
+        saveRoutine:      'SAVE ROUTINE',
+        saveTask:         'SAVE TASK',
+        saveGoal:         'SAVE GOAL',
+        saveIdea:         'SAVE IDEA',
+
+        deleteRoutineLabel:   'DELETE ROUTINE',
+        deleteTaskLabel:      'DELETE TASK',
+        deleteGoalLabel:      'DELETE GOAL',
+        deleteIdeaLabel:      'DELETE IDEA',
+
+        deleteRoutineConfirm: 'PERMANENTLY DELETE THIS ROUTINE?',
+        deleteTaskConfirm:    'PERMANENTLY DELETE THIS TASK?',
+        deleteGoalConfirm:    'PERMANENTLY DELETE THIS GOAL?',
+        deleteIdeaConfirm:    'PERMANENTLY DELETE THIS IDEA?',
+
+        deleteRoutineBtn:     'DELETE',
+        deleteTaskBtn:        'DELETE',
+        deleteGoalBtn:        'DELETE',
+        deleteIdeaBtn:        'DELETE',
+
+        makeCommitmentCta:    '+ ADD COMMITMENT',
+    },
+
     cssVars: undefined,
 };

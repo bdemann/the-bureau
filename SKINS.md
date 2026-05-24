@@ -61,13 +61,11 @@ Pure addition. No component changes.
 - `goals-view.element.ts` — pages.goalsTitle/Subtitle
 - `insights-view.element.ts` — pages.insightsTitle/Subtitle
 
-### 🔲 Chunk 7 — Add-task-dialog action verbs
-File: `add-task-dialog.element.ts`
-Strings: sheet titles (MAKE NEW ROUTINE / AMEND ROUTINE / etc.),
-submit buttons (COMMIT ROUTINE / SAVE ROUTINE / FILE TASK / etc.),
-delete labels (TERMINATE COMMITMENT / DELETE OBJECTIVE / DELETE IDEA),
-the "+ MAKE COMMITMENT" CTA button label.
-Skin section to add: `SkinActions` (or extend `SkinCommitmentTypes`).
+### ✅ Chunk 7 — Add-task-dialog action verbs + daily-view CTA
+- `src/skins/types.ts` — new `SkinActions` interface; added to `Skin`
+- `add-task-dialog.element.ts` — sheet titles (new*/edit*), kind-toggle
+  buttons (→ types.*), submit/save buttons, delete label/confirm/btn
+- `daily-view.element.ts` — `makeCommitmentCta` CTA button
 
 ### 🔲 Chunk 8 — Character dialogue system
 File: `src/data/dialogues.ts`
@@ -115,6 +113,8 @@ Skin
 ├── nav           daily, areas, ideas, goals, areasBreadcrumb
 ├── pages         ideasTitle/Subtitle/Empty, goalsTitle/Subtitle,
 │                 insightsTitle/Subtitle
+├── actions       new*/edit* sheet titles, submit*/save* buttons,
+│                 delete*Label/Confirm/Btn, makeCommitmentCta
 ├── menu          menuTitle, insightsSectionLabel, shareSectionLabel,
 │                 shareItemLabel, shareItemSub
 ├── dialogues     (chunk 8 — not yet in interface)

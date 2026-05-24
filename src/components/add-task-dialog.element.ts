@@ -32,6 +32,7 @@ function msToDateString(ms: number): string {
 import {TIME_OF_DAY_SLOTS, cadenceLabel, isMultiplePerPeriodCadence, tierDescription, tierLabel, timeOfDayLabel} from '../data/types.js';
 import {generateId, startOfDay} from '../data/storage.js';
 import {initialiseRecurrence} from '../data/recurrence.js';
+import {getActiveSkin} from '../skins/active-skin.js';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // AddTaskDialogElement
@@ -479,6 +480,7 @@ export const AddTaskDialogElement = defineElement<{
     `,
 
     render({inputs, state, updateState, dispatch, events}) {
+        const skin = getActiveSkin();
         // Reset wasOpen when dialog closes so the next open is treated as fresh.
         if (!inputs.open) {
             if (state.wasOpen) updateState({wasOpen: false});
@@ -974,20 +976,20 @@ export const AddTaskDialogElement = defineElement<{
                 <div class="sheet">
                     <div class="sheet-title">
                         ${isEditMode
-                            ? (state.kind === 'routine' ? 'AMEND ROUTINE'
-                               : state.kind === 'task'  ? 'AMEND TASK'
-                               : state.kind === 'goal'  ? 'AMEND OBJECTIVE'
-                               :                          'AMEND IDEA')
-                            : state.kind === 'routine' ? 'MAKE NEW ROUTINE'
-                            : state.kind === 'task'    ? 'MAKE NEW TASK'
-                            : state.kind === 'goal'    ? 'NEW GOAL'
-                            :                            'NEW IDEA'}
+                            ? (state.kind === 'routine' ? skin.actions.editRoutineTitle
+                               : state.kind === 'task'  ? skin.actions.editTaskTitle
+                               : state.kind === 'goal'  ? skin.actions.editGoalTitle
+                               :                          skin.actions.editIdeaTitle)
+                            : state.kind === 'routine' ? skin.actions.newRoutineTitle
+                            : state.kind === 'task'    ? skin.actions.newTaskTitle
+                            : state.kind === 'goal'    ? skin.actions.newGoalTitle
+                            :                            skin.actions.newIdeaTitle}
                     </div>
 
                     <!-- Kind toggle — always visible (create and edit mode) -->
                     <div class="kind-toggle">
                         <${ViraButton.assign({
-                            text: 'Routine',
+                            text: skin.types.routine,
                             color: ViraColorVariant.Info,
                             buttonEmphasis: state.kind === 'routine'
                                 ? ViraEmphasis.Standard
@@ -997,7 +999,7 @@ export const AddTaskDialogElement = defineElement<{
                             @click=${() => onKindClick('routine')}
                         ></${ViraButton}>
                         <${ViraButton.assign({
-                            text: 'Task',
+                            text: skin.types.task,
                             color: ViraColorVariant.Info,
                             buttonEmphasis: state.kind === 'task'
                                 ? ViraEmphasis.Standard
@@ -1007,7 +1009,7 @@ export const AddTaskDialogElement = defineElement<{
                             @click=${() => onKindClick('task')}
                         ></${ViraButton}>
                         <${ViraButton.assign({
-                            text: 'Goal',
+                            text: skin.types.goal,
                             color: ViraColorVariant.Info,
                             buttonEmphasis: state.kind === 'goal'
                                 ? ViraEmphasis.Standard
@@ -1017,7 +1019,7 @@ export const AddTaskDialogElement = defineElement<{
                             @click=${() => onKindClick('goal')}
                         ></${ViraButton}>
                         <${ViraButton.assign({
-                            text: 'Idea',
+                            text: skin.types.idea,
                             color: ViraColorVariant.Info,
                             buttonEmphasis: state.kind === 'idea'
                                 ? ViraEmphasis.Standard
@@ -1753,9 +1755,10 @@ export const AddTaskDialogElement = defineElement<{
                                 ? html`
                                     <div class="delete-confirm-row">
                                         <span class="delete-confirm-label">
-                                            ${state.kind === 'goal' ? 'PERMANENTLY DELETE THIS OBJECTIVE?'
-                                              : state.kind === 'idea' ? 'PERMANENTLY DELETE THIS IDEA?'
-                                              : 'PERMANENTLY TERMINATE THIS COMMITMENT?'}
+                                            ${state.kind === 'goal'    ? skin.actions.deleteGoalConfirm
+                                              : state.kind === 'idea'  ? skin.actions.deleteIdeaConfirm
+                                              : state.kind === 'routine' ? skin.actions.deleteRoutineConfirm
+                                              : skin.actions.deleteTaskConfirm}
                                         </span>
                                         <button
                                             class="delete-confirm-yes"
@@ -1769,7 +1772,10 @@ export const AddTaskDialogElement = defineElement<{
                                                 }
                                                 updateState({currentEditId: null, confirmingDelete: false});
                                             }}
-                                        >${state.kind === 'goal' ? 'DELETE' : state.kind === 'idea' ? 'DELETE' : 'TERMINATE'}</button>
+                                        >${state.kind === 'goal'    ? skin.actions.deleteGoalBtn
+                                           : state.kind === 'idea'  ? skin.actions.deleteIdeaBtn
+                                           : state.kind === 'routine' ? skin.actions.deleteRoutineBtn
+                                           : skin.actions.deleteTaskBtn}</button>
                                         <button
                                             class="delete-confirm-no"
                                             @click=${() => updateState({confirmingDelete: false})}
@@ -1780,9 +1786,10 @@ export const AddTaskDialogElement = defineElement<{
                                     <button
                                         class="task-delete-btn"
                                         @click=${() => updateState({confirmingDelete: true})}
-                                    >${state.kind === 'goal' ? 'DELETE OBJECTIVE'
-                                       : state.kind === 'idea' ? 'DELETE IDEA'
-                                       : 'TERMINATE COMMITMENT'}</button>
+                                    >${state.kind === 'goal'    ? skin.actions.deleteGoalLabel
+                                       : state.kind === 'idea'  ? skin.actions.deleteIdeaLabel
+                                       : state.kind === 'routine' ? skin.actions.deleteRoutineLabel
+                                       : skin.actions.deleteTaskLabel}</button>
                                   `}
                         </div>
                     ` : html``}
@@ -1801,14 +1808,14 @@ export const AddTaskDialogElement = defineElement<{
                         <span class="grow">
                             <${ViraButton.assign({
                                 text: isEditMode
-                                    ? (state.kind === 'routine' ? 'SAVE ROUTINE'
-                                       : state.kind === 'goal'  ? 'SAVE OBJECTIVE'
-                                       : state.kind === 'idea'  ? 'SAVE IDEA'
-                                       :                          'SAVE TASK')
-                                    : state.kind === 'routine' ? 'COMMIT ROUTINE'
-                                    : state.kind === 'goal'    ? 'SET GOAL'
-                                    : state.kind === 'idea'    ? 'FILE IDEA'
-                                    :                            'FILE TASK',
+                                    ? (state.kind === 'routine' ? skin.actions.saveRoutine
+                                       : state.kind === 'goal'  ? skin.actions.saveGoal
+                                       : state.kind === 'idea'  ? skin.actions.saveIdea
+                                       :                          skin.actions.saveTask)
+                                    : state.kind === 'routine' ? skin.actions.submitRoutine
+                                    : state.kind === 'goal'    ? skin.actions.submitGoal
+                                    : state.kind === 'idea'    ? skin.actions.submitIdea
+                                    :                            skin.actions.submitTask,
                                 color: ViraColorVariant.Info,
                                 isDisabled: !canSubmit,
                             })}

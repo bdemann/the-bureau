@@ -121,6 +121,45 @@ export const bcrSkin: Skin = {
         insightsSubtitle: 'Behavioral patterns, compliance gaps, and field performance.',
     },
 
+    actions: {
+        newRoutineTitle:  'MAKE NEW ROUTINE',
+        newTaskTitle:     'MAKE NEW TASK',
+        newGoalTitle:     'NEW GOAL',
+        newIdeaTitle:     'NEW IDEA',
+
+        editRoutineTitle: 'AMEND ROUTINE',
+        editTaskTitle:    'AMEND TASK',
+        editGoalTitle:    'AMEND OBJECTIVE',
+        editIdeaTitle:    'AMEND IDEA',
+
+        submitRoutine:    'COMMIT ROUTINE',
+        submitTask:       'FILE TASK',
+        submitGoal:       'SET GOAL',
+        submitIdea:       'FILE IDEA',
+
+        saveRoutine:      'SAVE ROUTINE',
+        saveTask:         'SAVE TASK',
+        saveGoal:         'SAVE OBJECTIVE',
+        saveIdea:         'SAVE IDEA',
+
+        deleteRoutineLabel:   'TERMINATE COMMITMENT',
+        deleteTaskLabel:      'TERMINATE COMMITMENT',
+        deleteGoalLabel:      'DELETE OBJECTIVE',
+        deleteIdeaLabel:      'DELETE IDEA',
+
+        deleteRoutineConfirm: 'PERMANENTLY TERMINATE THIS COMMITMENT?',
+        deleteTaskConfirm:    'PERMANENTLY TERMINATE THIS COMMITMENT?',
+        deleteGoalConfirm:    'PERMANENTLY DELETE THIS OBJECTIVE?',
+        deleteIdeaConfirm:    'PERMANENTLY DELETE THIS IDEA?',
+
+        deleteRoutineBtn:     'TERMINATE',
+        deleteTaskBtn:        'TERMINATE',
+        deleteGoalBtn:        'DELETE',
+        deleteIdeaBtn:        'DELETE',
+
+        makeCommitmentCta:    '+ MAKE COMMITMENT',
+    },
+
     // BCR uses the base stylesheet directly — no overrides needed.
     cssVars: undefined,
 };
