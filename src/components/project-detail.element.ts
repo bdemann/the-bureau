@@ -62,6 +62,8 @@ export const ProjectDetailElement = defineElement<{
         :host {
             display: block;
             padding: 0 12px;
+            /* Extra bottom clearance so content scrolls above the sticky add button */
+            padding-bottom: 80px;
         }
 
         .section-label {
@@ -106,15 +108,20 @@ export const ProjectDetailElement = defineElement<{
             gap: 8px;
             width: 100%;
             margin: 14px 0 0;
-            padding: 12px;
+            padding: 16px;
             background: #1B2A4A;
             color: #F5EFE0;
             border: none;
+            border-top: 1px solid rgba(0,0,0,0.18);
             font-family: 'Bebas Neue', sans-serif;
             font-size: 0.9rem;
             letter-spacing: 0.2em;
             cursor: pointer;
             transition: background 0.15s;
+            position: sticky;
+            bottom: 0;
+            bottom: env(safe-area-inset-bottom, 0px);
+            z-index: 10;
         }
         .add-btn:hover { background: #2A3F6F; }
 

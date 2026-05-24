@@ -83,10 +83,11 @@ export const DailyViewElement = defineElement<{
         .band-header {
             display: flex;
             justify-content: space-between;
-            align-items: baseline;
+            align-items: center;
             gap: 12px;
             margin-bottom: 8px;
-            padding-bottom: 4px;
+            padding: 4px 0;
+            min-height: 44px;
             border-bottom: 1px solid rgba(0,0,0,0.15);
         }
         .band-header.mandatory  { border-bottom-color: #C41E3A; }
@@ -97,6 +98,7 @@ export const DailyViewElement = defineElement<{
         .band-header.collapsible {
             cursor: pointer;
             user-select: none;
+            -webkit-tap-highlight-color: transparent;
         }
         @media (hover: hover) {
             .band-header.collapsible:hover { opacity: 0.8; }
@@ -157,9 +159,11 @@ export const DailyViewElement = defineElement<{
             background: none;
             border: none;
             border-bottom: 1px dotted rgba(0,0,0,0.18);
-            padding: 0 0 4px;
+            padding: 8px 0 4px;
             margin-bottom: 6px;
+            min-height: 44px;
             cursor: pointer;
+            -webkit-tap-highlight-color: transparent;
             font-family: 'Courier Prime', monospace;
             font-size: 0.65rem;
             letter-spacing: 0.12em;
