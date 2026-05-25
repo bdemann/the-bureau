@@ -39,49 +39,61 @@ export function countActiveTasks(tasks: ReadonlyArray<Task>): number {
  * Multiplier applied to every score change.
  * < REFERENCE_TASK_COUNT tasks → multiplier > 1 (each task matters more).
  * > REFERENCE_TASK_COUNT tasks → multiplier < 1 (each task matters less).
+ *
+ * Floored at 0.5 so that individual actions remain meaningfully impactful
+ * even when the task list is large. The "total daily impact is constant"
+ * design goal holds up to 2× reference count (20 tasks); beyond that the
+ * daily total grows proportionally, but each task never drops below half
+ * the baseline weight.
  */
 export function taskScaleMultiplier(activeTasks: number): number {
-    return REFERENCE_TASK_COUNT / Math.max(1, activeTasks);
+    return Math.max(0.5, REFERENCE_TASK_COUNT / Math.max(1, activeTasks));
 }
 
 /** Score reward for completing a task. Designed so a week of perfect execution
- *  (10 tier-3 tasks/day, N=10) gains roughly 35 points: 7 × 10 × 0.5. */
+ *  (10 tier-3 tasks/day, N=10) gains roughly 35 points: 7 × 10 × 0.5.
+ *
+ *  Tier 4 (Aspirational) returns 0 — it is tracked for self-awareness, not
+ *  gamification. There is no score consequence in either direction. */
 export function tierCompletionReward(tier: ConsequenceTier): number {
     switch (tier) {
         case 1: return 1.5;
         case 2: return 1.0;
         case 3: return 0.5;
-        case 4: return 0.25;
+        case 4: return 0;    // Aspirational: consequence-free
     }
 }
 
-/** Penalty for a task that rolled over without any interaction (worst outcome). */
+/** Penalty for a task that rolled over without any interaction (worst outcome).
+ *  Tier 4 returns 0 — aspirational tasks have no score consequences. */
 export function missPenalty(tier: ConsequenceTier): number {
     switch (tier) {
         case 1: return 22.5;
         case 2: return 15.0;
         case 3: return 7.5;
-        case 4: return 3.75;
+        case 4: return 0;    // Aspirational: consequence-free
     }
 }
 
-/** Penalty for consciously skipping a period (worse than snooze, better than a miss). */
+/** Penalty for consciously skipping a period (worse than snooze, better than a miss).
+ *  Tier 4 returns 0 — aspirational tasks have no score consequences. */
 export function skipPenalty(tier: ConsequenceTier): number {
     switch (tier) {
         case 1: return 9.0;
         case 2: return 6.0;
         case 3: return 3.0;
-        case 4: return 1.5;
+        case 4: return 0;    // Aspirational: consequence-free
     }
 }
 
-/** Per-snooze penalty base (multiplied by snooze count upstream). */
+/** Per-snooze penalty base (multiplied by snooze count upstream).
+ *  Tier 4 returns 0 — aspirational tasks have no score consequences. */
 export function snoozePenalty(tier: ConsequenceTier): number {
     switch (tier) {
         case 1: return 4.5;
         case 2: return 3.0;
         case 3: return 1.5;
-        case 4: return 0.75;
+        case 4: return 0;    // Aspirational: consequence-free
     }
 }
 

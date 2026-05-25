@@ -203,11 +203,36 @@ export interface Task {
     // ── Milestone progress (only used when windowType === 'milestone') ──
     /** Number of times progress has been logged. */
     progressCount: number;
-
-    // ── Radar lead (hard-date directives only) ──
     /**
-     * Days before suggestedDate at which this directive appears in the RADAR band.
-     * Only applies when windowType === 'hard'. Defaults to 3 when absent.
+     * ms timestamp of the last time progress was logged. Used to hide the
+     * milestone from the daily view for the rest of the day after progress is
+     * recorded, so it doesn't nag again until tomorrow.
+     * null = no progress yet (or never used this feature).
+     */
+    lastProgressAt?: number | null;
+
+    // ── Lead time ────────────────────────────────────────────────────────────
+    /**
+     * How many days before suggestedDate (or window deadline) this directive
+     * becomes visible in the daily view at all.
+     *
+     *   undefined / not set → current urgency-band behaviour unchanged.
+     *   null                → hidden until the task is actually due / mandatory;
+     *                         it will not appear in backlog or radar at all.
+     *   number              → for hard-date tasks this replaces radarLeadDays
+     *                         (task enters radar this many days out); for flexible
+     *                         and milestone tasks the task is hidden until this
+     *                         many days before suggestedDate / windowDeadline.
+     *
+     * Applies to ALL window types. Supersedes radarLeadDays when set.
+     */
+    leadTimeDays?: number | null;
+
+    // ── Radar lead (hard-date directives only — superseded by leadTimeDays) ──
+    /**
+     * @deprecated Prefer leadTimeDays. Still read as fallback when leadTimeDays
+     * is absent. Days before suggestedDate at which this directive appears in
+     * the RADAR band. Only applies when windowType === 'hard'. Defaults to 3.
      */
     radarLeadDays?: number;
 

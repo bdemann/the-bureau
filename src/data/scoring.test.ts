@@ -51,13 +51,14 @@ function makeTask(overrides: Partial<Task> = {}): Task {
 describe('miss-to-reward ratio: one bad day cannot be undone by one perfect day', () => {
     // miss(tier) > reward(tier); with N-scaling both normalize to 10× base,
     // so the per-tier comparison fully captures the day-level asymmetry.
+    // Tier 4 is excluded — it is consequence-free in both directions.
     test('tier 1', () => assert.isAbove(missPenalty(1) / tierCompletionReward(1), 10));
     test('tier 2', () => assert.isAbove(missPenalty(2) / tierCompletionReward(2), 10));
     test('tier 3', () => assert.isAbove(missPenalty(3) / tierCompletionReward(3), 10));
-    test('tier 4', () => assert.isAbove(missPenalty(4) / tierCompletionReward(4), 10));
 });
 
 describe('penalty ordering: miss > skip > snooze (first snooze)', () => {
+    // Tier 4 is excluded — all tier-4 values are 0 (aspirational / consequence-free).
     test('tier 1', () => {
         assert.isAbove(missPenalty(1), skipPenalty(1));
         assert.isAbove(skipPenalty(1), snoozePenalty(1));
@@ -70,32 +71,31 @@ describe('penalty ordering: miss > skip > snooze (first snooze)', () => {
         assert.isAbove(missPenalty(3), skipPenalty(3));
         assert.isAbove(skipPenalty(3), snoozePenalty(3));
     });
-    test('tier 4', () => {
-        assert.isAbove(missPenalty(4), skipPenalty(4));
-        assert.isAbove(skipPenalty(4), snoozePenalty(4));
-    });
 });
 
-describe('penalty ordering: higher tier = higher values', () => {
+describe('tier 4: aspirational — consequence-free in all directions', () => {
+    test('completion reward is 0', () => assert.strictEquals(tierCompletionReward(4), 0));
+    test('miss penalty is 0',      () => assert.strictEquals(missPenalty(4), 0));
+    test('skip penalty is 0',      () => assert.strictEquals(skipPenalty(4), 0));
+    test('snooze penalty is 0',    () => assert.strictEquals(snoozePenalty(4), 0));
+});
+
+describe('penalty ordering: higher tier = higher values (tiers 1–3)', () => {
     test('completion reward', () => {
         assert.isAbove(tierCompletionReward(1), tierCompletionReward(2));
         assert.isAbove(tierCompletionReward(2), tierCompletionReward(3));
-        assert.isAbove(tierCompletionReward(3), tierCompletionReward(4));
     });
     test('miss penalty', () => {
         assert.isAbove(missPenalty(1), missPenalty(2));
         assert.isAbove(missPenalty(2), missPenalty(3));
-        assert.isAbove(missPenalty(3), missPenalty(4));
     });
     test('skip penalty', () => {
         assert.isAbove(skipPenalty(1), skipPenalty(2));
         assert.isAbove(skipPenalty(2), skipPenalty(3));
-        assert.isAbove(skipPenalty(3), skipPenalty(4));
     });
     test('snooze penalty', () => {
         assert.isAbove(snoozePenalty(1), snoozePenalty(2));
         assert.isAbove(snoozePenalty(2), snoozePenalty(3));
-        assert.isAbove(snoozePenalty(3), snoozePenalty(4));
     });
 });
 
@@ -128,11 +128,16 @@ describe('taskScaleMultiplier', () => {
         assert.isAbove(taskScaleMultiplier(5), 1);
         assert.isAbove(taskScaleMultiplier(1), 1);
     });
-    test('< 1 with more than 10 tasks', () => {
+    test('< 1 with more than 10 tasks (within scaling range)', () => {
         assert.isBelow(taskScaleMultiplier(20), 1);
     });
-    test('total daily impact is constant regardless of task count', () => {
-        // N tasks × base × (10/N) = 10 × base, independent of N.
+    test('floored at 0.5 — never drops below half baseline', () => {
+        assert.strictEquals(taskScaleMultiplier(20), 0.5);
+        assert.strictEquals(taskScaleMultiplier(50), 0.5);
+        assert.strictEquals(taskScaleMultiplier(100), 0.5);
+    });
+    test('total daily impact is constant up to 2× reference count', () => {
+        // N tasks × base × (10/N) = 10 × base for N ≤ 20 (where floor doesn't kick in).
         const base = tierCompletionReward(3);
         const impact5  = 5  * base * taskScaleMultiplier(5);
         const impact10 = 10 * base * taskScaleMultiplier(10);

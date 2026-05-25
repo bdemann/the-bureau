@@ -453,9 +453,17 @@ export const BureauAppElement = defineElement()({
         function onTaskProgressLogged(taskId: string): void {
             const target = state.app.tasks.find(t => t.id === taskId);
             if (!target) return;
+            const now = Date.now();
             const tasks = state.app.tasks.map(t =>
                 t.id === taskId
-                    ? {...t, progressCount: t.progressCount + 1, snoozedUntil: null}
+                    ? {
+                        ...t,
+                        progressCount: t.progressCount + 1,
+                        // Record when progress was logged so the urgency engine can
+                        // hide the milestone for the rest of today (see step2Milestone).
+                        lastProgressAt: now,
+                        snoozedUntil: null,
+                      }
                     : t,
             );
             const active = countActiveTasks(state.app.tasks);
@@ -761,6 +769,12 @@ export const BureauAppElement = defineElement()({
                         const newSkin = getSkinById(e.detail);
                         setActiveSkin(newSkin);
                         saveSkinId(e.detail);
+                        // Clear any un-dismissed dialogues — their text was resolved
+                        // against the old skin and would show the wrong vocabulary.
+                        const clearedQueue = state.app.dialogueQueue.map(d =>
+                            d.dismissed ? d : {...d, dismissed: true},
+                        );
+                        commit({dialogueQueue: clearedQueue});
                         updateState({activeSkinId: e.detail});
                     })}
                 ></${BureauHeaderElement}>

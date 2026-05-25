@@ -79,6 +79,11 @@
             font-size: 0.82rem;
             line-height: 1.7;
             margin: 20px 0;
+            /* Prevent long quoted text from pushing the box wider than the viewport. */
+            overflow-wrap: break-word;
+            word-break: break-word;
+            max-width: 100%;
+            box-sizing: border-box;
         }
         .notice-box.critical {
             background: #fff5f5;

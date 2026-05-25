@@ -113,8 +113,16 @@ function step2Timing(task: Task, today: Date): DailyBand {
 function step2HardDate(task: Task, today: Date): DailyBand {
     if (task.suggestedDate === null) return 'backlog';
     const days = daysBetween(today, task.suggestedDate);
-    const lead = task.radarLeadDays ?? 3;
     if (days <= 0) return 'mandatory'; // safety net (Step 1 should catch this)
+
+    // leadTimeDays takes precedence over deprecated radarLeadDays.
+    // null = hidden until due day; number = radar window size.
+    const hasLeadTime = 'leadTimeDays' in task && task.leadTimeDays !== undefined;
+    const lead: number | null = hasLeadTime
+        ? (task.leadTimeDays ?? null)
+        : (task.radarLeadDays ?? 3);
+
+    if (lead === null) return 'hidden'; // no lead time → invisible until mandatory
     if (days <= lead) return 'radar';
     return 'backlog';
 }
@@ -126,6 +134,22 @@ function step2FlexibleWindow(task: Task, today: Date): DailyBand {
     // No suggested or deadline at all — can't compute window urgency.
     if (task.suggestedDate === null && task.windowDeadline === null) {
         return 'backlog';
+    }
+
+    // leadTimeDays === null → hidden until suggestedDate arrives.
+    if (task.leadTimeDays === null) {
+        if (task.suggestedDate !== null && task.suggestedDate > todayMs) return 'hidden';
+        // No suggestedDate but has deadline: hide until the last 25% of window.
+        if (task.suggestedDate === null && task.windowDeadline !== null && task.windowLengthDays !== null) {
+            const daysUntilDeadline = daysBetween(today, task.windowDeadline);
+            if (daysUntilDeadline / task.windowLengthDays > 0.25) return 'hidden';
+        }
+    }
+
+    // leadTimeDays as a number → hide until that many days before suggestedDate.
+    if (typeof task.leadTimeDays === 'number' && task.suggestedDate !== null) {
+        const daysToSuggested = daysBetween(today, task.suggestedDate);
+        if (daysToSuggested > task.leadTimeDays) return 'hidden';
     }
 
     // Past suggested date but inside window → SUGGESTED.
@@ -146,10 +170,34 @@ function step2FlexibleWindow(task: Task, today: Date): DailyBand {
 }
 
 function step2Milestone(task: Task, today: Date): DailyBand {
+    // Progress logged today → hide for the rest of the day so it doesn't nag.
+    if (task.lastProgressAt != null) {
+        const progressDay = startOfDay(new Date(task.lastProgressAt)).getTime();
+        const todayDay    = startOfDay(today).getTime();
+        if (progressDay === todayDay) return 'hidden';
+    }
+
     // No deadline set — stays in backlog until snooze escalation lifts it.
-    if (task.windowDeadline === null) return 'backlog';
+    if (task.windowDeadline === null) {
+        // leadTimeDays === null with no deadline → hidden until manually surfaced.
+        if (task.leadTimeDays === null) return 'hidden';
+        return 'backlog';
+    }
+
     const daysLeft = daysBetween(today, task.windowDeadline);
     if (daysLeft <= 0) return 'mandatory';
+
+    // leadTimeDays === null → hidden until deadline is imminent (radar threshold).
+    if (task.leadTimeDays === null) {
+        if (daysLeft <= 30) return 'radar';
+        return 'hidden';
+    }
+
+    // leadTimeDays as a number → hide until that many days before deadline.
+    if (typeof task.leadTimeDays === 'number') {
+        if (daysLeft > task.leadTimeDays) return 'hidden';
+    }
+
     if (daysLeft <= 30) return 'radar';
     if (daysLeft <= 90) return 'backlog';
     return 'backlog';

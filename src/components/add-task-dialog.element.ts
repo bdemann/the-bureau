@@ -101,6 +101,14 @@ export const AddTaskDialogElement = defineElement<{
         scheduleMode: 'fixed' as ScheduleMode,
         windowType: 'hard' as WindowType,
         radarLeadDays: 3,
+        /**
+         * Lead time selector state.
+         * 'default' = keep existing urgency band behaviour.
+         * 'none'    = hidden until mandatory/due (leadTimeDays = null).
+         * 'custom'  = user-specified number of days (leadTimeDays = number).
+         */
+        leadTimeMode: 'default' as 'default' | 'none' | 'custom',
+        leadTimeCustomDays: 7,
         suggestedDate: msToDateString(Date.now()),  // YYYY-MM-DD
         // ── Recurrence anchor (only relevant when isRecurring=true) ──
         /** Selected days of the week for weekly multi-select (0=Sun…6=Sat). */
@@ -543,6 +551,10 @@ export const AddTaskDialogElement = defineElement<{
                 endAfterCount: cfg?.endAfterCount ?? 10,
                 endAfterDate: cfg?.endAfterDate ? msToDateString(cfg.endAfterDate) : '',
                 radarLeadDays: t.radarLeadDays ?? 3,
+                leadTimeMode: 'leadTimeDays' in t && t.leadTimeDays !== undefined
+                    ? (t.leadTimeDays === null ? 'none' : 'custom')
+                    : 'default',
+                leadTimeCustomDays: (typeof t.leadTimeDays === 'number' ? t.leadTimeDays : 7),
                 linkedGoalId: currentLinkedGoal?.id ?? null,
                 originalLinkedGoalId: currentLinkedGoal?.id ?? null,
                 editGoalId: null,
@@ -615,6 +627,8 @@ export const AddTaskDialogElement = defineElement<{
                 scheduleMode: 'fixed',
                 windowType: 'hard',
                 radarLeadDays: 3,
+                leadTimeMode: 'default',
+                leadTimeCustomDays: 7,
                 suggestedDate: msToDateString(Date.now()),
                 daysOfWeek: new Set<number>([new Date().getDay()]),
                 dayOfWeek: new Date().getDay(),
@@ -810,7 +824,16 @@ export const AddTaskDialogElement = defineElement<{
                 timeOfDay: state.timeOfDay,
                 consequenceTier: state.consequenceTier,
                 windowType: state.windowType,
-                radarLeadDays: state.windowType === 'hard' ? state.radarLeadDays : undefined,
+                // leadTimeDays supersedes radarLeadDays when set.
+                leadTimeDays: state.leadTimeMode === 'none'   ? null
+                            : state.leadTimeMode === 'custom' ? state.leadTimeCustomDays
+                            : undefined,
+                // Keep radarLeadDays for hard-date tasks (backward compat + still used
+                // as fallback when leadTimeDays is absent).
+                radarLeadDays: state.windowType === 'hard' && state.leadTimeMode === 'default'
+                    ? state.radarLeadDays
+                    : undefined,
+                lastProgressAt: baseTask?.lastProgressAt ?? null,
                 suggestedDate,
                 windowDeadline,
                 windowLengthDays,
@@ -875,6 +898,8 @@ export const AddTaskDialogElement = defineElement<{
                     frequencyPerPeriod: 2,
                     scheduleMode: 'rolling',
                     windowType: 'hard',
+                    leadTimeMode: 'default',
+                    leadTimeCustomDays: 7,
                     suggestedDate: msToDateString(Date.now()),
                     daysOfWeek: new Set<number>([new Date().getDay()]),
                     dayOfWeek: new Date().getDay(),
@@ -1191,7 +1216,7 @@ export const AddTaskDialogElement = defineElement<{
                         </div>
                         ` : html``}
 
-                        ${state.windowType === 'hard' ? html`
+                        ${state.windowType === 'hard' && state.leadTimeMode === 'default' ? html`
                         <div class="field">
                             <span class="field-label">Radar lead (days)</span>
                             <${ViraInput.assign({
@@ -1206,6 +1231,68 @@ export const AddTaskDialogElement = defineElement<{
                                     }
                                 })}
                             ></${ViraInput}>
+                        </div>
+                        ` : html``}
+                    ` : html``}
+
+                    <!-- Lead time — applies to all task types -->
+                    ${isTaskOrRoutine ? html`
+                        <div class="field">
+                            <span class="field-label">Lead Time</span>
+                            <div class="seg" style="grid-template-columns: repeat(3, 1fr);">
+                                <${ViraButton.assign({
+                                    text: 'Default',
+                                    color: ViraColorVariant.Info,
+                                    buttonEmphasis: state.leadTimeMode === 'default'
+                                        ? ViraEmphasis.Standard : ViraEmphasis.Subtle,
+                                    buttonSize: ViraSize.Small,
+                                })}
+                                    @click=${() => updateState({leadTimeMode: 'default'})}
+                                ></${ViraButton}>
+                                <${ViraButton.assign({
+                                    text: 'None',
+                                    color: ViraColorVariant.Neutral,
+                                    buttonEmphasis: state.leadTimeMode === 'none'
+                                        ? ViraEmphasis.Standard : ViraEmphasis.Subtle,
+                                    buttonSize: ViraSize.Small,
+                                })}
+                                    @click=${() => updateState({leadTimeMode: 'none'})}
+                                ></${ViraButton}>
+                                <${ViraButton.assign({
+                                    text: 'Custom',
+                                    color: ViraColorVariant.Info,
+                                    buttonEmphasis: state.leadTimeMode === 'custom'
+                                        ? ViraEmphasis.Standard : ViraEmphasis.Subtle,
+                                    buttonSize: ViraSize.Small,
+                                })}
+                                    @click=${() => updateState({leadTimeMode: 'custom'})}
+                                ></${ViraButton}>
+                            </div>
+                            <div class="tier-help">
+                                ${state.leadTimeMode === 'none'
+                                    ? 'Hidden until due — only appears the day it\'s needed.'
+                                    : state.leadTimeMode === 'custom'
+                                    ? `Shows up ${state.leadTimeCustomDays} day${state.leadTimeCustomDays !== 1 ? 's' : ''} before due.`
+                                    : 'Uses standard urgency-band timing.'}
+                            </div>
+                        </div>
+                        ${state.leadTimeMode === 'custom' ? html`
+                        <div class="field">
+                            <span class="field-label">Days before due</span>
+                            <span class="dom-input">
+                                <${ViraInput.assign({
+                                    value: String(state.leadTimeCustomDays),
+                                    type: ViraInputType.Number,
+                                    placeholder: '7',
+                                })}
+                                    ${listen(ViraInput.events.valueChange, e => {
+                                        const n = parseInt(e.detail, 10);
+                                        if (!Number.isNaN(n) && n >= 0 && n <= 365) {
+                                            updateState({leadTimeCustomDays: n});
+                                        }
+                                    })}
+                                ></${ViraInput}>
+                            </span>
                         </div>
                         ` : html``}
                     ` : html``}
