@@ -20,6 +20,8 @@ export const IdeasViewElement = defineElement<{
     filterProjectId?: string | null;
     /** When set, only show ideas for this goal and lock the goal selector to it. */
     filterGoalId?:    string | null;
+    /** Re-render trigger — changes when the active skin changes. */
+    activeSkinId: string;
 }>()({
     tagName: 'ideas-view',
 

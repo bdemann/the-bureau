@@ -24,6 +24,8 @@ export const ProjectDetailElement = defineElement<{
     goals: ReadonlyArray<Goal>;    // only this project's goals
     ideas: ReadonlyArray<Idea>;    // all ideas (filtered internally by project/goal)
     projects: ReadonlyArray<Project>;
+    /** Re-render trigger — changes when the active skin changes. */
+    activeSkinId: string;
 }>()({
     tagName: 'project-detail',
 
@@ -395,7 +397,7 @@ export const ProjectDetailElement = defineElement<{
                                     }}
                                     @dragend=${() => updateState({draggedId: null, dragOverId: null})}
                                 >
-                                <${TaskItemElement.assign({task, showDragHandle: true})}
+                                <${TaskItemElement.assign({task, showDragHandle: true, activeSkinId: inputs.activeSkinId})}
                                     ${listen(TaskItemElement.events.completed, e =>
                                         dispatch(new events.taskCompleted(e.detail)))}
                                     ${listen(TaskItemElement.events.snoozed, e =>
@@ -444,7 +446,7 @@ export const ProjectDetailElement = defineElement<{
                         <div class="task-list">
                             ${pausedTasks.map(
                                 task => html`
-                                    <${TaskItemElement.assign({task})}
+                                    <${TaskItemElement.assign({task, activeSkinId: inputs.activeSkinId})}
                                         ${listen(TaskItemElement.events.editRequested, e =>
                                             dispatch(new events.taskEditRequested(e.detail)))}
                                     ></${TaskItemElement}>
@@ -463,7 +465,7 @@ export const ProjectDetailElement = defineElement<{
                         <div class="task-list">
                             ${snoozedTasks.map(
                                 task => html`
-                                    <${TaskItemElement.assign({task})}
+                                    <${TaskItemElement.assign({task, activeSkinId: inputs.activeSkinId})}
                                         ${listen(TaskItemElement.events.completed, e =>
                                             dispatch(new events.taskCompleted(e.detail)))}
                                         ${listen(TaskItemElement.events.snoozed, e =>
@@ -506,7 +508,7 @@ export const ProjectDetailElement = defineElement<{
                                 ${completedTasks.map(
                                     task => html`
                                         <div class="completed-task">
-                                            <${TaskItemElement.assign({task})}
+                                            <${TaskItemElement.assign({task, activeSkinId: inputs.activeSkinId})}
                                                 ${listen(TaskItemElement.events.completed, e =>
                                                     dispatch(new events.taskCompleted(e.detail)))}
                                                 ${listen(TaskItemElement.events.snoozed, e =>
@@ -533,6 +535,7 @@ export const ProjectDetailElement = defineElement<{
                     tasks: inputs.tasks,
                     projects: inputs.projects,
                     filterProjectId: project.id,
+                    activeSkinId: inputs.activeSkinId,
                 })}
                     ${listen(GoalsViewElement.events.makeCommitmentRequested, e =>
                         dispatch(new events.newCommitmentRequested({projectId: project.id, kind: e.detail})))}
@@ -551,6 +554,7 @@ export const ProjectDetailElement = defineElement<{
                     goals: inputs.goals,
                     projects: inputs.projects,
                     filterProjectId: project.id,
+                    activeSkinId: inputs.activeSkinId,
                 })} data-embedded=${''}
                     ${listen(IdeasViewElement.events.makeCommitmentRequested, e =>
                         dispatch(new events.newCommitmentRequested({projectId: project.id, kind: e.detail})))}

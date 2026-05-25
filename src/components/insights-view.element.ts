@@ -15,6 +15,8 @@ function fmtDate(ms: number): string {
 export const InsightsViewElement = defineElement<{
     tasks: ReadonlyArray<Task>;
     projects: ReadonlyArray<Project>;
+    /** Re-render trigger — changes when the active skin changes. */
+    activeSkinId: string;
 }>()({
     tagName: 'insights-view',
 

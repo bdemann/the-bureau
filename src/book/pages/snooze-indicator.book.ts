@@ -17,7 +17,7 @@ export const snoozeIndicatorPage = defineBookPage({
                 title: label,
                 render() {
                     return html`
-                        <${SnoozeIndicatorElement.assign({snoozeCount: count})}></${SnoozeIndicatorElement}>
+                        <${SnoozeIndicatorElement.assign({snoozeCount: count, activeSkinId: 'bcr'})}></${SnoozeIndicatorElement}>
                     `;
                 },
             });

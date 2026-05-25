@@ -19,6 +19,8 @@ export const GoalDetailElement = defineElement<{
     tasks: ReadonlyArray<Task>;
     projects: ReadonlyArray<Project>;
     ideas: ReadonlyArray<Idea>;
+    /** Re-render trigger — changes when the active skin changes. */
+    activeSkinId: string;
 }>()({
     tagName: 'goal-detail',
 
@@ -485,7 +487,7 @@ export const GoalDetailElement = defineElement<{
         function renderTaskWithUnlink(task: Task, showManageActions: boolean) {
             return html`
                 <div class="task-with-unlink">
-                    <${TaskItemElement.assign({task})}
+                    <${TaskItemElement.assign({task, activeSkinId: inputs.activeSkinId})}
                         ${showManageActions ? html`
                             ${listen(TaskItemElement.events.completed, e =>
                                 dispatch(new events.taskCompleted(e.detail)))}
@@ -605,7 +607,7 @@ export const GoalDetailElement = defineElement<{
                         <div class="task-list">
                             ${snoozedTasks.map(task => html`
                                 <div class="task-with-unlink">
-                                    <${TaskItemElement.assign({task})}
+                                    <${TaskItemElement.assign({task, activeSkinId: inputs.activeSkinId})}
                                         ${listen(TaskItemElement.events.completed, e =>
                                             dispatch(new events.taskCompleted(e.detail)))}
                                         ${listen(TaskItemElement.events.snoozed, e =>
@@ -725,6 +727,7 @@ export const GoalDetailElement = defineElement<{
                 projects: inputs.projects,
                 filterGoalId: goal.id,
                 filterProjectId: goal.projectId,
+                activeSkinId: inputs.activeSkinId,
             })} data-embedded=${''}
                 ${listen(IdeasViewElement.events.makeCommitmentRequested, e =>
                     dispatch(new events.makeCommitmentRequested(e.detail)))}

@@ -27,6 +27,8 @@ export const BureauBottomNavElement = defineElement<{
     currentView: AppView;
     /** True when a goal detail is open — keeps the Goals tab highlighted. */
     goalDetailActive: boolean;
+    /** Passed from bureau-app so this element re-renders when the skin changes. */
+    activeSkinId: string;
 }>()({
     tagName: 'bureau-bottom-nav',
 

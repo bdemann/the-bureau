@@ -22,6 +22,8 @@ export const TaskItemElement = defineElement<{
     projectName?: string;
     /** Show a drag-handle affordance (⠿) when parent is managing reorder. */
     showDragHandle?: boolean;
+    /** Re-render trigger — changes when the active skin changes. */
+    activeSkinId: string;
 }>()({
     tagName: 'task-item',
 
@@ -350,21 +352,21 @@ export const TaskItemElement = defineElement<{
 
                     ${task.snoozeCount > 0
                         ? html`
-                            <${SnoozeIndicatorElement.assign({snoozeCount: task.snoozeCount})}
+                            <${SnoozeIndicatorElement.assign({snoozeCount: task.snoozeCount, activeSkinId: inputs.activeSkinId})}
                             ></${SnoozeIndicatorElement}>
                         `
                         : html``}
 
                     ${task.skipStreak > 0
                         ? html`
-                            <${SkipIndicatorElement.assign({skipStreak: task.skipStreak})}
+                            <${SkipIndicatorElement.assign({skipStreak: task.skipStreak, activeSkinId: inputs.activeSkinId})}
                             ></${SkipIndicatorElement}>
                         `
                         : html``}
 
                     ${task.remediationCount > 0
                         ? html`
-                            <${RemediationIndicatorElement.assign({remediationCount: task.remediationCount})}
+                            <${RemediationIndicatorElement.assign({remediationCount: task.remediationCount, activeSkinId: inputs.activeSkinId})}
                             ></${RemediationIndicatorElement}>
                         `
                         : html``}

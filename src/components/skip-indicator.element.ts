@@ -10,6 +10,8 @@ import {getActiveSkin} from '../skins/active-skin.js';
 
 export const SkipIndicatorElement = defineElement<{
     skipStreak: number;
+    /** Re-render trigger — passed from parent so skin changes propagate. */
+    activeSkinId: string;
 }>()({
     tagName: 'skip-indicator',
 

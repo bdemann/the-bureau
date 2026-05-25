@@ -47,6 +47,8 @@ let _onSlotChange: ((slot: TimeOfDay) => void) | null = null;
 export const DailyViewElement = defineElement<{
     tasks: ReadonlyArray<Task>;
     projects: ReadonlyArray<Project>;
+    /** Re-render trigger — changes when the active skin changes. */
+    activeSkinId: string;
 }>()({
     tagName: 'daily-view',
 
@@ -291,6 +293,7 @@ export const DailyViewElement = defineElement<{
                             task: t,
                             projectName: t.projectId ? projectsById.get(t.projectId)?.name : undefined,
                             showDragHandle: true,
+                            activeSkinId: inputs.activeSkinId,
                         })}
                             ${listen(TaskItemElement.events.completed, e =>
                                 dispatch(new events.taskCompleted(e.detail)))}

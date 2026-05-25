@@ -11,6 +11,8 @@ import {getActiveSkin} from '../skins/active-skin.js';
 
 export const RemediationIndicatorElement = defineElement<{
     remediationCount: number;
+    /** Re-render trigger — passed from parent so skin changes propagate. */
+    activeSkinId: string;
 }>()({
     tagName: 'remediation-indicator',
 

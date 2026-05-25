@@ -67,6 +67,8 @@ export const AddTaskDialogElement = defineElement<{
     goals?: ReadonlyArray<Goal>;
     /** Pre-selects a goal in the Linked Objective picker (for task/routine/idea forms). */
     defaultGoalId?: string | null;
+    /** Re-render trigger — changes when the active skin changes. */
+    activeSkinId: string;
 }>()({
     tagName: 'add-task-dialog',
 

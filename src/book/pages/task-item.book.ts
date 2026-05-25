@@ -52,6 +52,7 @@ export const taskItemPage = defineBookPage({
                 return html`
                     <${TaskItemElement.assign({
                         task: makeTask({title: 'File quarterly tax return', consequenceTier: 1, windowType: 'hard', suggestedDate: NOW + DAY * 3}),
+                        activeSkinId: 'bcr',
                     })}></${TaskItemElement}>
                 `;
             },
@@ -62,6 +63,7 @@ export const taskItemPage = defineBookPage({
                 return html`
                     <${TaskItemElement.assign({
                         task: makeTask({title: 'Schedule dentist appointment', consequenceTier: 2}),
+                        activeSkinId: 'bcr',
                     })}></${TaskItemElement}>
                 `;
             },
@@ -72,6 +74,7 @@ export const taskItemPage = defineBookPage({
                 return html`
                     <${TaskItemElement.assign({
                         task: makeTask({title: 'Read one chapter of current book', consequenceTier: 3}),
+                        activeSkinId: 'bcr',
                     })}></${TaskItemElement}>
                 `;
             },
@@ -82,6 +85,7 @@ export const taskItemPage = defineBookPage({
                 return html`
                     <${TaskItemElement.assign({
                         task: makeTask({title: 'Learn 10 new vocabulary words', consequenceTier: 4}),
+                        activeSkinId: 'bcr',
                     })}></${TaskItemElement}>
                 `;
             },
@@ -97,6 +101,7 @@ export const taskItemPage = defineBookPage({
                             windowType: 'hard',
                             suggestedDate: NOW - DAY * 2,
                         }),
+                        activeSkinId: 'bcr',
                     })}></${TaskItemElement}>
                 `;
             },
@@ -111,6 +116,7 @@ export const taskItemPage = defineBookPage({
                             snoozeCount: 1,
                             snoozedUntil: NOW + DAY,
                         }),
+                        activeSkinId: 'bcr',
                     })}></${TaskItemElement}>
                 `;
             },
@@ -125,6 +131,7 @@ export const taskItemPage = defineBookPage({
                             snoozeCount: 4,
                             snoozedUntil: NOW + DAY,
                         }),
+                        activeSkinId: 'bcr',
                     })}></${TaskItemElement}>
                 `;
             },
@@ -140,6 +147,7 @@ export const taskItemPage = defineBookPage({
                             snoozeCount: 6,
                             snoozedUntil: NOW + DAY,
                         }),
+                        activeSkinId: 'bcr',
                     })}></${TaskItemElement}>
                 `;
             },
@@ -154,6 +162,7 @@ export const taskItemPage = defineBookPage({
                             description: 'Master bedroom, hallway, and kitchen units all need new AA batteries.',
                             consequenceTier: 2,
                         }),
+                        activeSkinId: 'bcr',
                     })}></${TaskItemElement}>
                 `;
             },
@@ -165,6 +174,7 @@ export const taskItemPage = defineBookPage({
                     <${TaskItemElement.assign({
                         task: makeTask({title: 'Trim hedges', consequenceTier: 3}),
                         projectName: 'Homeowner',
+                        activeSkinId: 'bcr',
                     })}></${TaskItemElement}>
                 `;
             },
@@ -187,6 +197,7 @@ export const taskItemPage = defineBookPage({
                                 ordinalWeek: undefined,
                             },
                         }),
+                        activeSkinId: 'bcr',
                     })}></${TaskItemElement}>
                 `;
             },
@@ -214,6 +225,7 @@ export const taskItemPage = defineBookPage({
                                 ordinalWeek: undefined,
                             },
                         }),
+                        activeSkinId: 'bcr',
                     })}></${TaskItemElement}>
                 `;
             },
@@ -228,6 +240,7 @@ export const taskItemPage = defineBookPage({
                             consequenceTier: 3,
                             skipStreak: 1,
                         }),
+                        activeSkinId: 'bcr',
                     })}></${TaskItemElement}>
                 `;
             },
@@ -242,6 +255,7 @@ export const taskItemPage = defineBookPage({
                             consequenceTier: 4,
                             skipStreak: 3,
                         }),
+                        activeSkinId: 'bcr',
                     })}></${TaskItemElement}>
                 `;
             },
@@ -256,6 +270,7 @@ export const taskItemPage = defineBookPage({
                             consequenceTier: 2,
                             skipStreak: 5,
                         }),
+                        activeSkinId: 'bcr',
                     })}></${TaskItemElement}>
                 `;
             },
@@ -270,6 +285,7 @@ export const taskItemPage = defineBookPage({
                             consequenceTier: 1,
                             skipStreak: 8,
                         }),
+                        activeSkinId: 'bcr',
                     })}></${TaskItemElement}>
                 `;
             },
@@ -285,6 +301,7 @@ export const taskItemPage = defineBookPage({
                             windowType: 'hard',
                             suggestedDate: NOW - (NOW % DAY),
                         }),
+                        activeSkinId: 'bcr',
                     })}></${TaskItemElement}>
                 `;
             },

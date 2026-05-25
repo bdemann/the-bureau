@@ -18,7 +18,7 @@ export const skipIndicatorPage = defineBookPage({
                 title: label,
                 render() {
                     return html`
-                        <${SkipIndicatorElement.assign({skipStreak: streak})}></${SkipIndicatorElement}>
+                        <${SkipIndicatorElement.assign({skipStreak: streak, activeSkinId: 'bcr'})}></${SkipIndicatorElement}>
                     `;
                 },
             });

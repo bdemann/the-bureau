@@ -773,6 +773,7 @@ export const BureauAppElement = defineElement()({
                             tasks: state.app.tasks,
                             projects: state.app.projects,
                             ideas: state.app.ideas,
+                            activeSkinId: state.activeSkinId,
                         })}
                             ${listen(GoalDetailElement.events.goalUpdated, e =>
                                 onGoalUpdated(e.detail))}
@@ -816,6 +817,7 @@ export const BureauAppElement = defineElement()({
                             goals: state.app.goals,
                             tasks: state.app.tasks,
                             projects: state.app.projects,
+                            activeSkinId: state.activeSkinId,
                         })}
                             ${listen(GoalsViewElement.events.makeCommitmentRequested, e =>
                                 onNewTaskRequested(null, e.detail))}
@@ -831,6 +833,7 @@ export const BureauAppElement = defineElement()({
                             ideas: state.app.ideas,
                             goals: state.app.goals,
                             projects: state.app.projects,
+                            activeSkinId: state.activeSkinId,
                         })}
                             ${listen(IdeasViewElement.events.makeCommitmentRequested, e =>
                                 onNewTaskRequested(null, e.detail))}
@@ -849,6 +852,7 @@ export const BureauAppElement = defineElement()({
                         <${InsightsViewElement.assign({
                             tasks: state.app.tasks,
                             projects: state.app.projects,
+                            activeSkinId: state.activeSkinId,
                         })}
                             ${listen(InsightsViewElement.events.missedTaskDismissed, e =>
                                 onTaskDeleted(e.detail))}
@@ -861,6 +865,7 @@ export const BureauAppElement = defineElement()({
                         <${DailyViewElement.assign({
                             tasks: state.app.tasks,
                             projects: state.app.projects,
+                            activeSkinId: state.activeSkinId,
                         })}
                             ${listen(DailyViewElement.events.taskCompleted, e =>
                                 onTaskCompleted(e.detail))}
@@ -908,6 +913,7 @@ export const BureauAppElement = defineElement()({
                             ),
                             ideas: state.app.ideas,
                             projects: state.app.projects,
+                            activeSkinId: state.activeSkinId,
                         })}
                             ${listen(ProjectDetailElement.events.taskCompleted, e =>
                                 onTaskCompleted(e.detail))}
@@ -962,6 +968,7 @@ export const BureauAppElement = defineElement()({
                     prefillDescription: state.promotingIdea?.description ?? null,
                     defaultKind: state.newTaskDefaultKind,
                     defaultGoalId: state.spawningForGoalId,
+                    activeSkinId: state.activeSkinId,
                 })}
                     ${listen(AddTaskDialogElement.events.taskSubmitted, e =>
                         onTaskAdded(e.detail))}
@@ -1003,6 +1010,7 @@ export const BureauAppElement = defineElement()({
             <${BureauBottomNavElement.assign({
                 currentView: view,
                 goalDetailActive: state.selectedGoalId !== null,
+                activeSkinId: state.activeSkinId,
             })}
                 ${listen(BureauBottomNavElement.events.viewChangeRequested,
                     e => setView(e.detail))}

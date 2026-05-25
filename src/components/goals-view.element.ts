@@ -28,6 +28,8 @@ export const GoalsViewElement = defineElement<{
     projects: ReadonlyArray<Project>;
     /** When set, only show goals for this project and hide the project selector. */
     filterProjectId?: string | null;
+    /** Re-render trigger — changes when the active skin changes. */
+    activeSkinId: string;
 }>()({
     tagName: 'goals-view',
 

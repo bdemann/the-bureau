@@ -29,7 +29,7 @@ export const addTaskPage = defineBookPage({
             render() {
                 return html`
                     <div style="position:relative;height:560px;overflow:hidden;transform:scale(1);">
-                        <${AddTaskDialogElement.assign({projectId: 'p1', open: true})}></${AddTaskDialogElement}>
+                        <${AddTaskDialogElement.assign({projectId: 'p1', open: true, activeSkinId: 'bcr'})}></${AddTaskDialogElement}>
                     </div>
                 `;
             },
