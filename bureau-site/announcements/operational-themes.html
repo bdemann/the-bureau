@@ -1,0 +1,512 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Operational Aesthetic Configurations — Bureau of Civic Responsibility</title>
+    <link rel="icon" href="../favicon.png" type="image/png">
+    <link rel="stylesheet" href="../style.css">
+    <style>
+        /* ── Memo-specific styles ────────────────────────────────── */
+        .memo-header {
+            border: 2px solid var(--navy);
+            background: var(--cream);
+            padding: 0;
+            margin-bottom: 28px;
+        }
+        .memo-header-bar {
+            background: var(--navy);
+            color: #fff;
+            font-family: 'Oswald', sans-serif;
+            font-size: 0.75rem;
+            letter-spacing: 0.25em;
+            text-transform: uppercase;
+            padding: 8px 18px;
+        }
+        .memo-fields {
+            padding: 18px 22px 16px;
+        }
+        .memo-field {
+            display: grid;
+            grid-template-columns: 130px 1fr;
+            font-family: 'Courier Prime', monospace;
+            font-size: 0.82rem;
+            padding: 5px 0;
+            border-bottom: 1px solid rgba(0,0,0,0.07);
+        }
+        .memo-field:last-child { border-bottom: none; }
+        .memo-field-label {
+            color: var(--muted);
+            letter-spacing: 0.05em;
+            text-transform: uppercase;
+        }
+        .memo-field-value {
+            color: var(--text);
+            font-weight: bold;
+        }
+        .memo-ref {
+            font-family: 'Courier Prime', monospace;
+            font-size: 0.68rem;
+            color: var(--muted);
+            letter-spacing: 0.06em;
+            padding: 8px 22px;
+            border-top: 1px solid var(--border);
+            background: #fff;
+        }
+
+        /* ── Classification banner ───────────────────────────────── */
+        .classification-banner {
+            text-align: center;
+            font-family: 'Oswald', sans-serif;
+            font-size: 0.72rem;
+            letter-spacing: 0.3em;
+            text-transform: uppercase;
+            color: var(--gold);
+            border: 1px solid var(--gold);
+            padding: 5px 14px;
+            display: inline-block;
+            margin-bottom: 20px;
+        }
+
+        /* ── Notice box variants ─────────────────────────────────── */
+        .notice-box {
+            background: #fff8e8;
+            border: 1px solid var(--gold);
+            border-left: 5px solid var(--gold);
+            padding: 14px 18px;
+            font-family: 'Courier Prime', monospace;
+            font-size: 0.82rem;
+            line-height: 1.7;
+            margin: 20px 0;
+        }
+        .notice-box.critical {
+            background: #fff5f5;
+            border-color: var(--red);
+            border-left-color: var(--red);
+        }
+        .notice-box-label {
+            font-family: 'Oswald', sans-serif;
+            font-size: 0.78rem;
+            letter-spacing: 0.2em;
+            text-transform: uppercase;
+            color: var(--gold);
+            margin-bottom: 6px;
+        }
+        .notice-box.critical .notice-box-label { color: var(--red); }
+
+        /* ── Section divider ─────────────────────────────────────── */
+        .section-divider {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin: 28px 0 18px;
+        }
+        .section-divider span {
+            font-family: 'Oswald', sans-serif;
+            font-size: 0.78rem;
+            letter-spacing: 0.25em;
+            text-transform: uppercase;
+            color: var(--muted);
+            white-space: nowrap;
+        }
+        .section-divider::before,
+        .section-divider::after {
+            content: '';
+            flex: 1;
+            height: 1px;
+            background: var(--border);
+        }
+
+        /* ── Signature block ─────────────────────────────────────── */
+        .signature-block {
+            margin-top: 36px;
+            border-top: 1px solid var(--border);
+            padding-top: 20px;
+            font-family: 'Courier Prime', monospace;
+            font-size: 0.82rem;
+            color: var(--muted);
+        }
+        .signature-name {
+            font-family: 'Oswald', sans-serif;
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: var(--navy);
+            letter-spacing: 0.08em;
+            margin: 6px 0 2px;
+        }
+        .signature-title {
+            font-size: 0.78rem;
+            color: var(--muted);
+            letter-spacing: 0.06em;
+        }
+        .signature-seal {
+            float: right;
+            margin-top: -40px;
+            text-align: center;
+        }
+        .signature-seal img {
+            width: 64px;
+            height: 64px;
+            opacity: 0.2;
+            filter: grayscale(1);
+        }
+        .signature-seal-label {
+            display: block;
+            font-family: 'Courier Prime', monospace;
+            font-size: 0.6rem;
+            letter-spacing: 0.12em;
+            color: var(--muted);
+            text-transform: uppercase;
+            margin-top: 2px;
+        }
+
+        /* ── Ordered list as bureau-style clauses ────────────────── */
+        .bureau-clauses {
+            padding-left: 0;
+            list-style: none;
+            counter-reset: clauses;
+        }
+        .bureau-clauses li {
+            counter-increment: clauses;
+            display: flex;
+            gap: 14px;
+            padding: 10px 0;
+            border-bottom: 1px solid rgba(0,0,0,0.06);
+            font-size: 0.92rem;
+            line-height: 1.65;
+        }
+        .bureau-clauses li:last-child { border-bottom: none; }
+        .clause-num {
+            font-family: 'Courier Prime', monospace;
+            font-size: 0.8rem;
+            color: var(--gold);
+            width: 24px;
+            flex-shrink: 0;
+            padding-top: 2px;
+        }
+        .clause-num::before { content: '(' counter(clauses) ')'; }
+
+        .redaction-note {
+            font-family: 'Courier Prime', monospace;
+            font-size: 0.68rem;
+            color: var(--muted);
+            font-style: italic;
+            letter-spacing: 0.04em;
+            margin-top: 28px;
+            padding-top: 14px;
+            border-top: 1px solid var(--border);
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="gov-banner">
+        <img src="../favicon.png" alt="" class="flag">
+        <strong>An official website of the Bureau of Civic Responsibility</strong>
+        &nbsp;|&nbsp; Document Class: PUBLIC INFORMATION &nbsp;|&nbsp; Est. 2026
+    </div>
+
+    <header class="agency-header">
+        <div class="agency-seal"><img src="../icon-192.png" alt="BCR Seal"></div>
+        <div class="agency-name-block">
+            <div class="agency-name">Bureau of Civic Responsibility</div>
+            <div class="agency-sub">Department of Domestic Civic Affairs &nbsp;·&nbsp; Protecting the Republic One
+                Citizen at a Time</div>
+        </div>
+    </header>
+
+    <nav class="primary-nav" aria-label="Primary navigation">
+        <ul>
+            <li><a href="../index.html">Home</a></li>
+            <li><a href="../about.html">About the Bureau</a></li>
+            <li>
+                <a href="../leadership.html">Leadership ▾</a>
+                <ul class="sub-nav">
+                    <li><a href="../leadership.html">Director R.H. Briggs</a></li>
+                    <li><a href="../leadership.html#senior-staff">Senior Staff</a></li>
+                </ul>
+            </li>
+            <li>
+                <a href="../awards/field-agent-of-the-quarter.html">Recognition ▾</a>
+                <ul class="sub-nav">
+                    <li><a href="../awards/field-agent-of-the-quarter.html">Field Agent of the Quarter</a></li>
+                    <li><a href="../awards/reagan-mccarthy-medal-of-patriotic-service.html">Anti-Subversive Detection
+                            Excellence</a></li>
+                </ul>
+            </li>
+            <li>
+                <a href="../citizens/patriots.html">Citizens ▾</a>
+                <ul class="sub-nav">
+                    <li><a href="../citizens/patriots.html">Patriot Roll of Honor</a></li>
+                    <li><a href="../citizens/watchlist.html">Suspected Communists</a></li>
+                </ul>
+            </li>
+            <li>
+                <a href="../how-clear-works.html" class="active">CLEAR Application ▾</a>
+                <ul class="sub-nav">
+                    <li><a href="https://clear.bureauofcivicresponsibility.org" target="_blank">Access CLEAR ↗</a></li>
+                    <li><a href="../how-clear-works.html">How CLEAR Works</a></li>
+                    <li><a href="operational-themes.html">Operational Themes</a></li>
+                </ul>
+            </li>
+        </ul>
+    </nav>
+
+    <div class="alert-box">
+        <span class="alert-label">Notice:</span>
+        This page describes voluntary aesthetic configurations for the CLEAR application.
+        All configurations are Bureau-reviewed and compliant with applicable civic standards.
+        Patriot Score calculations are unaffected by theme selection.
+    </div>
+
+    <div class="page-wrapper full-width" style="max-width:860px;">
+        <main>
+
+            <div class="breadcrumb">
+                <a href="../index.html">Home</a> &rsaquo;
+                Announcements &rsaquo;
+                Operational Themes
+            </div>
+
+            <div style="text-align:center; margin-bottom:24px;">
+                <div class="classification-banner">Unclassified &nbsp;·&nbsp; Public Release Authorized</div>
+            </div>
+
+            <!-- Memo header -->
+            <div class="memo-header">
+                <div class="memo-header-bar">
+                    Official Communiqué &nbsp;·&nbsp; Office of Civic Technology &nbsp;·&nbsp;
+                    Bureau of Civic Responsibility
+                </div>
+                <div class="memo-fields">
+                    <div class="memo-field">
+                        <span class="memo-field-label">Date Issued:</span>
+                        <span class="memo-field-value">2026-05-24</span>
+                    </div>
+                    <div class="memo-field">
+                        <span class="memo-field-label">From:</span>
+                        <span class="memo-field-value">Office of Civic Technology, BCR</span>
+                    </div>
+                    <div class="memo-field">
+                        <span class="memo-field-label">To:</span>
+                        <span class="memo-field-value">All CLEAR-Enrolled Citizens</span>
+                    </div>
+                    <div class="memo-field">
+                        <span class="memo-field-label">Re:</span>
+                        <span class="memo-field-value">
+                            Authorization of Operational Aesthetic Configurations for the CLEAR Application
+                            (Form BCR-717-OAC)
+                        </span>
+                    </div>
+                    <div class="memo-field">
+                        <span class="memo-field-label">Authority:</span>
+                        <span class="memo-field-value">
+                            Director R. Harlan Briggs, Office of Civic Engagement Standards
+                        </span>
+                    </div>
+                </div>
+                <div class="memo-ref">
+                    Ref: CLEAR-2026-OAC-01 &nbsp;|&nbsp; Supersedes: None &nbsp;|&nbsp;
+                    Classification: UNCLASSIFIED &nbsp;|&nbsp; Public Release: Authorized
+                </div>
+            </div>
+
+            <h1 class="page-title">Operational Aesthetic Configurations</h1>
+            <div class="page-meta">PUBLISHED: 2026-05-24 &nbsp;|&nbsp; EFFECTIVE: IMMEDIATELY</div>
+
+            <h2 class="section-heading">Background and Findings</h2>
+
+            <p>
+                The Bureau of Civic Responsibility has, since the inception of the CLEAR application,
+                maintained a singular operational aesthetic consistent with the Bureau's institutional
+                character: patriotic, vigilant, and properly alarming to the underperforming citizen.
+                This aesthetic has served the Republic admirably.
+            </p>
+            <p>
+                However, the Bureau's Office of Behavioral Compliance Analytics has completed a
+                two-year longitudinal study of citizen engagement patterns across the CLEAR user base.
+                The findings are, frankly, not what Director Briggs anticipated.
+            </p>
+            <p>
+                Citizens exhibit dramatically different motivational responses to aesthetic stimuli.
+                Some citizens — as expected — respond optimally to the institutional authority of the
+                BCR's official voice. They see a red-bordered compliance notice and immediately complete
+                the task. They are, the Bureau notes, correct to do so.
+            </p>
+            <p>
+                Others, however, demonstrate that <em>the same underlying commitment-tracking mechanics</em>
+                produce equivalent or superior compliance outcomes when presented through a different
+                cultural or aesthetic lens. The data were confirmed by three independent review panels.
+                Director Briggs reviewed the findings personally. He was not pleased. He has,
+                nevertheless, authorized this memorandum.
+            </p>
+
+            <div class="notice-box">
+                <div class="notice-box-label">Director's Note</div>
+                <em>"The Republic does not care how the obligation gets done. It cares that it gets done.
+                If a citizen requires a different coat of paint on the mechanism in order to function,
+                the Bureau will provide the paint. This does not mean the Bureau approves of the paint.
+                The paint has been reviewed. It is compliant. That is all."</em><br><br>
+                — R. Harlan Briggs, Director of Civic Engagement
+            </div>
+
+            <h2 class="section-heading">What the Bureau Has Authorized</h2>
+
+            <p>
+                Effective immediately, the CLEAR application supports multiple
+                <strong>Operational Aesthetic Configurations</strong> — hereafter referred to as
+                "Themes" for the benefit of citizens who find the official terminology confusing.
+            </p>
+            <p>
+                Each Theme is a complete reskin of the CLEAR application's vocabulary, visual presentation,
+                and character voices. The underlying accountability mechanics — urgency bands, consequence
+                tiers, the Patriot Score, snooze tracking, skip tracking, and all compliance monitoring
+                functions — operate identically across all authorized Themes.
+            </p>
+            <p>
+                Themes are accessible through the hamburger menu (☰) in the upper right corner of the
+                CLEAR application, under the "Appearance" section. Citizens may switch Themes at any time.
+                Preference is saved automatically to the device.
+            </p>
+
+            <div class="section-divider"><span>Terms of Authorization</span></div>
+
+            <ul class="bureau-clauses">
+                <li>
+                    <span class="clause-num"></span>
+                    <span>The Bureau's default aesthetic — BCR Clear — remains the
+                    official configuration for all formal civic proceedings, inspections,
+                    and compliance reviews. Citizens appearing before Bureau officials should
+                    ensure their device displays the standard BCR configuration.</span>
+                </li>
+                <li>
+                    <span class="clause-num"></span>
+                    <span>Alternative Themes are authorized for personal use only. They do not
+                    alter, reduce, or in any way ameliorate a citizen's civic obligations. A
+                    snooze is a snooze in any Theme. A missed task is a missed task. The Patriot
+                    Score is calculated by the same formula regardless of what the citizen has
+                    chosen to call it.</span>
+                </li>
+                <li>
+                    <span class="clause-num"></span>
+                    <span>All Theme content has been reviewed by the Bureau's Office of Content
+                    Compliance and found consistent with BCR standards for civic language,
+                    motivational appropriateness, and ideological neutrality. Citizens need not
+                    submit individual Theme selections for review.</span>
+                </li>
+                <li>
+                    <span class="clause-num"></span>
+                    <span>The Bureau reserves the right to revoke authorization for any Theme at any
+                    time, for any reason, without prior notice, subject to the standard non-appeal
+                    provisions of the BCR Operational Standards Charter. Citizens are encouraged
+                    not to become too attached to any particular Theme.</span>
+                </li>
+                <li>
+                    <span class="clause-num"></span>
+                    <span>Citizens who develop, contribute, or otherwise introduce new Themes to the
+                    CLEAR application do so subject to Bureau review. Unauthorized Themes installed
+                    outside the official review process are considered a compliance risk and will
+                    be evaluated accordingly. The Bureau does not define "accordingly" at this time.</span>
+                </li>
+                <li>
+                    <span class="clause-num"></span>
+                    <span>Nothing in this memorandum constitutes an endorsement by the Bureau of any
+                    cultural, fraternal, literary, or other institution referenced by any authorized
+                    Theme. The Bureau endorses the Republic. The Bureau endorses civic responsibility.
+                    The Bureau does not endorse other things.</span>
+                </li>
+            </ul>
+
+            <h2 class="section-heading">Frequently Asked Questions</h2>
+
+            <table class="info-table">
+                <tr>
+                    <td class="field-label">Q: How many Themes are available?</td>
+                    <td>The current number of authorized Themes is <span class="redacted"
+                        title="Bureau policy: specific counts subject to change without notice">
+                        [operational information]</span>.
+                        Citizens are advised to open the application and check the Appearance menu for
+                        the current roster. The Bureau updates authorizations on a rolling basis.</td>
+                </tr>
+                <tr>
+                    <td class="field-label">Q: Does my Theme choice affect my Patriot Score?</td>
+                    <td>No. Scores are calculated identically across all Themes. A citizen who selects
+                        an alternative Theme and subsequently improves their score has improved their
+                        actual civic engagement, not merely the appearance of it. The Bureau respects
+                        this outcome, however it was achieved.</td>
+                </tr>
+                <tr>
+                    <td class="field-label">Q: Can I be penalized for using an alternative Theme?</td>
+                    <td>Not at this time. Theme selection is personal and voluntary. However, see
+                        Clause (4) above regarding the Bureau's right to modify these terms. Citizens
+                        are always encouraged to default to the standard BCR aesthetic when in doubt.</td>
+                </tr>
+                <tr>
+                    <td class="field-label">Q: Can I suggest a new Theme?</td>
+                    <td>CLEAR is an open-source application. Citizens with the technical capacity to
+                        implement a new Theme are invited to do so, subject to Bureau review upon
+                        submission. Instructions are available in the application's public repository.
+                        The Bureau makes no promises regarding timeline or approval.</td>
+                </tr>
+                <tr>
+                    <td class="field-label">Q: Does Director Briggs use an alternative Theme?</td>
+                    <td><span class="classified-stamp">Restricted</span></td>
+                </tr>
+            </table>
+
+            <!-- Signature block -->
+            <div class="signature-block">
+                <div class="signature-seal" style="float:right;margin-top:-20px;">
+                    <img src="../icon-192.png" alt="BCR Seal">
+                    <span class="signature-seal-label">BCR Seal</span>
+                </div>
+                <div>Issued under the authority of:</div>
+                <div class="signature-name">Office of Civic Technology</div>
+                <div class="signature-title">
+                    Bureau of Civic Responsibility &nbsp;·&nbsp;
+                    Department of Domestic Civic Affairs
+                </div>
+                <br>
+                <div>Reviewed and authorized by:</div>
+                <div class="signature-name">R. Harlan Briggs</div>
+                <div class="signature-title">
+                    Director of Civic Engagement &nbsp;·&nbsp; Bureau of Civic Responsibility
+                </div>
+                <br>
+                <div style="clear:both;"></div>
+            </div>
+
+            <div class="redaction-note">
+                This document has been reviewed for public release. One (1) section has been withheld
+                in full pursuant to BCR Operational Standards § 14(c): Operational Configuration Details
+                Not For General Distribution. Citizens seeking access to withheld sections may submit
+                Form BCR-FOIA-9 to the Office of Civic Records. Processing time: <span class="redacted"
+                    title="Processing times are classified">████ days</span>.
+            </div>
+
+        </main>
+    </div>
+
+    <footer>
+        <div class="footer-inner">
+            <div class="footer-links">
+                <a href="#">Privacy Policy</a>
+                <a href="#">Accessibility</a>
+                <a href="#">FOIA</a>
+                <a href="#">No FEAR Act</a>
+                <a href="#">Inspector General</a>
+                <a href="#">USA.gov</a>
+            </div>
+            <div class="footer-copy">
+                Bureau of Civic Responsibility &nbsp;·&nbsp; An Agency of the Department of Domestic Civic Affairs<br>
+                This is a parody website. The BCR is a fictional government agency. Any resemblance to
+                real bureaucratic entities is not intentional.<br>
+                Last Reviewed: 2026-05-24 &nbsp;|&nbsp; Document Class: PUBLIC INFORMATION
+            </div>
+        </div>
+    </footer>
+
+</body>
+</html>

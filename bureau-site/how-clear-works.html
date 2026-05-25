@@ -1,0 +1,490 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>How CLEAR Works — Bureau of Civic Responsibility</title>
+    <link rel="icon" href="favicon.png" type="image/png">
+    <link rel="stylesheet" href="style.css">
+    <style>
+        /* ── Philosophy page extras ─────────────────────────────── */
+        .philosophy-hero {
+            background: var(--navy);
+            color: #fff;
+            padding: 48px 24px 40px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+        .philosophy-hero::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: repeating-linear-gradient(
+                -55deg, transparent, transparent 18px,
+                rgba(255,255,255,0.02) 18px, rgba(255,255,255,0.02) 20px
+            );
+            pointer-events: none;
+        }
+        .philosophy-hero .hero-eyebrow {
+            font-family: 'Courier Prime', monospace;
+            font-size: 0.7rem;
+            letter-spacing: 0.3em;
+            text-transform: uppercase;
+            color: var(--gold);
+            margin-bottom: 12px;
+        }
+        .philosophy-hero h1 {
+            font-family: 'Oswald', sans-serif;
+            font-size: 2.2rem;
+            font-weight: 700;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            margin: 0 0 12px;
+        }
+        .philosophy-hero .lead {
+            max-width: 600px;
+            margin: 0 auto;
+            font-size: 1.05rem;
+            color: rgba(255,255,255,0.8);
+            line-height: 1.7;
+            font-style: italic;
+        }
+
+        /* ── Feature cards ──────────────────────────────────────── */
+        .feature-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+            gap: 20px;
+            margin: 24px 0;
+        }
+        .feature-card {
+            border: 1px solid var(--border);
+            background: #fff;
+            padding: 20px 22px;
+        }
+        .feature-card-icon {
+            font-size: 1.5rem;
+            margin-bottom: 10px;
+            line-height: 1;
+        }
+        .feature-card-title {
+            font-family: 'Oswald', sans-serif;
+            font-size: 0.95rem;
+            font-weight: 600;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            color: var(--navy);
+            margin: 0 0 8px;
+        }
+        .feature-card p {
+            font-size: 0.88rem;
+            line-height: 1.65;
+            color: var(--muted);
+            margin: 0;
+        }
+
+        /* ── How-it-works steps ─────────────────────────────────── */
+        .steps {
+            counter-reset: steps;
+            margin: 24px 0;
+            padding: 0;
+            list-style: none;
+        }
+        .steps li {
+            counter-increment: steps;
+            display: flex;
+            gap: 18px;
+            padding: 18px 0;
+            border-bottom: 1px solid var(--border);
+        }
+        .steps li:last-child { border-bottom: none; }
+        .step-num {
+            font-family: 'Oswald', sans-serif;
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--gold);
+            opacity: 0.6;
+            line-height: 1;
+            width: 36px;
+            flex-shrink: 0;
+            text-align: center;
+            content: counter(steps);
+        }
+        .step-num::before { content: counter(steps); }
+        .step-body { flex: 1; }
+        .step-title {
+            font-family: 'Oswald', sans-serif;
+            font-size: 1rem;
+            font-weight: 600;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            color: var(--navy);
+            margin: 0 0 6px;
+        }
+        .step-body p {
+            font-size: 0.88rem;
+            line-height: 1.65;
+            color: var(--muted);
+            margin: 0;
+        }
+
+        /* ── Score tier table ───────────────────────────────────── */
+        .tier-row { display: flex; gap: 12px; margin-bottom: 10px; align-items: flex-start; }
+        .tier-badge {
+            font-family: 'Courier Prime', monospace;
+            font-size: 0.72rem;
+            letter-spacing: 0.08em;
+            padding: 3px 10px;
+            white-space: nowrap;
+            flex-shrink: 0;
+            min-width: 80px;
+            text-align: center;
+        }
+        .tier-body { font-size: 0.88rem; color: var(--muted); line-height: 1.55; }
+        .tier-body strong { color: var(--text); font-weight: normal; }
+
+        /* ── Pull quote ─────────────────────────────────────────── */
+        .pull-quote {
+            border-left: 4px solid var(--gold);
+            padding: 14px 20px;
+            background: var(--cream);
+            margin: 24px 0;
+            font-style: italic;
+            font-size: 1.0rem;
+            color: var(--navy);
+            line-height: 1.7;
+        }
+        .pull-quote cite {
+            display: block;
+            font-style: normal;
+            font-family: 'Courier Prime', monospace;
+            font-size: 0.72rem;
+            color: var(--muted);
+            letter-spacing: 0.08em;
+            margin-top: 8px;
+        }
+
+        /* ── CTA strip ──────────────────────────────────────────── */
+        .cta-strip {
+            background: var(--navy);
+            color: #fff;
+            padding: 32px 24px;
+            text-align: center;
+            margin: 48px -24px -32px;
+        }
+        .cta-strip h2 {
+            font-family: 'Oswald', sans-serif;
+            font-size: 1.4rem;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+            margin: 0 0 10px;
+        }
+        .cta-strip p {
+            color: rgba(255,255,255,0.75);
+            font-size: 0.9rem;
+            margin: 0 0 20px;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="gov-banner">
+        <img src="favicon.png" alt="" class="flag">
+        <strong>An official website of the Bureau of Civic Responsibility</strong>
+        &nbsp;|&nbsp; Document Class: PUBLIC INFORMATION &nbsp;|&nbsp; Est. 2026
+    </div>
+
+    <header class="agency-header">
+        <div class="agency-seal"><img src="icon-192.png" alt="BCR Seal"></div>
+        <div class="agency-name-block">
+            <div class="agency-name">Bureau of Civic Responsibility</div>
+            <div class="agency-sub">Department of Domestic Civic Affairs &nbsp;·&nbsp; Protecting the Republic One
+                Citizen at a Time</div>
+        </div>
+    </header>
+
+    <nav class="primary-nav" aria-label="Primary navigation">
+        <ul>
+            <li><a href="index.html">Home</a></li>
+            <li><a href="about.html">About the Bureau</a></li>
+            <li>
+                <a href="leadership.html">Leadership ▾</a>
+                <ul class="sub-nav">
+                    <li><a href="leadership.html">Director R.H. Briggs</a></li>
+                    <li><a href="leadership.html#senior-staff">Senior Staff</a></li>
+                </ul>
+            </li>
+            <li>
+                <a href="awards/field-agent-of-the-quarter.html">Recognition ▾</a>
+                <ul class="sub-nav">
+                    <li><a href="awards/field-agent-of-the-quarter.html">Field Agent of the Quarter</a></li>
+                    <li><a href="awards/reagan-mccarthy-medal-of-patriotic-service.html">Anti-Subversive Detection
+                            Excellence</a></li>
+                </ul>
+            </li>
+            <li>
+                <a href="citizens/patriots.html">Citizens ▾</a>
+                <ul class="sub-nav">
+                    <li><a href="citizens/patriots.html">Patriot Roll of Honor</a></li>
+                    <li><a href="citizens/watchlist.html">Suspected Communists</a></li>
+                </ul>
+            </li>
+            <li>
+                <a href="how-clear-works.html" class="active">CLEAR Application ▾</a>
+                <ul class="sub-nav">
+                    <li><a href="https://clear.bureauofcivicresponsibility.org" target="_blank">Access CLEAR ↗</a></li>
+                    <li><a href="how-clear-works.html">How CLEAR Works</a></li>
+                    <li><a href="announcements/operational-themes.html">Operational Themes</a></li>
+                </ul>
+            </li>
+        </ul>
+    </nav>
+
+    <div class="philosophy-hero">
+        <div class="hero-eyebrow">CLEAR Civic Engagement Tracking System</div>
+        <h1>How CLEAR Works</h1>
+        <p class="lead">
+            A personal commitment tracker that takes follow-through seriously.
+            Here's the thinking behind it.
+        </p>
+    </div>
+
+    <div class="page-wrapper full-width" style="max-width:860px;">
+        <main>
+
+            <div class="breadcrumb">
+                <a href="index.html">Home</a> &rsaquo;
+                <a href="#">CLEAR Application</a> &rsaquo;
+                How CLEAR Works
+            </div>
+
+            <h2 class="section-heading">The Problem with To-Do Lists</h2>
+
+            <p>
+                Most task apps work like notepads. You add something, it sits there, you either do it or
+                you don't. The app doesn't really care which. There's no friction when you push something
+                to tomorrow for the seventh time, no signal that a pattern is forming.
+            </p>
+            <p>
+                CLEAR is built on a different premise: that the gap between what you intend to do and what
+                you actually do is information worth seeing. Not to feel bad about it — to understand it,
+                and over time, to close it.
+            </p>
+            <p>
+                It's not a to-do list. It's a commitment tracker. The difference is in what happens when
+                you don't follow through.
+            </p>
+
+            <div class="pull-quote">
+                "A commitment you can ignore indefinitely without consequence isn't really a commitment.
+                It's a wish."
+                <cite>— CLEAR design notes</cite>
+            </div>
+
+            <h2 class="section-heading">Core Concepts</h2>
+
+            <div class="feature-grid">
+                <div class="feature-card">
+                    <div class="feature-card-icon">📋</div>
+                    <div class="feature-card-title">Commitment Tiers</div>
+                    <p>Every item you add carries a consequence tier — from critical obligations (hard deadlines,
+                    serious fallout if missed) down to aspirational work (nice to do, no external pressure).
+                    The tier shapes how the app responds when you fall behind.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-card-icon">⏱</div>
+                    <div class="feature-card-title">Urgency Bands</div>
+                    <p>Your daily view isn't a flat list. Work sorts automatically into four bands: things
+                    due today, things recommended for today, things coming up soon, and everything else.
+                    You see the right work at the right time without manually prioritizing.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-card-icon">📊</div>
+                    <div class="feature-card-title">The Score</div>
+                    <p>A rolling accountability number, visible only to you. It rises when you follow through
+                    and falls when you miss or skip. A healthy, consistent person lands around 100–130.
+                    It's honest feedback — not a grade, not surveillance.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-card-icon">🔥</div>
+                    <div class="feature-card-title">Streaks & Patterns</div>
+                    <p>CLEAR tracks how many times in a row you've snoozed or skipped a specific item.
+                    A task snoozed once is understandable. Snoozed six times is a different conversation.
+                    The app names the pattern so you can decide what to do about it.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-card-icon">💬</div>
+                    <div class="feature-card-title">Character Voices</div>
+                    <p>Brief, contextual messages respond to what you actually do — complete a streak,
+                    skip something twice, open the app fresh in the morning. The voices vary by skin,
+                    but the underlying logic is the same: the app reacts to your behavior.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-card-icon">🎨</div>
+                    <div class="feature-card-title">Skins</div>
+                    <p>The entire vocabulary and aesthetic of the app is swappable. The default BCR
+                    theme is one option. Others use completely different terminology, characters,
+                    and color palettes — same logic, different flavor. Choose what motivates you.</p>
+                </div>
+            </div>
+
+            <h2 class="section-heading">How the Score Works</h2>
+
+            <p>
+                The Patriot Score starts at 100 and moves based on what you do. Completing work earns
+                points. Missing, skipping, and chronically snoozing items costs points. The math is
+                calibrated so that a person doing a reasonable amount of work consistently — not
+                perfectly, just consistently — stays comfortably in the 100–130 range.
+            </p>
+
+            <div style="margin: 20px 0 24px;">
+                <div class="tier-row">
+                    <span class="tier-badge badge-patriot">130 +</span>
+                    <div class="tier-body"><strong>Patriot.</strong>
+                        Consistent, thorough follow-through. More than average. The score reflects
+                        genuine sustained effort, not just light usage.</div>
+                </div>
+                <div class="tier-row">
+                    <span class="tier-badge badge-loyal-citizen">100–129</span>
+                    <div class="tier-body"><strong>Loyal Citizen.</strong>
+                        Solid. You're completing commitments, maintaining a streak, and staying current.
+                        This is the healthy target range for most people.</div>
+                </div>
+                <div class="tier-row">
+                    <span class="tier-badge badge-citizen">70–99</span>
+                    <div class="tier-body"><strong>Citizen.</strong>
+                        Functional but sliding. Some misses, some snoozes. Not a crisis, but worth
+                        noticing — this is where drift usually starts.</div>
+                </div>
+                <div class="tier-row">
+                    <span class="tier-badge badge-disengaged-citizen">40–69</span>
+                    <div class="tier-body"><strong>Disengaged.</strong>
+                        A pattern of avoidance or neglect. The app is reflecting something real back at
+                        you. Worth reconsidering which commitments you've actually made.</div>
+                </div>
+                <div class="tier-row">
+                    <span class="tier-badge badge-suspected-communist">0–39</span>
+                    <div class="tier-body"><strong>Suspected Communist.</strong>
+                        (The BCR skin's name for rock-bottom.) Chronic misses across the board.
+                        The score is telling you something isn't working — not that you're a bad person,
+                        but that the list you've built doesn't match your life right now.</div>
+                </div>
+            </div>
+
+            <p>
+                The score is private and local. It never leaves your device. No one else can see it.
+                It exists entirely to give you honest feedback about your own follow-through.
+            </p>
+
+            <h2 class="section-heading">Snoozed, Skipped, and the Snooze Ladder</h2>
+
+            <p>
+                CLEAR distinguishes between snoozed tasks (pushed to tomorrow — still a commitment)
+                and skipped tasks (marked as not doing it this time — tracked, not erased). Neither is
+                a moral failure. Both are data.
+            </p>
+            <p>
+                The snooze ladder tracks consecutive snoozes on a single item. At one snooze, the app
+                notes it quietly. By six, the character voice has escalated to the highest severity tier.
+                This isn't punishment — it's making visible a pattern that usually means one of three
+                things: the timing is wrong, the task is too vague, or you haven't actually committed
+                to doing it and should just delete it.
+            </p>
+
+            <h2 class="section-heading">Getting Started</h2>
+
+            <ol class="steps">
+                <li>
+                    <span class="step-num"></span>
+                    <div class="step-body">
+                        <div class="step-title">Install CLEAR</div>
+                        <p>Open <a href="https://clear.bureauofcivicresponsibility.org" target="_blank">clear.bureauofcivicresponsibility.org</a>
+                        on your phone or desktop. From the browser menu, choose "Add to Home Screen" or
+                        "Install App" to install it as a PWA. It runs fully offline — no account required.</p>
+                    </div>
+                </li>
+                <li>
+                    <span class="step-num"></span>
+                    <div class="step-body">
+                        <div class="step-title">Add your first commitment</div>
+                        <p>Tap the + button on the daily view. Choose whether it's a one-time task,
+                        a routine (recurring), or a goal (a larger project). Give it a consequence tier
+                        that honestly reflects what happens if you miss it. Start with three to five
+                        items — not everything at once.</p>
+                    </div>
+                </li>
+                <li>
+                    <span class="step-num"></span>
+                    <div class="step-body">
+                        <div class="step-title">Check in daily</div>
+                        <p>Open the app in the morning. The daily view shows what matters today.
+                        Complete items as you do them. Snooze honestly — not to avoid, but to defer
+                        with intention. The check-in takes less than a minute once you're in the habit.</p>
+                    </div>
+                </li>
+                <li>
+                    <span class="step-num"></span>
+                    <div class="step-body">
+                        <div class="step-title">Adjust over time</div>
+                        <p>Use the Insights view to review patterns. If something keeps getting snoozed,
+                        change the schedule, lower the tier, or delete it. A commitment you never
+                        actually keep isn't a commitment — it's a guilt object. Remove it guilt-free
+                        and add something you'll actually do.</p>
+                    </div>
+                </li>
+                <li>
+                    <span class="step-num"></span>
+                    <div class="step-body">
+                        <div class="step-title">Choose your skin</div>
+                        <p>Open the hamburger menu (top right) and select a skin under Appearance.
+                        The BCR theme is the default — surveillance state, patriot scores, communist
+                        threat levels. If that's not your vibe, other themes offer the same
+                        functionality with completely different vocabulary and aesthetics.</p>
+                    </div>
+                </li>
+            </ol>
+
+            <h2 class="section-heading">Your Data</h2>
+
+            <p>
+                Everything CLEAR stores stays on your device in <code>localStorage</code>. There is no
+                server, no account, no sync, no backup cloud. This is by design — your commitment
+                history is yours alone. The tradeoff is that clearing your browser data or switching
+                devices means starting fresh. Export functionality is on the roadmap.
+            </p>
+
+            <div class="cta-strip">
+                <h2>Ready to track your commitments?</h2>
+                <p>Installs in seconds. No account. No server. Just you and your follow-through.</p>
+                <a class="hero-cta" href="https://clear.bureauofcivicresponsibility.org" target="_blank">
+                    Access CLEAR
+                </a>
+            </div>
+
+        </main>
+    </div>
+
+    <footer>
+        <div class="footer-inner">
+            <div class="footer-links">
+                <a href="#">Privacy Policy</a>
+                <a href="#">Accessibility</a>
+                <a href="#">FOIA</a>
+                <a href="#">No FEAR Act</a>
+                <a href="#">Inspector General</a>
+                <a href="#">USA.gov</a>
+            </div>
+            <div class="footer-copy">
+                Bureau of Civic Responsibility &nbsp;·&nbsp; An Agency of the Department of Domestic Civic Affairs<br>
+                This is a parody website. The BCR is a fictional government agency. Any resemblance to
+                real bureaucratic entities is not intentional.<br>
+                Last Reviewed: 2026-05-24 &nbsp;|&nbsp; Document Class: PUBLIC INFORMATION
+            </div>
+        </div>
+    </footer>
+
+</body>
+</html>
