@@ -50,6 +50,14 @@ export const TaskItemElement = defineElement<{
             transition: border-color 0.2s;
             overflow: hidden;
             cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .task-body {
+            flex: 1;
+            min-width: 0;
         }
 
         /* Tier border colours (replaces priority colours). */
@@ -160,7 +168,6 @@ export const TaskItemElement = defineElement<{
 
         .task-meta {
             margin-top: 6px;
-            padding-left: 54px;  /* 44px checkbox + 10px gap */
             display: flex;
             flex-wrap: wrap;
             gap: 6px;
@@ -168,7 +175,6 @@ export const TaskItemElement = defineElement<{
         }
 
         .task-description {
-            padding-left: 54px;  /* 44px checkbox + 10px gap */
             margin-top: 4px;
             font-size: 0.78rem;
             color: var(--color-text-muted);
@@ -197,7 +203,6 @@ export const TaskItemElement = defineElement<{
 
         .task-actions {
             margin-top: 10px;
-            padding-left: 54px;  /* 44px checkbox + 10px gap */
             display: flex;
             gap: 8px;
             align-items: center;
@@ -301,22 +306,23 @@ export const TaskItemElement = defineElement<{
 
         return html`
             <div class="${classes}" @click=${() => dispatch(new events.editRequested(task.id))}>
+                <button
+                    class="complete-checkbox"
+                    title=${isMilestone ? 'Log progress' : 'Mark complete'}
+                    @click=${(e: Event) => {
+                        e.stopPropagation();
+                        isMilestone
+                            ? dispatch(new events.progressLogged(task.id))
+                            : dispatch(new events.completed(task.id));
+                    }}
+                >✓</button>
+
+                <div class="task-body">
                 ${inputs.projectName
                     ? html`<div class="project-tag">${inputs.projectName}</div>`
                     : html``}
 
                 <div class="task-top">
-                    <button
-                        class="complete-checkbox"
-                        title=${isMilestone ? 'Log progress' : 'Mark complete'}
-                        @click=${(e: Event) => {
-                            e.stopPropagation();
-                            isMilestone
-                                ? dispatch(new events.progressLogged(task.id))
-                                : dispatch(new events.completed(task.id));
-                        }}
-                    >✓</button>
-
                     <span class="task-title">${task.title}</span>
 
                     <span class="tier-pip t-${tier}">${tierShortLabel(tier)}</span>
@@ -451,6 +457,7 @@ export const TaskItemElement = defineElement<{
                         `}
                 </div>
                 ` : html``}
+                </div>
             </div>
         `;
     },

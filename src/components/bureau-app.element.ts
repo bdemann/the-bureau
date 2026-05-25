@@ -412,7 +412,9 @@ export const BureauAppElement = defineElement()({
                 snoozePenalty(tier) * newSnoozeCount * streakDepthMultiplier(newSnoozeCount),
                 30,
             );
-            const penalty = rawPenalty * taskScaleMultiplier(active);
+            // Floor at 1 so a snooze always produces a visible score change,
+            // even when taskScaleMultiplier is tiny (many tasks).
+            const penalty = Math.max(1, rawPenalty * taskScaleMultiplier(active));
             const prevScore = state.app.patriotScore;
             const newScore = Math.max(0, prevScore - penalty);
 
@@ -484,7 +486,12 @@ export const BureauAppElement = defineElement()({
             const tier = target.consequenceTier as ConsequenceTier;
             const active = countActiveTasks(state.app.tasks);
             const newSkipStreak = tasks.find(t => t.id === taskId)?.skipStreak ?? 1;
-            const penalty = skipPenalty(tier) * streakDepthMultiplier(newSkipStreak) * taskScaleMultiplier(active);
+            // Floor at 1 so a skip always produces a visible score change,
+            // even when taskScaleMultiplier is tiny (many tasks).
+            const penalty = Math.max(
+                1,
+                skipPenalty(tier) * streakDepthMultiplier(newSkipStreak) * taskScaleMultiplier(active),
+            );
             const prevScore = state.app.patriotScore;
             const newScore = Math.max(0, prevScore - penalty);
 
