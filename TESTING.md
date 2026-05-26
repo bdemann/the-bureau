@@ -296,8 +296,20 @@ Mark each row as you verify in the browser. Reset the localStorage entry
 - [ ] Reopening the app after missing tasks decreases the score (auto-skip penalty; auto-skip > skip > snooze)
 - [ ] With fewer active tasks each action has a larger per-task score impact; with more tasks each action has a smaller per-task impact
 - [ ] Hard-date commitment whose date is today: button reads "Cannot snooze" and is disabled
+- [ ] Commitment with "Disable snooze" checked: button reads "Cannot snooze" and is disabled
+- [ ] Mon–Sat routine (hardDaysOfWeek [1–6]) on a weekday (Mon–Fri): button reads "Cannot snooze" (next occurrence is tomorrow)
+- [ ] Same routine on Saturday: snooze IS allowed (Sunday is not a committed day)
 - [ ] At 6 snoozes (any tier), Briggs takes over
 - [ ] Whitaker dialogue escalates with count
+
+### Multi-day weekly routines (hardDaysOfWeek) — completion dismissal
+
+- [ ] Mon–Sat routine completed on Monday: card disappears from the daily view immediately
+- [ ] Same routine: card reappears as mandatory on Tuesday
+- [ ] Skip button works on Mon–Sat routine (advances to Tuesday's occurrence, card hides)
+- [ ] Completing every day Mon–Sat: card is hidden on Sunday (no committed day) and reappears Monday of the following week
+- [ ] "Disable snooze" toggle in the edit form: checked → snooze disabled; unchecked → normal
+- [ ] Daily routine in edit form: "Disable snooze" toggle is shown but grayed/disabled (cannot be changed)
 
 ### Un-snooze
 

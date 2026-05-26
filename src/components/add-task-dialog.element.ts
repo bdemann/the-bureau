@@ -137,6 +137,9 @@ export const AddTaskDialogElement = defineElement<{
         // ── Start date ──
         hasStartDate: false,
         startDate: '',  // YYYY-MM-DD
+        // ── Snooze ──
+        /** When true, snoozing is permanently disabled for this directive. */
+        disableSnooze: false,
         // ── Pause ──
         pauseMode: 'none' as 'none' | 'indefinite' | 'until_date' | 'for_days',
         pauseUntilDate: '',  // YYYY-MM-DD
@@ -555,6 +558,7 @@ export const AddTaskDialogElement = defineElement<{
                     ? (t.leadTimeDays === null ? 'none' : 'custom')
                     : 'default',
                 leadTimeCustomDays: (typeof t.leadTimeDays === 'number' ? t.leadTimeDays : 7),
+                disableSnooze: t.disableSnooze ?? false,
                 linkedGoalId: currentLinkedGoal?.id ?? null,
                 originalLinkedGoalId: currentLinkedGoal?.id ?? null,
                 editGoalId: null,
@@ -629,6 +633,7 @@ export const AddTaskDialogElement = defineElement<{
                 radarLeadDays: 3,
                 leadTimeMode: 'default',
                 leadTimeCustomDays: 7,
+                disableSnooze: false,
                 suggestedDate: msToDateString(Date.now()),
                 daysOfWeek: new Set<number>([new Date().getDay()]),
                 dayOfWeek: new Date().getDay(),
@@ -674,6 +679,11 @@ export const AddTaskDialogElement = defineElement<{
         const usesAnchor = usesWeeklyAnchor || usesMonthlyAnchor || usesQuarterlyAnchor || usesYearlyAnchor;
 
         const isTaskOrRoutine = state.kind === 'routine' || state.kind === 'task';
+
+        // Daily routines cannot be snoozed by nature — the toggle is shown but disabled.
+        const isNaturallyNotSnoozable = state.kind === 'routine'
+            && state.isRecurring
+            && (state.cadence === 'daily' || state.cadence === 'multiple_per_day');
 
         const canSubmit = !state.confirmingKindSwitch
             && state.titleValue.trim().length > 0
@@ -834,6 +844,7 @@ export const AddTaskDialogElement = defineElement<{
                     ? state.radarLeadDays
                     : undefined,
                 lastProgressAt: baseTask?.lastProgressAt ?? null,
+                disableSnooze: state.disableSnooze || undefined, // omit when false (saves space)
                 suggestedDate,
                 windowDeadline,
                 windowLengthDays,
@@ -1295,6 +1306,29 @@ export const AddTaskDialogElement = defineElement<{
                             </span>
                         </div>
                         ` : html``}
+                    ` : html``}
+
+                    <!-- Disable snooze toggle — tasks/routines only -->
+                    ${isTaskOrRoutine ? html`
+                        <div class="recurring-row">
+                            <input
+                                id="disable-snooze-toggle"
+                                type="checkbox"
+                                .checked=${isNaturallyNotSnoozable || state.disableSnooze}
+                                ?disabled=${isNaturallyNotSnoozable}
+                                @change=${(e: Event) => {
+                                    if (!isNaturallyNotSnoozable) {
+                                        updateState({disableSnooze: (e.target as HTMLInputElement).checked});
+                                    }
+                                }}
+                            />
+                            <label
+                                for="disable-snooze-toggle"
+                                style=${isNaturallyNotSnoozable ? 'opacity:0.5' : ''}
+                            >Disable snooze${isNaturallyNotSnoozable
+                                    ? html`&nbsp;<span class="tier-help" style="display:inline;">(daily routines cannot be snoozed)</span>`
+                                    : html``}</label>
+                        </div>
                     ` : html``}
 
                     ${state.isRecurring ? html`

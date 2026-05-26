@@ -4,6 +4,7 @@ import type {ConsequenceTier, Task} from '../data/types.js';
 import {cadencePeriodWord, getSnoozeSeverity, tierShortLabel} from '../data/types.js';
 import {isCurrentlySnoozed, isTaskOverdue} from '../data/storage.js';
 import {isMultiplePerPeriod} from '../data/recurrence.js';
+import {isNextOccurrenceTomorrow} from '../data/urgency.js';
 import {SnoozeIndicatorElement} from './snooze-indicator.element.js';
 import {SkipIndicatorElement} from './skip-indicator.element.js';
 import {RemediationIndicatorElement} from './remediation-indicator.element.js';
@@ -299,10 +300,14 @@ export const TaskItemElement = defineElement<{
                 || task.recurrence?.cadence === 'multiple_per_day');
 
         // Hard-date tasks may not be snoozed past the date.
+        // Next-occurrence-tomorrow tasks: snoozed until = next occurrence anyway, pointless.
+        // Manually disabled snooze.
         const canSnooze = !isDailyRoutine
+            && !task.disableSnooze
             && !(task.windowType === 'hard'
                 && task.suggestedDate !== null
-                && task.suggestedDate <= Date.now());
+                && task.suggestedDate <= Date.now())
+            && !isNextOccurrenceTomorrow(task);
 
         return html`
             <div class="${classes}" @click=${() => dispatch(new events.editRequested(task.id))}>

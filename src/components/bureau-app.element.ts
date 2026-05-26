@@ -10,6 +10,7 @@ import {
 } from '../data/storage.js';
 import {advanceRecurrence, isMultiplePerPeriod, isRecurrenceEnded, rolloverIfNeeded} from '../data/recurrence.js';
 import {countActiveTasks, missPenalty, skipPenalty, snoozePenalty, streakDepthMultiplier, taskScaleMultiplier, tierCompletionReward} from '../data/scoring.js';
+import {isNextOccurrenceTomorrow} from '../data/urgency.js';
 import {computeRemediationOnComplete, computeRemediationOnSkip, computeRemediationOnSnooze} from '../data/remediation.js';
 import {getDialogueFor} from '../data/dialogues.js';
 import {setActiveSkin} from '../skins/active-skin.js';
@@ -388,6 +389,13 @@ export const BureauAppElement = defineElement()({
                     || task.recurrence?.cadence === 'multiple_per_day')) {
                 return;
             }
+
+            // Manually disabled snooze.
+            if (task.disableSnooze) return;
+
+            // Next occurrence is tomorrow — snooze would just bring it back on the
+            // same committed day (e.g. Mon–Sat routine on any weekday).
+            if (isNextOccurrenceTomorrow(task)) return;
 
             // Hard-date tasks: cannot snooze past the date.
             if (task.windowType === 'hard'

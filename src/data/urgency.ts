@@ -57,12 +57,25 @@ function isCompletedForPeriod(task: Task, today: Date): boolean {
         const target = task.recurrence!.frequencyPerPeriod;
         return task.completionsThisPeriod >= target;
     }
-    // After completing a single-occurrence recurring task, advanceRecurrence
-    // sets completedAt = null and advances currentPeriodStart to the next
-    // period. If currentPeriodStart is beyond today, the task is done for
-    // the current period even though completedAt is null.
     if (task.recurrence && task.currentPeriodStart !== null) {
-        return task.currentPeriodStart > startOfDay(today).getTime();
+        const todayMs = startOfDay(today).getTime();
+        // Standard: period has been advanced past today → done for this period.
+        if (task.currentPeriodStart > todayMs) return true;
+        // Multi-day weekly tasks: each selected day is its own occurrence.
+        // advanceRecurrence sets suggestedDate to the NEXT occurrence day but
+        // keeps currentPeriodStart at the current week's Sunday, so the standard
+        // check above would always return false within the same week.
+        // Use suggestedDate directly: if it's strictly in the future, today's
+        // occurrence has already been completed and the next one hasn't arrived.
+        const cfg = task.recurrence;
+        if ((cfg.cadence === 'weekly' || cfg.cadence === 'multiple_per_week')
+                && cfg.hardDaysOfWeek !== undefined
+                && cfg.hardDaysOfWeek.length > 1
+                && task.suggestedDate !== null
+                && task.suggestedDate > todayMs) {
+            return true;
+        }
+        return false;
     }
     return task.completedAt !== null;
 }
@@ -249,4 +262,35 @@ export function getSnoozeBand(tier: ConsequenceTier, snoozeCount: number): Daily
 }
 
 // ── Public helpers used by UI / tests ───────────────────────────────────────
+
+/**
+ * Returns true when the task's next scheduled occurrence is tomorrow, meaning
+ * a +24 h snooze would bring it back on the next committed day anyway —
+ * making the snooze pointless.
+ *
+ * Two cases:
+ *  1. Multi-day weekly task (`hardDaysOfWeek` with 2+ days): tomorrow's
+ *     day-of-week is one of the committed days.
+ *  2. Any task whose `suggestedDate` lands exactly on tomorrow midnight
+ *     (daily except Sunday, hard-date tasks one day out, etc.).
+ *
+ * Used by both the UI (`canSnooze` logic) and the app handler (`onTaskSnoozed`
+ * guard) so the check is authoritative in one place.
+ */
+export function isNextOccurrenceTomorrow(task: Task, today: Date = new Date()): boolean {
+    const tomorrowMs = startOfDay(today).getTime() + 86_400_000; // tomorrow midnight
+
+    // Multi-day weekly: if tomorrow is a committed day, snooze is futile.
+    const cfg = task.recurrence;
+    if (cfg
+            && (cfg.cadence === 'weekly' || cfg.cadence === 'multiple_per_week')
+            && cfg.hardDaysOfWeek !== undefined
+            && cfg.hardDaysOfWeek.length > 1) {
+        const tomorrowDow = new Date(tomorrowMs).getDay();
+        return cfg.hardDaysOfWeek.includes(tomorrowDow);
+    }
+
+    // General: suggestedDate is tomorrow — snooze would just bring it back.
+    return task.suggestedDate !== null && task.suggestedDate === tomorrowMs;
+}
 

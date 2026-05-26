@@ -1,6 +1,6 @@
 import {assert} from '@augment-vir/assert';
 import {describe, test} from 'node:test';
-import {getDailyBand, getSnoozeBand, maxBand} from './urgency.js';
+import {getDailyBand, getSnoozeBand, isNextOccurrenceTomorrow, maxBand} from './urgency.js';
 import {date, makeRecurrence, makeTask} from './test-fixtures.js';
 
 const DAY_MS = 86_400_000;
@@ -336,6 +336,108 @@ describe('weekly tasks with hardDaysOfWeek', () => {
         });
         // No hardDaysOfWeek — falls through to flexible-window logic → suggested
         assert.strictEquals(getDailyBand(t, monday), 'suggested');
+    });
+
+    // ── Regression: multi-day weekly tasks must hide after completion ────────
+    // Bug: after completing Monday's occurrence of a Mon–Sat routine,
+    // isCompletedForPeriod returned false because currentPeriodStart stayed at
+    // Sunday (same week). The fix checks suggestedDate > today instead.
+
+    test('hidden after completion (suggestedDate advanced to Tuesday, viewed on Monday)', () => {
+        // Simulate state after advanceRecurrence ran on Monday:
+        // currentPeriodStart stays at Sunday, suggestedDate moves to Tuesday.
+        const t = makeTask({
+            windowType: 'flexible',
+            suggestedDate: date('2026-05-05').getTime(), // Tuesday — NEXT occurrence
+            windowDeadline: date('2026-05-09').getTime(),
+            windowLengthDays: 7,
+            recurrence: makeRecurrence({cadence: 'weekly', hardDaysOfWeek: [1, 2, 3, 4, 5, 6]}),
+            currentPeriodStart: sunday.getTime(), // still this week's Sunday
+            completedAt: null, // advanceRecurrence resets this to null
+        });
+        // Monday is in hardDaysOfWeek, but today's occurrence was already done.
+        assert.strictEquals(getDailyBand(t, monday), 'hidden');
+    });
+
+    test('visible again on Tuesday after Monday completion', () => {
+        const t = makeTask({
+            windowType: 'flexible',
+            suggestedDate: date('2026-05-05').getTime(), // Tuesday
+            windowDeadline: date('2026-05-09').getTime(),
+            windowLengthDays: 7,
+            recurrence: makeRecurrence({cadence: 'weekly', hardDaysOfWeek: [1, 2, 3, 4, 5, 6]}),
+            currentPeriodStart: sunday.getTime(),
+            completedAt: null,
+        });
+        assert.strictEquals(getDailyBand(t, tuesday), 'mandatory');
+    });
+
+    test('single-day weekly task is unaffected by the multi-day fix', () => {
+        // A task with hardDaysOfWeek: [3] (Wednesdays only) and suggestedDate in the
+        // future should still show — the multi-day fix only applies when length > 1.
+        const wednesday = date('2026-05-06');
+        const t = makeTask({
+            windowType: 'flexible',
+            suggestedDate: wednesday.getTime(),
+            windowDeadline: date('2026-05-09').getTime(),
+            windowLengthDays: 7,
+            recurrence: makeRecurrence({cadence: 'weekly', hardDaysOfWeek: [3]}),
+            currentPeriodStart: sunday.getTime(),
+            completedAt: null,
+        });
+        // Single-day: suggestedDate is Wednesday; standard logic applies.
+        // Wednesday is in hardDaysOfWeek → mandatory (step1 fires).
+        assert.strictEquals(getDailyBand(t, wednesday), 'mandatory');
+    });
+});
+
+// ── isNextOccurrenceTomorrow ─────────────────────────────────────────────────
+
+describe('isNextOccurrenceTomorrow', () => {
+    // 2026-05-04 (Mon) → 2026-05-05 (Tue)
+    const monday    = date('2026-05-04');
+    const saturday  = date('2026-05-09');
+    const DAY_MS    = 86_400_000;
+
+    test('Mon–Sat routine on Monday: Tuesday is a committed day → true', () => {
+        const t = makeTask({
+            suggestedDate: monday.getTime(),
+            recurrence: makeRecurrence({cadence: 'weekly', hardDaysOfWeek: [1, 2, 3, 4, 5, 6]}),
+        });
+        assert.isTrue(isNextOccurrenceTomorrow(t, monday));
+    });
+
+    test('Mon–Sat routine on Saturday: Sunday is NOT a committed day → false', () => {
+        const t = makeTask({
+            suggestedDate: saturday.getTime(),
+            recurrence: makeRecurrence({cadence: 'weekly', hardDaysOfWeek: [1, 2, 3, 4, 5, 6]}),
+        });
+        assert.isFalse(isNextOccurrenceTomorrow(t, saturday));
+    });
+
+    test('task with suggestedDate exactly tomorrow → true', () => {
+        const tomorrowMs = date('2026-05-05').getTime(); // Tuesday
+        const t = makeTask({
+            suggestedDate: tomorrowMs,
+            recurrence: null,
+        });
+        assert.isTrue(isNextOccurrenceTomorrow(t, monday));
+    });
+
+    test('task with suggestedDate today → false (not tomorrow)', () => {
+        const t = makeTask({suggestedDate: monday.getTime()});
+        assert.isFalse(isNextOccurrenceTomorrow(t, monday));
+    });
+
+    test('task with suggestedDate two days out → false', () => {
+        const twoDaysOut = monday.getTime() + 2 * DAY_MS;
+        const t = makeTask({suggestedDate: twoDaysOut, recurrence: null});
+        assert.isFalse(isNextOccurrenceTomorrow(t, monday));
+    });
+
+    test('task with null suggestedDate and no multi-day weekly → false', () => {
+        const t = makeTask({suggestedDate: null, recurrence: null});
+        assert.isFalse(isNextOccurrenceTomorrow(t, monday));
     });
 });
 
