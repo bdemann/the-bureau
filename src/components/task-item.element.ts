@@ -233,25 +233,6 @@ export const TaskItemElement = defineElement<{
             border: 1px solid rgba(var(--color-primary-rgb), 0.2);
         }
 
-        .milestone-complete-btn {
-            font-family: var(--font-display);
-            font-size: 0.72rem;
-            letter-spacing: 0.12em;
-            background: none;
-            border: 1px solid var(--color-primary);
-            color: var(--color-primary);
-            padding: 3px 10px;
-            cursor: pointer;
-            transition: background 0.15s, color 0.15s;
-        }
-
-        @media (hover: hover) {
-            .milestone-complete-btn:hover {
-                background: var(--color-primary);
-                color: var(--color-surface);
-            }
-        }
-
         .milestone-confirm {
             display: flex;
             align-items: center;
@@ -313,11 +294,11 @@ export const TaskItemElement = defineElement<{
             <div class="${classes}" @click=${() => dispatch(new events.editRequested(task.id))}>
                 <button
                     class="complete-checkbox"
-                    title=${isMilestone ? 'Log progress' : 'Mark complete'}
+                    title=${isMilestone ? 'Log progress or complete' : 'Mark complete'}
                     @click=${(e: Event) => {
                         e.stopPropagation();
                         isMilestone
-                            ? dispatch(new events.progressLogged(task.id))
+                            ? updateState({confirmingComplete: true})
                             : dispatch(new events.completed(task.id));
                     }}
                 >✓</button>
@@ -425,39 +406,41 @@ export const TaskItemElement = defineElement<{
                                     @click=${(e: Event) => { e.stopPropagation(); dispatch(new events.skipped(task.id)); }}
                                 ></${ViraButton}>
                             ` : html``}
-                            ${isMilestone ? html`
-                                ${state.confirmingComplete
-                                    ? html`
-                                        <span class="milestone-confirm">
-                                            Truly done?
-                                            <${ViraButton.assign({
-                                                text: 'Yes, complete',
-                                                color: ViraColorVariant.Info,
-                                                buttonEmphasis: ViraEmphasis.Standard,
-                                                buttonSize: ViraSize.Small,
-                                            })}
-                                                @click=${(e: Event) => {
-                                                    e.stopPropagation();
-                                                    updateState({confirmingComplete: false});
-                                                    dispatch(new events.completed(task.id));
-                                                }}
-                                            ></${ViraButton}>
-                                            <${ViraButton.assign({
-                                                text: 'Not yet',
-                                                color: ViraColorVariant.Neutral,
-                                                buttonEmphasis: ViraEmphasis.Subtle,
-                                                buttonSize: ViraSize.Small,
-                                            })}
-                                                @click=${(e: Event) => { e.stopPropagation(); updateState({confirmingComplete: false}); }}
-                                            ></${ViraButton}>
-                                        </span>
-                                    `
-                                    : html`
-                                        <button
-                                            class="milestone-complete-btn"
-                                            @click=${(e: Event) => { e.stopPropagation(); updateState({confirmingComplete: true}); }}
-                                        >Mark Complete</button>
-                                    `}
+                            ${isMilestone && state.confirmingComplete ? html`
+                                <span class="milestone-confirm">
+                                    <${ViraButton.assign({
+                                        text: 'Log session',
+                                        color: ViraColorVariant.Neutral,
+                                        buttonEmphasis: ViraEmphasis.Subtle,
+                                        buttonSize: ViraSize.Small,
+                                    })}
+                                        @click=${(e: Event) => {
+                                            e.stopPropagation();
+                                            updateState({confirmingComplete: false});
+                                            dispatch(new events.progressLogged(task.id));
+                                        }}
+                                    ></${ViraButton}>
+                                    <${ViraButton.assign({
+                                        text: 'All done',
+                                        color: ViraColorVariant.Info,
+                                        buttonEmphasis: ViraEmphasis.Standard,
+                                        buttonSize: ViraSize.Small,
+                                    })}
+                                        @click=${(e: Event) => {
+                                            e.stopPropagation();
+                                            updateState({confirmingComplete: false});
+                                            dispatch(new events.completed(task.id));
+                                        }}
+                                    ></${ViraButton}>
+                                    <${ViraButton.assign({
+                                        text: 'Cancel',
+                                        color: ViraColorVariant.Neutral,
+                                        buttonEmphasis: ViraEmphasis.Subtle,
+                                        buttonSize: ViraSize.Small,
+                                    })}
+                                        @click=${(e: Event) => { e.stopPropagation(); updateState({confirmingComplete: false}); }}
+                                    ></${ViraButton}>
+                                </span>
                             ` : html``}
                         `}
                 </div>
