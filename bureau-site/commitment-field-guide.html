@@ -286,8 +286,9 @@
         <div class="eyebrow">CLEAR Application Reference — Form BCR-CLEAR-101</div>
         <h1>Commitment Classification Manual</h1>
         <p class="lead">
-            Every item in CLEAR is a specific kind of commitment, with settings tuned to its nature.
-            This guide explains the five item types, every configuration option, and why each one exists.
+            CLEAR has four types of commitments — Goals, Ideas, Routines, and Tasks — organized inside
+            Areas of Responsibility. This guide explains all of them, every configuration option,
+            and why each one exists.
         </p>
     </div>
 
@@ -300,36 +301,43 @@
                 Commitment Field Guide
             </div>
 
-            <h2 class="section-heading">The Five Item Types</h2>
+            <h2 class="section-heading">Areas of Responsibility</h2>
 
             <p>
-                CLEAR organizes your commitments into five distinct types, each with a different purpose
-                and level of pressure. Before configuring an item, it helps to know which type it is.
+                Before any commitment is created, it lives inside an <strong>Area of Responsibility</strong>
+                — the domain of your life it belongs to. Health, Finances, Career, Home, Relationships,
+                Creative Work. Areas have no schedule, no urgency band, and no score impact. They are
+                purely organizational: the containers that give context to everything inside them.
+            </p>
+            <p>
+                A good Area of Responsibility is broad enough to hold multiple goals, routines, and tasks,
+                and stable enough that it doesn't need to be revisited often. If something doesn't fit
+                any existing area, that's usually a signal to create a new one — not to cram it somewhere
+                it doesn't belong.
+            </p>
+            <p class="example" style="border-left: 3px solid var(--light); padding-left: 12px; font-style: italic; color: var(--muted); font-size: 0.88rem;">
+                "Physical Health," "Home Maintenance," "Professional Development," "Finances," "Family," "Side Projects"
+            </p>
+
+            <h2 class="section-heading">The Four Commitment Types</h2>
+
+            <p>
+                Inside each Area of Responsibility live four types of commitments, each with a different
+                relationship to time, pressure, and follow-through.
             </p>
 
             <div class="type-grid">
-                <div class="type-card">
-                    <div class="type-card-name">Areas of Responsibility</div>
-                    <div class="type-card-tag">Containers for your commitments</div>
-                    <p>
-                        Areas of Responsibility are the ongoing domains of your life that contain your
-                        other commitments — Health, Finances, Career, Home, Relationships. They don't
-                        have deadlines or schedules. They are the containers.
-                    </p>
-                    <p class="example">
-                        "Home Maintenance," "Physical Health," "Professional Development," "Family"
-                    </p>
-                </div>
                 <div class="type-card gold">
                     <div class="type-card-name">Goals</div>
-                    <div class="type-card-tag">Direction without a daily schedule</div>
+                    <div class="type-card-tag">Outcomes you're working toward</div>
                     <p>
-                        Goals describe outcomes you want to achieve within an area — a target state
-                        you're working toward. They have no schedule, no urgency band, no score impact.
-                        Their value is clarity: they explain <em>why</em> the linked tasks and routines exist.
+                        Goals describe a target state — the outcome that makes the linked tasks and
+                        routines worth doing. They have no urgency band and no score impact. They can
+                        carry an aspirational due date, not as a hard deadline but as a stake in the
+                        ground: a date you're aiming for.
                     </p>
                     <p class="example">
-                        "Be in the best shape of my life by 40," "Pay off credit card debt," "Ship side project to 100 users"
+                        "Be in the best shape of my life by 40," "Pay off credit card debt by end of year," "Ship side project to 100 users"
                     </p>
                 </div>
                 <div class="type-card muted">
@@ -934,89 +942,94 @@
                 <thead>
                     <tr>
                         <th>Setting</th>
-                        <th>Areas of Responsibility</th>
                         <th>Goals</th>
                         <th>Ideas</th>
-                        <th>Tasks &amp; Routines</th>
+                        <th>Routines</th>
+                        <th>Tasks</th>
                     </tr>
                 </thead>
                 <tbody>
                     <tr>
                         <td class="field-label">Consequence Tier</td>
-                        <td>—</td><td>—</td><td>—</td>
-                        <td>✓ Core to the commitment</td>
+                        <td>—</td><td>—</td>
+                        <td>✓</td>
+                        <td>✓</td>
                     </tr>
                     <tr>
                         <td class="field-label">Window Type</td>
-                        <td>—</td><td>—</td><td>—</td>
+                        <td>—</td><td>—</td>
+                        <td>✓ Hard / Flexible / Milestone</td>
                         <td>✓ Hard / Flexible / Milestone</td>
                     </tr>
                     <tr>
                         <td class="field-label">Cadence / Recurrence</td>
-                        <td>—</td><td>—</td><td>—</td>
-                        <td>✓ Both may use it; routines are typically indefinite</td>
+                        <td>—</td><td>—</td>
+                        <td>✓ Typically indefinite</td>
+                        <td>✓ May repeat; always has an end</td>
                     </tr>
                     <tr>
                         <td class="field-label">Schedule Mode</td>
-                        <td>—</td><td>—</td><td>—</td>
-                        <td>✓ Recurring items only</td>
+                        <td>—</td><td>—</td>
+                        <td>✓ Fixed or rolling</td>
+                        <td>✓ Fixed or rolling</td>
                     </tr>
                     <tr>
                         <td class="field-label">Target / Due Date</td>
+                        <td>✓ Aspirational stake in the ground</td>
                         <td>—</td>
-                        <td>✓ Optional outcome target</td>
-                        <td>—</td>
-                        <td>✓ Anchors the urgency band</td>
+                        <td>✓ Anchors urgency band</td>
+                        <td>✓ Anchors urgency band</td>
                     </tr>
                     <tr>
                         <td class="field-label">Time of Day</td>
-                        <td>—</td><td>—</td><td>—</td>
-                        <td>✓ Sorting only, not binding</td>
+                        <td>—</td><td>—</td>
+                        <td>✓ Sorting only</td>
+                        <td>✓ Sorting only</td>
                     </tr>
                     <tr>
                         <td class="field-label">Lead Time</td>
-                        <td>—</td><td>—</td><td>—</td>
-                        <td>✓ Hard &amp; flexible types; no effect on daily</td>
+                        <td>—</td><td>—</td>
+                        <td>✓ Hard &amp; flexible; no effect on daily</td>
+                        <td>✓ Hard &amp; flexible; no effect on daily</td>
                     </tr>
                     <tr>
                         <td class="field-label">Start Date</td>
-                        <td>—</td><td>—</td><td>—</td>
-                        <td>✓ Recurring items only</td>
+                        <td>—</td><td>—</td>
+                        <td>✓ Recurring only</td>
+                        <td>✓ Recurring only</td>
                     </tr>
                     <tr>
                         <td class="field-label">End Condition</td>
-                        <td>—</td><td>—</td><td>—</td>
-                        <td>✓ Recurring items only</td>
+                        <td>—</td><td>—</td>
+                        <td>✓ Rarely — routines usually run forever</td>
+                        <td>✓ Common — tasks end</td>
                     </tr>
                     <tr>
                         <td class="field-label">Disable Snooze</td>
-                        <td>—</td><td>—</td><td>—</td>
-                        <td>✓ Routines where timing is the commitment</td>
+                        <td>—</td><td>—</td>
+                        <td>✓ When timing is the commitment</td>
+                        <td>—</td>
                     </tr>
                     <tr>
                         <td class="field-label">Pause</td>
-                        <td>—</td><td>—</td><td>—</td>
-                        <td>✓ Any item; temporary suspension</td>
+                        <td>—</td><td>—</td>
+                        <td>✓ Temporary suspension</td>
+                        <td>✓ Temporary suspension</td>
                     </tr>
                     <tr>
                         <td class="field-label">Linked Tasks</td>
-                        <td>—</td>
-                        <td>✓ Shows which work advances this goal</td>
-                        <td>—</td>
-                        <td>—</td>
+                        <td>✓ Shows what advances this goal</td>
+                        <td>—</td><td>—</td><td>—</td>
                     </tr>
                     <tr>
                         <td class="field-label">Linked Goal</td>
-                        <td>—</td><td>—</td>
-                        <td>✓ Optional, contextualizes the idea</td>
                         <td>—</td>
+                        <td>✓ Optional context</td>
+                        <td>—</td><td>—</td>
                     </tr>
                     <tr>
                         <td class="field-label">Area of Responsibility</td>
-                        <td>—</td>
-                        <td>✓</td>
-                        <td>✓</td>
-                        <td>✓ Organizational grouping</td>
+                        <td>✓</td><td>✓</td><td>✓</td><td>✓</td>
                     </tr>
                 </tbody>
             </table>
