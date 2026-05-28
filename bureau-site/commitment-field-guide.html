@@ -1,0 +1,1035 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Commitment Classification Manual — Bureau of Civic Responsibility</title>
+    <link rel="icon" href="favicon.png" type="image/png">
+    <link rel="stylesheet" href="style.css">
+    <style>
+        /* ── Field guide extras ─────────────────────────────────────── */
+        .guide-hero {
+            background: var(--navy);
+            color: #fff;
+            padding: 48px 24px 40px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+        .guide-hero::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: repeating-linear-gradient(
+                -55deg, transparent, transparent 18px,
+                rgba(255,255,255,0.02) 18px, rgba(255,255,255,0.02) 20px
+            );
+            pointer-events: none;
+        }
+        .guide-hero .eyebrow {
+            font-family: 'Courier Prime', monospace;
+            font-size: 0.7rem;
+            letter-spacing: 0.3em;
+            text-transform: uppercase;
+            color: var(--gold);
+            margin-bottom: 12px;
+        }
+        .guide-hero h1 {
+            font-family: 'Oswald', sans-serif;
+            font-size: 2.2rem;
+            font-weight: 700;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            margin: 0 0 12px;
+        }
+        .guide-hero .lead {
+            max-width: 620px;
+            margin: 0 auto;
+            font-size: 1rem;
+            color: rgba(255,255,255,0.8);
+            line-height: 1.7;
+            font-style: italic;
+        }
+
+        /* ── Item type cards ─────────────────────────────────────────── */
+        .type-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 16px;
+            margin: 24px 0;
+        }
+        .type-card {
+            border: 1px solid var(--border);
+            border-top: 4px solid var(--navy);
+            background: #fff;
+            padding: 20px;
+        }
+        .type-card.gold { border-top-color: var(--gold); }
+        .type-card.red  { border-top-color: var(--red);  }
+        .type-card.muted { border-top-color: var(--muted); }
+        .type-card-name {
+            font-family: 'Oswald', sans-serif;
+            font-size: 1rem;
+            font-weight: 600;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+            color: var(--navy);
+            margin: 0 0 6px;
+        }
+        .type-card-tag {
+            font-family: 'Courier Prime', monospace;
+            font-size: 0.68rem;
+            letter-spacing: 0.1em;
+            color: var(--muted);
+            text-transform: uppercase;
+            margin-bottom: 10px;
+        }
+        .type-card p {
+            font-size: 0.87rem;
+            color: var(--muted);
+            line-height: 1.65;
+            margin: 0 0 10px;
+        }
+        .type-card p:last-child { margin-bottom: 0; }
+        .type-card .example {
+            font-style: italic;
+            border-left: 3px solid var(--light);
+            padding-left: 10px;
+            margin-top: 10px;
+            font-size: 0.84rem;
+        }
+
+        /* ── Setting rows ────────────────────────────────────────────── */
+        .setting-block {
+            border: 1px solid var(--border);
+            margin-bottom: 16px;
+            background: #fff;
+        }
+        .setting-header {
+            background: var(--cream);
+            border-bottom: 1px solid var(--border);
+            padding: 12px 18px;
+            display: flex;
+            align-items: baseline;
+            gap: 14px;
+        }
+        .setting-name {
+            font-family: 'Oswald', sans-serif;
+            font-size: 0.95rem;
+            font-weight: 600;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            color: var(--navy);
+        }
+        .setting-applies {
+            font-family: 'Courier Prime', monospace;
+            font-size: 0.68rem;
+            color: var(--muted);
+            letter-spacing: 0.06em;
+        }
+        .setting-body {
+            padding: 16px 18px;
+        }
+        .setting-body p {
+            font-size: 0.88rem;
+            color: var(--muted);
+            line-height: 1.65;
+            margin: 0 0 12px;
+        }
+        .setting-body p:last-child { margin-bottom: 0; }
+        .setting-options {
+            margin: 12px 0 0;
+            padding: 0;
+            list-style: none;
+        }
+        .setting-options li {
+            display: grid;
+            grid-template-columns: 160px 1fr;
+            gap: 14px;
+            padding: 9px 0;
+            border-bottom: 1px solid rgba(0,0,0,0.06);
+            font-size: 0.87rem;
+        }
+        .setting-options li:last-child { border-bottom: none; }
+        .opt-label {
+            font-family: 'Courier Prime', monospace;
+            font-size: 0.78rem;
+            color: var(--navy);
+            font-weight: bold;
+            letter-spacing: 0.04em;
+            padding-top: 1px;
+        }
+        .opt-body { color: var(--muted); line-height: 1.6; }
+        .opt-body em { font-style: italic; color: var(--text); }
+
+        /* ── Pull quote ──────────────────────────────────────────────── */
+        .pull-quote {
+            border-left: 4px solid var(--gold);
+            padding: 14px 20px;
+            background: var(--cream);
+            margin: 24px 0;
+            font-style: italic;
+            font-size: 1rem;
+            color: var(--navy);
+            line-height: 1.7;
+        }
+        .pull-quote cite {
+            display: block;
+            font-style: normal;
+            font-family: 'Courier Prime', monospace;
+            font-size: 0.72rem;
+            color: var(--muted);
+            letter-spacing: 0.08em;
+            margin-top: 8px;
+        }
+
+        /* ── Spillover / design note blocks ─────────────────────────── */
+        .design-note {
+            background: #fff8e8;
+            border: 1px solid var(--gold);
+            border-left: 5px solid var(--gold);
+            padding: 14px 18px;
+            margin: 0 0 16px;
+            font-size: 0.87rem;
+            line-height: 1.7;
+        }
+        .design-note strong {
+            font-family: 'Oswald', sans-serif;
+            font-size: 0.85rem;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            color: var(--navy);
+            display: block;
+            margin-bottom: 5px;
+        }
+        .design-note.caution {
+            background: #fff5f5;
+            border-color: var(--red);
+            border-left-color: var(--red);
+        }
+        .design-note.caution strong { color: var(--red); }
+
+        /* ── Compact tier table ──────────────────────────────────────── */
+        .tier-row { display: flex; gap: 12px; margin-bottom: 10px; align-items: flex-start; }
+        .tier-badge {
+            font-family: 'Courier Prime', monospace;
+            font-size: 0.72rem;
+            letter-spacing: 0.06em;
+            padding: 3px 8px;
+            white-space: nowrap;
+            flex-shrink: 0;
+            min-width: 72px;
+            text-align: center;
+        }
+        .tier-body { font-size: 0.87rem; color: var(--muted); line-height: 1.55; }
+        .tier-body strong { color: var(--text); font-weight: normal; }
+    </style>
+</head>
+
+<body>
+
+    <div class="gov-banner">
+        <img src="favicon.png" alt="" class="flag">
+        <strong>An official website of the Bureau of Civic Responsibility</strong>
+        &nbsp;|&nbsp; Document Class: PUBLIC INFORMATION &nbsp;|&nbsp; Est. 2026
+    </div>
+
+    <header class="agency-header">
+        <div class="agency-seal"><img src="icon-192.png" alt="BCR Seal"></div>
+        <div class="agency-name-block">
+            <div class="agency-name">Bureau of Civic Responsibility</div>
+            <div class="agency-sub">Department of Domestic Civic Affairs &nbsp;·&nbsp; Protecting the Republic One
+                Citizen at a Time</div>
+        </div>
+    </header>
+
+    <nav class="primary-nav" aria-label="Primary navigation">
+        <ul>
+            <li><a href="index.html">Home</a></li>
+            <li><a href="about.html">About the Bureau</a></li>
+            <li>
+                <a href="leadership.html">Leadership ▾</a>
+                <ul class="sub-nav">
+                    <li><a href="leadership.html">Director R.H. Briggs</a></li>
+                    <li><a href="leadership.html#senior-staff">Senior Staff</a></li>
+                </ul>
+            </li>
+            <li>
+                <a href="awards/field-agent-of-the-quarter.html">Recognition ▾</a>
+                <ul class="sub-nav">
+                    <li><a href="awards/field-agent-of-the-quarter.html">Field Agent of the Quarter</a></li>
+                    <li><a href="awards/reagan-mccarthy-medal-of-patriotic-service.html">Anti-Subversive Detection
+                            Excellence</a></li>
+                </ul>
+            </li>
+            <li>
+                <a href="citizens/patriots.html">Citizens ▾</a>
+                <ul class="sub-nav">
+                    <li><a href="citizens/patriots.html">Patriot Roll of Honor</a></li>
+                    <li><a href="citizens/watchlist.html">Suspected Communists</a></li>
+                </ul>
+            </li>
+            <li>
+                <a href="how-clear-works.html" class="active">CLEAR Application ▾</a>
+                <ul class="sub-nav">
+                    <li><a href="https://clear.bureauofcivicresponsibility.org" target="_blank">Access CLEAR ↗</a></li>
+                    <li><a href="how-clear-works.html">How CLEAR Works</a></li>
+                    <li><a href="commitment-field-guide.html">Commitment Field Guide</a></li>
+                    <li><a href="announcements/operational-themes.html">Operational Themes</a></li>
+                </ul>
+            </li>
+        </ul>
+    </nav>
+
+    <div class="guide-hero">
+        <div class="eyebrow">CLEAR Application Reference — Form BCR-CLEAR-101</div>
+        <h1>Commitment Classification Manual</h1>
+        <p class="lead">
+            Every item in CLEAR is a specific kind of commitment, with settings tuned to its nature.
+            This guide explains the four item types, every configuration option, and why each one exists.
+        </p>
+    </div>
+
+    <div class="page-wrapper full-width" style="max-width:900px;">
+        <main>
+
+            <div class="breadcrumb">
+                <a href="index.html">Home</a> &rsaquo;
+                <a href="how-clear-works.html">CLEAR Application</a> &rsaquo;
+                Commitment Field Guide
+            </div>
+
+            <h2 class="section-heading">The Four Item Types</h2>
+
+            <p>
+                CLEAR organizes your commitments into four distinct types, each with a different purpose
+                and level of pressure. Before configuring an item, it helps to know which type it is.
+            </p>
+
+            <div class="type-grid">
+                <div class="type-card">
+                    <div class="type-card-name">Operations</div>
+                    <div class="type-card-tag">Areas of responsibility</div>
+                    <p>
+                        Operations are the ongoing areas of your life that contain your other commitments —
+                        Health, Finances, Career, Home, Relationships. They don't have deadlines or
+                        schedules. They are the containers.
+                    </p>
+                    <p class="example">
+                        "Home Maintenance," "Physical Health," "Professional Development," "Family"
+                    </p>
+                </div>
+                <div class="type-card gold">
+                    <div class="type-card-name">Goals</div>
+                    <div class="type-card-tag">Direction without a daily schedule</div>
+                    <p>
+                        Goals describe outcomes you want to achieve within an operation — a target state
+                        you're working toward. They have no schedule, no urgency band, no score impact.
+                        Their value is clarity: they explain <em>why</em> the linked tasks and routines exist.
+                    </p>
+                    <p class="example">
+                        "Be in the best shape of my life by 40," "Pay off credit card debt," "Ship side project to 100 users"
+                    </p>
+                </div>
+                <div class="type-card muted">
+                    <div class="type-card-name">Ideas</div>
+                    <div class="type-card-tag">Capture without commitment</div>
+                    <p>
+                        Ideas hold aspirations, half-formed plans, and things worth remembering — without
+                        the pressure of a commitment. No schedule. No score impact. No consequences for
+                        leaving them untouched indefinitely. The place to park things before you decide
+                        whether to commit.
+                    </p>
+                    <p class="example">
+                        "Learn woodworking," "Take a Japanese cooking class," "Read more Steinbeck,"
+                        "What if I restructured the morning routine?"
+                    </p>
+                </div>
+                <div class="type-card red">
+                    <div class="type-card-name">Routines &amp; Tasks</div>
+                    <div class="type-card-tag">The actual work — with consequences</div>
+                    <p>
+                        These are the commitments with teeth. They show up in your daily view, affect your
+                        score, and track your follow-through. <strong>Routines</strong> recur indefinitely
+                        — habits, maintenance, ongoing responsibilities. <strong>Tasks</strong> end — either
+                        a one-time deliverable or a campaign with a defined finish line.
+                    </p>
+                    <p class="example">
+                        <em>Routine:</em> "Exercise daily," "Pay rent on the 1st," "Weekly house clean"<br>
+                        <em>Task:</em> "Schedule dentist appointment," "Complete tax filing," "Paint the bedroom"
+                    </p>
+                </div>
+            </div>
+
+            <div class="pull-quote">
+                "Goals point at destinations. Routines get you there. Tasks remove specific obstacles
+                along the way. Ideas hold the possibilities you haven't decided about yet.
+                Each type asks for a different kind of attention."
+                <cite>— CLEAR design notes</cite>
+            </div>
+
+            <h2 class="section-heading">Routines vs. Tasks — When to Use Which</h2>
+
+            <p>
+                Both routines and tasks appear in the daily view and affect the score. The distinction
+                is longevity and nature:
+            </p>
+
+            <div class="setting-options" style="border: 1px solid var(--border); padding: 0 18px 0; margin-bottom: 24px;">
+                <li style="grid-template-columns: 120px 1fr;">
+                    <span class="opt-label">Routine</span>
+                    <span class="opt-body">
+                        Ongoing indefinitely. The commitment doesn't end when you complete it this week — it
+                        comes back. Habits, maintenance, and responsibilities that are part of your life as
+                        long as you choose to maintain them. <em>Exercise routine, monthly budget review,
+                        weekly house cleaning, daily journaling.</em>
+                    </span>
+                </li>
+                <li style="grid-template-columns: 120px 1fr;">
+                    <span class="opt-label">Task</span>
+                    <span class="opt-body">
+                        Has a natural end. Either a one-time deliverable or a recurring campaign that stops
+                        after a certain number of completions or a specific date. <em>Schedule dentist
+                        appointment, complete annual tax filing, 30-day meditation challenge,
+                        post-surgery physical therapy through December.</em>
+                    </span>
+                </li>
+            </div>
+
+            <p>
+                If you find yourself wondering whether something is a routine or a task, ask: "Would I be
+                done with this commitment forever once I complete it?" If yes, it's a task. If the
+                expectation resets each period, it's a routine.
+            </p>
+
+            <h2 class="section-heading">Window Type — How the Commitment Is Anchored</h2>
+
+            <p>
+                Window type governs how the urgency engine surfaces your item. It answers: "Is this
+                commitment anchored to a specific date, a window of time, or a long-horizon project?"
+            </p>
+
+            <div class="setting-block">
+                <div class="setting-header">
+                    <span class="setting-name">Hard</span>
+                    <span class="setting-applies">Applies to: routines, tasks</span>
+                </div>
+                <div class="setting-body">
+                    <p>
+                        The commitment is tied to a specific day. Missing that day means the opportunity
+                        is gone — either literally (the trash truck came and went) or by strong external
+                        convention (the bill was due the 1st). Use Hard when the day is the commitment,
+                        not just a target.
+                    </p>
+                    <ul class="setting-options">
+                        <li>
+                            <span class="opt-label">Recurring</span>
+                            <span class="opt-body">
+                                "Take the trash out every Tuesday morning." The truck comes Tuesday — not
+                                Wednesday. <em>Also: weekly team meeting every Wednesday, monthly rent
+                                on the 1st, daily medication at 8am.</em>
+                            </span>
+                        </li>
+                        <li>
+                            <span class="opt-label">One-time</span>
+                            <span class="opt-body">
+                                "File taxes by April 15th." There is a specific deadline imposed from
+                                outside. <em>Also: car registration renewal, RSVP deadline, scheduled
+                                appointment.</em>
+                            </span>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="setting-block">
+                <div class="setting-header">
+                    <span class="setting-name">Flexible</span>
+                    <span class="setting-applies">Applies to: routines, tasks</span>
+                </div>
+                <div class="setting-body">
+                    <p>
+                        The commitment has a window — you need to do it sometime between now and a deadline,
+                        but the specific day is up to you. The urgency band rises as the window closes.
+                        Use Flexible when the period matters but the exact day within it doesn't.
+                    </p>
+                    <ul class="setting-options">
+                        <li>
+                            <span class="opt-label">Recurring</span>
+                            <span class="opt-body">
+                                "Exercise three times this week." Any three days work. <em>Also: weekly
+                                journal entry, monthly budget review, quarterly investment check-in.</em>
+                            </span>
+                        </li>
+                        <li>
+                            <span class="opt-label">One-time</span>
+                            <span class="opt-body">
+                                "Schedule a dentist appointment sometime this month." No specific day
+                                required — just before the month ends. <em>Also: a home repair you've
+                                been putting off, a call you need to make this quarter.</em>
+                            </span>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="setting-block">
+                <div class="setting-header">
+                    <span class="setting-name">Milestone</span>
+                    <span class="setting-applies">Applies to: tasks (one-time recommended)</span>
+                </div>
+                <div class="setting-body">
+                    <p>
+                        A long-horizon project where progress is incremental and you track sessions of work
+                        until the thing is genuinely done. The ✓ button logs a work session and hides the
+                        item for the rest of that day. "All done" permanently completes it. Use Milestone
+                        when a task is too large to finish in one sitting and you want to track your
+                        progress without the item nagging you every day.
+                    </p>
+                    <ul class="setting-options">
+                        <li>
+                            <span class="opt-label">Good fit</span>
+                            <span class="opt-body">
+                                "Write a novel." "Learn to play guitar." "Paint the bedroom." "Build an
+                                emergency fund to $10,000." "Work through a programming course." Each of
+                                these takes many sessions across weeks or months, and you want to log
+                                effort without marking the whole thing done prematurely.
+                            </span>
+                        </li>
+                        <li>
+                            <span class="opt-label">Deadline</span>
+                            <span class="opt-body">
+                                Optionally set a deadline. Without one, the milestone stays in the backlog
+                                until you're done. With one, it surfaces in the urgency bands as the
+                                deadline approaches — useful for real projects with external stakes.
+                            </span>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+
+            <h2 class="section-heading">Consequence Tier — What Happens if You Miss It</h2>
+
+            <p>
+                The tier shapes how heavily a miss, skip, or snooze affects your score — and how
+                urgently the app escalates a pattern of avoidance. Be honest about this. Overtiereing
+                creates chronic anxiety. Undertiereing means real consequences get no signal.
+            </p>
+
+            <div style="margin: 16px 0 24px;">
+                <div class="tier-row">
+                    <span class="tier-badge badge-suspected-communist">TIER I</span>
+                    <div class="tier-body">
+                        <strong>Hard consequence.</strong> Something genuinely bad happens if this slips.
+                        External accountability or irreversible outcomes. <em>Cat food — she will starve.
+                        Medications. Bill payments with late fees or service cutoffs. Commitments with
+                        legal or health consequences.</em>
+                    </div>
+                </div>
+                <div class="tier-row">
+                    <span class="tier-badge badge-disengaged-citizen">TIER II</span>
+                    <div class="tier-body">
+                        <strong>Soft consequence.</strong> Things degrade over time if neglected. No single
+                        miss is catastrophic, but the pattern accumulates. <em>Water softener salt —
+                        the system degrades. Strength training — fitness erodes. Financial reviews —
+                        small problems compound.</em>
+                    </div>
+                </div>
+                <div class="tier-row">
+                    <span class="tier-badge badge-citizen">TIER III</span>
+                    <div class="tier-body">
+                        <strong>Quality consequence.</strong> Nothing breaks, but the quality of your life
+                        or output drops. Other people may notice or be affected. <em>Lawn mowing —
+                        the neighbors notice. Weekly house cleaning. Regular check-ins with friends.</em>
+                    </div>
+                </div>
+                <div class="tier-row">
+                    <span class="tier-badge badge-loyal-citizen">TIER IV</span>
+                    <div class="tier-body">
+                        <strong>Aspirational.</strong> Zero score consequences for missing, skipping, or
+                        snoozing. This is the "I want to be the kind of person who does this" tier.
+                        <em>Bookbinding hobby. Daily meditation. Morning stretching. Learning a new
+                        language.</em> The commitment tracks your aspiration — without guilt if life
+                        intervenes.
+                    </div>
+                </div>
+            </div>
+
+            <h2 class="section-heading">Cadence — How Often It Recurs</h2>
+
+            <p>
+                Cadence determines the recurring period for routines and tasks with recurrence. Choose the
+                period that matches the natural rhythm of the commitment — not how often you <em>want</em>
+                to do it, but how often the expectation genuinely resets.
+            </p>
+
+            <table class="info-table">
+                <thead>
+                    <tr>
+                        <th>Cadence</th>
+                        <th>Best for</th>
+                        <th>Example</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td class="field-label">Multiple per day</td>
+                        <td>Commitments with specific time-of-day occurrences</td>
+                        <td>Morning and evening medication; reading glucose levels; end-of-shift notes</td>
+                    </tr>
+                    <tr>
+                        <td class="field-label">Daily</td>
+                        <td>Habits and maintenance that reset every morning</td>
+                        <td>Morning run; journaling; making the bed; daily vitamin; review tomorrow's schedule</td>
+                    </tr>
+                    <tr>
+                        <td class="field-label">Multiple per week</td>
+                        <td>Commitments you do N times within any given week</td>
+                        <td>Gym 3x/week; piano practice 4x/week; calling parents twice a week</td>
+                    </tr>
+                    <tr>
+                        <td class="field-label">Weekly</td>
+                        <td>Recurring responsibilities with a natural seven-day rhythm</td>
+                        <td>Grocery shopping; clean the bathroom; review finances; date night</td>
+                    </tr>
+                    <tr>
+                        <td class="field-label">Multiple per month</td>
+                        <td>Commitments with several distinct occurrences in a month</td>
+                        <td>Biweekly meal planning; paying different bills on different dates</td>
+                    </tr>
+                    <tr>
+                        <td class="field-label">Monthly</td>
+                        <td>Commitments tied to the calendar month</td>
+                        <td>Pay rent; review budget; backup computer; check smoke detectors</td>
+                    </tr>
+                    <tr>
+                        <td class="field-label">Multiple per quarter</td>
+                        <td>Maintenance tasks that need attention several times a quarter</td>
+                        <td>Change HVAC filter every 6 weeks; review investment allocations</td>
+                    </tr>
+                    <tr>
+                        <td class="field-label">Quarterly</td>
+                        <td>Reviews and maintenance tied to fiscal or seasonal quarters</td>
+                        <td>Rotate tires; quarterly life retrospective; review insurance policies</td>
+                    </tr>
+                    <tr>
+                        <td class="field-label">Multiple per year</td>
+                        <td>Recurring events that happen a few times annually</td>
+                        <td>Dentist appointments (2x/year); car oil changes (3x/year); clean gutters (2x/year)</td>
+                    </tr>
+                    <tr>
+                        <td class="field-label">Yearly</td>
+                        <td>Annual obligations or milestones</td>
+                        <td>File taxes; annual physical; renew vehicle registration; winterize the home</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <h2 class="section-heading">Schedule Mode — Fixed vs. Rolling</h2>
+
+            <div class="setting-block">
+                <div class="setting-header">
+                    <span class="setting-name">Fixed</span>
+                </div>
+                <div class="setting-body">
+                    <p>
+                        The next occurrence is always anchored to the calendar position — regardless of
+                        when you completed the last one. Use this for commitments with external anchors
+                        that don't shift with your behavior.
+                    </p>
+                    <p>
+                        <em>Trash day — always Tuesday, regardless of when you last took it out.
+                        Rent — always the 1st. Team meeting — every Wednesday at 9am. Monthly
+                        budget review — always the last Friday of the month.</em>
+                    </p>
+                </div>
+            </div>
+
+            <div class="setting-block">
+                <div class="setting-header">
+                    <span class="setting-name">Rolling</span>
+                </div>
+                <div class="setting-body">
+                    <p>
+                        The next occurrence is calculated from the completion date — "N days/weeks/months
+                        from when I last did it." Use this for maintenance and habits where the
+                        interval is what matters, not the calendar position.
+                    </p>
+                    <p>
+                        <em>Oil change — every 3 months from the last service date.
+                        Deep clean the kitchen — every 6 weeks from the last time.
+                        Call an old friend — every 2 weeks rolling, so missing a week doesn't
+                        mean two calls are suddenly due.</em>
+                    </p>
+                </div>
+            </div>
+
+            <h2 class="section-heading">Visibility Settings</h2>
+
+            <div class="setting-block">
+                <div class="setting-header">
+                    <span class="setting-name">Time of Day</span>
+                    <span class="setting-applies">Organizational only — does not change urgency band</span>
+                </div>
+                <div class="setting-body">
+                    <p>
+                        Tags the item to a part of the day. Items sort within each urgency band by time-of-day
+                        slot. This is organizational, not binding — missing the morning slot does not
+                        cause any automatic consequence.
+                    </p>
+                    <ul class="setting-options">
+                        <li><span class="opt-label">Morning</span>
+                            <span class="opt-body">Items best done first. <em>Exercise, journaling, vitamins, "eat the frog" tasks.</em></span></li>
+                        <li><span class="opt-label">Afternoon</span>
+                            <span class="opt-body">Mid-day work. <em>Administrative tasks, phone calls, focused creative work.</em></span></li>
+                        <li><span class="opt-label">Evening</span>
+                            <span class="opt-body">End-of-day routines. <em>Meal prep, review tomorrow's schedule, family time.</em></span></li>
+                        <li><span class="opt-label">Bedtime</span>
+                            <span class="opt-body">Wind-down commitments. <em>Gratitude journal, skincare routine, put the phone away.</em></span></li>
+                        <li><span class="opt-label">Anytime</span>
+                            <span class="opt-body">No preferred slot. Default for most one-time tasks and flexible routines.</span></li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="setting-block">
+                <div class="setting-header">
+                    <span class="setting-name">Lead Time</span>
+                    <span class="setting-applies">Applies to: all item types</span>
+                </div>
+                <div class="setting-body">
+                    <p>
+                        Controls how far in advance an item surfaces in the daily view before it is due.
+                        The right setting depends on how much runway you need to actually complete it.
+                    </p>
+                    <ul class="setting-options">
+                        <li><span class="opt-label">Default</span>
+                            <span class="opt-body">
+                                Hard-date tasks surface 3 days before due. Flexible tasks use window-percentage
+                                logic (appears earlier the closer you are to the deadline). <em>Most items work
+                                well with the default.</em>
+                            </span>
+                        </li>
+                        <li><span class="opt-label">None</span>
+                            <span class="opt-body">
+                                Hidden from the daily view until the item is mandatory — the due date
+                                arrives and it appears. <em>Useful for low-anxiety items where seeing them
+                                early creates noise: a bill you auto-pay, a personal gift you're
+                                already handling, a surprise you don't want surfacing prematurely.</em>
+                            </span>
+                        </li>
+                        <li><span class="opt-label">Custom</span>
+                            <span class="opt-body">
+                                Surfaces exactly N days before the due or suggested date.
+                                <em>Annual tax filing: 30-day lead time to gather documents.
+                                Vehicle registration renewal: 14 days — enough to mail it in.
+                                Annual physical: 7 days — enough to schedule the appointment.</em>
+                            </span>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="setting-block">
+                <div class="setting-header">
+                    <span class="setting-name">Start Date</span>
+                    <span class="setting-applies">Applies to: recurring routines and tasks</span>
+                </div>
+                <div class="setting-body">
+                    <p>
+                        The item is invisible and does not advance its period until this date arrives.
+                        Use this to add a future commitment now without having it show up in today's view.
+                    </p>
+                    <p>
+                        <em>Add Christmas traditions in October with a start date of December 1st.
+                        Set up a summer reading routine in May that starts June 1st.
+                        Add a new year resolution in late December that activates January 1st.
+                        Plan a post-vacation fitness restart now, starting two weeks from today.</em>
+                    </p>
+                </div>
+            </div>
+
+            <h2 class="section-heading">End Conditions</h2>
+
+            <p>
+                For recurring routines and tasks, end conditions determine when the recurrence stops
+                entirely — the commitment is retired. Without an end condition, a routine runs forever.
+            </p>
+
+            <div class="setting-block">
+                <div class="setting-header">
+                    <span class="setting-name">Never</span>
+                    <span class="setting-applies">Default for routines</span>
+                </div>
+                <div class="setting-body">
+                    <p>
+                        The commitment recurs indefinitely — it is a permanent part of your life for
+                        as long as you maintain it. The right choice for genuine habits and ongoing
+                        responsibilities.
+                        <em>Daily exercise, weekly house cleaning, monthly budget review.</em>
+                    </p>
+                </div>
+            </div>
+
+            <div class="setting-block">
+                <div class="setting-header">
+                    <span class="setting-name">After Count</span>
+                    <span class="setting-applies">Campaigns and challenges</span>
+                </div>
+                <div class="setting-body">
+                    <p>
+                        The commitment ends after a specific total number of completions. Best for
+                        campaigns with a defined quantity goal.
+                    </p>
+                    <p>
+                        <em>"30-day meditation challenge" — daily, ends after 30 completions.
+                        "Read 12 books this year" — monthly, ends after 12 completions.
+                        "Complete 100 push-up challenge" — daily, ends after 100 completions.</em>
+                    </p>
+                </div>
+            </div>
+
+            <div class="setting-block">
+                <div class="setting-header">
+                    <span class="setting-name">After Date</span>
+                    <span class="setting-applies">Temporary routines</span>
+                </div>
+                <div class="setting-body">
+                    <p>
+                        The commitment ends on a specific calendar date. Best for routines that are
+                        genuinely temporary — tied to a season, a recovery period, or an event.
+                    </p>
+                    <p>
+                        <em>"Post-surgery physical therapy" — daily, ends December 31st.
+                        "NaNoWriMo writing session" — daily, ends November 30th.
+                        "Temporary morning routine while adjusting to new job" — starts day one,
+                        ends after the probationary period.</em>
+                    </p>
+                </div>
+            </div>
+
+            <h2 class="section-heading">Behavioral Settings</h2>
+
+            <div class="setting-block">
+                <div class="setting-header">
+                    <span class="setting-name">Disable Snooze</span>
+                    <span class="setting-applies">Best for: routines where the timing is the commitment</span>
+                </div>
+                <div class="setting-body">
+                    <p>
+                        Permanently removes the snooze option for this item. Use this when deferring
+                        to tomorrow defeats the purpose of the commitment — the time <em>is</em> the commitment.
+                    </p>
+                    <p>
+                        <em>Daily medication — if you miss the window, you missed it; snoozed to tomorrow
+                        just means another miss tomorrow.
+                        Morning workout — snoozed to the afternoon probably means it won't happen.
+                        Religious observance with a built-in rest day — the day is fixed; snoozed
+                        onto another day is just avoidance.
+                        Trash day — the truck comes at 7am; there is no "later today."</em>
+                    </p>
+                </div>
+            </div>
+
+            <div class="setting-block">
+                <div class="setting-header">
+                    <span class="setting-name">Pause</span>
+                    <span class="setting-applies">Temporary suspension — no score or streak impact</span>
+                </div>
+                <div class="setting-body">
+                    <p>
+                        Suspends the item entirely — it disappears from the daily view and the
+                        period does not advance. No misses are counted. No score penalty. Designed for
+                        when life changes temporarily and a commitment genuinely doesn't apply right now,
+                        without removing it from your system or resetting its history.
+                    </p>
+                    <p>
+                        <em>Exercise routine — paused during recovery from surgery.
+                        Weekly meal prep — paused during vacation.
+                        Work routines — paused during parental leave.
+                        Anything temporarily derailed by circumstance, not by avoidance.</em>
+                    </p>
+                    <p>
+                        The distinction from snooze: a snooze is 24 hours and tracked. A pause is
+                        deliberate, indefinite (or date-bounded), and carries no penalty. Use pause
+                        for life circumstances. Use snooze when you're deferring but still committed.
+                    </p>
+                </div>
+            </div>
+
+            <h2 class="section-heading">Design Notes — Settings and Their Natural Habitats</h2>
+
+            <p>
+                Not every setting is equally meaningful in every context. Some settings exist primarily
+                for one type of commitment and were carried over to others by the generality of the
+                data model. If a setting doesn't seem to have an obvious use case for a particular
+                item, that's worth noting — it may be a feature that has no home there.
+            </p>
+
+            <div class="design-note">
+                <strong>Milestone + Recurring</strong>
+                A milestone is a long-horizon project you work toward until it's genuinely finished.
+                Adding recurrence means "this project comes back every period." In practice this is
+                usually better modeled as two separate items: a <em>routine</em> (the recurring
+                check-in or work session) and a <em>milestone task</em> (the project itself). Combining
+                them creates ambiguity about what "completion" means each period.
+            </div>
+
+            <div class="design-note">
+                <strong>Lead Time on Daily Routines</strong>
+                Daily routines are always assigned to the mandatory urgency band — the urgency engine
+                doesn't consult the lead time setting for them. Setting a lead time on a daily routine
+                is inert. The setting is harmless, but has no effect.
+            </div>
+
+            <div class="design-note">
+                <strong>Hard Window on Flexible Commitments</strong>
+                "Hard" signals external accountability — the trash truck comes Tuesday whether you're
+                ready or not. If the commitment actually works fine on any day this week, the Flexible
+                window type is more accurate. Overtiereing the window type creates urgency signals
+                that don't match reality, which trains you to ignore them.
+            </div>
+
+            <div class="design-note">
+                <strong>End Condition on a One-Time Task</strong>
+                A one-time task already has a natural end — when you complete it. The "After Date" end
+                condition is meaningful for <em>recurring</em> commitments (stop the recurrence after
+                this date). On a non-recurring task, it's redundant with the due date.
+            </div>
+
+            <div class="design-note caution">
+                <strong>Multiple-Per-Period + Milestone Window</strong>
+                These two features don't interact as designed. "Multiple per period" tracks how many
+                times you've completed something in a window (e.g., 2 of 3 this week). "Milestone"
+                tracks cumulative progress on a single long-horizon project. Combining them creates
+                behavior that isn't well-defined. If you need to track N work sessions per week on a
+                project, the routine is the session commitment — the milestone is the project endpoint.
+                Keep them separate.
+            </div>
+
+            <div class="pull-quote">
+                "A well-configured commitment is one where every setting is there for a reason you can name.
+                If you can't explain why a setting is set the way it is, it's probably wrong — or the
+                commitment type is wrong."
+                <cite>— CLEAR design notes</cite>
+            </div>
+
+            <h2 class="section-heading">Quick Reference: What Goes Where</h2>
+
+            <table class="info-table">
+                <thead>
+                    <tr>
+                        <th>Setting</th>
+                        <th>Operations</th>
+                        <th>Goals</th>
+                        <th>Ideas</th>
+                        <th>Tasks &amp; Routines</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td class="field-label">Consequence Tier</td>
+                        <td>—</td><td>—</td><td>—</td>
+                        <td>✓ Core to the commitment</td>
+                    </tr>
+                    <tr>
+                        <td class="field-label">Window Type</td>
+                        <td>—</td><td>—</td><td>—</td>
+                        <td>✓ Hard / Flexible / Milestone</td>
+                    </tr>
+                    <tr>
+                        <td class="field-label">Cadence / Recurrence</td>
+                        <td>—</td><td>—</td><td>—</td>
+                        <td>✓ Routines require it; tasks may use it</td>
+                    </tr>
+                    <tr>
+                        <td class="field-label">Schedule Mode</td>
+                        <td>—</td><td>—</td><td>—</td>
+                        <td>✓ Recurring items only</td>
+                    </tr>
+                    <tr>
+                        <td class="field-label">Target / Due Date</td>
+                        <td>—</td>
+                        <td>✓ Optional outcome target</td>
+                        <td>—</td>
+                        <td>✓ Anchors the urgency band</td>
+                    </tr>
+                    <tr>
+                        <td class="field-label">Time of Day</td>
+                        <td>—</td><td>—</td><td>—</td>
+                        <td>✓ Sorting only, not binding</td>
+                    </tr>
+                    <tr>
+                        <td class="field-label">Lead Time</td>
+                        <td>—</td><td>—</td><td>—</td>
+                        <td>✓ Hard &amp; flexible types; no effect on daily</td>
+                    </tr>
+                    <tr>
+                        <td class="field-label">Start Date</td>
+                        <td>—</td><td>—</td><td>—</td>
+                        <td>✓ Recurring items only</td>
+                    </tr>
+                    <tr>
+                        <td class="field-label">End Condition</td>
+                        <td>—</td><td>—</td><td>—</td>
+                        <td>✓ Recurring items only</td>
+                    </tr>
+                    <tr>
+                        <td class="field-label">Disable Snooze</td>
+                        <td>—</td><td>—</td><td>—</td>
+                        <td>✓ Routines where timing is the commitment</td>
+                    </tr>
+                    <tr>
+                        <td class="field-label">Pause</td>
+                        <td>—</td><td>—</td><td>—</td>
+                        <td>✓ Any item; temporary suspension</td>
+                    </tr>
+                    <tr>
+                        <td class="field-label">Linked Tasks</td>
+                        <td>—</td>
+                        <td>✓ Shows which work advances this goal</td>
+                        <td>—</td>
+                        <td>—</td>
+                    </tr>
+                    <tr>
+                        <td class="field-label">Linked Goal</td>
+                        <td>—</td><td>—</td>
+                        <td>✓ Optional, contextualizes the idea</td>
+                        <td>—</td>
+                    </tr>
+                    <tr>
+                        <td class="field-label">Operation (Project)</td>
+                        <td>—</td>
+                        <td>✓</td>
+                        <td>✓</td>
+                        <td>✓ Organizational grouping</td>
+                    </tr>
+                </tbody>
+            </table>
+
+        </main>
+    </div>
+
+    <footer>
+        <div class="footer-inner">
+            <div class="footer-links">
+                <a href="#">Privacy Policy</a>
+                <a href="#">Accessibility</a>
+                <a href="#">FOIA</a>
+                <a href="#">No FEAR Act</a>
+                <a href="#">Inspector General</a>
+                <a href="#">USA.gov</a>
+                <a href="https://github.com/bdemann/the-bureau" target="_blank">Source Code ↗</a>
+            </div>
+            <div class="footer-copy">
+                Bureau of Civic Responsibility &nbsp;·&nbsp; An Agency of the Department of Domestic Civic Affairs<br>
+                This is a parody website. The BCR is a fictional government agency. Any resemblance to
+                real bureaucratic entities is not intentional.<br>
+                Last Reviewed: 2026-05-27 &nbsp;|&nbsp; Document Class: PUBLIC INFORMATION
+            </div>
+        </div>
+    </footer>
+
+</body>
+</html>
