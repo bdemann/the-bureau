@@ -100,10 +100,9 @@ export const AddTaskDialogElement = defineElement<{
         frequencyPerPeriod: 2,
         scheduleMode: 'fixed' as ScheduleMode,
         windowType: 'hard' as WindowType,
-        radarLeadDays: 3,
         /**
          * Lead time selector state.
-         * 'default' = keep existing urgency band behaviour.
+         * 'default' = system default (hard-date: 3 days radar; flexible: window %).
          * 'none'    = hidden until mandatory/due (leadTimeDays = null).
          * 'custom'  = user-specified number of days (leadTimeDays = number).
          */
@@ -553,7 +552,6 @@ export const AddTaskDialogElement = defineElement<{
                 endMode: (cfg?.endMode === 'after_date' ? 'after_date' : 'after_count'),
                 endAfterCount: cfg?.endAfterCount ?? 10,
                 endAfterDate: cfg?.endAfterDate ? msToDateString(cfg.endAfterDate) : '',
-                radarLeadDays: t.radarLeadDays ?? 3,
                 leadTimeMode: 'leadTimeDays' in t && t.leadTimeDays !== undefined
                     ? (t.leadTimeDays === null ? 'none' : 'custom')
                     : 'default',
@@ -630,7 +628,6 @@ export const AddTaskDialogElement = defineElement<{
                 frequencyPerPeriod: 2,
                 scheduleMode: 'fixed',
                 windowType: 'hard',
-                radarLeadDays: 3,
                 leadTimeMode: 'default',
                 leadTimeCustomDays: 7,
                 disableSnooze: false,
@@ -834,15 +831,9 @@ export const AddTaskDialogElement = defineElement<{
                 timeOfDay: state.timeOfDay,
                 consequenceTier: state.consequenceTier,
                 windowType: state.windowType,
-                // leadTimeDays supersedes radarLeadDays when set.
                 leadTimeDays: state.leadTimeMode === 'none'   ? null
                             : state.leadTimeMode === 'custom' ? state.leadTimeCustomDays
                             : undefined,
-                // Keep radarLeadDays for hard-date tasks (backward compat + still used
-                // as fallback when leadTimeDays is absent).
-                radarLeadDays: state.windowType === 'hard' && state.leadTimeMode === 'default'
-                    ? state.radarLeadDays
-                    : undefined,
                 lastProgressAt: baseTask?.lastProgressAt ?? null,
                 disableSnooze: state.disableSnooze || undefined, // omit when false (saves space)
                 suggestedDate,
@@ -1227,23 +1218,6 @@ export const AddTaskDialogElement = defineElement<{
                         </div>
                         ` : html``}
 
-                        ${state.windowType === 'hard' && state.leadTimeMode === 'default' ? html`
-                        <div class="field">
-                            <span class="field-label">Radar lead (days)</span>
-                            <${ViraInput.assign({
-                                value: String(state.radarLeadDays),
-                                type: ViraInputType.Number,
-                                placeholder: '3',
-                            })}
-                                ${listen(ViraInput.events.valueChange, e => {
-                                    const n = parseInt(e.detail, 10);
-                                    if (!Number.isNaN(n) && n >= 0 && n <= 365) {
-                                        updateState({radarLeadDays: n});
-                                    }
-                                })}
-                            ></${ViraInput}>
-                        </div>
-                        ` : html``}
                     ` : html``}
 
                     <!-- Lead time — applies to all task types -->

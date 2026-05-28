@@ -128,12 +128,9 @@ function step2HardDate(task: Task, today: Date): DailyBand {
     const days = daysBetween(today, task.suggestedDate);
     if (days <= 0) return 'mandatory'; // safety net (Step 1 should catch this)
 
-    // leadTimeDays takes precedence over deprecated radarLeadDays.
-    // null = hidden until due day; number = radar window size.
+    // null = hidden until due day; number = radar window size; undefined = default 3.
     const hasLeadTime = 'leadTimeDays' in task && task.leadTimeDays !== undefined;
-    const lead: number | null = hasLeadTime
-        ? (task.leadTimeDays ?? null)
-        : (task.radarLeadDays ?? 3);
+    const lead: number | null = hasLeadTime ? (task.leadTimeDays ?? null) : 3;
 
     if (lead === null) return 'hidden'; // no lead time → invisible until mandatory
     if (days <= lead) return 'radar';

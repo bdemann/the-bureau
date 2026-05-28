@@ -214,27 +214,13 @@ export interface Task {
     // ── Lead time ────────────────────────────────────────────────────────────
     /**
      * How many days before suggestedDate (or window deadline) this directive
-     * becomes visible in the daily view at all.
+     * becomes visible in the daily view at all. Applies to all window types.
      *
-     *   undefined / not set → current urgency-band behaviour unchanged.
-     *   null                → hidden until the task is actually due / mandatory;
-     *                         it will not appear in backlog or radar at all.
-     *   number              → for hard-date tasks this replaces radarLeadDays
-     *                         (task enters radar this many days out); for flexible
-     *                         and milestone tasks the task is hidden until this
-     *                         many days before suggestedDate / windowDeadline.
-     *
-     * Applies to ALL window types. Supersedes radarLeadDays when set.
+     *   undefined → system default (hard-date: 3 days; flexible/milestone: window %)
+     *   null      → hidden until mandatory/due; never appears in backlog or radar
+     *   number    → task surfaces this many days before suggestedDate / deadline
      */
     leadTimeDays?: number | null;
-
-    // ── Radar lead (hard-date directives only — superseded by leadTimeDays) ──
-    /**
-     * @deprecated Prefer leadTimeDays. Still read as fallback when leadTimeDays
-     * is absent. Days before suggestedDate at which this directive appears in
-     * the RADAR band. Only applies when windowType === 'hard'. Defaults to 3.
-     */
-    radarLeadDays?: number;
 
     // ── Pause (deliberate suspension — no score/streak impact) ──
     /**

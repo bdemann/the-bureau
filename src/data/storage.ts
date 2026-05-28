@@ -138,7 +138,12 @@ function ensureTaskShape(raw: any): Task {
         progressCount: raw.progressCount ?? 0,
         // Optional fields — undefined when absent from old data (backward compat).
         lastProgressAt: raw.lastProgressAt ?? null,
-        leadTimeDays: 'leadTimeDays' in raw ? raw.leadTimeDays : undefined,
+        // Migrate: radarLeadDays (old hard-date-only field) → leadTimeDays.
+        leadTimeDays: 'leadTimeDays' in raw
+            ? raw.leadTimeDays
+            : ('radarLeadDays' in raw && raw.radarLeadDays !== undefined)
+                ? raw.radarLeadDays
+                : undefined,
         pausedUntil: raw.pausedUntil ?? null,
         pausedIndefinitely: raw.pausedIndefinitely ?? false,
         snoozeCount: raw.snoozeCount ?? 0,
@@ -155,7 +160,6 @@ function ensureTaskShape(raw: any): Task {
         completedAt: raw.completedAt ?? null,
         createdAt: raw.createdAt ?? Date.now(),
         dueDate: raw.dueDate ?? null,
-        radarLeadDays: raw.radarLeadDays,
     };
 }
 

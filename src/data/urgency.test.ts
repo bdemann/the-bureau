@@ -134,30 +134,30 @@ describe('getDailyBand — Step 2 (hard-date timing)', () => {
     });
 });
 
-describe('getDailyBand — radarLeadDays (hard-date directives)', () => {
+describe('getDailyBand — leadTimeDays (hard-date directives)', () => {
     const today = date('2026-05-09');
 
-    test('radarLeadDays=5: 5 days out → radar', () => {
-        const t = makeTask({windowType: 'hard', suggestedDate: today.getTime() + 5 * DAY_MS, radarLeadDays: 5});
+    test('leadTimeDays=5: 5 days out → radar', () => {
+        const t = makeTask({windowType: 'hard', suggestedDate: today.getTime() + 5 * DAY_MS, leadTimeDays: 5});
         assert.strictEquals(getDailyBand(t, today), 'radar');
     });
 
-    test('radarLeadDays=5: 6 days out → backlog', () => {
-        const t = makeTask({windowType: 'hard', suggestedDate: today.getTime() + 6 * DAY_MS, radarLeadDays: 5});
+    test('leadTimeDays=5: 6 days out → backlog', () => {
+        const t = makeTask({windowType: 'hard', suggestedDate: today.getTime() + 6 * DAY_MS, leadTimeDays: 5});
         assert.strictEquals(getDailyBand(t, today), 'backlog');
     });
 
-    test('radarLeadDays=1: 3 days out → backlog (overrides default)', () => {
-        const t = makeTask({windowType: 'hard', suggestedDate: today.getTime() + 3 * DAY_MS, radarLeadDays: 1});
+    test('leadTimeDays=1: 3 days out → backlog (short window)', () => {
+        const t = makeTask({windowType: 'hard', suggestedDate: today.getTime() + 3 * DAY_MS, leadTimeDays: 1});
         assert.strictEquals(getDailyBand(t, today), 'backlog');
     });
 
-    test('radarLeadDays=0: 1 day out → backlog (no radar window)', () => {
-        const t = makeTask({windowType: 'hard', suggestedDate: today.getTime() + 1 * DAY_MS, radarLeadDays: 0});
+    test('leadTimeDays=0: 1 day out → backlog (no radar window)', () => {
+        const t = makeTask({windowType: 'hard', suggestedDate: today.getTime() + 1 * DAY_MS, leadTimeDays: 0});
         assert.strictEquals(getDailyBand(t, today), 'backlog');
     });
 
-    test('radarLeadDays undefined: falls back to default of 3', () => {
+    test('leadTimeDays undefined: defaults to 3', () => {
         const t = makeTask({windowType: 'hard', suggestedDate: today.getTime() + 3 * DAY_MS});
         assert.strictEquals(getDailyBand(t, today), 'radar');
     });
