@@ -1,30 +1,30 @@
-import {defineElement, defineElementEvent, css, html} from 'element-vir';
-import type {Project, Task} from '../data/types.js';
-import {isTaskOverdue, isTaskVisible} from '../data/storage.js';
-import {SNOOZE_CRITICAL} from '../data/types.js';
+import { defineElement, defineElementEvent, css, html } from "element-vir";
+import type { Area, Task } from "../data/types.js";
+import { isTaskOverdue, isTaskVisible } from "../data/storage.js";
+import { SNOOZE_CRITICAL } from "../data/types.js";
 
 // ─────────────────────────────────────────────────────────────────────────────
-// ProjectCardElement
-// Dashboard summary card for a project / operation.
+// AreaCardElement
+// Dashboard summary card for an area.
 // Shows task counts, overdue flags, and critical snooze alerts.
 // ─────────────────────────────────────────────────────────────────────────────
 
-const PROJECT_COLORS: Record<string, string> = {
-    red:   'var(--color-danger)',
-    navy:  'var(--color-primary)',
-    gold:  'var(--color-warning)',
-    olive: '#4A5E2A',
-    slate: '#4A5568',
+const AREA_COLORS: Record<string, string> = {
+    red: "var(--color-danger)",
+    navy: "var(--color-primary)",
+    gold: "var(--color-warning)",
+    olive: "#4A5E2A",
+    slate: "#4A5568",
 };
 
-export const ProjectCardElement = defineElement<{
-    project: Project;
+export const AreaCardElement = defineElement<{
+    area: Area;
     tasks: Task[];
 }>()({
-    tagName: 'project-card',
+    tagName: "area-card",
 
     events: {
-        selected: defineElementEvent<string>(), // project id
+        selected: defineElementEvent<string>(), // area id
     },
 
     styles: css`
@@ -34,18 +34,20 @@ export const ProjectCardElement = defineElement<{
 
         .card {
             background: var(--color-card);
-            border: 1px solid rgba(0,0,0,0.12);
-            border-top: 5px solid var(--project-color, var(--color-primary));
+            border: 1px solid rgba(0, 0, 0, 0.12);
+            border-top: 5px solid var(--area-color, var(--color-primary));
             padding: 14px 16px 16px;
             cursor: pointer;
-            transition: transform 0.12s, box-shadow 0.12s;
+            transition:
+                transform 0.12s,
+                box-shadow 0.12s;
             position: relative;
             overflow: hidden;
         }
 
         .card:hover {
             transform: translateY(-2px);
-            box-shadow: 0 4px 16px rgba(0,0,0,0.12);
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
         }
 
         .card:active {
@@ -54,16 +56,16 @@ export const ProjectCardElement = defineElement<{
 
         /* Folder tab decoration */
         .card::before {
-            content: '';
+            content: "";
             position: absolute;
             top: -5px;
             right: 20px;
             width: 40px;
             height: 5px;
-            background: var(--project-color-light, var(--color-primary-hover));
+            background: var(--area-color-light, var(--color-primary-hover));
         }
 
-        .project-name {
+        .area-name {
             font-family: var(--font-accent);
             font-size: 1rem;
             color: var(--color-text);
@@ -71,7 +73,7 @@ export const ProjectCardElement = defineElement<{
             margin-bottom: 6px;
         }
 
-        .project-desc {
+        .area-desc {
             font-size: 0.75rem;
             color: var(--color-text-muted);
             line-height: 1.4;
@@ -123,13 +125,18 @@ export const ProjectCardElement = defineElement<{
         }
 
         @keyframes pulse-flag {
-            0%, 100% { opacity: 1; }
-            50%       { opacity: 0.6; }
+            0%,
+            100% {
+                opacity: 1;
+            }
+            50% {
+                opacity: 0.6;
+            }
         }
 
         .flag-complete {
             background: rgba(46, 94, 46, 0.1);
-            color: #2E5E2E;
+            color: #2e5e2e;
             border: 1px solid rgba(46, 94, 46, 0.3);
         }
 
@@ -140,9 +147,11 @@ export const ProjectCardElement = defineElement<{
             transform: translateY(-50%);
             font-family: var(--font-display);
             font-size: 1rem;
-            color: var(--project-color, var(--color-primary));
+            color: var(--area-color, var(--color-primary));
             opacity: 0.4;
-            transition: opacity 0.15s, transform 0.15s;
+            transition:
+                opacity 0.15s,
+                transform 0.15s;
         }
 
         .card:hover .enter-arrow {
@@ -151,37 +160,41 @@ export const ProjectCardElement = defineElement<{
         }
     `,
 
-    render({inputs, dispatch, events}) {
-        const {project, tasks} = inputs;
+    render({ inputs, dispatch, events }) {
+        const { area, tasks } = inputs;
 
-        const color = PROJECT_COLORS[project.colorKey] ?? 'var(--color-primary)';
+        const color = AREA_COLORS[area.colorKey] ?? "var(--color-primary)";
         const visibleTasks = tasks.filter(isTaskVisible);
         const overdueTasks = visibleTasks.filter(isTaskOverdue);
         const criticalSnooze = tasks.filter(
-            t => t.snoozeCount >= SNOOZE_CRITICAL && t.completedAt === null,
+            (t) => t.snoozeCount >= SNOOZE_CRITICAL && t.completedAt === null,
         );
-        const completedCount = tasks.filter(t => t.completedAt !== null).length;
+        const completedCount = tasks.filter(
+            (t) => t.completedAt !== null,
+        ).length;
         const totalCount = tasks.length;
-        const taskItems = tasks.filter(t => t.kind === 'task');
-        const allDone = taskItems.length > 0 && taskItems.every(t => t.completedAt !== null);
+        const taskItems = tasks.filter((t) => t.kind === "task");
+        const allDone =
+            taskItems.length > 0 &&
+            taskItems.every((t) => t.completedAt !== null);
 
         return html`
             <div
                 class="card"
-                style="--project-color:${color}"
-                @click=${() => dispatch(new events.selected(project.id))}
+                style="--area-color:${color}"
+                @click=${() => dispatch(new events.selected(area.id))}
                 role="button"
                 tabindex="0"
                 @keydown=${(e: KeyboardEvent) => {
-                    if (e.key === 'Enter' || e.key === ' ') {
-                        dispatch(new events.selected(project.id));
+                    if (e.key === "Enter" || e.key === " ") {
+                        dispatch(new events.selected(area.id));
                     }
                 }}
             >
-                <div class="project-name">${project.name}</div>
+                <div class="area-name">${area.name}</div>
 
-                ${project.description
-                    ? html`<div class="project-desc">${project.description}</div>`
+                ${area.description
+                    ? html`<div class="area-desc">${area.description}</div>`
                     : html``}
 
                 <div class="stats">
@@ -196,18 +209,18 @@ export const ProjectCardElement = defineElement<{
 
                     ${overdueTasks.length > 0
                         ? html`<span class="flag flag-overdue">
-                            ⚠ ${overdueTasks.length} overdue
+                              ⚠ ${overdueTasks.length} overdue
                           </span>`
                         : html``}
-
                     ${criticalSnooze.length > 0
                         ? html`<span class="flag flag-critical">
-                            ★ BRIGGS WATCHING
+                              ★ BRIGGS WATCHING
                           </span>`
                         : html``}
-
                     ${allDone
-                        ? html`<span class="flag flag-complete">✓ CLEARED</span>`
+                        ? html`<span class="flag flag-complete"
+                              >✓ CLEARED</span
+                          >`
                         : html``}
                 </div>
 

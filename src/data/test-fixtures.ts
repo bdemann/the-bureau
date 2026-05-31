@@ -1,17 +1,17 @@
 // Shared fixtures for unit tests. Build a Task in one line via makeTask({...}).
 
-import type {ItemKind, RecurrenceConfig, Task} from './types.js';
+import type { ItemKind, RecurrenceConfig, Task } from "./types.js";
 
 export function makeTask(overrides: Partial<Task> = {}): Task {
     return {
-        id: 'task-id',
-        projectId: 'proj-id',
-        title: 'Test task',
-        description: '',
-        timeOfDay: 'anytime',
-        kind: 'task' as ItemKind,
+        id: "task-id",
+        areaId: "proj-id",
+        title: "Test task",
+        description: "",
+        timeOfDay: "anytime",
+        kind: "task" as ItemKind,
         consequenceTier: 3,
-        windowType: 'flexible',
+        windowType: "flexible",
         suggestedDate: null,
         windowDeadline: null,
         windowLengthDays: null,
@@ -39,17 +39,19 @@ export function makeTask(overrides: Partial<Task> = {}): Task {
     };
 }
 
-export function makeRecurrence(overrides: Partial<RecurrenceConfig> = {}): RecurrenceConfig {
+export function makeRecurrence(
+    overrides: Partial<RecurrenceConfig> = {},
+): RecurrenceConfig {
     return {
-        cadence: 'weekly',
+        cadence: "weekly",
         frequencyPerPeriod: 1,
-        scheduleMode: 'fixed',
-        endMode: 'never',
+        scheduleMode: "fixed",
+        endMode: "never",
         ...overrides,
     };
 }
 
 /** Build a Date at local midnight from a YYYY-MM-DD string. Tests read clearer this way. */
 export function date(yyyyMmDd: string): Date {
-    return new Date(yyyyMmDd + 'T00:00:00');
+    return new Date(yyyyMmDd + "T00:00:00");
 }

@@ -17,16 +17,16 @@
             position: relative;
             overflow: hidden;
         }
+
         .guide-hero::before {
             content: '';
             position: absolute;
             inset: 0;
-            background: repeating-linear-gradient(
-                -55deg, transparent, transparent 18px,
-                rgba(255,255,255,0.02) 18px, rgba(255,255,255,0.02) 20px
-            );
+            background: repeating-linear-gradient(-55deg, transparent, transparent 18px,
+                    rgba(255, 255, 255, 0.02) 18px, rgba(255, 255, 255, 0.02) 20px);
             pointer-events: none;
         }
+
         .guide-hero .eyebrow {
             font-family: 'Courier Prime', monospace;
             font-size: 0.7rem;
@@ -35,6 +35,7 @@
             color: var(--gold);
             margin-bottom: 12px;
         }
+
         .guide-hero h1 {
             font-family: 'Oswald', sans-serif;
             font-size: 2.2rem;
@@ -43,11 +44,12 @@
             text-transform: uppercase;
             margin: 0 0 12px;
         }
+
         .guide-hero .lead {
             max-width: 620px;
             margin: 0 auto;
             font-size: 1rem;
-            color: rgba(255,255,255,0.8);
+            color: rgba(255, 255, 255, 0.8);
             line-height: 1.7;
             font-style: italic;
         }
@@ -59,15 +61,26 @@
             gap: 16px;
             margin: 24px 0;
         }
+
         .type-card {
             border: 1px solid var(--border);
             border-top: 4px solid var(--navy);
             background: #fff;
             padding: 20px;
         }
-        .type-card.gold { border-top-color: var(--gold); }
-        .type-card.red  { border-top-color: var(--red);  }
-        .type-card.muted { border-top-color: var(--muted); }
+
+        .type-card.gold {
+            border-top-color: var(--gold);
+        }
+
+        .type-card.red {
+            border-top-color: var(--red);
+        }
+
+        .type-card.muted {
+            border-top-color: var(--muted);
+        }
+
         .type-card-name {
             font-family: 'Oswald', sans-serif;
             font-size: 1rem;
@@ -77,6 +90,7 @@
             color: var(--navy);
             margin: 0 0 6px;
         }
+
         .type-card-tag {
             font-family: 'Courier Prime', monospace;
             font-size: 0.68rem;
@@ -85,13 +99,18 @@
             text-transform: uppercase;
             margin-bottom: 10px;
         }
+
         .type-card p {
             font-size: 0.87rem;
             color: var(--muted);
             line-height: 1.65;
             margin: 0 0 10px;
         }
-        .type-card p:last-child { margin-bottom: 0; }
+
+        .type-card p:last-child {
+            margin-bottom: 0;
+        }
+
         .type-card .example {
             font-style: italic;
             border-left: 3px solid var(--light);
@@ -106,6 +125,7 @@
             margin-bottom: 16px;
             background: #fff;
         }
+
         .setting-header {
             background: var(--cream);
             border-bottom: 1px solid var(--border);
@@ -114,6 +134,7 @@
             align-items: baseline;
             gap: 14px;
         }
+
         .setting-name {
             font-family: 'Oswald', sans-serif;
             font-size: 0.95rem;
@@ -122,36 +143,48 @@
             text-transform: uppercase;
             color: var(--navy);
         }
+
         .setting-applies {
             font-family: 'Courier Prime', monospace;
             font-size: 0.68rem;
             color: var(--muted);
             letter-spacing: 0.06em;
         }
+
         .setting-body {
             padding: 16px 18px;
         }
+
         .setting-body p {
             font-size: 0.88rem;
             color: var(--muted);
             line-height: 1.65;
             margin: 0 0 12px;
         }
-        .setting-body p:last-child { margin-bottom: 0; }
+
+        .setting-body p:last-child {
+            margin-bottom: 0;
+        }
+
         .setting-options {
             margin: 12px 0 0;
             padding: 0;
             list-style: none;
         }
+
         .setting-options li {
             display: grid;
             grid-template-columns: 160px 1fr;
             gap: 14px;
             padding: 9px 0;
-            border-bottom: 1px solid rgba(0,0,0,0.06);
+            border-bottom: 1px solid rgba(0, 0, 0, 0.06);
             font-size: 0.87rem;
         }
-        .setting-options li:last-child { border-bottom: none; }
+
+        .setting-options li:last-child {
+            border-bottom: none;
+        }
+
         .opt-label {
             font-family: 'Courier Prime', monospace;
             font-size: 0.78rem;
@@ -160,8 +193,16 @@
             letter-spacing: 0.04em;
             padding-top: 1px;
         }
-        .opt-body { color: var(--muted); line-height: 1.6; }
-        .opt-body em { font-style: italic; color: var(--text); }
+
+        .opt-body {
+            color: var(--muted);
+            line-height: 1.6;
+        }
+
+        .opt-body em {
+            font-style: italic;
+            color: var(--text);
+        }
 
         /* ── Pull quote ──────────────────────────────────────────────── */
         .pull-quote {
@@ -174,6 +215,7 @@
             color: var(--navy);
             line-height: 1.7;
         }
+
         .pull-quote cite {
             display: block;
             font-style: normal;
@@ -194,6 +236,7 @@
             font-size: 0.87rem;
             line-height: 1.7;
         }
+
         .design-note strong {
             font-family: 'Oswald', sans-serif;
             font-size: 0.85rem;
@@ -203,15 +246,25 @@
             display: block;
             margin-bottom: 5px;
         }
+
         .design-note.caution {
             background: #fff5f5;
             border-color: var(--red);
             border-left-color: var(--red);
         }
-        .design-note.caution strong { color: var(--red); }
+
+        .design-note.caution strong {
+            color: var(--red);
+        }
 
         /* ── Compact tier table ──────────────────────────────────────── */
-        .tier-row { display: flex; gap: 12px; margin-bottom: 10px; align-items: flex-start; }
+        .tier-row {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 10px;
+            align-items: flex-start;
+        }
+
         .tier-badge {
             font-family: 'Courier Prime', monospace;
             font-size: 0.72rem;
@@ -222,8 +275,17 @@
             min-width: 72px;
             text-align: center;
         }
-        .tier-body { font-size: 0.87rem; color: var(--muted); line-height: 1.55; }
-        .tier-body strong { color: var(--text); font-weight: normal; }
+
+        .tier-body {
+            font-size: 0.87rem;
+            color: var(--muted);
+            line-height: 1.55;
+        }
+
+        .tier-body strong {
+            color: var(--text);
+            font-weight: normal;
+        }
     </style>
 </head>
 
@@ -318,12 +380,13 @@
             <p>
                 When you create a new Area of Responsibility, CLEAR walks you through a short setup
                 wizard. The central question it asks: <em>"What would I have to be doing regularly
-                to feel like I'm achieving greatness in this area?"</em> That question is the point.
+                    to feel like I'm achieving greatness in this area?"</em> That question is the point.
                 It forces you to think about what success in this domain actually looks like in practice —
                 not as an abstract aspiration, but as concrete, recurring behavior. The routines and
                 tasks that come out of that answer are your starting commitments for the area.
             </p>
-            <p class="example" style="border-left: 3px solid var(--light); padding-left: 12px; font-style: italic; color: var(--muted); font-size: 0.88rem;">
+            <p class="example"
+                style="border-left: 3px solid var(--light); padding-left: 12px; font-style: italic; color: var(--muted); font-size: 0.88rem;">
                 "Physical Health," "Home Maintenance," "Professional Development," "Finances," "Family," "Side Projects"
             </p>
 
@@ -345,7 +408,8 @@
                         ground: a date you're aiming for.
                     </p>
                     <p class="example">
-                        "Be in the best shape of my life by 40," "Pay off credit card debt by end of year," "Ship side project to 100 users"
+                        "Be in the best shape of my life by 40," "Pay off credit card debt by end of year," "Ship side
+                        project to 100 users"
                     </p>
                 </div>
                 <div class="type-card muted">
@@ -367,7 +431,7 @@
                     <div class="type-card-tag">Habits and rituals — ongoing</div>
                     <p>
                         Routines are habits and rituals you maintain as part of who you are. They recur
-                        because that's their nature — not because a project demands it. There's no finish
+                        because that's their nature — not because an area demands it. There's no finish
                         line. You don't complete a routine; you maintain it.
                     </p>
                     <p class="example">
@@ -404,7 +468,8 @@
                 doesn't make it a routine.
             </p>
 
-            <div class="setting-options" style="border: 1px solid var(--border); padding: 0 18px 0; margin-bottom: 24px;">
+            <div class="setting-options"
+                style="border: 1px solid var(--border); padding: 0 18px 0; margin-bottom: 24px;">
                 <li style="grid-template-columns: 120px 1fr;">
                     <span class="opt-label">Routine</span>
                     <span class="opt-body">
@@ -421,7 +486,7 @@
                         is a repeating task, not a habit — but the repetition is structural, driven by
                         the work itself. When the work is done, the commitment is done.
                         <em>Schedule dentist appointment, file taxes, post-surgery PT exercises (daily,
-                        3 weeks), complete a specific training course.</em>
+                            3 weeks), complete a specific training course.</em>
                     </span>
                 </li>
             </div>
@@ -457,7 +522,7 @@
                             <span class="opt-body">
                                 "Take the trash out every Tuesday morning." The truck comes Tuesday — not
                                 Wednesday. <em>Also: weekly team meeting every Wednesday, monthly rent
-                                on the 1st, daily medication at 8am.</em>
+                                    on the 1st, daily medication at 8am.</em>
                             </span>
                         </li>
                         <li>
@@ -465,7 +530,7 @@
                             <span class="opt-body">
                                 "File taxes by April 15th." There is a specific deadline imposed from
                                 outside. <em>Also: car registration renewal, RSVP deadline, scheduled
-                                appointment.</em>
+                                    appointment.</em>
                             </span>
                         </li>
                     </ul>
@@ -488,7 +553,7 @@
                             <span class="opt-label">Recurring</span>
                             <span class="opt-body">
                                 "Exercise three times this week." Any three days work. <em>Also: weekly
-                                journal entry, monthly budget review, quarterly investment check-in.</em>
+                                    journal entry, monthly budget review, quarterly investment check-in.</em>
                             </span>
                         </li>
                         <li>
@@ -496,7 +561,7 @@
                             <span class="opt-body">
                                 "Schedule a dentist appointment sometime this month." No specific day
                                 required — just before the month ends. <em>Also: a home repair you've
-                                been putting off, a call you need to make this quarter.</em>
+                                    been putting off, a call you need to make this quarter.</em>
                             </span>
                         </li>
                     </ul>
@@ -562,8 +627,8 @@
                     <div class="tier-body">
                         <strong>Hard consequence.</strong> Something genuinely bad happens if this slips.
                         External accountability or irreversible outcomes. <em>Cat food — she will starve.
-                        Medications. Bill payments with late fees or service cutoffs. Commitments with
-                        legal or health consequences.</em>
+                            Medications. Bill payments with late fees or service cutoffs. Commitments with
+                            legal or health consequences.</em>
                     </div>
                 </div>
                 <div class="tier-row">
@@ -571,8 +636,8 @@
                     <div class="tier-body">
                         <strong>Soft consequence.</strong> Things degrade over time if neglected. No single
                         miss is catastrophic, but the pattern accumulates. <em>Water softener salt —
-                        the system degrades. Strength training — fitness erodes. Financial reviews —
-                        small problems compound.</em>
+                            the system degrades. Strength training — fitness erodes. Financial reviews —
+                            small problems compound.</em>
                     </div>
                 </div>
                 <div class="tier-row">
@@ -580,7 +645,7 @@
                     <div class="tier-body">
                         <strong>Quality consequence.</strong> Nothing breaks, but the quality of your life
                         or output drops. Other people may notice or be affected. <em>Lawn mowing —
-                        the neighbors notice. Weekly house cleaning. Regular check-ins with friends.</em>
+                            the neighbors notice. Weekly house cleaning. Regular check-ins with friends.</em>
                     </div>
                 </div>
                 <div class="tier-row">
@@ -589,7 +654,7 @@
                         <strong>Aspirational.</strong> Zero score consequences for missing, skipping, or
                         snoozing. This is the "I want to be the kind of person who does this" tier.
                         <em>Bookbinding hobby. Daily meditation. Morning stretching. Learning a new
-                        language.</em> The commitment tracks your aspiration — without guilt if life
+                            language.</em> The commitment tracks your aspiration — without guilt if life
                         intervenes.
                     </div>
                 </div>
@@ -679,8 +744,8 @@
                     </p>
                     <p>
                         <em>Trash day — always Tuesday, regardless of when you last took it out.
-                        Rent — always the 1st. Team meeting — every Wednesday at 9am. Monthly
-                        budget review — always the last Friday of the month.</em>
+                            Rent — always the 1st. Team meeting — every Wednesday at 9am. Monthly
+                            budget review — always the last Friday of the month.</em>
                     </p>
                 </div>
             </div>
@@ -697,9 +762,9 @@
                     </p>
                     <p>
                         <em>Oil change — every 3 months from the last service date.
-                        Deep clean the kitchen — every 6 weeks from the last time.
-                        Call an old friend — every 2 weeks rolling, so missing a week doesn't
-                        mean two calls are suddenly due.</em>
+                            Deep clean the kitchen — every 6 weeks from the last time.
+                            Call an old friend — every 2 weeks rolling, so missing a week doesn't
+                            mean two calls are suddenly due.</em>
                     </p>
                 </div>
             </div>
@@ -719,15 +784,25 @@
                     </p>
                     <ul class="setting-options">
                         <li><span class="opt-label">Morning</span>
-                            <span class="opt-body">Items best done first. <em>Exercise, journaling, vitamins, "eat the frog" tasks.</em></span></li>
+                            <span class="opt-body">Items best done first. <em>Exercise, journaling, vitamins, "eat the
+                                    frog" tasks.</em></span>
+                        </li>
                         <li><span class="opt-label">Afternoon</span>
-                            <span class="opt-body">Mid-day work. <em>Administrative tasks, phone calls, focused creative work.</em></span></li>
+                            <span class="opt-body">Mid-day work. <em>Administrative tasks, phone calls, focused creative
+                                    work.</em></span>
+                        </li>
                         <li><span class="opt-label">Evening</span>
-                            <span class="opt-body">End-of-day routines. <em>Meal prep, review tomorrow's schedule, family time.</em></span></li>
+                            <span class="opt-body">End-of-day routines. <em>Meal prep, review tomorrow's schedule,
+                                    family time.</em></span>
+                        </li>
                         <li><span class="opt-label">Bedtime</span>
-                            <span class="opt-body">Wind-down commitments. <em>Gratitude journal, skincare routine, put the phone away.</em></span></li>
+                            <span class="opt-body">Wind-down commitments. <em>Gratitude journal, skincare routine, put
+                                    the phone away.</em></span>
+                        </li>
                         <li><span class="opt-label">Anytime</span>
-                            <span class="opt-body">No preferred slot. Default for most one-time tasks and flexible routines.</span></li>
+                            <span class="opt-body">No preferred slot. Default for most one-time tasks and flexible
+                                routines.</span>
+                        </li>
                     </ul>
                 </div>
             </div>
@@ -747,23 +822,23 @@
                             <span class="opt-body">
                                 Hard-date tasks surface 3 days before due. Flexible tasks use window-percentage
                                 logic (appears earlier the closer you are to the deadline). <em>Most items work
-                                well with the default.</em>
+                                    well with the default.</em>
                             </span>
                         </li>
                         <li><span class="opt-label">None</span>
                             <span class="opt-body">
                                 Hidden from the daily view until the item is mandatory — the due date
                                 arrives and it appears. <em>Useful for low-anxiety items where seeing them
-                                early creates noise: a bill you auto-pay, a personal gift you're
-                                already handling, a surprise you don't want surfacing prematurely.</em>
+                                    early creates noise: a bill you auto-pay, a personal gift you're
+                                    already handling, a surprise you don't want surfacing prematurely.</em>
                             </span>
                         </li>
                         <li><span class="opt-label">Custom</span>
                             <span class="opt-body">
                                 Surfaces exactly N days before the due or suggested date.
                                 <em>Annual tax filing: 30-day lead time to gather documents.
-                                Vehicle registration renewal: 14 days — enough to mail it in.
-                                Annual physical: 7 days — enough to schedule the appointment.</em>
+                                    Vehicle registration renewal: 14 days — enough to mail it in.
+                                    Annual physical: 7 days — enough to schedule the appointment.</em>
                             </span>
                         </li>
                     </ul>
@@ -782,9 +857,9 @@
                     </p>
                     <p>
                         <em>Add Christmas traditions in October with a start date of December 1st.
-                        Set up a summer reading routine in May that starts June 1st.
-                        Add a new year resolution in late December that activates January 1st.
-                        Plan a post-vacation fitness restart now, starting two weeks from today.</em>
+                            Set up a summer reading routine in May that starts June 1st.
+                            Add a new year resolution in late December that activates January 1st.
+                            Plan a post-vacation fitness restart now, starting two weeks from today.</em>
                     </p>
                 </div>
             </div>
@@ -823,8 +898,8 @@
                     </p>
                     <p>
                         <em>"30-day meditation challenge" — daily, ends after 30 completions.
-                        "Read 12 books this year" — monthly, ends after 12 completions.
-                        "Complete 100 push-up challenge" — daily, ends after 100 completions.</em>
+                            "Read 12 books this year" — monthly, ends after 12 completions.
+                            "Complete 100 push-up challenge" — daily, ends after 100 completions.</em>
                     </p>
                 </div>
             </div>
@@ -841,9 +916,9 @@
                     </p>
                     <p>
                         <em>"Post-surgery physical therapy" — daily, ends December 31st.
-                        "NaNoWriMo writing session" — daily, ends November 30th.
-                        "Temporary morning routine while adjusting to new job" — starts day one,
-                        ends after the probationary period.</em>
+                            "NaNoWriMo writing session" — daily, ends November 30th.
+                            "Temporary morning routine while adjusting to new job" — starts day one,
+                            ends after the probationary period.</em>
                     </p>
                 </div>
             </div>
@@ -862,11 +937,11 @@
                     </p>
                     <p>
                         <em>Daily medication — if you miss the window, you missed it; snoozed to tomorrow
-                        just means another miss tomorrow.
-                        Morning workout — snoozed to the afternoon probably means it won't happen.
-                        Religious observance with a built-in rest day — the day is fixed; snoozed
-                        onto another day is just avoidance.
-                        Trash day — the truck comes at 7am; there is no "later today."</em>
+                            just means another miss tomorrow.
+                            Morning workout — snoozed to the afternoon probably means it won't happen.
+                            Religious observance with a built-in rest day — the day is fixed; snoozed
+                            onto another day is just avoidance.
+                            Trash day — the truck comes at 7am; there is no "later today."</em>
                     </p>
                 </div>
             </div>
@@ -885,9 +960,9 @@
                     </p>
                     <p>
                         <em>Exercise routine — paused during recovery from surgery.
-                        Weekly meal prep — paused during vacation.
-                        Work routines — paused during parental leave.
-                        Anything temporarily derailed by circumstance, not by avoidance.</em>
+                            Weekly meal prep — paused during vacation.
+                            Work routines — paused during parental leave.
+                            Anything temporarily derailed by circumstance, not by avoidance.</em>
                     </p>
                     <p>
                         The distinction from snooze: a snooze is 24 hours and tracked. A pause is
@@ -969,25 +1044,29 @@
                 <tbody>
                     <tr>
                         <td class="field-label">Consequence Tier</td>
-                        <td>—</td><td>—</td>
+                        <td>—</td>
+                        <td>—</td>
                         <td>✓</td>
                         <td>✓</td>
                     </tr>
                     <tr>
                         <td class="field-label">Window Type</td>
-                        <td>—</td><td>—</td>
+                        <td>—</td>
+                        <td>—</td>
                         <td>✓ Hard / Flexible / Milestone</td>
                         <td>✓ Hard / Flexible / Milestone</td>
                     </tr>
                     <tr>
                         <td class="field-label">Cadence / Recurrence</td>
-                        <td>—</td><td>—</td>
+                        <td>—</td>
+                        <td>—</td>
                         <td>✓ Typically indefinite</td>
                         <td>✓ May repeat; always has an end</td>
                     </tr>
                     <tr>
                         <td class="field-label">Schedule Mode</td>
-                        <td>—</td><td>—</td>
+                        <td>—</td>
+                        <td>—</td>
                         <td>✓ Fixed or rolling</td>
                         <td>✓ Fixed or rolling</td>
                     </tr>
@@ -1000,54 +1079,66 @@
                     </tr>
                     <tr>
                         <td class="field-label">Time of Day</td>
-                        <td>—</td><td>—</td>
+                        <td>—</td>
+                        <td>—</td>
                         <td>✓ Sorting only</td>
                         <td>✓ Sorting only</td>
                     </tr>
                     <tr>
                         <td class="field-label">Lead Time</td>
-                        <td>—</td><td>—</td>
+                        <td>—</td>
+                        <td>—</td>
                         <td>✓ Hard &amp; flexible; no effect on daily</td>
                         <td>✓ Hard &amp; flexible; no effect on daily</td>
                     </tr>
                     <tr>
                         <td class="field-label">Start Date</td>
-                        <td>—</td><td>—</td>
+                        <td>—</td>
+                        <td>—</td>
                         <td>✓ Recurring only</td>
                         <td>✓ Recurring only</td>
                     </tr>
                     <tr>
                         <td class="field-label">End Condition</td>
-                        <td>—</td><td>—</td>
+                        <td>—</td>
+                        <td>—</td>
                         <td>✓ Rarely — routines usually run forever</td>
                         <td>✓ Common — tasks end</td>
                     </tr>
                     <tr>
                         <td class="field-label">Disable Snooze</td>
-                        <td>—</td><td>—</td>
+                        <td>—</td>
+                        <td>—</td>
                         <td>✓ When timing is the commitment</td>
                         <td>—</td>
                     </tr>
                     <tr>
                         <td class="field-label">Pause</td>
-                        <td>—</td><td>—</td>
+                        <td>—</td>
+                        <td>—</td>
                         <td>✓ Temporary suspension</td>
                         <td>✓ Temporary suspension</td>
                     </tr>
                     <tr>
                         <td class="field-label">Linked Tasks</td>
                         <td>✓ Shows what advances this goal</td>
-                        <td>—</td><td>—</td><td>—</td>
+                        <td>—</td>
+                        <td>—</td>
+                        <td>—</td>
                     </tr>
                     <tr>
                         <td class="field-label">Linked Goal</td>
                         <td>—</td>
                         <td>✓ Optional context</td>
-                        <td>—</td><td>—</td>
+                        <td>—</td>
+                        <td>—</td>
                     </tr>
                     <tr>
                         <td class="field-label">Area of Responsibility</td>
-                        <td>✓</td><td>✓</td><td>✓</td><td>✓</td>
+                        <td>✓</td>
+                        <td>✓</td>
+                        <td>✓</td>
+                        <td>✓</td>
                     </tr>
                 </tbody>
             </table>
@@ -1076,4 +1167,5 @@
     </footer>
 
 </body>
+
 </html>

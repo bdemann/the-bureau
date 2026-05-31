@@ -2,21 +2,27 @@
 // Core domain types for BCR (Bureau of Civic Responsibility)
 // ─────────────────────────────────────────────────────────────────────────────
 
-export type ItemKind = 'routine' | 'task';
-export type FormKind = 'routine' | 'task' | 'goal' | 'idea';
-export type AppView = 'daily' | 'operations' | 'project' | 'insights' | 'ideas' | 'goals';
-export type Character = 'director' | 'agent';
+export type ItemKind = "routine" | "task";
+export type FormKind = "routine" | "task" | "goal" | "idea";
+export type AppView =
+    | "daily"
+    | "areas"
+    | "area"
+    | "insights"
+    | "ideas"
+    | "goals";
+export type Character = "director" | "agent";
 
 export const SCHEMA_VERSION = 2;
 
 // ── Goal ─────────────────────────────────────────────────────────────────────
 
-export type GoalStatus = 'active' | 'achieved' | 'abandoned';
+export type GoalStatus = "active" | "achieved" | "abandoned";
 
 export interface Goal {
     id: string;
-    /** The operation this goal belongs to. */
-    projectId: string | null;
+    /** The area this goal belongs to. */
+    areaId: string | null;
     title: string;
     description: string;
     status: GoalStatus;
@@ -33,49 +39,49 @@ export interface Idea {
     id: string;
     title: string;
     description: string;
-    /** The operation this idea belongs to. */
-    projectId: string | null;
-    /** The goal within the operation this idea is fleshing out (optional). */
+    /** The area this idea belongs to. */
+    areaId: string | null;
+    /** The goal within the area this idea is fleshing out (optional). */
     goalId: string | null;
     createdAt: number;
 }
 
-// ── Project ──────────────────────────────────────────────────────────────────
+// ── Area ─────────────────────────────────────────────────────────────────────
 
-export interface Project {
+export interface Area {
     id: string;
     name: string;
     description: string;
-    colorKey: ProjectColor;
+    colorKey: AreaColor;
     createdAt: number; // unix timestamp ms
 }
 
-export type ProjectColor = 'red' | 'navy' | 'gold' | 'olive' | 'slate';
+export type AreaColor = "red" | "navy" | "gold" | "olive" | "slate";
 
 // ── Recurrence ───────────────────────────────────────────────────────────────
 
 export type RecurrenceCadence =
-    | 'multiple_per_day'
-    | 'daily'
-    | 'multiple_per_week'
-    | 'weekly'
-    | 'multiple_per_month'
-    | 'monthly'
-    | 'multiple_per_quarter'
-    | 'quarterly'
-    | 'multiple_per_year'
-    | 'yearly';
+    | "multiple_per_day"
+    | "daily"
+    | "multiple_per_week"
+    | "weekly"
+    | "multiple_per_month"
+    | "monthly"
+    | "multiple_per_quarter"
+    | "quarterly"
+    | "multiple_per_year"
+    | "yearly";
 
 export type ScheduleMode =
-    | 'fixed'    // next due anchored to calendar position (1st of month, every Wed)
-    | 'rolling'; // next due = completion date + cadence length
+    | "fixed" // next due anchored to calendar position (1st of month, every Wed)
+    | "rolling"; // next due = completion date + cadence length
 
 export type WindowType =
-    | 'hard'      // must happen on suggestedDate specifically (trash day)
-    | 'flexible'  // can happen any day within the window
-    | 'milestone'; // long-horizon task; track incremental progress until truly done
+    | "hard" // must happen on suggestedDate specifically (trash day)
+    | "flexible" // can happen any day within the window
+    | "milestone"; // long-horizon task; track incremental progress until truly done
 
-export type RecurrenceEndMode = 'never' | 'after_count' | 'after_date';
+export type RecurrenceEndMode = "never" | "after_count" | "after_date";
 
 export interface RecurrenceConfig {
     cadence: RecurrenceCadence;
@@ -146,25 +152,48 @@ export interface RecurrenceConfig {
  */
 export type ConsequenceTier = 1 | 2 | 3 | 4;
 
-export type DailyBand = 'mandatory' | 'suggested' | 'radar' | 'backlog' | 'hidden';
+export type DailyBand =
+    | "mandatory"
+    | "suggested"
+    | "radar"
+    | "backlog"
+    | "hidden";
 
-export type TimeOfDay = 'morning' | 'afternoon' | 'evening' | 'bedtime' | 'anytime';
+export type TimeOfDay =
+    | "morning"
+    | "afternoon"
+    | "evening"
+    | "bedtime"
+    | "anytime";
 
 export const TIME_OF_DAY_SLOTS: ReadonlyArray<TimeOfDay> = [
-    'morning', 'afternoon', 'evening', 'bedtime', 'anytime',
+    "morning",
+    "afternoon",
+    "evening",
+    "bedtime",
+    "anytime",
 ];
 
 export const TIME_OF_DAY_ORDER: Record<TimeOfDay, number> = {
-    morning: 0, afternoon: 1, evening: 2, bedtime: 3, anytime: 4,
+    morning: 0,
+    afternoon: 1,
+    evening: 2,
+    bedtime: 3,
+    anytime: 4,
 };
 
 export function timeOfDayLabel(t: TimeOfDay): string {
     switch (t) {
-        case 'morning':   return 'Morning';
-        case 'afternoon': return 'Afternoon';
-        case 'evening':   return 'Evening';
-        case 'bedtime':   return 'Bedtime';
-        case 'anytime':   return 'Anytime';
+        case "morning":
+            return "Morning";
+        case "afternoon":
+            return "Afternoon";
+        case "evening":
+            return "Evening";
+        case "bedtime":
+            return "Bedtime";
+        case "anytime":
+            return "Anytime";
     }
 }
 
@@ -172,7 +201,7 @@ export function timeOfDayLabel(t: TimeOfDay): string {
 
 export interface Task {
     id: string;
-    projectId: string | null;
+    areaId: string | null;
     title: string;
     description: string;
     timeOfDay: TimeOfDay;
@@ -286,95 +315,131 @@ export interface Task {
 
 // ── Snooze severity (visual) ─────────────────────────────────────────────────
 
-export const SNOOZE_WARNING = 1;    // yellow
-export const SNOOZE_CAUTION = 2;    // orange
-export const SNOOZE_DANGER = 4;     // red
-export const SNOOZE_CRITICAL = 6;   // deep red, "UNDER REVIEW"
+export const SNOOZE_WARNING = 1; // yellow
+export const SNOOZE_CAUTION = 2; // orange
+export const SNOOZE_DANGER = 4; // red
+export const SNOOZE_CRITICAL = 6; // deep red, "UNDER REVIEW"
 
-export type SnoozeSeverity = 'none' | 'warning' | 'caution' | 'danger' | 'critical';
+export type SnoozeSeverity =
+    | "none"
+    | "warning"
+    | "caution"
+    | "danger"
+    | "critical";
 
 export function getSnoozeSeverity(snoozeCount: number): SnoozeSeverity {
-    if (snoozeCount === 0) return 'none';
-    if (snoozeCount < SNOOZE_CAUTION) return 'warning';
-    if (snoozeCount < SNOOZE_DANGER) return 'caution';
-    if (snoozeCount < SNOOZE_CRITICAL) return 'danger';
-    return 'critical';
+    if (snoozeCount === 0) return "none";
+    if (snoozeCount < SNOOZE_CAUTION) return "warning";
+    if (snoozeCount < SNOOZE_DANGER) return "caution";
+    if (snoozeCount < SNOOZE_CRITICAL) return "danger";
+    return "critical";
 }
 
 // ── Skip severity ────────────────────────────────────────────────────────────
 
 export const SKIP_CAUTION = 2;
-export const SKIP_DANGER  = 4;
+export const SKIP_DANGER = 4;
 export const SKIP_CRITICAL = 6;
 
-export type SkipSeverity = 'none' | 'warning' | 'caution' | 'danger' | 'critical';
+export type SkipSeverity =
+    | "none"
+    | "warning"
+    | "caution"
+    | "danger"
+    | "critical";
 
 export function getSkipSeverity(skipStreak: number): SkipSeverity {
-    if (skipStreak === 0) return 'none';
-    if (skipStreak < SKIP_CAUTION)  return 'warning';
-    if (skipStreak < SKIP_DANGER)   return 'caution';
-    if (skipStreak < SKIP_CRITICAL) return 'danger';
-    return 'critical';
+    if (skipStreak === 0) return "none";
+    if (skipStreak < SKIP_CAUTION) return "warning";
+    if (skipStreak < SKIP_DANGER) return "caution";
+    if (skipStreak < SKIP_CRITICAL) return "danger";
+    return "critical";
 }
 
 // ── Cadence helpers ──────────────────────────────────────────────────────────
 
 /** Whether the cadence supports multiple completions per period. */
-export function isMultiplePerPeriodCadence(cadence: RecurrenceCadence): boolean {
-    return cadence.startsWith('multiple_per_');
+export function isMultiplePerPeriodCadence(
+    cadence: RecurrenceCadence,
+): boolean {
+    return cadence.startsWith("multiple_per_");
 }
 
 /** Human-readable label for a cadence (UI). */
 export function cadenceLabel(cadence: RecurrenceCadence): string {
     switch (cadence) {
-        case 'multiple_per_day':     return 'Multiple times per day';
-        case 'daily':                return 'Daily';
-        case 'multiple_per_week':    return 'Multiple times per week';
-        case 'weekly':               return 'Weekly';
-        case 'multiple_per_month':   return 'Multiple times per month';
-        case 'monthly':              return 'Monthly';
-        case 'multiple_per_quarter': return 'Multiple times per quarter';
-        case 'quarterly':            return 'Quarterly';
-        case 'multiple_per_year':    return 'Multiple times per year';
-        case 'yearly':               return 'Annually';
+        case "multiple_per_day":
+            return "Multiple times per day";
+        case "daily":
+            return "Daily";
+        case "multiple_per_week":
+            return "Multiple times per week";
+        case "weekly":
+            return "Weekly";
+        case "multiple_per_month":
+            return "Multiple times per month";
+        case "monthly":
+            return "Monthly";
+        case "multiple_per_quarter":
+            return "Multiple times per quarter";
+        case "quarterly":
+            return "Quarterly";
+        case "multiple_per_year":
+            return "Multiple times per year";
+        case "yearly":
+            return "Annually";
     }
 }
 
 /** Short cadence period word ("week", "month", etc.) for "1/3 this week" style labels. */
 export function cadencePeriodWord(cadence: RecurrenceCadence): string {
-    if (cadence === 'multiple_per_day' || cadence === 'daily') return 'day';
-    if (cadence === 'multiple_per_week' || cadence === 'weekly') return 'week';
-    if (cadence === 'multiple_per_month' || cadence === 'monthly') return 'month';
-    if (cadence === 'multiple_per_quarter' || cadence === 'quarterly') return 'quarter';
-    return 'year';
+    if (cadence === "multiple_per_day" || cadence === "daily") return "day";
+    if (cadence === "multiple_per_week" || cadence === "weekly") return "week";
+    if (cadence === "multiple_per_month" || cadence === "monthly")
+        return "month";
+    if (cadence === "multiple_per_quarter" || cadence === "quarterly")
+        return "quarter";
+    return "year";
 }
 
 // ── Consequence tier helpers ─────────────────────────────────────────────────
 
 export function tierLabel(tier: ConsequenceTier): string {
     switch (tier) {
-        case 1: return 'Hard consequence';
-        case 2: return 'Soft consequence';
-        case 3: return 'Quality consequence';
-        case 4: return 'Aspirational';
+        case 1:
+            return "Hard consequence";
+        case 2:
+            return "Soft consequence";
+        case 3:
+            return "Quality consequence";
+        case 4:
+            return "Aspirational";
     }
 }
 
 export function tierShortLabel(tier: ConsequenceTier): string {
     switch (tier) {
-        case 1: return 'TIER I';
-        case 2: return 'TIER II';
-        case 3: return 'TIER III';
-        case 4: return 'TIER IV';
+        case 1:
+            return "TIER I";
+        case 2:
+            return "TIER II";
+        case 3:
+            return "TIER III";
+        case 4:
+            return "TIER IV";
     }
 }
 
 export function tierDescription(tier: ConsequenceTier): string {
     switch (tier) {
-        case 1: return 'Something bad happens if this slips.';
-        case 2: return 'Things degrade over time.';
-        case 3: return 'Nothing breaks, but quality drops.';
-        case 4: return 'I want to be the kind of person who does this.';
+        case 1:
+            return "Something bad happens if this slips.";
+        case 2:
+            return "Things degrade over time.";
+        case 3:
+            return "Nothing breaks, but quality drops.";
+        case 4:
+            return "I want to be the kind of person who does this.";
     }
 }
 
@@ -390,12 +455,12 @@ export interface DialogueEntry {
 
 export interface AppState {
     readonly schemaVersion: number;
-    readonly projects: ReadonlyArray<Project>;
+    readonly areas: ReadonlyArray<Area>;
     readonly tasks: ReadonlyArray<Task>;
     readonly goals: ReadonlyArray<Goal>;
     readonly ideas: ReadonlyArray<Idea>;
     readonly view: AppView;
-    readonly selectedProjectId: string | null;
+    readonly selectedAreaId: string | null;
     readonly patriotScore: number;
     readonly completionStreak: number;
     readonly dialogueQueue: ReadonlyArray<DialogueEntry>;

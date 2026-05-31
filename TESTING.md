@@ -50,13 +50,13 @@ Mark each row as you verify in the browser. Reset the localStorage entry
 - [ ] Tapping Areas tab navigates to the areas of responsibility list
 - [ ] Tapping Ideas tab navigates to the ideas view
 - [ ] Tapping Goals tab navigates to the goals list
-- [ ] While in a project detail (area drill-down), the Areas tab stays highlighted
+- [ ] While in an area detail (area drill-down), the Areas tab stays highlighted
 - [ ] While in a goal detail, the Goals tab stays highlighted
 - [ ] Tapping Areas or Goals tab from their detail view returns to the top-level list
 - [ ] On iOS PWA: nav bar sits above the home-indicator safe area (no content clipped)
 - [ ] Undo toast appears above the nav bar, not behind it
 
-### Areas of Responsibility view (project list)
+### Areas of Responsibility view (area list)
 
 - [ ] Empty: shows `NO AREAS OF RESPONSIBILITY` stamp
 - [ ] `+ NEW AREA OF RESPONSIBILITY` button opens the wizard
@@ -64,11 +64,11 @@ Mark each row as you verify in the browser. Reset the localStorage entry
 - [ ] Clicking outside the wizard with data entered shows "DISCARD CHANGES?" confirmation
 - [ ] Confirmation "Keep editing" returns to the wizard with all data intact
 - [ ] Confirmation "Discard" closes the wizard and clears all state
-- [ ] Click card → project-detail opens
-- [ ] Multiple projects render
-- [ ] A project where all `kind=task` commitments are completed shows "CLEARED" (regardless of routines)
-- [ ] A project with only routines (no tasks) never shows "CLEARED"
-- [ ] A project with a mix: CLEARED only when the task commitments are all done
+- [ ] Click card → area-detail opens
+- [ ] Multiple areas render
+- [ ] A area where all `kind=task` commitments are completed shows "CLEARED" (regardless of routines)
+- [ ] A area with only routines (no tasks) never shows "CLEARED"
+- [ ] A area with a mix: CLEARED only when the task commitments are all done
 
 ### Area of Responsibility creation wizard
 
@@ -91,30 +91,30 @@ Mark each row as you verify in the browser. Reset the localStorage entry
 - [ ] Step 3 Weekly: default day selected is today's day of the week
 - [ ] Step 3 Monthly: "Day of month" / "Nth weekday" toggle appears
 - [ ] Step 3 Monthly (day of month): numeric input accepts 1–31
-- [ ] Step 3 Monthly (Nth weekday): 1st/2nd/3rd/4th/5th*/Last picker + day-of-week picker appear
+- [ ] Step 3 Monthly (Nth weekday): 1st/2nd/3rd/4th/5th\*/Last picker + day-of-week picker appear
 - [ ] Step 3 Monthly (Nth weekday): anchor summary reads "The 2nd Sunday of each month" etc.
-- [ ] Step 3 Monthly (Nth weekday): selecting 5th* shows "(skips months without a 5th)" in summary
+- [ ] Step 3 Monthly (Nth weekday): selecting 5th\* shows "(skips months without a 5th)" in summary
 - [ ] Step 3: Time-of-day grid (Anytime / Morning / Afternoon / Evening) is selectable
 - [ ] Step 3: "Create with commitments so far" creates the area using only configured commitments up to this point
 - [ ] Step 3: "Next Commitment →" advances to the next commitment without creating yet
 - [ ] Step 3: Last commitment shows "Create Area ✓" instead of Next
 - [ ] After wizard completes: area card appears in dashboard
-- [ ] After wizard completes: commitments appear with ROUTINE chip in project detail
+- [ ] After wizard completes: commitments appear with ROUTINE chip in area detail
 
-### Project-detail
+### Area-detail
 
-- [ ] Header breadcrumb shows project name
+- [ ] Header breadcrumb shows area name
 - [ ] Back button returns to Areas of Responsibility
 - [ ] Empty state shows "No active commitments in this area." + Whitaker quote
 - [ ] `+ MAKE NEW COMMITMENT` opens dialog
 - [ ] Active tasks list shows incomplete + un-snoozed (regardless of due date)
 - [ ] Snoozed list shows separately when applicable
 - [ ] Cleared tasks toggle (Show/Hide N cleared commitments) works
-- [ ] EDIT AREA and DECOMMISSION AREA buttons visible at bottom of project detail
+- [ ] EDIT AREA and DECOMMISSION AREA buttons visible at bottom of area detail
 - [ ] Clicking EDIT AREA opens inline form pre-filled with current name, briefing, and color
-- [ ] Color swatch matching current project color is pre-selected
+- [ ] Color swatch matching current area color is pre-selected
 - [ ] Changing name/description/color and clicking SAVE CHANGES persists the updates
-- [ ] Saved area name and color reflect immediately in the project-detail header
+- [ ] Saved area name and color reflect immediately in the area-detail header
 - [ ] CANCEL in edit form closes the form with no changes
 - [ ] Cannot save with blank area name (SAVE CHANGES does nothing until name is non-empty)
 - [ ] Clicking DECOMMISSION AREA shows inline confirmation ("DECOMMISSION" / "CANCEL")
@@ -123,7 +123,7 @@ Mark each row as you verify in the browser. Reset the localStorage entry
 
 ### Filing commitments — type picker
 
-- [ ] `+ MAKE COMMITMENT` (daily view) and `+ MAKE NEW COMMITMENT` (project detail) both show a bottom-sheet type picker with 4 options: ROUTINE / TASK / GOAL / IDEA
+- [ ] `+ MAKE COMMITMENT` (daily view) and `+ MAKE NEW COMMITMENT` (area detail) both show a bottom-sheet type picker with 4 options: ROUTINE / TASK / GOAL / IDEA
 - [ ] Tapping the backdrop outside the panel dismisses the picker without creating anything
 - [ ] CANCEL button also dismisses
 - [ ] ROUTINE → opens the add-commitment sheet pre-set to Routine mode (recurring on, daily cadence)
@@ -185,11 +185,11 @@ Mark each row as you verify in the browser. Reset the localStorage entry
 - [ ] Multiple days can be toggled on/off independently
 - [ ] Default is today's day of the week (single day selected)
 - [ ] Anchor summary updates with readable description:
-  - 5 weekdays → "Every weekday (Mon–Fri)."
-  - 6 days without Sun → "Every day except Sunday."
-  - 6 days without Sat → "Every day except Saturday."
-  - 7 days → "Every day."
-  - Custom → "Mon, Wed, Fri." style list
+    - 5 weekdays → "Every weekday (Mon–Fri)."
+    - 6 days without Sun → "Every day except Sunday."
+    - 6 days without Sat → "Every day except Saturday."
+    - 7 days → "Every day."
+    - Custom → "Mon, Wed, Fri." style list
 - [ ] FILE TASK disabled when no days selected
 - [ ] **Single day selected, today matches**: first occurrence = today
 - [ ] **Single day selected, today doesn't match**: first occurrence = next occurrence
@@ -238,14 +238,14 @@ Mark each row as you verify in the browser. Reset the localStorage entry
 
 ### Reordering commitments
 
-- [ ] Each commitment card in project-detail (active commitments) shows a `⠿` drag handle on the right
+- [ ] Each commitment card in area-detail (active commitments) shows a `⠿` drag handle on the right
 - [ ] Each commitment card in daily view shows a `⠿` drag handle on the right
 - [ ] Dragging a commitment by its handle (or anywhere on the card) shows the card at reduced opacity
 - [ ] A blue line appears above the drop target as the dragged card hovers over it
 - [ ] Dropping onto another commitment inserts the dragged one before the target
 - [ ] A drop zone at the bottom of each list allows moving a commitment to the last position
 - [ ] Reorder persists after navigating away and back (saved to state)
-- [ ] Reordering in project-detail does not affect commitments in other areas
+- [ ] Reordering in area-detail does not affect commitments in other areas
 - [ ] Reordering within a daily-view band does not affect commitments in other bands
 - [ ] Reordering within one time-slot group does not affect commitments in another slot group within the same band
 
@@ -261,20 +261,20 @@ Mark each row as you verify in the browser. Reset the localStorage entry
 
 - [ ] `+ MAKE COMMITMENT` button visible at the bottom of the daily view
 - [ ] Clicking it opens the dialog with "No area" pre-selected in the Area of Responsibility dropdown
-- [ ] Commitment can be submitted with "No area" selected — appears in daily view with no project name tag
+- [ ] Commitment can be submitted with "No area" selected — appears in daily view with no area name tag
 - [ ] Area dropdown lists all existing areas; selecting one assigns the commitment to that area
-- [ ] After creation, commitment appears in the correct project-detail if an area was selected
+- [ ] After creation, commitment appears in the correct area-detail if an area was selected
 
 ### Area of Responsibility assignment on commitments
 
 - [ ] Area of Responsibility dropdown is the last field in the commitment dialog
-- [ ] When opened via `+ FILE NEW COMMITMENT` in a project, that area is pre-selected in the dropdown
+- [ ] When opened via `+ FILE NEW COMMITMENT` in a area, that area is pre-selected in the dropdown
 - [ ] User can change the pre-selected area before submitting
 - [ ] When editing an existing commitment, the current area is pre-selected in the dropdown
 - [ ] Changing the area on an existing commitment and saving moves it to the new area
 - [ ] "No area" option always present; selecting it saves the commitment with no area assignment
-- [ ] Commitments with no area do not appear in any project-detail view
-- [ ] Commitments with no area do appear in the daily view (with no project name tag above the title)
+- [ ] Commitments with no area do not appear in any area-detail view
+- [ ] Commitments with no area do appear in the daily view (with no area name tag above the title)
 
 ### Commitment termination
 
@@ -282,7 +282,7 @@ Mark each row as you verify in the browser. Reset the localStorage entry
 - [ ] Clicking TERMINATE COMMITMENT shows inline confirmation: "PERMANENTLY TERMINATE THIS COMMITMENT?" with TERMINATE and CANCEL buttons
 - [ ] CANCEL in confirmation returns to the edit form without deleting
 - [ ] Confirming TERMINATE removes the commitment and closes the dialog
-- [ ] Terminated commitment no longer appears in project-detail or daily view
+- [ ] Terminated commitment no longer appears in area-detail or daily view
 - [ ] TERMINATE COMMITMENT button is NOT present when creating a new commitment (add mode)
 
 ### Snooze
@@ -314,7 +314,7 @@ Mark each row as you verify in the browser. Reset the localStorage entry
 ### Un-snooze
 
 - [ ] In Snoozed list → "Wake up" moves commitment back to Active
-- [ ] Snooze count *retained* (un-snooze ≠ reset)
+- [ ] Snooze count _retained_ (un-snooze ≠ reset)
 
 ### Skip indicator
 
@@ -323,32 +323,37 @@ Mark each row as you verify in the browser. Reset the localStorage entry
 - [ ] After 4–5 skips, badge turns dark and reads "↷ FLAGGED — Skipped ×N" (danger)
 - [ ] At 6+ skips, badge becomes a pulsing navy stamp "CHRONIC AVOIDANCE ×N" (critical)
 - [ ] Completing a commitment replaces the skip badge with the remediation badge (skip → recovery)
-- [ ] Skip badge is visible on commitment cards in both the daily view and project-detail
+- [ ] Skip badge is visible on commitment cards in both the daily view and area-detail
 
 ### Remediation (recovery after skip/snooze streak)
 
 Remediation fires whenever a commitment that had a skip streak OR high snooze count is completed for the first time. The agent must demonstrate consecutive completions to clear the record.
 
 **Basic remediation flow**
+
 - [ ] Complete a routine that had skipStreak ≥ 1 → skip badge disappears and a teal "↺ Recovering — N left" badge appears (remediationCount = previous skipStreak)
 - [ ] Complete it again → badge counts down (N − 1 left)
 - [ ] Complete it enough times → badge disappears entirely (fully cleared)
 - [ ] Completing a routine with NO prior streak or remediation → no remediation badge appears
 
 **Snooze-triggered remediation**
+
 - [ ] Complete a routine that had snoozeCount ≥ 1 → snooze badge disappears and remediation badge appears (remediationCount = previous snoozeCount)
 - [ ] When both skipStreak and snoozeCount are > 0, remediationCount = max(skipStreak, snoozeCount)
 
 **Severity escalation**
+
 - [ ] remediationCount 1–2 → teal low-severity badge "↺ Recovering — N left"
 - [ ] remediationCount 3–4 → amber medium-severity badge "↺ Remediation — N needed"
 - [ ] remediationCount 5+ → pulsing rust badge "↺ INTEGRITY AUDIT ×N"
 
 **Relapse mid-remediation**
+
 - [ ] While remediation badge is showing (e.g. remediationCount = 3), skip the routine → skip badge reappears with skipStreak = 3 (starts at the remediation level, NOT at 1); remediation badge gone
 - [ ] While remediation badge is showing (e.g. remediationCount = 3), snooze the routine → snooze badge reappears with snoozeCount = 3 (starts at remediation level); remediation badge gone
 
 **Score / penalty**
+
 - [ ] A snooze while in remediation applies the same score penalty as a regular snooze at the resulting count level
 
 ### Daily view
@@ -382,7 +387,7 @@ Remediation fires whenever a commitment that had a skip streak OR high snooze co
 - [ ] Until date: hides until the selected date, then reappears automatically
 - [ ] For N days: hides for N days from today
 - [ ] Paused commitments do NOT accrue misses during rollover
-- [ ] Paused commitments appear in a PAUSED section in their area's project detail
+- [ ] Paused commitments appear in a PAUSED section in their area's area detail
 - [ ] Clicking the task card for a paused commitment opens edit mode where pause can be removed
 
 ### Monthly multi-day scheduling
@@ -448,7 +453,7 @@ Remediation fires whenever a commitment that had a skip streak OR high snooze co
 - [ ] Hamburger → Insights navigates to the insights view; bottom nav has no active tab while on this view
 - [ ] Page shows "Insights" title and subtitle
 - [ ] MISSED COMMITMENTS section shows commitments whose one-time hard-date has passed (missedAt set); empty state shows "No missed commitments on record"
-- [ ] Missed one-time hard-date commitments no longer appear in daily or project-detail views
+- [ ] Missed one-time hard-date commitments no longer appear in daily or area-detail views
 - [ ] Each missed one-time commitment row shows REVIVE and DISMISS buttons
 - [ ] REVIVE: commitment returns to active; if its suggestedDate was in the past it is reset to today; commitment reappears in daily mandatory band
 - [ ] DISMISS: commitment is permanently deleted and no longer appears anywhere
@@ -461,7 +466,7 @@ Remediation fires whenever a commitment that had a skip streak OR high snooze co
 - [ ] TOP COMPLETIONS section shows commitments sorted by totalCompletions desc
 - [ ] Completing a commitment increments totalCompletions (visible in insights)
 - [ ] BEST STREAKS section appears when any task has maxTaskCompletionStreak > 1
-- [ ] RESPONSIBILITIES OVERVIEW table appears when projects exist; shows miss/snooze/skip/done counts per area
+- [ ] RESPONSIBILITIES OVERVIEW table appears when areas exist; shows miss/snooze/skip/done counts per area
 - [ ] Recurring commitment rolled over at startup (period elapsed without completion): totalMisses incremented
 - [ ] skipStreak resets to 0 on commitment completion; taskCompletionStreak resets to 0 on skip
 
@@ -478,6 +483,7 @@ Remediation fires whenever a commitment that had a skip streak OR high snooze co
 ### Goals
 
 **Global view (Goals nav item)**
+
 - [ ] Bottom nav → Goals tab navigates to the goals view
 - [ ] Page shows "GOALS" title and subtitle with "CLICK AN OBJECTIVE TO MANAGE COMMITMENTS" hint
 - [ ] Empty state shows "No objectives on file. Make one above to begin."
@@ -490,14 +496,16 @@ Remediation fires whenever a commitment that had a skip streak OR high snooze co
 - [ ] REACTIVATE action button on achieved/abandoned cards
 - [ ] Clicking the body of a goal card (not an action button) navigates to the goal-detail view
 
-**Per-area view (project detail page)**
-- [ ] Project detail page shows an "OBJECTIVES" section
+**Per-area view (area detail page)**
+
+- [ ] Area detail page shows an "OBJECTIVES" section
 - [ ] Only goals linked to that area appear; other areas' goals are not shown
 - [ ] "+ MAKE GOAL" button in the per-area view opens the commitment sheet pre-set to Goal mode
-- [ ] Goals filed from project detail are automatically linked to that area
+- [ ] Goals filed from area detail are automatically linked to that area
 - [ ] Clicking a goal card in the per-area view navigates to the goal-detail view
 
 **Goal-detail view**
+
 - [ ] Header breadcrumb shows the goal title; back button returns to the previous view
 - [ ] Title, description, target date, status badge, and area badge are shown
 - [ ] EDIT button opens the unified bottom-sheet dialog pre-filled with current title, description, target date, and area — in GOAL type mode
@@ -520,6 +528,7 @@ Remediation fires whenever a commitment that had a skip streak OR high snooze co
 ### Ideas
 
 **Global view (Ideas nav item)**
+
 - [ ] Bottom nav → Ideas tab navigates to the ideas view
 - [ ] Page shows "IDEAS" title and subtitle
 - [ ] Empty state shows "No intelligence on file. Observations go here."
@@ -543,8 +552,9 @@ Remediation fires whenever a commitment that had a skip streak OR high snooze co
 - [ ] Submitting the promoted commitment deletes the idea from the ideas list
 - [ ] Cancelling the commitment sheet leaves the idea intact
 
-**Per-area view (project detail page)**
-- [ ] Project detail page shows an "INTELLIGENCE" section below the Objectives section
+**Per-area view (area detail page)**
+
+- [ ] AREA detail page shows an "INTELLIGENCE" section below the Objectives section
 - [ ] Only ideas linked to that area appear in the per-area intelligence section
 - [ ] "MAKE IDEA" button in the embedded view pre-fills the area; no area selector is shown
 - [ ] If the area has active objectives, the Linked Objective dropdown appears in the add form

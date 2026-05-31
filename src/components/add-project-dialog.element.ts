@@ -1,38 +1,40 @@
-import {defineElement, defineElementEvent, css, html} from 'element-vir';
-import type {Project, ProjectColor} from '../data/types.js';
-import {generateId} from '../data/storage.js';
+import { defineElement, defineElementEvent, css, html } from "element-vir";
+import type { Area, AreaColor } from "../data/types.js";
+import { generateId } from "../data/storage.js";
 
 // ─────────────────────────────────────────────────────────────────────────────
-// AddProjectDialogElement
-// Modal for creating a new project / "operation".
+// AddAreaDialogElement
+// Modal for creating a new area.
 // ─────────────────────────────────────────────────────────────────────────────
 
-const COLOR_OPTIONS: {key: ProjectColor; label: string; swatch: string}[] = [
-    {key: 'red',   label: 'Crimson', swatch: 'var(--color-danger)'},
-    {key: 'navy',  label: 'Navy',    swatch: 'var(--color-primary)'},
-    {key: 'gold',  label: 'Gold',    swatch: 'var(--color-warning)'},
-    {key: 'olive', label: 'Olive',   swatch: '#4A5E2A'},
-    {key: 'slate', label: 'Slate',   swatch: '#4A5568'},
+const COLOR_OPTIONS: { key: AreaColor; label: string; swatch: string }[] = [
+    { key: "red", label: "Crimson", swatch: "var(--color-danger)" },
+    { key: "navy", label: "Navy", swatch: "var(--color-primary)" },
+    { key: "gold", label: "Gold", swatch: "var(--color-warning)" },
+    { key: "olive", label: "Olive", swatch: "#4A5E2A" },
+    { key: "slate", label: "Slate", swatch: "#4A5568" },
 ];
 
-export const AddProjectDialogElement = defineElement<{
+export const AddAreaDialogElement = defineElement<{
     open: boolean;
 }>()({
-    tagName: 'add-project-dialog',
+    tagName: "add-area-dialog",
 
     events: {
-        projectSubmitted: defineElementEvent<Project>(),
-        cancelled:        defineElementEvent<void>(),
+        areaSubmitted: defineElementEvent<Area>(),
+        cancelled: defineElementEvent<void>(),
     },
 
     state: () => ({
-        name: '',
-        description: '',
-        colorKey: 'navy' as ProjectColor,
+        name: "",
+        description: "",
+        colorKey: "navy" as AreaColor,
     }),
 
     styles: css`
-        :host { display: block; }
+        :host {
+            display: block;
+        }
 
         .overlay {
             position: fixed;
@@ -46,11 +48,19 @@ export const AddProjectDialogElement = defineElement<{
         }
 
         @keyframes overlay-in {
-            from { opacity: 0; }
-            to   { opacity: 1; }
+            from {
+                opacity: 0;
+            }
+            to {
+                opacity: 1;
+            }
         }
 
-        :host *, :host *::before, :host *::after { box-sizing: border-box; }
+        :host *,
+        :host *::before,
+        :host *::after {
+            box-sizing: border-box;
+        }
 
         .sheet {
             background: var(--color-surface);
@@ -62,8 +72,14 @@ export const AddProjectDialogElement = defineElement<{
         }
 
         @keyframes sheet-in {
-            from { transform: translateY(40px); opacity: 0; }
-            to   { transform: translateY(0);    opacity: 1; }
+            from {
+                transform: translateY(40px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
         }
 
         .sheet-title {
@@ -71,12 +87,14 @@ export const AddProjectDialogElement = defineElement<{
             font-size: 1.1rem;
             letter-spacing: 0.2em;
             color: var(--color-primary);
-            border-bottom: 1px solid rgba(0,0,0,0.15);
+            border-bottom: 1px solid rgba(0, 0, 0, 0.15);
             padding-bottom: 8px;
             margin-bottom: 16px;
         }
 
-        .field { margin-bottom: 14px; }
+        .field {
+            margin-bottom: 14px;
+        }
 
         label {
             display: block;
@@ -88,11 +106,12 @@ export const AddProjectDialogElement = defineElement<{
             font-family: var(--font-mono);
         }
 
-        input[type="text"], textarea {
+        input[type="text"],
+        textarea {
             width: 100%;
             background: var(--color-input-bg);
-            border: 1px solid rgba(0,0,0,0.25);
-            border-bottom: 2px solid rgba(0,0,0,0.3);
+            border: 1px solid rgba(0, 0, 0, 0.25);
+            border-bottom: 2px solid rgba(0, 0, 0, 0.3);
             padding: 8px 10px;
             font-family: var(--font-mono);
             font-size: 0.9rem;
@@ -101,16 +120,24 @@ export const AddProjectDialogElement = defineElement<{
             outline: none;
             transition: border-color 0.15s;
         }
-        input:focus, textarea:focus { border-color: var(--color-primary); }
+        input:focus,
+        textarea:focus {
+            border-color: var(--color-primary);
+        }
 
-        textarea { resize: none; height: 60px; }
+        textarea {
+            resize: none;
+            height: 60px;
+        }
 
         .color-grid {
             display: flex;
             gap: 10px;
         }
 
-        .color-option { display: none; }
+        .color-option {
+            display: none;
+        }
 
         .color-swatch {
             display: block;
@@ -119,7 +146,9 @@ export const AddProjectDialogElement = defineElement<{
             border-radius: 2px;
             cursor: pointer;
             border: 3px solid transparent;
-            transition: border-color 0.15s, transform 0.1s;
+            transition:
+                border-color 0.15s,
+                transform 0.1s;
         }
 
         .color-swatch.selected {
@@ -145,12 +174,17 @@ export const AddProjectDialogElement = defineElement<{
             cursor: pointer;
             transition: background 0.15s;
         }
-        .btn-submit:hover { background: var(--color-primary-hover); }
-        .btn-submit:disabled { opacity: 0.4; cursor: default; }
+        .btn-submit:hover {
+            background: var(--color-primary-hover);
+        }
+        .btn-submit:disabled {
+            opacity: 0.4;
+            cursor: default;
+        }
 
         .btn-cancel {
             background: none;
-            border: 1px solid rgba(0,0,0,0.3);
+            border: 1px solid rgba(0, 0, 0, 0.3);
             padding: 12px 16px;
             font-family: var(--font-mono);
             font-size: 0.8rem;
@@ -158,31 +192,38 @@ export const AddProjectDialogElement = defineElement<{
             cursor: pointer;
             transition: border-color 0.15s;
         }
-        .btn-cancel:hover { border-color: var(--color-text); color: var(--color-text); }
+        .btn-cancel:hover {
+            border-color: var(--color-text);
+            color: var(--color-text);
+        }
     `,
 
-    render({inputs, state, updateState, dispatch, events}) {
+    render({ inputs, state, updateState, dispatch, events }) {
         if (!inputs.open) return html``;
 
         const canSubmit = state.name.trim().length > 0;
 
         function submit(): void {
             if (!canSubmit) return;
-            const project: Project = {
+            const area: Area = {
                 id: generateId(),
                 name: state.name.trim(),
                 description: state.description.trim(),
                 colorKey: state.colorKey,
                 createdAt: Date.now(),
             };
-            dispatch(new events.projectSubmitted(project));
-            updateState({name: '', description: '', colorKey: 'navy'});
+            dispatch(new events.areaSubmitted(area));
+            updateState({ name: "", description: "", colorKey: "navy" });
         }
 
         return html`
-            <div class="overlay" @click=${(e: Event) => {
-                if (e.target === e.currentTarget) dispatch(new events.cancelled());
-            }}>
+            <div
+                class="overlay"
+                @click=${(e: Event) => {
+                    if (e.target === e.currentTarget)
+                        dispatch(new events.cancelled());
+                }}
+            >
                 <div class="sheet">
                     <div class="sheet-title">NEW AREA OF RESPONSIBILITY</div>
 
@@ -193,9 +234,11 @@ export const AddProjectDialogElement = defineElement<{
                             .value=${state.name}
                             placeholder="Name this area of responsibility."
                             @input=${(e: Event) =>
-                                updateState({name: (e.target as HTMLInputElement).value})}
+                                updateState({
+                                    name: (e.target as HTMLInputElement).value,
+                                })}
                             @keydown=${(e: KeyboardEvent) => {
-                                if (e.key === 'Enter') submit();
+                                if (e.key === "Enter") submit();
                             }}
                         />
                     </div>
@@ -204,9 +247,13 @@ export const AddProjectDialogElement = defineElement<{
                         <label>Briefing (optional)</label>
                         <textarea
                             .value=${state.description}
-                            placeholder="What is this project about?"
+                            placeholder="What is this area about?"
                             @input=${(e: Event) =>
-                                updateState({description: (e.target as HTMLTextAreaElement).value})}
+                                updateState({
+                                    description: (
+                                        e.target as HTMLTextAreaElement
+                                    ).value,
+                                })}
                         ></textarea>
                     </div>
 
@@ -214,19 +261,26 @@ export const AddProjectDialogElement = defineElement<{
                         <label>Designation Color</label>
                         <div class="color-grid">
                             ${COLOR_OPTIONS.map(
-                                opt => html`
+                                (opt) => html`
                                     <div>
                                         <input
                                             type="radio"
                                             class="color-option"
                                             name="color"
                                             id="c-${opt.key}"
-                                            .checked=${state.colorKey === opt.key}
-                                            @change=${() => updateState({colorKey: opt.key})}
+                                            .checked=${state.colorKey ===
+                                            opt.key}
+                                            @change=${() =>
+                                                updateState({
+                                                    colorKey: opt.key,
+                                                })}
                                         />
                                         <label
                                             for="c-${opt.key}"
-                                            class="color-swatch ${state.colorKey === opt.key ? 'selected' : ''}"
+                                            class="color-swatch ${state.colorKey ===
+                                            opt.key
+                                                ? "selected"
+                                                : ""}"
                                             style="background:${opt.swatch}"
                                             title="${opt.label}"
                                         ></label>

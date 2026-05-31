@@ -1,11 +1,28 @@
-import {css, defineElement, defineElementEvent, html, listen} from 'element-vir';
-import type {FormKind, Goal, GoalStatus, Idea, Project, Task} from '../data/types.js';
-import {isCurrentlyPaused, isTaskVisible} from '../data/storage.js';
-import {TaskItemElement} from './task-item.element.js';
-import {IdeasViewElement} from './ideas-view.element.js';
+import {
+    css,
+    defineElement,
+    defineElementEvent,
+    html,
+    listen,
+} from "element-vir";
+import type {
+    FormKind,
+    Goal,
+    GoalStatus,
+    Idea,
+    Area,
+    Task,
+} from "../data/types.js";
+import { isCurrentlyPaused, isTaskVisible } from "../data/storage.js";
+import { TaskItemElement } from "./task-item.element.js";
+import { IdeasViewElement } from "./ideas-view.element.js";
 
 function fmtDate(ms: number): string {
-    return new Date(ms).toLocaleDateString(undefined, {month: 'short', day: 'numeric', year: 'numeric'});
+    return new Date(ms).toLocaleDateString(undefined, {
+        month: "short",
+        day: "numeric",
+        year: "numeric",
+    });
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -17,37 +34,37 @@ function fmtDate(ms: number): string {
 export const GoalDetailElement = defineElement<{
     goal: Goal;
     tasks: ReadonlyArray<Task>;
-    projects: ReadonlyArray<Project>;
+    areas: ReadonlyArray<Area>;
     ideas: ReadonlyArray<Idea>;
     /** Re-render trigger — changes when the active skin changes. */
     activeSkinId: string;
 }>()({
-    tagName: 'goal-detail',
+    tagName: "goal-detail",
 
     events: {
-        goalUpdated:             defineElementEvent<Goal>(),
-        goalDeleted:             defineElementEvent<string>(),
-        goalEditRequested:       defineElementEvent<Goal>(),
-        taskCompleted:           defineElementEvent<string>(),
-        taskSnoozed:             defineElementEvent<string>(),
-        taskUnSnoozed:           defineElementEvent<string>(),
-        taskSkipped:             defineElementEvent<string>(),
-        taskProgressLogged:      defineElementEvent<string>(),
-        taskEditRequested:       defineElementEvent<string>(),
+        goalUpdated: defineElementEvent<Goal>(),
+        goalDeleted: defineElementEvent<string>(),
+        goalEditRequested: defineElementEvent<Goal>(),
+        taskCompleted: defineElementEvent<string>(),
+        taskSnoozed: defineElementEvent<string>(),
+        taskUnSnoozed: defineElementEvent<string>(),
+        taskSkipped: defineElementEvent<string>(),
+        taskProgressLogged: defineElementEvent<string>(),
+        taskEditRequested: defineElementEvent<string>(),
         makeCommitmentRequested: defineElementEvent<FormKind>(),
-        taskUnlinked:            defineElementEvent<{goalId: string; taskId: string}>(),
-        taskLinked:              defineElementEvent<{goalId: string; taskId: string}>(),
-        ideaUpdated:             defineElementEvent<Idea>(),
-        ideaDeleted:             defineElementEvent<string>(),
-        ideaEditRequested:       defineElementEvent<Idea>(),
-        ideaPromoteRequested:    defineElementEvent<Idea>(),
+        taskUnlinked: defineElementEvent<{ goalId: string; taskId: string }>(),
+        taskLinked: defineElementEvent<{ goalId: string; taskId: string }>(),
+        ideaUpdated: defineElementEvent<Idea>(),
+        ideaDeleted: defineElementEvent<string>(),
+        ideaEditRequested: defineElementEvent<Idea>(),
+        ideaPromoteRequested: defineElementEvent<Idea>(),
     },
 
     state: () => ({
         confirmingDelete: false,
-        linkPickerOpen:   false,
-        linkSearchQuery:  '',
-        showCompleted:    false,
+        linkPickerOpen: false,
+        linkSearchQuery: "",
+        showCompleted: false,
     }),
 
     styles: css`
@@ -58,14 +75,19 @@ export const GoalDetailElement = defineElement<{
 
         .goal-header {
             background: var(--color-card);
-            border: 1px solid rgba(0,0,0,0.12);
+            border: 1px solid rgba(0, 0, 0, 0.12);
             border-left: 4px solid var(--color-primary);
             padding: 14px 16px;
             margin-bottom: 16px;
         }
 
-        .goal-header.achieved { border-left-color: var(--color-success); }
-        .goal-header.abandoned { border-left-color: var(--color-text-faint); opacity: 0.85; }
+        .goal-header.achieved {
+            border-left-color: var(--color-success);
+        }
+        .goal-header.abandoned {
+            border-left-color: var(--color-text-faint);
+            opacity: 0.85;
+        }
 
         .goal-title {
             font-family: var(--font-accent);
@@ -96,8 +118,12 @@ export const GoalDetailElement = defineElement<{
             color: var(--color-text-muted);
         }
 
-        .target-date { color: var(--color-warning); }
-        .target-date.overdue { color: var(--color-danger); }
+        .target-date {
+            color: var(--color-warning);
+        }
+        .target-date.overdue {
+            color: var(--color-danger);
+        }
 
         .status-badge {
             font-family: var(--font-display);
@@ -105,15 +131,21 @@ export const GoalDetailElement = defineElement<{
             letter-spacing: 0.12em;
             padding: 2px 7px;
         }
-        .status-badge.achieved  { background: var(--color-success); color: #fff; }
-        .status-badge.abandoned { background: var(--color-text-faint); color: #fff; }
+        .status-badge.achieved {
+            background: var(--color-success);
+            color: #fff;
+        }
+        .status-badge.abandoned {
+            background: var(--color-text-faint);
+            color: #fff;
+        }
 
-        .project-badge {
+        .area-badge {
             font-family: var(--font-mono);
             font-size: 0.62rem;
             letter-spacing: 0.08em;
             padding: 2px 6px;
-            border: 1px solid rgba(0,0,0,0.15);
+            border: 1px solid rgba(0, 0, 0, 0.15);
             color: var(--color-text-muted);
         }
 
@@ -132,16 +164,45 @@ export const GoalDetailElement = defineElement<{
             cursor: pointer;
         }
 
-        .action-achieve    { background: var(--color-success); color: #fff; }
-        .action-achieve:hover  { background: var(--color-success-dark); }
-        .action-abandon    { background: transparent; border: 1px solid var(--color-text-faint); color: var(--color-text-muted); }
-        .action-abandon:hover  { background: rgba(0,0,0,0.05); }
-        .action-reactivate { background: transparent; border: 1px solid var(--color-primary); color: var(--color-primary); }
-        .action-reactivate:hover { background: rgba(var(--color-primary-rgb),0.05); }
-        .action-edit       { background: transparent; border: 1px solid rgba(0,0,0,0.2); color: var(--color-primary); }
-        .action-edit:hover { background: rgba(0,0,0,0.05); }
-        .action-link       { background: transparent; border: 1px solid var(--color-warning); color: var(--color-warning); }
-        .action-link:hover { background: rgba(184,134,11,0.07); }
+        .action-achieve {
+            background: var(--color-success);
+            color: #fff;
+        }
+        .action-achieve:hover {
+            background: var(--color-success-dark);
+        }
+        .action-abandon {
+            background: transparent;
+            border: 1px solid var(--color-text-faint);
+            color: var(--color-text-muted);
+        }
+        .action-abandon:hover {
+            background: rgba(0, 0, 0, 0.05);
+        }
+        .action-reactivate {
+            background: transparent;
+            border: 1px solid var(--color-primary);
+            color: var(--color-primary);
+        }
+        .action-reactivate:hover {
+            background: rgba(var(--color-primary-rgb), 0.05);
+        }
+        .action-edit {
+            background: transparent;
+            border: 1px solid rgba(0, 0, 0, 0.2);
+            color: var(--color-primary);
+        }
+        .action-edit:hover {
+            background: rgba(0, 0, 0, 0.05);
+        }
+        .action-link {
+            background: transparent;
+            border: 1px solid var(--color-warning);
+            color: var(--color-warning);
+        }
+        .action-link:hover {
+            background: rgba(184, 134, 11, 0.07);
+        }
 
         .btn {
             font-family: var(--font-display);
@@ -152,12 +213,28 @@ export const GoalDetailElement = defineElement<{
             cursor: pointer;
         }
 
-        .btn-primary { background: var(--color-primary); color: var(--color-surface); }
-        .btn-primary:hover { background: var(--color-primary-hover); }
-        .btn-ghost   { background: transparent; border: 1px solid rgba(0,0,0,0.2); color: var(--color-primary); }
-        .btn-ghost:hover { background: rgba(0,0,0,0.05); }
-        .btn-danger  { background: var(--color-danger); color: var(--color-surface); }
-        .btn-danger:hover { background: var(--color-danger-dark); }
+        .btn-primary {
+            background: var(--color-primary);
+            color: var(--color-surface);
+        }
+        .btn-primary:hover {
+            background: var(--color-primary-hover);
+        }
+        .btn-ghost {
+            background: transparent;
+            border: 1px solid rgba(0, 0, 0, 0.2);
+            color: var(--color-primary);
+        }
+        .btn-ghost:hover {
+            background: rgba(0, 0, 0, 0.05);
+        }
+        .btn-danger {
+            background: var(--color-danger);
+            color: var(--color-surface);
+        }
+        .btn-danger:hover {
+            background: var(--color-danger-dark);
+        }
 
         .section-label {
             font-family: var(--font-display);
@@ -165,7 +242,7 @@ export const GoalDetailElement = defineElement<{
             letter-spacing: 0.2em;
             color: var(--color-text-muted);
             padding: 16px 2px 6px;
-            border-bottom: 1px solid rgba(0,0,0,0.1);
+            border-bottom: 1px solid rgba(0, 0, 0, 0.1);
             margin-bottom: 2px;
         }
 
@@ -198,7 +275,9 @@ export const GoalDetailElement = defineElement<{
             text-decoration: underline;
             text-underline-offset: 2px;
         }
-        .unlink-task-btn:hover { color: var(--color-danger); }
+        .unlink-task-btn:hover {
+            color: var(--color-danger);
+        }
 
         .empty-state {
             text-align: center;
@@ -224,7 +303,9 @@ export const GoalDetailElement = defineElement<{
             cursor: pointer;
             transition: background 0.15s;
         }
-        .add-btn:hover { background: var(--color-primary-hover); }
+        .add-btn:hover {
+            background: var(--color-primary-hover);
+        }
 
         .toggle-completed {
             background: none;
@@ -240,7 +321,9 @@ export const GoalDetailElement = defineElement<{
             margin-top: 4px;
         }
 
-        .snoozed-section { margin-top: 8px; }
+        .snoozed-section {
+            margin-top: 8px;
+        }
 
         .completed-task {
             opacity: 0.45;
@@ -248,7 +331,7 @@ export const GoalDetailElement = defineElement<{
         }
 
         .completed-task::after {
-            content: 'CLEARED';
+            content: "CLEARED";
             position: absolute;
             top: 50%;
             left: 50%;
@@ -267,7 +350,7 @@ export const GoalDetailElement = defineElement<{
         .picker-overlay {
             position: fixed;
             inset: 0;
-            background: rgba(0,0,0,0.5);
+            background: rgba(0, 0, 0, 0.5);
             z-index: 500;
             display: flex;
             align-items: flex-end;
@@ -275,8 +358,12 @@ export const GoalDetailElement = defineElement<{
         }
 
         @keyframes overlay-in {
-            from { opacity: 0; }
-            to   { opacity: 1; }
+            from {
+                opacity: 0;
+            }
+            to {
+                opacity: 1;
+            }
         }
 
         .picker-panel {
@@ -290,8 +377,12 @@ export const GoalDetailElement = defineElement<{
         }
 
         @keyframes panel-up {
-            from { transform: translateY(100%); }
-            to   { transform: translateY(0); }
+            from {
+                transform: translateY(100%);
+            }
+            to {
+                transform: translateY(0);
+            }
         }
 
         .picker-header {
@@ -299,7 +390,7 @@ export const GoalDetailElement = defineElement<{
             justify-content: space-between;
             align-items: center;
             padding: 12px 16px 8px;
-            border-bottom: 1px solid rgba(0,0,0,0.1);
+            border-bottom: 1px solid rgba(0, 0, 0, 0.1);
             flex-shrink: 0;
         }
 
@@ -319,17 +410,19 @@ export const GoalDetailElement = defineElement<{
             cursor: pointer;
             padding: 0 2px;
         }
-        .picker-close:hover { color: var(--color-primary); }
+        .picker-close:hover {
+            color: var(--color-primary);
+        }
 
         .picker-search {
             padding: 10px 16px;
             flex-shrink: 0;
-            border-bottom: 1px solid rgba(0,0,0,0.08);
+            border-bottom: 1px solid rgba(0, 0, 0, 0.08);
         }
 
         .picker-search input {
             width: 100%;
-            border: 1px solid rgba(0,0,0,0.18);
+            border: 1px solid rgba(0, 0, 0, 0.18);
             background: #fff;
             padding: 8px 10px;
             font-family: var(--font-mono);
@@ -349,10 +442,12 @@ export const GoalDetailElement = defineElement<{
             flex-direction: column;
             padding: 10px 16px;
             cursor: pointer;
-            border-bottom: 1px solid rgba(0,0,0,0.06);
+            border-bottom: 1px solid rgba(0, 0, 0, 0.06);
             transition: background 0.1s;
         }
-        .picker-item:hover { background: rgba(var(--color-primary-rgb),0.05); }
+        .picker-item:hover {
+            background: rgba(var(--color-primary-rgb), 0.05);
+        }
 
         .picker-item-title {
             font-family: var(--font-accent);
@@ -373,11 +468,14 @@ export const GoalDetailElement = defineElement<{
             letter-spacing: 0.08em;
             text-transform: uppercase;
             padding: 1px 5px;
-            border: 1px solid rgba(0,0,0,0.15);
+            border: 1px solid rgba(0, 0, 0, 0.15);
             color: var(--color-text-muted);
         }
 
-        .picker-badge.kind-routine { border-color: rgba(var(--color-primary-rgb),0.25); color: var(--color-primary); }
+        .picker-badge.kind-routine {
+            border-color: rgba(var(--color-primary-rgb), 0.25);
+            color: var(--color-primary);
+        }
 
         .picker-empty {
             font-family: var(--font-mono);
@@ -389,7 +487,7 @@ export const GoalDetailElement = defineElement<{
 
         .delete-zone {
             margin-top: 32px;
-            border-top: 1px solid rgba(0,0,0,0.1);
+            border-top: 1px solid rgba(0, 0, 0, 0.1);
             padding-top: 16px;
         }
 
@@ -403,14 +501,17 @@ export const GoalDetailElement = defineElement<{
             padding: 8px 16px;
             cursor: pointer;
         }
-        .delete-btn:hover { background: var(--color-danger); color: var(--color-surface); }
+        .delete-btn:hover {
+            background: var(--color-danger);
+            color: var(--color-surface);
+        }
 
         .confirm-delete {
             display: flex;
             flex-direction: column;
             gap: 8px;
             padding: 12px;
-            background: #FFF5F5;
+            background: #fff5f5;
             border: 1px solid var(--color-danger);
         }
 
@@ -436,7 +537,9 @@ export const GoalDetailElement = defineElement<{
             padding: 8px 16px;
             cursor: pointer;
         }
-        .confirm-yes:hover { background: var(--color-danger-dark); }
+        .confirm-yes:hover {
+            background: var(--color-danger-dark);
+        }
 
         .confirm-no {
             background: none;
@@ -448,65 +551,110 @@ export const GoalDetailElement = defineElement<{
             padding: 8px 16px;
             cursor: pointer;
         }
-        .confirm-no:hover { background: rgba(0,0,0,0.05); }
+        .confirm-no:hover {
+            background: rgba(0, 0, 0, 0.05);
+        }
     `,
 
-    render({inputs, state, updateState, dispatch, events}) {
-        const {goal, tasks, projects} = inputs;
+    render({ inputs, state, updateState, dispatch, events }) {
+        const { goal, tasks, areas } = inputs;
         const now = Date.now();
 
-        const linkedTasks = tasks.filter(t => goal.linkedTaskIds.includes(t.id));
+        const linkedTasks = tasks.filter((t) =>
+            goal.linkedTaskIds.includes(t.id),
+        );
 
-        const activeTasks  = linkedTasks.filter(isTaskVisible);
-        const pausedTasks  = linkedTasks.filter(
-            t => t.completedAt === null && isCurrentlyPaused(t),
+        const activeTasks = linkedTasks.filter(isTaskVisible);
+        const pausedTasks = linkedTasks.filter(
+            (t) => t.completedAt === null && isCurrentlyPaused(t),
         );
         const snoozedTasks = linkedTasks.filter(
-            t =>
+            (t) =>
                 t.completedAt === null &&
                 !isCurrentlyPaused(t) &&
                 t.snoozedUntil !== null &&
                 t.snoozedUntil > now,
         );
         const completedTasks = linkedTasks
-            .filter(t => t.completedAt !== null)
+            .filter((t) => t.completedAt !== null)
             .sort((a, b) => (b.completedAt ?? 0) - (a.completedAt ?? 0));
 
         const linkableTasks = tasks.filter(
-            t => !goal.linkedTaskIds.includes(t.id) && t.completedAt === null,
+            (t) => !goal.linkedTaskIds.includes(t.id) && t.completedAt === null,
         );
 
-        const projectName = projects.find(p => p.id === goal.projectId)?.name ?? null;
-        const isActive = goal.status === 'active';
-        const dateOverdue = goal.targetDate !== null && goal.targetDate < now && isActive;
+        const areaName = areas.find((p) => p.id === goal.areaId)?.name ?? null;
+        const isActive = goal.status === "active";
+        const dateOverdue =
+            goal.targetDate !== null && goal.targetDate < now && isActive;
 
         function setStatus(status: GoalStatus): void {
-            dispatch(new events.goalUpdated({...goal, status}));
+            dispatch(new events.goalUpdated({ ...goal, status }));
         }
 
         function renderTaskWithUnlink(task: Task, showManageActions: boolean) {
             return html`
                 <div class="task-with-unlink">
-                    <${TaskItemElement.assign({task, activeSkinId: inputs.activeSkinId})}
-                        ${showManageActions ? html`
-                            ${listen(TaskItemElement.events.completed, e =>
-                                dispatch(new events.taskCompleted(e.detail)))}
-                            ${listen(TaskItemElement.events.snoozed, e =>
-                                dispatch(new events.taskSnoozed(e.detail)))}
-                            ${listen(TaskItemElement.events.unSnoozed, e =>
-                                dispatch(new events.taskUnSnoozed(e.detail)))}
-                            ${listen(TaskItemElement.events.skipped, e =>
-                                dispatch(new events.taskSkipped(e.detail)))}
-                            ${listen(TaskItemElement.events.progressLogged, e =>
-                                dispatch(new events.taskProgressLogged(e.detail)))}
-                        ` : html``}
-                        ${listen(TaskItemElement.events.editRequested, e =>
-                            dispatch(new events.taskEditRequested(e.detail)))}
+                    <${TaskItemElement.assign({ task, activeSkinId: inputs.activeSkinId })}
+                        ${
+                            showManageActions
+                                ? html`
+                                      ${listen(
+                                          TaskItemElement.events.completed,
+                                          (e) =>
+                                              dispatch(
+                                                  new events.taskCompleted(
+                                                      e.detail,
+                                                  ),
+                                              ),
+                                      )}
+                                      ${listen(
+                                          TaskItemElement.events.snoozed,
+                                          (e) =>
+                                              dispatch(
+                                                  new events.taskSnoozed(
+                                                      e.detail,
+                                                  ),
+                                              ),
+                                      )}
+                                      ${listen(
+                                          TaskItemElement.events.unSnoozed,
+                                          (e) =>
+                                              dispatch(
+                                                  new events.taskUnSnoozed(
+                                                      e.detail,
+                                                  ),
+                                              ),
+                                      )}
+                                      ${listen(
+                                          TaskItemElement.events.skipped,
+                                          (e) =>
+                                              dispatch(
+                                                  new events.taskSkipped(
+                                                      e.detail,
+                                                  ),
+                                              ),
+                                      )}
+                                      ${listen(
+                                          TaskItemElement.events.progressLogged,
+                                          (e) =>
+                                              dispatch(
+                                                  new events.taskProgressLogged(
+                                                      e.detail,
+                                                  ),
+                                              ),
+                                      )}
+                                  `
+                                : html``
+                        }
+                        ${listen(TaskItemElement.events.editRequested, (e) =>
+                            dispatch(new events.taskEditRequested(e.detail)),
+                        )}
                     ></${TaskItemElement}>
                     <div class="task-unlink-row">
                         <button
                             class="unlink-task-btn"
-                            @click=${() => dispatch(new events.taskUnlinked({goalId: goal.id, taskId: task.id}))}
+                            @click=${() => dispatch(new events.taskUnlinked({ goalId: goal.id, taskId: task.id }))}
                         >⊗ unlink from objective</button>
                     </div>
                 </div>
@@ -515,265 +663,442 @@ export const GoalDetailElement = defineElement<{
 
         return html`
             <!-- Goal header -->
-            <div class=${'goal-header ' + goal.status}>
+            <div class=${"goal-header " + goal.status}>
                 <div class="goal-title">${goal.title}</div>
-                ${goal.description
-                    ? html`<div class="goal-desc">${goal.description}</div>`
-                    : html``}
+                ${
+                    goal.description
+                        ? html`<div class="goal-desc">${goal.description}</div>`
+                        : html``
+                }
                 <div class="goal-meta">
-                    ${goal.targetDate
-                        ? html`<span class=${'target-date' + (dateOverdue ? ' overdue' : '')}>
-                                ⊙ Target: ${fmtDate(goal.targetDate)}${dateOverdue ? ' · OVERDUE' : ''}
+                    ${
+                        goal.targetDate
+                            ? html`<span
+                                  class=${"target-date" +
+                                  (dateOverdue ? " overdue" : "")}
+                              >
+                                  ⊙ Target:
+                                  ${fmtDate(goal.targetDate)}${dateOverdue
+                                      ? " · OVERDUE"
+                                      : ""}
                               </span>`
-                        : html``}
-                    ${!isActive
-                        ? html`<span class=${'status-badge ' + goal.status}>
-                                ${goal.status === 'achieved' ? '✓ Achieved' : '✕ Abandoned'}
+                            : html``
+                    }
+                    ${
+                        !isActive
+                            ? html`<span class=${"status-badge " + goal.status}>
+                                  ${goal.status === "achieved"
+                                      ? "✓ Achieved"
+                                      : "✕ Abandoned"}
                               </span>`
-                        : html``}
-                    ${projectName
-                        ? html`<span class="project-badge">⊙ ${projectName}</span>`
-                        : html``}
+                            : html``
+                    }
+                    ${
+                        areaName
+                            ? html`<span class="area-badge"
+                                  >⊙ ${areaName}</span
+                              >`
+                            : html``
+                    }
                 </div>
                 <div class="goal-actions">
-                    ${isActive
-                        ? html`
-                            <button
-                                class="action-btn action-achieve"
-                                @click=${() => setStatus('achieved')}
-                            >MARK ACHIEVED</button>
-                          `
-                        : html`
-                            <button
-                                class="action-btn action-reactivate"
-                                @click=${() => setStatus('active')}
-                            >REACTIVATE</button>
-                          `}
+                    ${
+                        isActive
+                            ? html`
+                                  <button
+                                      class="action-btn action-achieve"
+                                      @click=${() => setStatus("achieved")}
+                                  >
+                                      MARK ACHIEVED
+                                  </button>
+                              `
+                            : html`
+                                  <button
+                                      class="action-btn action-reactivate"
+                                      @click=${() => setStatus("active")}
+                                  >
+                                      REACTIVATE
+                                  </button>
+                              `
+                    }
                     <button
                         class="action-btn action-edit"
                         @click=${() => dispatch(new events.goalEditRequested(goal))}
                     >EDIT</button>
-                    ${linkableTasks.length > 0
-                        ? html`<button
-                                class="action-btn action-link"
-                                @click=${() => updateState({linkPickerOpen: true, linkSearchQuery: ''})}
-                            >LINK COMMITMENT</button>`
-                        : html``}
+                    ${
+                        linkableTasks.length > 0
+                            ? html`<button
+                                  class="action-btn action-link"
+                                  @click=${() =>
+                                      updateState({
+                                          linkPickerOpen: true,
+                                          linkSearchQuery: "",
+                                      })}
+                              >
+                                  LINK COMMITMENT
+                              </button>`
+                            : html``
+                    }
                 </div>
             </div>
 
             <!-- Add commitment button -->
             <button
                 class="add-btn"
-                @click=${() => dispatch(new events.makeCommitmentRequested('task'))}
+                @click=${() => dispatch(new events.makeCommitmentRequested("task"))}
             >+ MAKE NEW COMMITMENT</button>
 
             <!-- Empty state -->
-            ${activeTasks.length === 0 && pausedTasks.length === 0 && snoozedTasks.length === 0
-                ? html`
-                    <div class="empty-state">
-                        No active commitments linked to this objective.
-                    </div>
-                  `
-                : html``}
+            ${
+                activeTasks.length === 0 &&
+                pausedTasks.length === 0 &&
+                snoozedTasks.length === 0
+                    ? html`
+                          <div class="empty-state">
+                              No active commitments linked to this objective.
+                          </div>
+                      `
+                    : html``
+            }
 
             <!-- Active tasks -->
-            ${activeTasks.length > 0
-                ? html`
-                    <div class="section-label">ACTIVE COMMITMENTS</div>
-                    <div class="task-list">
-                        ${activeTasks.map(task => renderTaskWithUnlink(task, true))}
-                    </div>
-                  `
-                : html``}
+            ${
+                activeTasks.length > 0
+                    ? html`
+                          <div class="section-label">ACTIVE COMMITMENTS</div>
+                          <div class="task-list">
+                              ${activeTasks.map((task) =>
+                                  renderTaskWithUnlink(task, true),
+                              )}
+                          </div>
+                      `
+                    : html``
+            }
 
             <!-- Paused tasks -->
-            ${pausedTasks.length > 0
-                ? html`
-                    <div class="snoozed-section">
-                        <div class="section-label">PAUSED (${pausedTasks.length})</div>
-                        <div class="task-list">
-                            ${pausedTasks.map(task => renderTaskWithUnlink(task, false))}
-                        </div>
-                    </div>
-                  `
-                : html``}
+            ${
+                pausedTasks.length > 0
+                    ? html`
+                          <div class="snoozed-section">
+                              <div class="section-label">
+                                  PAUSED (${pausedTasks.length})
+                              </div>
+                              <div class="task-list">
+                                  ${pausedTasks.map((task) =>
+                                      renderTaskWithUnlink(task, false),
+                                  )}
+                              </div>
+                          </div>
+                      `
+                    : html``
+            }
 
             <!-- Snoozed tasks -->
-            ${snoozedTasks.length > 0
-                ? html`
-                    <div class="snoozed-section">
-                        <div class="section-label">SNOOZED (${snoozedTasks.length})</div>
-                        <div class="task-list">
-                            ${snoozedTasks.map(task => html`
+            ${
+                snoozedTasks.length > 0
+                    ? html`
+                          <div class="snoozed-section">
+                              <div class="section-label">
+                                  SNOOZED (${snoozedTasks.length})
+                              </div>
+                              <div class="task-list">
+                                  ${snoozedTasks.map(
+                                      (task) => html`
                                 <div class="task-with-unlink">
-                                    <${TaskItemElement.assign({task, activeSkinId: inputs.activeSkinId})}
-                                        ${listen(TaskItemElement.events.completed, e =>
-                                            dispatch(new events.taskCompleted(e.detail)))}
-                                        ${listen(TaskItemElement.events.snoozed, e =>
-                                            dispatch(new events.taskSnoozed(e.detail)))}
-                                        ${listen(TaskItemElement.events.unSnoozed, e =>
-                                            dispatch(new events.taskUnSnoozed(e.detail)))}
-                                        ${listen(TaskItemElement.events.editRequested, e =>
-                                            dispatch(new events.taskEditRequested(e.detail)))}
+                                    <${TaskItemElement.assign({ task, activeSkinId: inputs.activeSkinId })}
+                                        ${listen(
+                                            TaskItemElement.events.completed,
+                                            (e) =>
+                                                dispatch(
+                                                    new events.taskCompleted(
+                                                        e.detail,
+                                                    ),
+                                                ),
+                                        )}
+                                        ${listen(
+                                            TaskItemElement.events.snoozed,
+                                            (e) =>
+                                                dispatch(
+                                                    new events.taskSnoozed(
+                                                        e.detail,
+                                                    ),
+                                                ),
+                                        )}
+                                        ${listen(
+                                            TaskItemElement.events.unSnoozed,
+                                            (e) =>
+                                                dispatch(
+                                                    new events.taskUnSnoozed(
+                                                        e.detail,
+                                                    ),
+                                                ),
+                                        )}
+                                        ${listen(
+                                            TaskItemElement.events
+                                                .editRequested,
+                                            (e) =>
+                                                dispatch(
+                                                    new events.taskEditRequested(
+                                                        e.detail,
+                                                    ),
+                                                ),
+                                        )}
                                     ></${TaskItemElement}>
                                     <div class="task-unlink-row">
                                         <button
                                             class="unlink-task-btn"
-                                            @click=${() => dispatch(new events.taskUnlinked({goalId: goal.id, taskId: task.id}))}
+                                            @click=${() => dispatch(new events.taskUnlinked({ goalId: goal.id, taskId: task.id }))}
                                         >⊗ unlink from objective</button>
                                     </div>
                                 </div>
-                            `)}
-                        </div>
-                    </div>
-                  `
-                : html``}
+                            `,
+                                  )}
+                              </div>
+                          </div>
+                      `
+                    : html``
+            }
 
             <!-- Completed tasks (collapsible) -->
-            ${completedTasks.length > 0
-                ? html`
-                    <button
-                        class="toggle-completed"
-                        @click=${() => updateState({showCompleted: !state.showCompleted})}
-                    >
-                        ${state.showCompleted ? 'Hide' : 'Show'}
-                        ${completedTasks.length} cleared commitment${completedTasks.length !== 1 ? 's' : ''}
-                    </button>
+            ${
+                completedTasks.length > 0
+                    ? html`
+                          <button
+                              class="toggle-completed"
+                              @click=${() =>
+                                  updateState({
+                                      showCompleted: !state.showCompleted,
+                                  })}
+                          >
+                              ${state.showCompleted ? "Hide" : "Show"}
+                              ${completedTasks.length} cleared
+                              commitment${completedTasks.length !== 1
+                                  ? "s"
+                                  : ""}
+                          </button>
 
-                    ${state.showCompleted
-                        ? html`
-                            <div class="section-label">CLEARED</div>
-                            <div class="task-list">
-                                ${completedTasks.map(task => html`
-                                    <div class="completed-task">
-                                        ${renderTaskWithUnlink(task, false)}
+                          ${state.showCompleted
+                              ? html`
+                                    <div class="section-label">CLEARED</div>
+                                    <div class="task-list">
+                                        ${completedTasks.map(
+                                            (task) => html`
+                                                <div class="completed-task">
+                                                    ${renderTaskWithUnlink(
+                                                        task,
+                                                        false,
+                                                    )}
+                                                </div>
+                                            `,
+                                        )}
                                     </div>
-                                `)}
-                            </div>
-                          `
-                        : html``}
-                  `
-                : html``}
+                                `
+                              : html``}
+                      `
+                    : html``
+            }
 
             <!-- Link commitment picker overlay -->
-            ${state.linkPickerOpen
-                ? html`
-                    <div
-                        class="picker-overlay"
-                        @click=${(e: Event) => {
-                            if (e.target === e.currentTarget)
-                                updateState({linkPickerOpen: false});
-                        }}
-                    >
-                        <div class="picker-panel">
-                            <div class="picker-header">
-                                <span class="picker-title">LINK COMMITMENT</span>
-                                <button
-                                    class="picker-close"
-                                    @click=${() => updateState({linkPickerOpen: false})}
-                                >×</button>
-                            </div>
-                            <div class="picker-search">
-                                <input
-                                    type="text"
-                                    placeholder="Search commitments…"
-                                    .value=${state.linkSearchQuery}
-                                    @input=${(e: Event) =>
-                                        updateState({linkSearchQuery: (e.target as HTMLInputElement).value})}
-                                    autofocus
-                                />
-                            </div>
-                            <div class="picker-list">
-                                ${(() => {
-                                    const q = state.linkSearchQuery.toLowerCase();
-                                    const filtered = linkableTasks.filter(t =>
-                                        t.title.toLowerCase().includes(q) ||
-                                        (projects.find(p => p.id === t.projectId)?.name ?? '').toLowerCase().includes(q),
-                                    );
-                                    if (filtered.length === 0) {
-                                        return html`<div class="picker-empty">No matching commitments found.</div>`;
-                                    }
-                                    return filtered.map(t => {
-                                        const pName = projects.find(p => p.id === t.projectId)?.name ?? null;
-                                        return html`
-                                            <div
-                                                class="picker-item"
-                                                @click=${() => {
-                                                    dispatch(new events.taskLinked({goalId: goal.id, taskId: t.id}));
-                                                    updateState({linkPickerOpen: false, linkSearchQuery: ''});
-                                                }}
-                                            >
-                                                <span class="picker-item-title">${t.title}</span>
-                                                <div class="picker-item-meta">
-                                                    <span class=${'picker-badge kind-' + t.kind}>${t.kind}</span>
-                                                    ${pName ? html`<span class="picker-badge">${pName}</span>` : html``}
-                                                </div>
-                                            </div>
-                                        `;
-                                    });
-                                })()}
-                            </div>
-                        </div>
-                    </div>
-                  `
-                : html``}
+            ${
+                state.linkPickerOpen
+                    ? html`
+                          <div
+                              class="picker-overlay"
+                              @click=${(e: Event) => {
+                                  if (e.target === e.currentTarget)
+                                      updateState({ linkPickerOpen: false });
+                              }}
+                          >
+                              <div class="picker-panel">
+                                  <div class="picker-header">
+                                      <span class="picker-title"
+                                          >LINK COMMITMENT</span
+                                      >
+                                      <button
+                                          class="picker-close"
+                                          @click=${() =>
+                                              updateState({
+                                                  linkPickerOpen: false,
+                                              })}
+                                      >
+                                          ×
+                                      </button>
+                                  </div>
+                                  <div class="picker-search">
+                                      <input
+                                          type="text"
+                                          placeholder="Search commitments…"
+                                          .value=${state.linkSearchQuery}
+                                          @input=${(e: Event) =>
+                                              updateState({
+                                                  linkSearchQuery: (
+                                                      e.target as HTMLInputElement
+                                                  ).value,
+                                              })}
+                                          autofocus
+                                      />
+                                  </div>
+                                  <div class="picker-list">
+                                      ${(() => {
+                                          const q =
+                                              state.linkSearchQuery.toLowerCase();
+                                          const filtered = linkableTasks.filter(
+                                              (t) =>
+                                                  t.title
+                                                      .toLowerCase()
+                                                      .includes(q) ||
+                                                  (
+                                                      areas.find(
+                                                          (p) =>
+                                                              p.id === t.areaId,
+                                                      )?.name ?? ""
+                                                  )
+                                                      .toLowerCase()
+                                                      .includes(q),
+                                          );
+                                          if (filtered.length === 0) {
+                                              return html`<div
+                                                  class="picker-empty"
+                                              >
+                                                  No matching commitments found.
+                                              </div>`;
+                                          }
+                                          return filtered.map((t) => {
+                                              const pName =
+                                                  areas.find(
+                                                      (p) => p.id === t.areaId,
+                                                  )?.name ?? null;
+                                              return html`
+                                                  <div
+                                                      class="picker-item"
+                                                      @click=${() => {
+                                                          dispatch(
+                                                              new events.taskLinked(
+                                                                  {
+                                                                      goalId: goal.id,
+                                                                      taskId: t.id,
+                                                                  },
+                                                              ),
+                                                          );
+                                                          updateState({
+                                                              linkPickerOpen: false,
+                                                              linkSearchQuery:
+                                                                  "",
+                                                          });
+                                                      }}
+                                                  >
+                                                      <span
+                                                          class="picker-item-title"
+                                                          >${t.title}</span
+                                                      >
+                                                      <div
+                                                          class="picker-item-meta"
+                                                      >
+                                                          <span
+                                                              class=${"picker-badge kind-" +
+                                                              t.kind}
+                                                              >${t.kind}</span
+                                                          >
+                                                          ${pName
+                                                              ? html`<span
+                                                                    class="picker-badge"
+                                                                    >${pName}</span
+                                                                >`
+                                                              : html``}
+                                                      </div>
+                                                  </div>
+                                              `;
+                                          });
+                                      })()}
+                                  </div>
+                              </div>
+                          </div>
+                      `
+                    : html``
+            }
 
             <!-- Intelligence linked to this objective -->
             <div class="section-label" style="margin-bottom:0">INTELLIGENCE</div>
             <${IdeasViewElement.assign({
                 ideas: inputs.ideas,
-                goals: [],  // no nested goal picker when already inside a goal
-                projects: inputs.projects,
+                goals: [], // no nested goal picker when already inside a goal
+                areas: inputs.areas,
                 filterGoalId: goal.id,
-                filterProjectId: goal.projectId,
+                filterAreaId: goal.areaId,
                 activeSkinId: inputs.activeSkinId,
-            })} data-embedded=${''}
-                ${listen(IdeasViewElement.events.makeCommitmentRequested, e =>
-                    dispatch(new events.makeCommitmentRequested(e.detail)))}
-                ${listen(IdeasViewElement.events.ideaUpdated, e =>
-                    dispatch(new events.ideaUpdated(e.detail)))}
-                ${listen(IdeasViewElement.events.ideaDeleted, e =>
-                    dispatch(new events.ideaDeleted(e.detail)))}
-                ${listen(IdeasViewElement.events.ideaEditRequested, e =>
-                    dispatch(new events.ideaEditRequested(e.detail)))}
-                ${listen(IdeasViewElement.events.promoteRequested, e =>
-                    dispatch(new events.ideaPromoteRequested(e.detail)))}
+            })} data-embedded=${""}
+                ${listen(IdeasViewElement.events.makeCommitmentRequested, (e) =>
+                    dispatch(new events.makeCommitmentRequested(e.detail)),
+                )}
+                ${listen(IdeasViewElement.events.ideaUpdated, (e) =>
+                    dispatch(new events.ideaUpdated(e.detail)),
+                )}
+                ${listen(IdeasViewElement.events.ideaDeleted, (e) =>
+                    dispatch(new events.ideaDeleted(e.detail)),
+                )}
+                ${listen(IdeasViewElement.events.ideaEditRequested, (e) =>
+                    dispatch(new events.ideaEditRequested(e.detail)),
+                )}
+                ${listen(IdeasViewElement.events.promoteRequested, (e) =>
+                    dispatch(new events.ideaPromoteRequested(e.detail)),
+                )}
             ></${IdeasViewElement}>
 
             <!-- Delete zone -->
             <div class="delete-zone">
-                ${state.confirmingDelete
-                    ? html`
-                        <div class="confirm-delete">
-                            <p>PERMANENTLY DELETE THIS OBJECTIVE?</p>
-                            <div class="confirm-actions">
-                                <button
-                                    class="confirm-yes"
-                                    @click=${() => dispatch(new events.goalDeleted(goal.id))}
-                                >DELETE</button>
-                                <button
-                                    class="confirm-no"
-                                    @click=${() => updateState({confirmingDelete: false})}
-                                >CANCEL</button>
-                            </div>
-                        </div>
-                      `
-                    : html`
-                        <div style="display:flex;gap:8px;flex-wrap:wrap;">
-                            ${isActive
-                                ? html`<button
-                                        class="delete-btn"
-                                        style="border-color:var(--color-text-faint);color:var(--color-text-muted);"
-                                        @click=${() => setStatus('abandoned')}
-                                    >ABANDON OBJECTIVE</button>`
-                                : html``}
-                            <button
-                                class="delete-btn"
-                                @click=${() => updateState({confirmingDelete: true})}
-                            >DELETE OBJECTIVE</button>
-                        </div>
-                      `}
+                ${
+                    state.confirmingDelete
+                        ? html`
+                              <div class="confirm-delete">
+                                  <p>PERMANENTLY DELETE THIS OBJECTIVE?</p>
+                                  <div class="confirm-actions">
+                                      <button
+                                          class="confirm-yes"
+                                          @click=${() =>
+                                              dispatch(
+                                                  new events.goalDeleted(
+                                                      goal.id,
+                                                  ),
+                                              )}
+                                      >
+                                          DELETE
+                                      </button>
+                                      <button
+                                          class="confirm-no"
+                                          @click=${() =>
+                                              updateState({
+                                                  confirmingDelete: false,
+                                              })}
+                                      >
+                                          CANCEL
+                                      </button>
+                                  </div>
+                              </div>
+                          `
+                        : html`
+                              <div style="display:flex;gap:8px;flex-wrap:wrap;">
+                                  ${isActive
+                                      ? html`<button
+                                            class="delete-btn"
+                                            style="border-color:var(--color-text-faint);color:var(--color-text-muted);"
+                                            @click=${() =>
+                                                setStatus("abandoned")}
+                                        >
+                                            ABANDON OBJECTIVE
+                                        </button>`
+                                      : html``}
+                                  <button
+                                      class="delete-btn"
+                                      @click=${() =>
+                                          updateState({
+                                              confirmingDelete: true,
+                                          })}
+                                  >
+                                      DELETE OBJECTIVE
+                                  </button>
+                              </div>
+                          `
+                }
             </div>
         `;
     },

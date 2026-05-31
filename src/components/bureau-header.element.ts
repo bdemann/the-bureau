@@ -1,25 +1,25 @@
-import {css, defineElement, defineElementEvent, html} from 'element-vir';
-import {getRank, rankColor} from '../data/ranks.js';
-import {getActiveSkin, getRankLabel} from '../skins/active-skin.js';
-import {ALL_SKINS} from '../skins/all-skins.js';
+import { css, defineElement, defineElementEvent, html } from "element-vir";
+import { getRank, rankColor } from "../data/ranks.js";
+import { getActiveSkin, getRankLabel } from "../skins/active-skin.js";
+import { ALL_SKINS } from "../skins/all-skins.js";
 
 // ─────────────────────────────────────────────────────────────────────────────
 // BureauHeaderElement
 // Top bar: CLEAR logotype, patriot score, back button, hamburger menu.
-// The hamburger menu owns: Operations navigation, Report a Neighbor.
+// The hamburger menu owns: Areas navigation, Report a Neighbor.
 // ─────────────────────────────────────────────────────────────────────────────
 
-const CLEAR_URL = 'https://clear.bureauofcivicresponsibility.org';
+const CLEAR_URL = "https://clear.bureauofcivicresponsibility.org";
 
 export const BureauHeaderElement = defineElement<{
     patriotScore: number;
     streak: number;
     onBack: (() => void) | null;
-    projectName: string | null;
+    areaName: string | null;
     /** Id of the currently active skin — drives the skin picker selection state. */
     activeSkinId: string;
 }>()({
-    tagName: 'bureau-header',
+    tagName: "bureau-header",
 
     events: {
         /** Fired when the user taps Insights in the hamburger menu. */
@@ -48,7 +48,7 @@ export const BureauHeaderElement = defineElement<{
 
         /* Subtle diagonal stripe decoration */
         header::before {
-            content: '';
+            content: "";
             position: absolute;
             inset: 0;
             background: repeating-linear-gradient(
@@ -82,7 +82,9 @@ export const BureauHeaderElement = defineElement<{
             display: flex;
             align-items: center;
             cursor: pointer;
-            transition: background 0.15s, border-color 0.15s;
+            transition:
+                background 0.15s,
+                border-color 0.15s;
             flex-shrink: 0;
         }
 
@@ -169,8 +171,12 @@ export const BureauHeaderElement = defineElement<{
         }
 
         @keyframes overlay-in {
-            from { opacity: 0; }
-            to   { opacity: 1; }
+            from {
+                opacity: 0;
+            }
+            to {
+                opacity: 1;
+            }
         }
 
         .menu-panel {
@@ -188,8 +194,12 @@ export const BureauHeaderElement = defineElement<{
         }
 
         @keyframes panel-in {
-            from { transform: translateX(100%); }
-            to   { transform: translateX(0); }
+            from {
+                transform: translateX(100%);
+            }
+            to {
+                transform: translateX(0);
+            }
         }
 
         .menu-header {
@@ -295,7 +305,10 @@ export const BureauHeaderElement = defineElement<{
             text-align: left;
             padding: 9px 12px;
             cursor: pointer;
-            transition: border-color 0.15s, color 0.15s, background 0.15s;
+            transition:
+                border-color 0.15s,
+                color 0.15s,
+                background 0.15s;
         }
 
         .skin-btn:hover {
@@ -332,13 +345,13 @@ export const BureauHeaderElement = defineElement<{
             position: relative;
         }
 
-        .breadcrumb .project-name {
+        .breadcrumb .area-name {
             color: var(--color-warning);
         }
 
         .score-bar {
             height: 3px;
-            background: rgba(255,255,255,0.1);
+            background: rgba(255, 255, 255, 0.1);
             position: relative;
         }
 
@@ -349,26 +362,31 @@ export const BureauHeaderElement = defineElement<{
         }
     `,
 
-    render({inputs, state, updateState, dispatch, events}) {
-        const {patriotScore, streak, onBack, projectName, activeSkinId} = inputs;
+    render({ inputs, state, updateState, dispatch, events }) {
+        const { patriotScore, streak, onBack, areaName, activeSkinId } = inputs;
         const skin = getActiveSkin();
 
-        const rank = streak === 0 ? 'suspected_communist' : getRank(patriotScore);
+        const rank =
+            streak === 0 ? "suspected_communist" : getRank(patriotScore);
         const scoreColor = rankColor(rank);
 
-        let barColor = 'var(--color-warning)';
-        if (patriotScore < 40)       { barColor = 'var(--color-danger)'; }
-        else if (patriotScore < 70)  { barColor = '#F5A623'; }
-        else if (patriotScore >= 130){ barColor = '#FFD700'; }
+        let barColor = "var(--color-warning)";
+        if (patriotScore < 40) {
+            barColor = "var(--color-danger)";
+        } else if (patriotScore < 70) {
+            barColor = "#F5A623";
+        } else if (patriotScore >= 130) {
+            barColor = "#FFD700";
+        }
 
         const barWidth = Math.min(100, Math.max(0, (patriotScore / 200) * 100));
 
         function openMenu(): void {
-            updateState({menuOpen: true});
+            updateState({ menuOpen: true });
         }
 
         function closeMenu(): void {
-            updateState({menuOpen: false});
+            updateState({ menuOpen: false });
         }
 
         function onInsights(): void {
@@ -382,8 +400,8 @@ export const BureauHeaderElement = defineElement<{
                 try {
                     await navigator.share({
                         title: skin.identity.shareTitle,
-                        text:  skin.identity.sharePitch,
-                        url:   CLEAR_URL,
+                        text: skin.identity.sharePitch,
+                        url: CLEAR_URL,
                     });
                 } catch {
                     // User cancelled — no action.
@@ -394,11 +412,15 @@ export const BureauHeaderElement = defineElement<{
         }
 
         return html`
-            <header style="--score-color:${scoreColor};--score-bar-color:${barColor}">
+            <header
+                style="--score-color:${scoreColor};--score-bar-color:${barColor}"
+            >
                 <div class="header-top">
                     ${onBack
                         ? html`
-                            <button class="back-btn" @click=${onBack}>← BACK</button>
+                              <button class="back-btn" @click=${onBack}>
+                                  ← BACK
+                              </button>
                           `
                         : html`<div style="width:56px"></div>`}
 
@@ -408,80 +430,132 @@ export const BureauHeaderElement = defineElement<{
                     </div>
 
                     <div class="score-block" title="${skin.identity.scoreName}">
-                        <span class="score-number">${Math.round(patriotScore)}</span>
+                        <span class="score-number"
+                            >${Math.round(patriotScore)}</span
+                        >
                         <span class="score-label">
-                            ${streak > 0 ? `🔥 ${streak}d · ` : `${streak}d · `}${getRankLabel(rank).toUpperCase()}
+                            ${streak > 0
+                                ? `🔥 ${streak}d · `
+                                : `${streak}d · `}${getRankLabel(
+                                rank,
+                            ).toUpperCase()}
                         </span>
                     </div>
 
-                    <button class="hamburger-btn" title="Menu" @click=${openMenu}>
+                    <button
+                        class="hamburger-btn"
+                        title="Menu"
+                        @click=${openMenu}
+                    >
                         <span class="hamburger-line"></span>
                         <span class="hamburger-line"></span>
                         <span class="hamburger-line"></span>
                     </button>
                 </div>
 
-                ${projectName
+                ${areaName
                     ? html`
-                        <div class="breadcrumb">
-                            ${skin.nav.areasBreadcrumb} &rsaquo;
-                            <span class="project-name">${projectName.toUpperCase()}</span>
-                        </div>
+                          <div class="breadcrumb">
+                              ${skin.nav.areasBreadcrumb} &rsaquo;
+                              <span class="area-name"
+                                  >${areaName.toUpperCase()}</span
+                              >
+                          </div>
                       `
                     : html``}
 
                 <div class="score-bar">
-                    <div class="score-bar-fill" style="width:${barWidth}%"></div>
+                    <div
+                        class="score-bar-fill"
+                        style="width:${barWidth}%"
+                    ></div>
                 </div>
             </header>
 
-            ${state.menuOpen ? html`
-                <div
-                    class="menu-overlay"
-                    @click=${(e: Event) => { if (e.target === e.currentTarget) closeMenu(); }}
-                >
-                    <div class="menu-panel">
-                        <div class="menu-header">
-                            <span class="menu-title">${skin.menu.menuTitle}</span>
-                            <button class="menu-close" @click=${closeMenu}>×</button>
-                        </div>
+            ${state.menuOpen
+                ? html`
+                      <div
+                          class="menu-overlay"
+                          @click=${(e: Event) => {
+                              if (e.target === e.currentTarget) closeMenu();
+                          }}
+                      >
+                          <div class="menu-panel">
+                              <div class="menu-header">
+                                  <span class="menu-title"
+                                      >${skin.menu.menuTitle}</span
+                                  >
+                                  <button
+                                      class="menu-close"
+                                      @click=${closeMenu}
+                                  >
+                                      ×
+                                  </button>
+                              </div>
 
-                        <div class="menu-section">
-                            <div class="menu-section-label">${skin.menu.insightsSectionLabel}</div>
-                            <button class="menu-item" @click=${onInsights}>
-                                Insights
-                                <span class="menu-item-sub">Missed tasks, completions, patterns</span>
-                            </button>
-                        </div>
+                              <div class="menu-section">
+                                  <div class="menu-section-label">
+                                      ${skin.menu.insightsSectionLabel}
+                                  </div>
+                                  <button
+                                      class="menu-item"
+                                      @click=${onInsights}
+                                  >
+                                      Insights
+                                      <span class="menu-item-sub"
+                                          >Missed tasks, completions,
+                                          patterns</span
+                                      >
+                                  </button>
+                              </div>
 
-                        <div class="menu-section">
-                            <div class="menu-section-label">${skin.menu.shareSectionLabel}</div>
-                            <button class="menu-item" @click=${onReportNeighbor}>
-                                ${skin.menu.shareItemLabel}
-                                <span class="menu-item-sub">${skin.menu.shareItemSub}</span>
-                            </button>
-                        </div>
+                              <div class="menu-section">
+                                  <div class="menu-section-label">
+                                      ${skin.menu.shareSectionLabel}
+                                  </div>
+                                  <button
+                                      class="menu-item"
+                                      @click=${onReportNeighbor}
+                                  >
+                                      ${skin.menu.shareItemLabel}
+                                      <span class="menu-item-sub"
+                                          >${skin.menu.shareItemSub}</span
+                                      >
+                                  </button>
+                              </div>
 
-                        <div class="menu-section">
-                            <div class="menu-section-label">Appearance</div>
-                            <div class="skin-picker">
-                                ${ALL_SKINS.map(s => html`
-                                    <button
-                                        class=${'skin-btn' + (s.id === activeSkinId ? ' active' : '')}
-                                        @click=${() => {
-                                            dispatch(new events.skinChangeRequested(s.id));
-                                            closeMenu();
-                                        }}
-                                    >
-                                        <span class="skin-dot"></span>
-                                        ${s.displayName}
-                                    </button>
-                                `)}
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            ` : html``}
+                              <div class="menu-section">
+                                  <div class="menu-section-label">
+                                      Appearance
+                                  </div>
+                                  <div class="skin-picker">
+                                      ${ALL_SKINS.map(
+                                          (s) => html`
+                                              <button
+                                                  class=${"skin-btn" +
+                                                  (s.id === activeSkinId
+                                                      ? " active"
+                                                      : "")}
+                                                  @click=${() => {
+                                                      dispatch(
+                                                          new events.skinChangeRequested(
+                                                              s.id,
+                                                          ),
+                                                      );
+                                                      closeMenu();
+                                                  }}
+                                              >
+                                                  <span class="skin-dot"></span>
+                                                  ${s.displayName}
+                                              </button>
+                                          `,
+                                      )}
+                                  </div>
+                              </div>
+                          </div>
+                      </div>
+                  `
+                : html``}
         `;
     },
 });

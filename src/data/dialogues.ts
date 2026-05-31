@@ -1,5 +1,5 @@
-import type {Character} from './types.js';
-import {getActiveSkin} from '../skins/active-skin.js';
+import type { Character } from "./types.js";
+import { getActiveSkin } from "../skins/active-skin.js";
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Dialogue system — trigger keys and lookup helper.
@@ -9,19 +9,19 @@ import {getActiveSkin} from '../skins/active-skin.js';
 // ─────────────────────────────────────────────────────────────────────────────
 
 export type DialogueTrigger =
-    | 'task_added'
-    | 'task_completed'
-    | 'task_snoozed_1'
-    | 'task_snoozed_2_3'
-    | 'task_snoozed_4_5'
-    | 'task_snoozed_6plus'
-    | 'task_skipped'
-    | 'task_overdue'
-    | 'project_completed'
-    | 'score_low'
-    | 'score_high'
-    | 'day_start'
-    | 'streak';
+    | "task_added"
+    | "task_completed"
+    | "task_snoozed_1"
+    | "task_snoozed_2_3"
+    | "task_snoozed_4_5"
+    | "task_snoozed_6plus"
+    | "task_skipped"
+    | "task_overdue"
+    | "area_completed"
+    | "score_low"
+    | "score_high"
+    | "day_start"
+    | "streak";
 
 /** A resolved dialogue line with its trigger filled in (as returned by getDialogueFor). */
 export interface DialogueLine {
@@ -42,12 +42,12 @@ export function getDialogueFor(
     const map = getActiveSkin().dialogues;
     const pool = map[trigger] ?? [];
     if (!pool.length) {
-        return {character: 'agent', trigger, message: 'Status noted.'};
+        return { character: "agent", trigger, message: "Status noted." };
     }
     const preferred = pool.filter(
-        d => d.character === (preferDirector ? 'director' : 'agent'),
+        (d) => d.character === (preferDirector ? "director" : "agent"),
     );
     const candidates = preferred.length ? preferred : pool;
     const entry = candidates[Math.floor(Math.random() * candidates.length)]!;
-    return {...entry, trigger};
+    return { ...entry, trigger };
 }

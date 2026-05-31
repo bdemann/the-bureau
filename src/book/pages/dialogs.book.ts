@@ -1,18 +1,18 @@
-import {html} from 'element-vir';
-import {defineBookPage} from 'element-book';
-import {AddProjectDialogElement} from '../../components/add-project-dialog.element.js';
-import {AddTaskDialogElement} from '../../components/add-task-dialog.element.js';
+import { html } from "element-vir";
+import { defineBookPage } from "element-book";
+import { AddAreaDialogElement } from "../../components/add-project-dialog.element.js";
+import { AddTaskDialogElement } from "../../components/add-task-dialog.element.js";
 
-export const addProjectPage = defineBookPage({
+export const addAreaPage = defineBookPage({
     parent: undefined,
-    title: 'Add Project Dialog',
-    defineExamples({defineExample}) {
+    title: "Add Area Dialog",
+    defineExamples({ defineExample }) {
         defineExample({
-            title: 'Open',
+            title: "Open",
             render() {
                 return html`
                     <div style="position:relative;height:420px;overflow:hidden;transform:scale(1);">
-                        <${AddProjectDialogElement.assign({open: true})}></${AddProjectDialogElement}>
+                        <${AddAreaDialogElement.assign({ open: true })}></${AddAreaDialogElement}>
                     </div>
                 `;
             },
@@ -22,14 +22,14 @@ export const addProjectPage = defineBookPage({
 
 export const addTaskPage = defineBookPage({
     parent: undefined,
-    title: 'Add Task Dialog',
-    defineExamples({defineExample}) {
+    title: "Add Task Dialog",
+    defineExamples({ defineExample }) {
         defineExample({
-            title: 'Open',
+            title: "Open",
             render() {
                 return html`
                     <div style="position:relative;height:560px;overflow:hidden;transform:scale(1);">
-                        <${AddTaskDialogElement.assign({projectId: 'p1', open: true, activeSkinId: 'bcr'})}></${AddTaskDialogElement}>
+                        <${AddTaskDialogElement.assign({ areaId: "p1", open: true, activeSkinId: "bcr" })}></${AddTaskDialogElement}>
                     </div>
                 `;
             },

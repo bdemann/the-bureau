@@ -1,5 +1,5 @@
-import {assert} from '@augment-vir/assert';
-import {describe, test} from 'node:test';
+import { assert } from "@augment-vir/assert";
+import { describe, test } from "node:test";
 import {
     countActiveTasks,
     missPenalty,
@@ -7,21 +7,21 @@ import {
     snoozePenalty,
     taskScaleMultiplier,
     tierCompletionReward,
-} from './scoring.js';
-import {getSkipSeverity} from './types.js';
-import type {Task} from './types.js';
+} from "./scoring.js";
+import { getSkipSeverity } from "./types.js";
+import type { Task } from "./types.js";
 
 // Minimal task stub for tests.
 function makeTask(overrides: Partial<Task> = {}): Task {
     return {
-        id: 'test',
-        projectId: null,
-        title: 'Test',
-        description: '',
-        timeOfDay: 'anytime',
-        kind: 'task',
+        id: "test",
+        areaId: null,
+        title: "Test",
+        description: "",
+        timeOfDay: "anytime",
+        kind: "task",
         consequenceTier: 3,
-        windowType: 'flexible',
+        windowType: "flexible",
         suggestedDate: null,
         windowDeadline: null,
         windowLengthDays: null,
@@ -44,150 +44,161 @@ function makeTask(overrides: Partial<Task> = {}): Task {
         completedAt: null,
         createdAt: Date.now(),
         dueDate: null,
+        remediationCount: 0,
         ...overrides,
     };
 }
 
-describe('miss-to-reward ratio: one bad day cannot be undone by one perfect day', () => {
+describe("miss-to-reward ratio: one bad day cannot be undone by one perfect day", () => {
     // miss(tier) > reward(tier); with N-scaling both normalize to 10× base,
     // so the per-tier comparison fully captures the day-level asymmetry.
     // Tier 4 is excluded — it is consequence-free in both directions.
-    test('tier 1', () => assert.isAbove(missPenalty(1) / tierCompletionReward(1), 10));
-    test('tier 2', () => assert.isAbove(missPenalty(2) / tierCompletionReward(2), 10));
-    test('tier 3', () => assert.isAbove(missPenalty(3) / tierCompletionReward(3), 10));
+    test("tier 1", () =>
+        assert.isAbove(missPenalty(1) / tierCompletionReward(1), 10));
+    test("tier 2", () =>
+        assert.isAbove(missPenalty(2) / tierCompletionReward(2), 10));
+    test("tier 3", () =>
+        assert.isAbove(missPenalty(3) / tierCompletionReward(3), 10));
 });
 
-describe('penalty ordering: miss > skip > snooze (first snooze)', () => {
+describe("penalty ordering: miss > skip > snooze (first snooze)", () => {
     // Tier 4 is excluded — all tier-4 values are 0 (aspirational / consequence-free).
-    test('tier 1', () => {
+    test("tier 1", () => {
         assert.isAbove(missPenalty(1), skipPenalty(1));
         assert.isAbove(skipPenalty(1), snoozePenalty(1));
     });
-    test('tier 2', () => {
+    test("tier 2", () => {
         assert.isAbove(missPenalty(2), skipPenalty(2));
         assert.isAbove(skipPenalty(2), snoozePenalty(2));
     });
-    test('tier 3', () => {
+    test("tier 3", () => {
         assert.isAbove(missPenalty(3), skipPenalty(3));
         assert.isAbove(skipPenalty(3), snoozePenalty(3));
     });
 });
 
-describe('tier 4: aspirational — consequence-free in all directions', () => {
-    test('completion reward is 0', () => assert.strictEquals(tierCompletionReward(4), 0));
-    test('miss penalty is 0',      () => assert.strictEquals(missPenalty(4), 0));
-    test('skip penalty is 0',      () => assert.strictEquals(skipPenalty(4), 0));
-    test('snooze penalty is 0',    () => assert.strictEquals(snoozePenalty(4), 0));
+describe("tier 4: aspirational — consequence-free in all directions", () => {
+    test("completion reward is 0", () =>
+        assert.strictEquals(tierCompletionReward(4), 0));
+    test("miss penalty is 0", () => assert.strictEquals(missPenalty(4), 0));
+    test("skip penalty is 0", () => assert.strictEquals(skipPenalty(4), 0));
+    test("snooze penalty is 0", () => assert.strictEquals(snoozePenalty(4), 0));
 });
 
-describe('penalty ordering: higher tier = higher values (tiers 1–3)', () => {
-    test('completion reward', () => {
+describe("penalty ordering: higher tier = higher values (tiers 1–3)", () => {
+    test("completion reward", () => {
         assert.isAbove(tierCompletionReward(1), tierCompletionReward(2));
         assert.isAbove(tierCompletionReward(2), tierCompletionReward(3));
     });
-    test('miss penalty', () => {
+    test("miss penalty", () => {
         assert.isAbove(missPenalty(1), missPenalty(2));
         assert.isAbove(missPenalty(2), missPenalty(3));
     });
-    test('skip penalty', () => {
+    test("skip penalty", () => {
         assert.isAbove(skipPenalty(1), skipPenalty(2));
         assert.isAbove(skipPenalty(2), skipPenalty(3));
     });
-    test('snooze penalty', () => {
+    test("snooze penalty", () => {
         assert.isAbove(snoozePenalty(1), snoozePenalty(2));
         assert.isAbove(snoozePenalty(2), snoozePenalty(3));
     });
 });
 
-describe('getSkipSeverity', () => {
-    test('0 skips → none', () => {
-        assert.strictEquals(getSkipSeverity(0), 'none');
+describe("getSkipSeverity", () => {
+    test("0 skips → none", () => {
+        assert.strictEquals(getSkipSeverity(0), "none");
     });
-    test('1 skip → warning', () => {
-        assert.strictEquals(getSkipSeverity(1), 'warning');
+    test("1 skip → warning", () => {
+        assert.strictEquals(getSkipSeverity(1), "warning");
     });
-    test('2–3 skips → caution', () => {
-        assert.strictEquals(getSkipSeverity(2), 'caution');
-        assert.strictEquals(getSkipSeverity(3), 'caution');
+    test("2–3 skips → caution", () => {
+        assert.strictEquals(getSkipSeverity(2), "caution");
+        assert.strictEquals(getSkipSeverity(3), "caution");
     });
-    test('4–5 skips → danger', () => {
-        assert.strictEquals(getSkipSeverity(4), 'danger');
-        assert.strictEquals(getSkipSeverity(5), 'danger');
+    test("4–5 skips → danger", () => {
+        assert.strictEquals(getSkipSeverity(4), "danger");
+        assert.strictEquals(getSkipSeverity(5), "danger");
     });
-    test('6+ skips → critical', () => {
-        assert.strictEquals(getSkipSeverity(6), 'critical');
-        assert.strictEquals(getSkipSeverity(10), 'critical');
+    test("6+ skips → critical", () => {
+        assert.strictEquals(getSkipSeverity(6), "critical");
+        assert.strictEquals(getSkipSeverity(10), "critical");
     });
 });
 
-describe('taskScaleMultiplier', () => {
-    test('1.0 at reference count (10)', () => {
+describe("taskScaleMultiplier", () => {
+    test("1.0 at reference count (10)", () => {
         assert.strictEquals(taskScaleMultiplier(10), 1);
     });
-    test('> 1 with fewer than 10 tasks', () => {
+    test("> 1 with fewer than 10 tasks", () => {
         assert.isAbove(taskScaleMultiplier(5), 1);
         assert.isAbove(taskScaleMultiplier(1), 1);
     });
-    test('< 1 with more than 10 tasks (within scaling range)', () => {
+    test("< 1 with more than 10 tasks (within scaling range)", () => {
         assert.isBelow(taskScaleMultiplier(20), 1);
     });
-    test('floored at 0.5 — never drops below half baseline', () => {
+    test("floored at 0.5 — never drops below half baseline", () => {
         assert.strictEquals(taskScaleMultiplier(20), 0.5);
         assert.strictEquals(taskScaleMultiplier(50), 0.5);
         assert.strictEquals(taskScaleMultiplier(100), 0.5);
     });
-    test('total daily impact is constant up to 2× reference count', () => {
+    test("total daily impact is constant up to 2× reference count", () => {
         // N tasks × base × (10/N) = 10 × base for N ≤ 20 (where floor doesn't kick in).
         const base = tierCompletionReward(3);
-        const impact5  = 5  * base * taskScaleMultiplier(5);
+        const impact5 = 5 * base * taskScaleMultiplier(5);
         const impact10 = 10 * base * taskScaleMultiplier(10);
         const impact20 = 20 * base * taskScaleMultiplier(20);
-        assert.strictEquals(Math.round(impact5 * 100), Math.round(impact10 * 100));
-        assert.strictEquals(Math.round(impact10 * 100), Math.round(impact20 * 100));
+        assert.strictEquals(
+            Math.round(impact5 * 100),
+            Math.round(impact10 * 100),
+        );
+        assert.strictEquals(
+            Math.round(impact10 * 100),
+            Math.round(impact20 * 100),
+        );
     });
-    test('floors at 1 task (no divide-by-zero)', () => {
+    test("floors at 1 task (no divide-by-zero)", () => {
         assert.strictEquals(taskScaleMultiplier(0), taskScaleMultiplier(1));
     });
 });
 
-describe('countActiveTasks', () => {
-    test('counts incomplete non-missed non-paused tasks', () => {
-        const tasks = [
-            makeTask({id: 'a'}),
-            makeTask({id: 'b'}),
-        ];
+describe("countActiveTasks", () => {
+    test("counts incomplete non-missed non-paused tasks", () => {
+        const tasks = [makeTask({ id: "a" }), makeTask({ id: "b" })];
         assert.strictEquals(countActiveTasks(tasks), 2);
     });
-    test('excludes completed tasks', () => {
+    test("excludes completed tasks", () => {
         const tasks = [
-            makeTask({id: 'a', completedAt: Date.now()}),
-            makeTask({id: 'b'}),
+            makeTask({ id: "a", completedAt: Date.now() }),
+            makeTask({ id: "b" }),
         ];
         assert.strictEquals(countActiveTasks(tasks), 1);
     });
-    test('excludes missed tasks', () => {
+    test("excludes missed tasks", () => {
         const tasks = [
-            makeTask({id: 'a', missedAt: Date.now()}),
-            makeTask({id: 'b'}),
+            makeTask({ id: "a", missedAt: Date.now() }),
+            makeTask({ id: "b" }),
         ];
         assert.strictEquals(countActiveTasks(tasks), 1);
     });
-    test('excludes indefinitely paused tasks', () => {
+    test("excludes indefinitely paused tasks", () => {
         const tasks = [
-            makeTask({id: 'a', pausedIndefinitely: true}),
-            makeTask({id: 'b'}),
+            makeTask({ id: "a", pausedIndefinitely: true }),
+            makeTask({ id: "b" }),
         ];
         assert.strictEquals(countActiveTasks(tasks), 1);
     });
-    test('excludes timed-paused tasks', () => {
+    test("excludes timed-paused tasks", () => {
         const tasks = [
-            makeTask({id: 'a', pausedUntil: Date.now() + 86_400_000}),
-            makeTask({id: 'b'}),
+            makeTask({ id: "a", pausedUntil: Date.now() + 86_400_000 }),
+            makeTask({ id: "b" }),
         ];
         assert.strictEquals(countActiveTasks(tasks), 1);
     });
-    test('minimum return value is 1', () => {
+    test("minimum return value is 1", () => {
         assert.strictEquals(countActiveTasks([]), 1);
-        assert.strictEquals(countActiveTasks([makeTask({completedAt: Date.now()})]), 1);
+        assert.strictEquals(
+            countActiveTasks([makeTask({ completedAt: Date.now() })]),
+            1,
+        );
     });
 });

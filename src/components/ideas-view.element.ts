@@ -1,36 +1,36 @@
-import {css, defineElement, defineElementEvent, html} from 'element-vir';
-import type {FormKind, Goal, Idea, Project} from '../data/types.js';
-import {getActiveSkin} from '../skins/active-skin.js';
+import { css, defineElement, defineElementEvent, html } from "element-vir";
+import type { FormKind, Goal, Idea, Area } from "../data/types.js";
+import { getActiveSkin } from "../skins/active-skin.js";
 
 // ─────────────────────────────────────────────────────────────────────────────
 // IdeasViewElement
-// Field Intelligence: capture raw ideas, optionally link to an operation and
-// a goal within that operation, promote to a directive when ready.
+// Field Intelligence: capture raw ideas, optionally link to an area and
+// a goal within that area, promote to a directive when ready.
 //
-// When filterProjectId is set only that project's ideas are shown and the
-// project selector is hidden (used from project-detail). The goal selector
-// always shows goals for the currently selected project.
+// When filterAreaId is set only that area's ideas are shown and the
+// area selector is hidden (used from area-detail). The goal selector
+// always shows goals for the currently selected area.
 // ─────────────────────────────────────────────────────────────────────────────
 
 export const IdeasViewElement = defineElement<{
-    ideas:           ReadonlyArray<Idea>;
-    projects:        ReadonlyArray<Project>;
-    goals:           ReadonlyArray<Goal>;
-    /** When set, only show ideas for this project and hide the project selector. */
-    filterProjectId?: string | null;
+    ideas: ReadonlyArray<Idea>;
+    areas: ReadonlyArray<Area>;
+    goals: ReadonlyArray<Goal>;
+    /** When set, only show ideas for this area and hide the area selector. */
+    filterAreaId?: string | null;
     /** When set, only show ideas for this goal and lock the goal selector to it. */
-    filterGoalId?:    string | null;
+    filterGoalId?: string | null;
     /** Re-render trigger — changes when the active skin changes. */
     activeSkinId: string;
 }>()({
-    tagName: 'ideas-view',
+    tagName: "ideas-view",
 
     events: {
         makeCommitmentRequested: defineElementEvent<FormKind>(),
-        ideaUpdated:             defineElementEvent<Idea>(),
-        ideaDeleted:             defineElementEvent<string>(),
-        ideaEditRequested:       defineElementEvent<Idea>(),
-        promoteRequested:        defineElementEvent<Idea>(),
+        ideaUpdated: defineElementEvent<Idea>(),
+        ideaDeleted: defineElementEvent<string>(),
+        ideaEditRequested: defineElementEvent<Idea>(),
+        promoteRequested: defineElementEvent<Idea>(),
     },
 
     state: () => ({
@@ -72,12 +72,28 @@ export const IdeasViewElement = defineElement<{
             cursor: pointer;
         }
 
-        .btn-primary   { background: var(--color-primary); color: var(--color-surface); }
-        .btn-primary:hover { background: var(--color-primary-hover); }
-        .btn-ghost     { background: transparent; border: 1px solid rgba(0,0,0,0.2); color: var(--color-primary); }
-        .btn-ghost:hover { background: rgba(0,0,0,0.05); }
-        .btn-danger    { background: var(--color-danger); color: var(--color-surface); }
-        .btn-danger:hover { background: var(--color-danger-dark); }
+        .btn-primary {
+            background: var(--color-primary);
+            color: var(--color-surface);
+        }
+        .btn-primary:hover {
+            background: var(--color-primary-hover);
+        }
+        .btn-ghost {
+            background: transparent;
+            border: 1px solid rgba(0, 0, 0, 0.2);
+            color: var(--color-primary);
+        }
+        .btn-ghost:hover {
+            background: rgba(0, 0, 0, 0.05);
+        }
+        .btn-danger {
+            background: var(--color-danger);
+            color: var(--color-surface);
+        }
+        .btn-danger:hover {
+            background: var(--color-danger-dark);
+        }
 
         .file-btn {
             width: 100%;
@@ -86,13 +102,16 @@ export const IdeasViewElement = defineElement<{
             letter-spacing: 0.15em;
             padding: 10px;
             background: transparent;
-            border: 1.5px dashed rgba(0,0,0,0.25);
+            border: 1.5px dashed rgba(0, 0, 0, 0.25);
             color: var(--color-text-muted);
             cursor: pointer;
             margin-bottom: 20px;
             text-align: center;
         }
-        .file-btn:hover { border-color: var(--color-primary); color: var(--color-primary); }
+        .file-btn:hover {
+            border-color: var(--color-primary);
+            color: var(--color-primary);
+        }
 
         .empty {
             font-family: var(--font-mono);
@@ -104,16 +123,18 @@ export const IdeasViewElement = defineElement<{
 
         .idea-card {
             background: var(--color-card);
-            border: 1px solid rgba(0,0,0,0.1);
+            border: 1px solid rgba(0, 0, 0, 0.1);
             border-left: 3px solid var(--color-warning);
             padding: 12px 14px;
             margin-bottom: 12px;
             cursor: pointer;
-            transition: box-shadow 0.15s, transform 0.1s;
+            transition:
+                box-shadow 0.15s,
+                transform 0.1s;
         }
 
         .idea-card:hover {
-            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
             transform: translateY(-1px);
         }
 
@@ -145,11 +166,14 @@ export const IdeasViewElement = defineElement<{
             letter-spacing: 0.08em;
             text-transform: uppercase;
             padding: 2px 6px;
-            border: 1px solid rgba(0,0,0,0.15);
+            border: 1px solid rgba(0, 0, 0, 0.15);
             color: var(--color-text-muted);
         }
 
-        .meta-badge.goal { border-color: var(--color-primary)33; color: var(--color-primary); }
+        .meta-badge.goal {
+            border-color: var(--color-primary) 33;
+            color: var(--color-primary);
+        }
 
         .idea-actions {
             display: flex;
@@ -167,12 +191,29 @@ export const IdeasViewElement = defineElement<{
             cursor: pointer;
         }
 
-        .action-promote { background: var(--color-primary); color: var(--color-surface); }
-        .action-promote:hover { background: var(--color-primary-hover); }
-        .action-edit { background: transparent; border: 1px solid rgba(0,0,0,0.2); color: var(--color-primary); }
-        .action-edit:hover { background: rgba(0,0,0,0.05); }
-        .action-delete { background: transparent; border: 1px solid var(--color-danger); color: var(--color-danger); }
-        .action-delete:hover { background: rgba(var(--color-danger-rgb),0.08); }
+        .action-promote {
+            background: var(--color-primary);
+            color: var(--color-surface);
+        }
+        .action-promote:hover {
+            background: var(--color-primary-hover);
+        }
+        .action-edit {
+            background: transparent;
+            border: 1px solid rgba(0, 0, 0, 0.2);
+            color: var(--color-primary);
+        }
+        .action-edit:hover {
+            background: rgba(0, 0, 0, 0.05);
+        }
+        .action-delete {
+            background: transparent;
+            border: 1px solid var(--color-danger);
+            color: var(--color-danger);
+        }
+        .action-delete:hover {
+            background: rgba(var(--color-danger-rgb), 0.08);
+        }
 
         .confirm-delete {
             font-family: var(--font-mono);
@@ -185,52 +226,58 @@ export const IdeasViewElement = defineElement<{
         }
     `,
 
-    render({inputs, state, updateState, dispatch, events}) {
+    render({ inputs, state, updateState, dispatch, events }) {
         const skin = getActiveSkin();
-        const {ideas, projects, goals} = inputs;
-        const filterProjectId = inputs.filterProjectId ?? null;
-        const filterGoalId    = inputs.filterGoalId ?? null;
-        const isFiltered = filterProjectId !== null;
+        const { ideas, areas, goals } = inputs;
+        const filterAreaId = inputs.filterAreaId ?? null;
+        const filterGoalId = inputs.filterGoalId ?? null;
+        const isFiltered = filterAreaId !== null;
         const isGoalFiltered = filterGoalId !== null;
 
         const visibleIdeas = isGoalFiltered
-            ? ideas.filter(i => i.goalId === filterGoalId)
+            ? ideas.filter((i) => i.goalId === filterGoalId)
             : isFiltered
-                ? ideas.filter(i => i.projectId === filterProjectId)
-                : [...ideas];
+              ? ideas.filter((i) => i.areaId === filterAreaId)
+              : [...ideas];
 
-        const sortedIdeas = visibleIdeas.sort((a, b) => b.createdAt - a.createdAt);
+        const sortedIdeas = visibleIdeas.sort(
+            (a, b) => b.createdAt - a.createdAt,
+        );
 
-        function projectName(id: string | null): string | null {
+        function areaName(id: string | null): string | null {
             if (!id) return null;
-            return projects.find(p => p.id === id)?.name ?? null;
+            return areas.find((p) => p.id === id)?.name ?? null;
         }
 
         function goalName(id: string | null): string | null {
             if (!id) return null;
-            return goals.find(g => g.id === id)?.title ?? null;
+            return goals.find((g) => g.id === id)?.title ?? null;
         }
 
         return html`
             ${!isFiltered
                 ? html`
-                    <div class="page-title">${skin.pages.ideasTitle}</div>
-                    <div class="page-subtitle">${skin.pages.ideasSubtitle}</div>
+                      <div class="page-title">${skin.pages.ideasTitle}</div>
+                      <div class="page-subtitle">
+                          ${skin.pages.ideasSubtitle}
+                      </div>
                   `
                 : html``}
 
             <button
                 class="file-btn"
-                @click=${() => dispatch(new events.makeCommitmentRequested('idea'))}
-            >+ MAKE IDEA</button>
+                @click=${() =>
+                    dispatch(new events.makeCommitmentRequested("idea"))}
+            >
+                + MAKE IDEA
+            </button>
 
             ${sortedIdeas.length === 0
                 ? html`<div class="empty">${skin.pages.ideasEmpty}</div>`
                 : html``}
-
-            ${sortedIdeas.map(idea => {
+            ${sortedIdeas.map((idea) => {
                 const confirmingDelete = state.confirmDeleteId === idea.id;
-                const opName = !isFiltered ? projectName(idea.projectId) : null;
+                const opName = !isFiltered ? areaName(idea.areaId) : null;
                 const gName = goalName(idea.goalId);
 
                 return html`
@@ -238,20 +285,36 @@ export const IdeasViewElement = defineElement<{
                         class="idea-card"
                         @click=${(e: Event) => {
                             const target = e.target as HTMLElement;
-                            if (target.closest('.idea-actions') || target.closest('.confirm-delete')) return;
+                            if (
+                                target.closest(".idea-actions") ||
+                                target.closest(".confirm-delete")
+                            )
+                                return;
                             dispatch(new events.ideaEditRequested(idea));
                         }}
                     >
                         <div class="idea-title">${idea.title}</div>
                         ${idea.description
-                            ? html`<div class="idea-desc">${idea.description}</div>`
+                            ? html`<div class="idea-desc">
+                                  ${idea.description}
+                              </div>`
                             : html``}
-                        ${(opName || gName) ? html`
-                            <div class="idea-meta">
-                                ${opName ? html`<span class="meta-badge">⊙ ${opName}</span>` : html``}
-                                ${gName  ? html`<span class="meta-badge goal">→ ${gName}</span>` : html``}
-                            </div>
-                        ` : html``}
+                        ${opName || gName
+                            ? html`
+                                  <div class="idea-meta">
+                                      ${opName
+                                          ? html`<span class="meta-badge"
+                                                >⊙ ${opName}</span
+                                            >`
+                                          : html``}
+                                      ${gName
+                                          ? html`<span class="meta-badge goal"
+                                                >→ ${gName}</span
+                                            >`
+                                          : html``}
+                                  </div>
+                              `
+                            : html``}
                         <div class="idea-actions">
                             <button
                                 class="action-btn action-promote"
@@ -259,44 +322,66 @@ export const IdeasViewElement = defineElement<{
                                     e.stopPropagation();
                                     dispatch(new events.promoteRequested(idea));
                                 }}
-                            >PROMOTE TO COMMITMENT</button>
+                            >
+                                PROMOTE TO COMMITMENT
+                            </button>
                             <button
                                 class="action-btn action-edit"
                                 @click=${(e: Event) => {
                                     e.stopPropagation();
-                                    dispatch(new events.ideaEditRequested(idea));
+                                    dispatch(
+                                        new events.ideaEditRequested(idea),
+                                    );
                                 }}
-                            >EDIT</button>
+                            >
+                                EDIT
+                            </button>
                             <button
                                 class="action-btn action-delete"
                                 @click=${(e: Event) => {
                                     e.stopPropagation();
-                                    updateState({confirmDeleteId: idea.id});
+                                    updateState({ confirmDeleteId: idea.id });
                                 }}
-                            >DELETE</button>
+                            >
+                                DELETE
+                            </button>
                         </div>
-                        ${confirmingDelete ? html`
-                            <div class="confirm-delete">
-                                Permanently delete this intelligence?
-                                <button
-                                    class="btn btn-danger"
-                                    style="font-size:0.72rem;padding:3px 8px;"
-                                    @click=${(e: Event) => {
-                                        e.stopPropagation();
-                                        dispatch(new events.ideaDeleted(idea.id));
-                                        updateState({confirmDeleteId: null});
-                                    }}
-                                >CONFIRM</button>
-                                <button
-                                    class="btn btn-ghost"
-                                    style="font-size:0.72rem;padding:3px 8px;"
-                                    @click=${(e: Event) => {
-                                        e.stopPropagation();
-                                        updateState({confirmDeleteId: null});
-                                    }}
-                                >CANCEL</button>
-                            </div>
-                        ` : html``}
+                        ${confirmingDelete
+                            ? html`
+                                  <div class="confirm-delete">
+                                      Permanently delete this intelligence?
+                                      <button
+                                          class="btn btn-danger"
+                                          style="font-size:0.72rem;padding:3px 8px;"
+                                          @click=${(e: Event) => {
+                                              e.stopPropagation();
+                                              dispatch(
+                                                  new events.ideaDeleted(
+                                                      idea.id,
+                                                  ),
+                                              );
+                                              updateState({
+                                                  confirmDeleteId: null,
+                                              });
+                                          }}
+                                      >
+                                          CONFIRM
+                                      </button>
+                                      <button
+                                          class="btn btn-ghost"
+                                          style="font-size:0.72rem;padding:3px 8px;"
+                                          @click=${(e: Event) => {
+                                              e.stopPropagation();
+                                              updateState({
+                                                  confirmDeleteId: null,
+                                              });
+                                          }}
+                                      >
+                                          CANCEL
+                                      </button>
+                                  </div>
+                              `
+                            : html``}
                     </div>
                 `;
             })}

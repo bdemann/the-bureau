@@ -1,26 +1,35 @@
-import {defineElement, defineElementEvent, css, html, listen} from 'element-vir';
-import type {Project, Task} from '../data/types.js';
-import {ProjectCardElement} from './project-card.element.js';
-import {OperationWizardDialogElement} from './operation-wizard-dialog.element.js';
-import {isTaskOverdue, isTaskVisible} from '../data/storage.js';
+import {
+    defineElement,
+    defineElementEvent,
+    css,
+    html,
+    listen,
+} from "element-vir";
+import type { Area, Task } from "../data/types.js";
+import { AreaCardElement } from "./project-card.element.js";
+import { AreaWizardDialogElement } from "./operation-wizard-dialog.element.js";
+import { isTaskOverdue, isTaskVisible } from "../data/storage.js";
 
 // ─────────────────────────────────────────────────────────────────────────────
 // DashboardViewElement
-// The main command center. Shows all active operations (projects).
+// The main command center. Shows all active areas.
 // Includes a summary of overdue / flagged items at the top.
 // ─────────────────────────────────────────────────────────────────────────────
 
 export const DashboardViewElement = defineElement<{
-    projects: ReadonlyArray<Project>;
+    areas: ReadonlyArray<Area>;
     tasks: ReadonlyArray<Task>;
 }>()({
-    tagName: 'dashboard-view',
+    tagName: "dashboard-view",
 
     events: {
-        projectSelected:   defineElementEvent<string>(),  // project id
-        projectAdded:      defineElementEvent<Project>(),
-        operationCreated:  defineElementEvent<{project: Project; routines: ReadonlyArray<Task>}>(),
-        projectsReordered: defineElementEvent<ReadonlyArray<string>>(),  // ordered project ids
+        areaSelected: defineElementEvent<string>(), // area id
+        areaAdded: defineElementEvent<Area>(),
+        areaCreated: defineElementEvent<{
+            area: Area;
+            routines: ReadonlyArray<Task>;
+        }>(),
+        areasReordered: defineElementEvent<ReadonlyArray<string>>(), // ordered area ids
     },
 
     state: () => ({
@@ -59,12 +68,12 @@ export const DashboardViewElement = defineElement<{
         }
 
         .intel-stat.alert {
-            color: #FF8888;
+            color: #ff8888;
             font-weight: 700;
         }
 
         .intel-stat.good {
-            color: #88CC88;
+            color: #88cc88;
         }
 
         .section-heading {
@@ -79,13 +88,13 @@ export const DashboardViewElement = defineElement<{
         }
 
         .section-heading::after {
-            content: '';
+            content: "";
             flex: 1;
             height: 1px;
-            background: rgba(0,0,0,0.12);
+            background: rgba(0, 0, 0, 0.12);
         }
 
-        .project-grid {
+        .area-grid {
             display: flex;
             flex-direction: column;
             gap: 10px;
@@ -131,35 +140,44 @@ export const DashboardViewElement = defineElement<{
             font-size: 0.9rem;
             letter-spacing: 0.2em;
             cursor: pointer;
-            transition: background 0.15s, border-color 0.15s;
+            transition:
+                background 0.15s,
+                border-color 0.15s;
         }
         .add-btn:hover {
             background: rgba(var(--color-primary-rgb), 0.05);
             border-color: rgba(var(--color-primary-rgb), 0.6);
         }
 
-        .card-drag-wrapper { position: relative; }
-        .card-drag-wrapper.is-dragging { opacity: 0.35; }
+        .card-drag-wrapper {
+            position: relative;
+        }
+        .card-drag-wrapper.is-dragging {
+            opacity: 0.35;
+        }
         .card-drag-wrapper.is-drag-over::before {
-            content: '';
+            content: "";
             display: block;
             height: 2px;
             background: var(--color-primary);
             margin-bottom: 2px;
         }
-        .drop-zone-end { height: 20px; }
-        .drop-zone-end.is-drag-over { border-top: 2px solid var(--color-primary); }
+        .drop-zone-end {
+            height: 20px;
+        }
+        .drop-zone-end.is-drag-over {
+            border-top: 2px solid var(--color-primary);
+        }
     `,
 
-    render({inputs, state, updateState, dispatch, events}) {
-        const {projects} = inputs;
-        const {tasks} = inputs;
+    render({ inputs, state, updateState, dispatch, events }) {
+        const { areas, tasks } = inputs;
 
         // Calculate summary stats for the intel banner
         const allVisible = tasks.filter(isTaskVisible);
         const overdueCount = allVisible.filter(isTaskOverdue).length;
         const pendingCount = allVisible.length;
-        const completedToday = tasks.filter(t => {
+        const completedToday = tasks.filter((t) => {
             if (!t.completedAt) return false;
             const d = new Date(t.completedAt);
             const now = new Date();
@@ -168,134 +186,213 @@ export const DashboardViewElement = defineElement<{
 
         return html`
             <!-- Intel summary banner -->
-            ${projects.length > 0
-                ? html`
-                    <div class="intel-banner">
-                        <div class="intel-title">DAILY STATUS BRIEFING</div>
-                        <span class="intel-stat ${pendingCount > 0 ? '' : 'good'}">
-                            ${pendingCount} commitment${pendingCount !== 1 ? 's' : ''} pending
-                        </span>
-                        ${overdueCount > 0
-                            ? html` · <span class="intel-stat alert">${overdueCount} overdue</span>`
-                            : html``}
-                        ${completedToday > 0
-                            ? html` · <span class="intel-stat good">${completedToday} cleared today</span>`
-                            : html``}
-                    </div>
-                  `
-                : html``}
+            ${
+                areas.length > 0
+                    ? html`
+                          <div class="intel-banner">
+                              <div class="intel-title">
+                                  DAILY STATUS BRIEFING
+                              </div>
+                              <span
+                                  class="intel-stat ${pendingCount > 0
+                                      ? ""
+                                      : "good"}"
+                              >
+                                  ${pendingCount}
+                                  commitment${pendingCount !== 1 ? "s" : ""}
+                                  pending
+                              </span>
+                              ${overdueCount > 0
+                                  ? html` ·
+                                        <span class="intel-stat alert"
+                                            >${overdueCount} overdue</span
+                                        >`
+                                  : html``}
+                              ${completedToday > 0
+                                  ? html` ·
+                                        <span class="intel-stat good"
+                                            >${completedToday} cleared
+                                            today</span
+                                        >`
+                                  : html``}
+                          </div>
+                      `
+                    : html``
+            }
 
-            <!-- Project grid -->
-            ${projects.length === 0
-                ? html`
-                    <div class="empty-state">
-                        <div class="stamp-text">NO AREAS OF RESPONSIBILITY</div>
-                        <p>
-                            Your docket is empty, citizen.<br />
-                            A true patriot doesn't wait for orders — they file their own.
-                        </p>
-                    </div>
-                  `
-                : html`
-                    <div class="section-heading">AREAS OF RESPONSIBILITY</div>
-                    <div class="project-grid">
-                        ${projects.map(
-                            project => html`
+            <!-- Area grid -->
+            ${
+                areas.length === 0
+                    ? html`
+                          <div class="empty-state">
+                              <div class="stamp-text">
+                                  NO AREAS OF RESPONSIBILITY
+                              </div>
+                              <p>
+                                  Your docket is empty, citizen.<br />
+                                  A true patriot doesn't wait for orders — they
+                                  file their own.
+                              </p>
+                          </div>
+                      `
+                    : html`
+                          <div class="section-heading">
+                              AREAS OF RESPONSIBILITY
+                          </div>
+                          <div class="area-grid">
+                              ${areas.map(
+                                  (area) => html`
                                 <div
-                                    class="card-drag-wrapper ${state.draggedId === project.id ? 'is-dragging' : ''} ${state.dragOverId === project.id ? 'is-drag-over' : ''}"
+                                    class="card-drag-wrapper ${state.draggedId === area.id ? "is-dragging" : ""} ${state.dragOverId === area.id ? "is-drag-over" : ""}"
                                     draggable="true"
                                     @dragstart=${(e: DragEvent) => {
-                                        e.dataTransfer?.setData('text/plain', project.id);
-                                        updateState({draggedId: project.id});
+                                        e.dataTransfer?.setData(
+                                            "text/plain",
+                                            area.id,
+                                        );
+                                        updateState({ draggedId: area.id });
                                     }}
                                     @dragover=${(e: DragEvent) => {
                                         e.preventDefault();
-                                        if (state.draggedId && state.draggedId !== project.id) {
-                                            updateState({dragOverId: project.id});
+                                        if (
+                                            state.draggedId &&
+                                            state.draggedId !== area.id
+                                        ) {
+                                            updateState({
+                                                dragOverId: area.id,
+                                            });
                                         }
                                     }}
                                     @dragleave=${() => {
-                                        if (state.dragOverId === project.id) updateState({dragOverId: null});
+                                        if (state.dragOverId === area.id)
+                                            updateState({ dragOverId: null });
                                     }}
                                     @drop=${(e: DragEvent) => {
                                         e.preventDefault();
-                                        const fromId = e.dataTransfer?.getData('text/plain') ?? state.draggedId;
-                                        if (fromId && fromId !== project.id) {
-                                            dispatch(new events.projectsReordered(
-                                                reorderBefore(projects, fromId, project.id).map(p => p.id)
-                                            ));
+                                        const fromId =
+                                            e.dataTransfer?.getData(
+                                                "text/plain",
+                                            ) ?? state.draggedId;
+                                        if (fromId && fromId !== area.id) {
+                                            dispatch(
+                                                new events.areasReordered(
+                                                    reorderBefore(
+                                                        areas,
+                                                        fromId,
+                                                        area.id,
+                                                    ).map((p) => p.id),
+                                                ),
+                                            );
                                         }
-                                        updateState({draggedId: null, dragOverId: null});
+                                        updateState({
+                                            draggedId: null,
+                                            dragOverId: null,
+                                        });
                                     }}
-                                    @dragend=${() => updateState({draggedId: null, dragOverId: null})}
+                                    @dragend=${() => updateState({ draggedId: null, dragOverId: null })}
                                 >
-                                    <${ProjectCardElement.assign({
-                                        project,
-                                        tasks: tasks.filter(t => t.projectId === project.id),
+                                    <${AreaCardElement.assign({
+                                        area,
+                                        tasks: tasks.filter(
+                                            (t) => t.areaId === area.id,
+                                        ),
                                     })}
-                                        ${listen(ProjectCardElement.events.selected, e =>
-                                            dispatch(new events.projectSelected(e.detail)))}
-                                    ></${ProjectCardElement}>
+                                        ${listen(
+                                            AreaCardElement.events.selected,
+                                            (e) =>
+                                                dispatch(
+                                                    new events.areaSelected(
+                                                        e.detail,
+                                                    ),
+                                                ),
+                                        )}
+                                    ></${AreaCardElement}>
                                 </div>
                             `,
-                        )}
-                        <div
-                            class="drop-zone-end ${state.dragOverId === '__end__' ? 'is-drag-over' : ''}"
-                            @dragover=${(e: DragEvent) => {
-                                e.preventDefault();
-                                if (state.draggedId) updateState({dragOverId: '__end__'});
-                            }}
-                            @dragleave=${() => {
-                                if (state.dragOverId === '__end__') updateState({dragOverId: null});
-                            }}
-                            @drop=${(e: DragEvent) => {
-                                e.preventDefault();
-                                const fromId = e.dataTransfer?.getData('text/plain') ?? state.draggedId;
-                                if (fromId) {
-                                    dispatch(new events.projectsReordered(
-                                        moveToEnd(projects, fromId).map(p => p.id)
-                                    ));
-                                }
-                                updateState({draggedId: null, dragOverId: null});
-                            }}
-                        ></div>
-                    </div>
-                  `}
+                              )}
+                              <div
+                                  class="drop-zone-end ${state.dragOverId ===
+                                  "__end__"
+                                      ? "is-drag-over"
+                                      : ""}"
+                                  @dragover=${(e: DragEvent) => {
+                                      e.preventDefault();
+                                      if (state.draggedId)
+                                          updateState({
+                                              dragOverId: "__end__",
+                                          });
+                                  }}
+                                  @dragleave=${() => {
+                                      if (state.dragOverId === "__end__")
+                                          updateState({ dragOverId: null });
+                                  }}
+                                  @drop=${(e: DragEvent) => {
+                                      e.preventDefault();
+                                      const fromId =
+                                          e.dataTransfer?.getData(
+                                              "text/plain",
+                                          ) ?? state.draggedId;
+                                      if (fromId) {
+                                          dispatch(
+                                              new events.areasReordered(
+                                                  moveToEnd(areas, fromId).map(
+                                                      (p) => p.id,
+                                                  ),
+                                              ),
+                                          );
+                                      }
+                                      updateState({
+                                          draggedId: null,
+                                          dragOverId: null,
+                                      });
+                                  }}
+                              ></div>
+                          </div>
+                      `
+            }
 
             <button
                 class="add-btn"
-                @click=${() => updateState({wizardOpen: true})}
+                @click=${() => updateState({ wizardOpen: true })}
             >
                 + NEW AREA OF RESPONSIBILITY
             </button>
 
-            <!-- Operation wizard dialog -->
-            <${OperationWizardDialogElement.assign({open: state.wizardOpen})}
-                ${listen(OperationWizardDialogElement.events.operationCreated, e => {
-                    dispatch(new events.operationCreated(e.detail));
-                    updateState({wizardOpen: false});
+            <!-- Area wizard dialog -->
+            <${AreaWizardDialogElement.assign({ open: state.wizardOpen })}
+                ${listen(AreaWizardDialogElement.events.areaCreated, (e) => {
+                    dispatch(new events.areaCreated(e.detail));
+                    updateState({ wizardOpen: false });
                 })}
-                ${listen(OperationWizardDialogElement.events.cancelled, () =>
-                    updateState({wizardOpen: false}))}
-            ></${OperationWizardDialogElement}>
+                ${listen(AreaWizardDialogElement.events.cancelled, () =>
+                    updateState({ wizardOpen: false }),
+                )}
+            ></${AreaWizardDialogElement}>
         `;
     },
 });
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
 
-function reorderBefore<T extends {id: string}>(list: ReadonlyArray<T>, fromId: string, toId: string): T[] {
-    const item = list.find(p => p.id === fromId);
+function reorderBefore<T extends { id: string }>(
+    list: ReadonlyArray<T>,
+    fromId: string,
+    toId: string,
+): T[] {
+    const item = list.find((p) => p.id === fromId);
     if (!item) return [...list];
-    const rest = list.filter(p => p.id !== fromId);
-    const idx = rest.findIndex(p => p.id === toId);
+    const rest = list.filter((p) => p.id !== fromId);
+    const idx = rest.findIndex((p) => p.id === toId);
     if (idx === -1) return [...list];
     rest.splice(idx, 0, item);
     return rest;
 }
 
-function moveToEnd<T extends {id: string}>(list: ReadonlyArray<T>, fromId: string): T[] {
-    const item = list.find(p => p.id === fromId);
+function moveToEnd<T extends { id: string }>(
+    list: ReadonlyArray<T>,
+    fromId: string,
+): T[] {
+    const item = list.find((p) => p.id === fromId);
     if (!item) return [...list];
-    return [...list.filter(p => p.id !== fromId), item];
+    return [...list.filter((p) => p.id !== fromId), item];
 }

@@ -1,6 +1,6 @@
-import {css, defineElement, defineElementEvent, html} from 'element-vir';
-import type {FormKind, Goal, GoalStatus, Project, Task} from '../data/types.js';
-import {getActiveSkin} from '../skins/active-skin.js';
+import { css, defineElement, defineElementEvent, html } from "element-vir";
+import type { FormKind, Goal, GoalStatus, Area, Task } from "../data/types.js";
+import { getActiveSkin } from "../skins/active-skin.js";
 
 // ─────────────────────────────────────────────────────────────────────────────
 // GoalsViewElement
@@ -10,12 +10,17 @@ import {getActiveSkin} from '../skins/active-skin.js';
 // ─────────────────────────────────────────────────────────────────────────────
 
 function fmtDate(ms: number): string {
-    return new Date(ms).toLocaleDateString(undefined, {month: 'short', day: 'numeric', year: 'numeric'});
+    return new Date(ms).toLocaleDateString(undefined, {
+        month: "short",
+        day: "numeric",
+        year: "numeric",
+    });
 }
 
 function sortByTargetDate(goals: Goal[]): Goal[] {
     return goals.sort((a, b) => {
-        if (a.targetDate !== null && b.targetDate !== null) return a.targetDate - b.targetDate;
+        if (a.targetDate !== null && b.targetDate !== null)
+            return a.targetDate - b.targetDate;
         if (a.targetDate !== null) return -1;
         if (b.targetDate !== null) return 1;
         return b.createdAt - a.createdAt;
@@ -23,20 +28,20 @@ function sortByTargetDate(goals: Goal[]): Goal[] {
 }
 
 export const GoalsViewElement = defineElement<{
-    goals:    ReadonlyArray<Goal>;
-    tasks:    ReadonlyArray<Task>;
-    projects: ReadonlyArray<Project>;
-    /** When set, only show goals for this project and hide the project selector. */
-    filterProjectId?: string | null;
+    goals: ReadonlyArray<Goal>;
+    tasks: ReadonlyArray<Task>;
+    areas: ReadonlyArray<Area>;
+    /** When set, only show goals for this area and hide the area selector. */
+    filterAreaId?: string | null;
     /** Re-render trigger — changes when the active skin changes. */
     activeSkinId: string;
 }>()({
-    tagName: 'goals-view',
+    tagName: "goals-view",
 
     events: {
         makeCommitmentRequested: defineElementEvent<FormKind>(),
-        goalUpdated:             defineElementEvent<Goal>(),
-        goalSelected:            defineElementEvent<string>(),  // goal id → open detail
+        goalUpdated: defineElementEvent<Goal>(),
+        goalSelected: defineElementEvent<string>(), // goal id → open detail
     },
 
     state: () => ({}),
@@ -72,7 +77,7 @@ export const GoalsViewElement = defineElement<{
             font-size: 0.85rem;
             letter-spacing: 0.2em;
             color: var(--color-text-muted);
-            border-bottom: 1px solid rgba(0,0,0,0.12);
+            border-bottom: 1px solid rgba(0, 0, 0, 0.12);
             padding-bottom: 4px;
             margin-bottom: 10px;
             margin-top: 24px;
@@ -85,13 +90,16 @@ export const GoalsViewElement = defineElement<{
             letter-spacing: 0.15em;
             padding: 10px;
             background: transparent;
-            border: 1.5px dashed rgba(0,0,0,0.25);
+            border: 1.5px dashed rgba(0, 0, 0, 0.25);
             color: var(--color-text-muted);
             cursor: pointer;
             margin-bottom: 20px;
             text-align: center;
         }
-        .file-btn:hover { border-color: var(--color-primary); color: var(--color-primary); }
+        .file-btn:hover {
+            border-color: var(--color-primary);
+            color: var(--color-primary);
+        }
 
         .empty {
             font-family: var(--font-mono);
@@ -104,22 +112,30 @@ export const GoalsViewElement = defineElement<{
         /* ── Goal card ── */
         .goal-card {
             background: var(--color-card);
-            border: 1px solid rgba(0,0,0,0.12);
+            border: 1px solid rgba(0, 0, 0, 0.12);
             border-left: 4px solid var(--color-primary);
             padding: 12px 14px;
             margin-bottom: 10px;
             cursor: pointer;
-            transition: box-shadow 0.15s, transform 0.1s;
+            transition:
+                box-shadow 0.15s,
+                transform 0.1s;
             position: relative;
         }
 
         .goal-card:hover {
-            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
             transform: translateY(-1px);
         }
 
-        .goal-card.achieved { border-left-color: var(--color-success); opacity: 0.85; }
-        .goal-card.abandoned { border-left-color: var(--color-text-faint); opacity: 0.7; }
+        .goal-card.achieved {
+            border-left-color: var(--color-success);
+            opacity: 0.85;
+        }
+        .goal-card.abandoned {
+            border-left-color: var(--color-text-faint);
+            opacity: 0.7;
+        }
 
         .card-top {
             display: flex;
@@ -139,7 +155,7 @@ export const GoalsViewElement = defineElement<{
         .card-arrow {
             font-family: var(--font-mono);
             font-size: 1rem;
-            color: rgba(var(--color-primary-rgb),0.35);
+            color: rgba(var(--color-primary-rgb), 0.35);
             flex-shrink: 0;
             margin-top: 2px;
         }
@@ -168,29 +184,39 @@ export const GoalsViewElement = defineElement<{
             align-items: center;
         }
 
-        .target-date { color: var(--color-warning); }
-        .target-date.overdue { color: var(--color-danger); }
+        .target-date {
+            color: var(--color-warning);
+        }
+        .target-date.overdue {
+            color: var(--color-danger);
+        }
 
         .status-badge {
             font-family: var(--font-display);
             font-size: 0.65rem;
             letter-spacing: 0.1em;
         }
-        .status-badge.achieved  { color: var(--color-success); }
-        .status-badge.abandoned { color: var(--color-text-faint); }
+        .status-badge.achieved {
+            color: var(--color-success);
+        }
+        .status-badge.abandoned {
+            color: var(--color-text-faint);
+        }
 
-        .project-badge {
+        .area-badge {
             display: inline-block;
             font-family: var(--font-mono);
             font-size: 0.6rem;
             letter-spacing: 0.08em;
             text-transform: uppercase;
             padding: 1px 5px;
-            border: 1px solid rgba(0,0,0,0.15);
+            border: 1px solid rgba(0, 0, 0, 0.15);
             color: var(--color-text-muted);
         }
 
-        .linked-section { margin-top: 8px; }
+        .linked-section {
+            margin-top: 8px;
+        }
 
         .linked-label {
             font-family: var(--font-mono);
@@ -211,8 +237,8 @@ export const GoalsViewElement = defineElement<{
             font-family: var(--font-mono);
             font-size: 0.7rem;
             padding: 2px 7px;
-            background: rgba(var(--color-primary-rgb),0.07);
-            border: 1px solid rgba(var(--color-primary-rgb),0.15);
+            background: rgba(var(--color-primary-rgb), 0.07);
+            border: 1px solid rgba(var(--color-primary-rgb), 0.15);
             color: var(--color-primary);
         }
 
@@ -239,51 +265,77 @@ export const GoalsViewElement = defineElement<{
             cursor: pointer;
         }
 
-        .action-achieve    { background: var(--color-success); color: #fff; }
-        .action-achieve:hover  { background: var(--color-success-dark); }
-        .action-abandon    { background: transparent; border: 1px solid var(--color-text-faint); color: var(--color-text-muted); }
-        .action-abandon:hover  { background: rgba(0,0,0,0.05); }
-        .action-reactivate { background: transparent; border: 1px solid var(--color-primary); color: var(--color-primary); }
-        .action-reactivate:hover { background: rgba(var(--color-primary-rgb),0.05); }
+        .action-achieve {
+            background: var(--color-success);
+            color: #fff;
+        }
+        .action-achieve:hover {
+            background: var(--color-success-dark);
+        }
+        .action-abandon {
+            background: transparent;
+            border: 1px solid var(--color-text-faint);
+            color: var(--color-text-muted);
+        }
+        .action-abandon:hover {
+            background: rgba(0, 0, 0, 0.05);
+        }
+        .action-reactivate {
+            background: transparent;
+            border: 1px solid var(--color-primary);
+            color: var(--color-primary);
+        }
+        .action-reactivate:hover {
+            background: rgba(var(--color-primary-rgb), 0.05);
+        }
     `,
 
-    render({inputs, dispatch, events}) {
+    render({ inputs, dispatch, events }) {
         const skin = getActiveSkin();
-        const {goals, tasks, projects} = inputs;
-        const filterProjectId = inputs.filterProjectId ?? null;
-        const isFiltered = filterProjectId !== null;
+        const { goals, tasks, areas } = inputs;
+        const filterAreaId = inputs.filterAreaId ?? null;
+        const isFiltered = filterAreaId !== null;
         const now = Date.now();
 
         const visibleGoals = isFiltered
-            ? goals.filter(g => g.projectId === filterProjectId)
+            ? goals.filter((g) => g.areaId === filterAreaId)
             : [...goals];
 
         function taskTitle(id: string): string {
-            return tasks.find(t => t.id === id)?.title ?? '(deleted commitment)';
+            return (
+                tasks.find((t) => t.id === id)?.title ?? "(deleted commitment)"
+            );
         }
 
-        function projectName(id: string | null): string | null {
+        function areaName(id: string | null): string | null {
             if (!id) return null;
-            return projects.find(p => p.id === id)?.name ?? null;
+            return areas.find((p) => p.id === id)?.name ?? null;
         }
 
         function setStatus(goal: Goal, status: GoalStatus, e: Event): void {
             e.stopPropagation();
-            dispatch(new events.goalUpdated({...goal, status}));
+            dispatch(new events.goalUpdated({ ...goal, status }));
         }
 
-        const active    = sortByTargetDate(visibleGoals.filter(g => g.status === 'active'));
-        const achieved  = sortByTargetDate(visibleGoals.filter(g => g.status === 'achieved'));
-        const abandoned = sortByTargetDate(visibleGoals.filter(g => g.status === 'abandoned'));
+        const active = sortByTargetDate(
+            visibleGoals.filter((g) => g.status === "active"),
+        );
+        const achieved = sortByTargetDate(
+            visibleGoals.filter((g) => g.status === "achieved"),
+        );
+        const abandoned = sortByTargetDate(
+            visibleGoals.filter((g) => g.status === "abandoned"),
+        );
 
         function renderGoalCard(goal: Goal) {
-            const isActive    = goal.status === 'active';
-            const dateOverdue = goal.targetDate !== null && goal.targetDate < now && isActive;
-            const opName      = !isFiltered ? projectName(goal.projectId) : null;
+            const isActive = goal.status === "active";
+            const dateOverdue =
+                goal.targetDate !== null && goal.targetDate < now && isActive;
+            const opName = !isFiltered ? areaName(goal.areaId) : null;
 
             return html`
                 <div
-                    class=${'goal-card ' + goal.status}
+                    class=${"goal-card " + goal.status}
                     @click=${() => dispatch(new events.goalSelected(goal.id))}
                 >
                     <div class="card-top">
@@ -297,17 +349,25 @@ export const GoalsViewElement = defineElement<{
 
                     <div class="goal-meta">
                         ${goal.targetDate
-                            ? html`<span class=${'target-date' + (dateOverdue ? ' overdue' : '')}>
-                                    ⊙ Target: ${fmtDate(goal.targetDate)}${dateOverdue ? ' · OVERDUE' : ''}
-                                  </span>`
+                            ? html`<span
+                                  class=${"target-date" +
+                                  (dateOverdue ? " overdue" : "")}
+                              >
+                                  ⊙ Target:
+                                  ${fmtDate(goal.targetDate)}${dateOverdue
+                                      ? " · OVERDUE"
+                                      : ""}
+                              </span>`
                             : html``}
                         ${!isActive
-                            ? html`<span class=${'status-badge ' + goal.status}>
-                                    ${goal.status === 'achieved' ? '✓ Achieved' : '✕ Abandoned'}
-                                  </span>`
+                            ? html`<span class=${"status-badge " + goal.status}>
+                                  ${goal.status === "achieved"
+                                      ? "✓ Achieved"
+                                      : "✕ Abandoned"}
+                              </span>`
                             : html``}
                         ${opName
-                            ? html`<span class="project-badge">⊙ ${opName}</span>`
+                            ? html`<span class="area-badge">⊙ ${opName}</span>`
                             : html``}
                     </div>
 
@@ -315,32 +375,47 @@ export const GoalsViewElement = defineElement<{
                         <div class="linked-label">Linked Commitments</div>
                         ${goal.linkedTaskIds.length > 0
                             ? html`
-                                <div class="linked-chips">
-                                    ${goal.linkedTaskIds.map(tid => html`
-                                        <span class="linked-chip">${taskTitle(tid)}</span>
-                                    `)}
-                                </div>
+                                  <div class="linked-chips">
+                                      ${goal.linkedTaskIds.map(
+                                          (tid) => html`
+                                              <span class="linked-chip"
+                                                  >${taskTitle(tid)}</span
+                                              >
+                                          `,
+                                      )}
+                                  </div>
                               `
-                            : html`<div class="linked-empty">No commitments linked yet.</div>`}
+                            : html`<div class="linked-empty">
+                                  No commitments linked yet.
+                              </div>`}
                     </div>
 
                     <div class="goal-actions">
                         ${isActive
                             ? html`
-                                <button
-                                    class="action-btn action-achieve"
-                                    @click=${(e: Event) => setStatus(goal, 'achieved', e)}
-                                >MARK ACHIEVED</button>
-                                <button
-                                    class="action-btn action-abandon"
-                                    @click=${(e: Event) => setStatus(goal, 'abandoned', e)}
-                                >ABANDON</button>
+                                  <button
+                                      class="action-btn action-achieve"
+                                      @click=${(e: Event) =>
+                                          setStatus(goal, "achieved", e)}
+                                  >
+                                      MARK ACHIEVED
+                                  </button>
+                                  <button
+                                      class="action-btn action-abandon"
+                                      @click=${(e: Event) =>
+                                          setStatus(goal, "abandoned", e)}
+                                  >
+                                      ABANDON
+                                  </button>
                               `
                             : html`
-                                <button
-                                    class="action-btn action-reactivate"
-                                    @click=${(e: Event) => setStatus(goal, 'active', e)}
-                                >REACTIVATE</button>
+                                  <button
+                                      class="action-btn action-reactivate"
+                                      @click=${(e: Event) =>
+                                          setStatus(goal, "active", e)}
+                                  >
+                                      REACTIVATE
+                                  </button>
                               `}
                     </div>
                 </div>
@@ -350,36 +425,47 @@ export const GoalsViewElement = defineElement<{
         return html`
             ${!isFiltered
                 ? html`
-                    <div class="page-title">${skin.pages.goalsTitle}</div>
-                    <div class="page-subtitle">${skin.pages.goalsSubtitle}</div>
+                      <div class="page-title">${skin.pages.goalsTitle}</div>
+                      <div class="page-subtitle">
+                          ${skin.pages.goalsSubtitle}
+                      </div>
                   `
                 : html``}
 
             <button
                 class="file-btn"
-                @click=${() => dispatch(new events.makeCommitmentRequested('goal'))}
-            >+ MAKE GOAL</button>
+                @click=${() =>
+                    dispatch(new events.makeCommitmentRequested("goal"))}
+            >
+                + MAKE GOAL
+            </button>
 
             ${active.length > 0
                 ? html`
-                    <div class="section-header">ACTIVE (${active.length})</div>
-                    ${active.map(renderGoalCard)}
+                      <div class="section-header">
+                          ACTIVE (${active.length})
+                      </div>
+                      ${active.map(renderGoalCard)}
                   `
                 : visibleGoals.length === 0
-                ? html`<div class="empty">No objectives on file. Make one above to begin.</div>`
-                : html``}
-
+                  ? html`<div class="empty">
+                        No objectives on file. Make one above to begin.
+                    </div>`
+                  : html``}
             ${achieved.length > 0
                 ? html`
-                    <div class="section-header">ACHIEVED (${achieved.length})</div>
-                    ${achieved.map(renderGoalCard)}
+                      <div class="section-header">
+                          ACHIEVED (${achieved.length})
+                      </div>
+                      ${achieved.map(renderGoalCard)}
                   `
                 : html``}
-
             ${abandoned.length > 0
                 ? html`
-                    <div class="section-header">ABANDONED (${abandoned.length})</div>
-                    ${abandoned.map(renderGoalCard)}
+                      <div class="section-header">
+                          ABANDONED (${abandoned.length})
+                      </div>
+                      ${abandoned.map(renderGoalCard)}
                   `
                 : html``}
         `;

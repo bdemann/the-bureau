@@ -1,99 +1,104 @@
-import {css, defineElement, defineElementEvent, html} from 'element-vir';
-import {ViraButton, ViraColorVariant, ViraEmphasis, ViraSize} from 'vira';
+import { css, defineElement, defineElementEvent, html } from "element-vir";
+import { ViraButton, ViraColorVariant, ViraEmphasis, ViraSize } from "vira";
 import type {
     ConsequenceTier,
     ItemKind,
-    Project,
-    ProjectColor,
+    Area,
+    AreaColor,
     RecurrenceConfig,
     Task,
     TimeOfDay,
-} from '../data/types.js';
+} from "../data/types.js";
 import {
     TIME_OF_DAY_SLOTS,
     tierDescription,
     tierLabel,
     timeOfDayLabel,
-} from '../data/types.js';
-import {generateId, startOfDay} from '../data/storage.js';
-import {initialiseRecurrence} from '../data/recurrence.js';
+} from "../data/types.js";
+import { generateId, startOfDay } from "../data/storage.js";
+import { initialiseRecurrence as initializeRecurrence } from "../data/recurrence.js";
 
 // ─────────────────────────────────────────────────────────────────────────────
-// OperationWizardDialogElement
-// 3-step guided flow for creating a new operation with routines:
-//   Step 1 — Name the operation
+// AreaWizardDialogElement
+// 3-step guided flow for creating a new area with routines:
+//   Step 1 — Name the area
 //   Step 2 — Brainstorm routines ("what would make me honest?")
 //   Step 3 — Configure each routine (cadence, tier, time of day)
 // ─────────────────────────────────────────────────────────────────────────────
 
-type WizardCadence = 'daily' | 'weekly' | 'monthly' | 'quarterly' | 'yearly';
+type WizardCadence = "daily" | "weekly" | "monthly" | "quarterly" | "yearly";
 
-const COLOR_OPTIONS: {key: ProjectColor; label: string; swatch: string}[] = [
-    {key: 'red',   label: 'Crimson', swatch: 'var(--color-danger)'},
-    {key: 'navy',  label: 'Navy',    swatch: 'var(--color-primary)'},
-    {key: 'gold',  label: 'Gold',    swatch: 'var(--color-warning)'},
-    {key: 'olive', label: 'Olive',   swatch: '#4A5E2A'},
-    {key: 'slate', label: 'Slate',   swatch: '#4A5568'},
+const COLOR_OPTIONS: { key: AreaColor; label: string; swatch: string }[] = [
+    { key: "red", label: "Crimson", swatch: "var(--color-danger)" },
+    { key: "navy", label: "Navy", swatch: "var(--color-primary)" },
+    { key: "gold", label: "Gold", swatch: "var(--color-warning)" },
+    { key: "olive", label: "Olive", swatch: "#4A5E2A" },
+    { key: "slate", label: "Slate", swatch: "#4A5568" },
 ];
 
-const CADENCES: {value: WizardCadence; label: string}[] = [
-    {value: 'daily',     label: 'Daily'},
-    {value: 'weekly',    label: 'Weekly'},
-    {value: 'monthly',   label: 'Monthly'},
-    {value: 'quarterly', label: 'Quarterly'},
-    {value: 'yearly',    label: 'Annually'},
+const CADENCES: { value: WizardCadence; label: string }[] = [
+    { value: "daily", label: "Daily" },
+    { value: "weekly", label: "Weekly" },
+    { value: "monthly", label: "Monthly" },
+    { value: "quarterly", label: "Quarterly" },
+    { value: "yearly", label: "Annually" },
 ];
 
 const DAY_LABELS = [
-    {value: 0, label: 'Sun'},
-    {value: 1, label: 'Mon'},
-    {value: 2, label: 'Tue'},
-    {value: 3, label: 'Wed'},
-    {value: 4, label: 'Thu'},
-    {value: 5, label: 'Fri'},
-    {value: 6, label: 'Sat'},
+    { value: 0, label: "Sun" },
+    { value: 1, label: "Mon" },
+    { value: 2, label: "Tue" },
+    { value: 3, label: "Wed" },
+    { value: 4, label: "Thu" },
+    { value: 5, label: "Fri" },
+    { value: 6, label: "Sat" },
 ];
 
-export const OperationWizardDialogElement = defineElement<{open: boolean}>()({
-    tagName: 'operation-wizard-dialog',
+export const AreaWizardDialogElement = defineElement<{ open: boolean }>()({
+    tagName: "area-wizard-dialog",
 
     events: {
-        operationCreated: defineElementEvent<{project: Project; routines: ReadonlyArray<Task>}>(),
-        cancelled:        defineElementEvent<void>(),
+        areaCreated: defineElementEvent<{
+            area: Area;
+            routines: ReadonlyArray<Task>;
+        }>(),
+        cancelled: defineElementEvent<void>(),
     },
 
     state: () => ({
         step: 1 as 1 | 2 | 3,
-        // Stable project ID for the whole wizard session
-        projectId: generateId(),
+        // Stable area ID for the whole wizard session
+        areaId: generateId(),
         // Dismiss confirmation
         confirmingCancel: false,
-        // Step 1 — operation details
-        operationName: '',
-        operationDescription: '',
-        operationColor: 'navy' as ProjectColor,
+        // Step 1 — area details
+        areaName: "",
+        areaDescription: "",
+        areaColor: "navy" as AreaColor,
         // Step 2 — brainstorm
-        brainstormText: '',
+        brainstormText: "",
         // Step 3 — routine configuration (one at a time)
         routineNames: [] as string[],
         currentRoutineIndex: 0,
-        currentTitle: '',
+        currentTitle: "",
         currentTier: 3 as ConsequenceTier,
-        currentCadence: 'daily' as WizardCadence,
+        currentCadence: "daily" as WizardCadence,
         currentDaysOfWeek: [new Date().getDay()] as number[],
         currentDayOfMonth: 1,
         currentDaysOfMonth: [1] as number[],
         quarterMonth: 0 as 0 | 1 | 2,
-        monthAnchorMode: 'dom' as 'dom' | 'ordinal',
+        monthAnchorMode: "dom" as "dom" | "ordinal",
         monthOrdinalWeek: 1 as 1 | 2 | 3 | 4 | 5 | -1,
         monthOrdinalDay: new Date().getDay(),
         annualMonth: new Date().getMonth() as number,
-        currentTimeOfDay: 'anytime' as TimeOfDay,
+        currentTimeOfDay: "anytime" as TimeOfDay,
         completedRoutines: [] as Task[],
     }),
 
     styles: css`
-        :host { display: block; }
+        :host {
+            display: block;
+        }
 
         .overlay {
             position: fixed;
@@ -107,11 +112,19 @@ export const OperationWizardDialogElement = defineElement<{open: boolean}>()({
         }
 
         @keyframes overlay-in {
-            from { opacity: 0; }
-            to   { opacity: 1; }
+            from {
+                opacity: 0;
+            }
+            to {
+                opacity: 1;
+            }
         }
 
-        :host *, :host *::before, :host *::after { box-sizing: border-box; }
+        :host *,
+        :host *::before,
+        :host *::after {
+            box-sizing: border-box;
+        }
 
         .sheet {
             background: var(--color-surface);
@@ -125,8 +138,14 @@ export const OperationWizardDialogElement = defineElement<{open: boolean}>()({
         }
 
         @keyframes sheet-in {
-            from { transform: translateY(40px); opacity: 0; }
-            to   { transform: translateY(0);    opacity: 1; }
+            from {
+                transform: translateY(40px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
         }
 
         .step-indicator {
@@ -142,7 +161,7 @@ export const OperationWizardDialogElement = defineElement<{open: boolean}>()({
             font-size: 1.1rem;
             letter-spacing: 0.2em;
             color: var(--color-primary);
-            border-bottom: 1px solid rgba(0,0,0,0.15);
+            border-bottom: 1px solid rgba(0, 0, 0, 0.15);
             padding-bottom: 8px;
             margin-bottom: 14px;
         }
@@ -162,7 +181,9 @@ export const OperationWizardDialogElement = defineElement<{open: boolean}>()({
             letter-spacing: 0.05em;
         }
 
-        .field { margin-bottom: 14px; }
+        .field {
+            margin-bottom: 14px;
+        }
 
         .field-label {
             display: block;
@@ -174,11 +195,12 @@ export const OperationWizardDialogElement = defineElement<{open: boolean}>()({
             font-family: var(--font-mono);
         }
 
-        input[type="text"], textarea {
+        input[type="text"],
+        textarea {
             width: 100%;
             background: var(--color-input-bg);
-            border: 1px solid rgba(0,0,0,0.25);
-            border-bottom: 2px solid rgba(0,0,0,0.3);
+            border: 1px solid rgba(0, 0, 0, 0.25);
+            border-bottom: 2px solid rgba(0, 0, 0, 0.3);
             padding: 8px 10px;
             font-family: var(--font-mono);
             font-size: 0.9rem;
@@ -187,7 +209,10 @@ export const OperationWizardDialogElement = defineElement<{open: boolean}>()({
             outline: none;
             transition: border-color 0.15s;
         }
-        input:focus, textarea:focus { border-color: var(--color-primary); }
+        input:focus,
+        textarea:focus {
+            border-color: var(--color-primary);
+        }
 
         textarea {
             resize: vertical;
@@ -199,7 +224,9 @@ export const OperationWizardDialogElement = defineElement<{open: boolean}>()({
             gap: 10px;
         }
 
-        .color-option { display: none; }
+        .color-option {
+            display: none;
+        }
 
         .color-swatch {
             display: block;
@@ -208,7 +235,9 @@ export const OperationWizardDialogElement = defineElement<{open: boolean}>()({
             border-radius: 2px;
             cursor: pointer;
             border: 3px solid transparent;
-            transition: border-color 0.15s, transform 0.1s;
+            transition:
+                border-color 0.15s,
+                transform 0.1s;
         }
 
         .color-swatch.selected {
@@ -229,7 +258,7 @@ export const OperationWizardDialogElement = defineElement<{open: boolean}>()({
         }
 
         .routine-preview-item::before {
-            content: '▸ ';
+            content: "▸ ";
             color: var(--color-warning);
         }
 
@@ -246,7 +275,9 @@ export const OperationWizardDialogElement = defineElement<{open: boolean}>()({
             grid-template-columns: repeat(4, 1fr);
             gap: 6px;
         }
-        .tier-grid ${ViraButton} { width: 100%; }
+        .tier-grid ${ViraButton} {
+            width: 100%;
+        }
 
         .tier-help {
             margin-top: 6px;
@@ -262,7 +293,9 @@ export const OperationWizardDialogElement = defineElement<{open: boolean}>()({
             grid-template-columns: repeat(5, 1fr);
             gap: 6px;
         }
-        .cadence-grid ${ViraButton} { width: 100%; }
+        .cadence-grid ${ViraButton} {
+            width: 100%;
+        }
 
         /* Day-of-week picker */
         .dow-grid {
@@ -270,7 +303,9 @@ export const OperationWizardDialogElement = defineElement<{open: boolean}>()({
             grid-template-columns: repeat(7, 1fr);
             gap: 4px;
         }
-        .dow-grid ${ViraButton} { width: 100%; }
+        .dow-grid ${ViraButton} {
+            width: 100%;
+        }
 
         /* Month-of-year picker (Jan..Dec) */
         .month-grid {
@@ -278,7 +313,9 @@ export const OperationWizardDialogElement = defineElement<{open: boolean}>()({
             grid-template-columns: repeat(4, 1fr);
             gap: 4px;
         }
-        .month-grid ${ViraButton} { width: 100%; }
+        .month-grid ${ViraButton} {
+            width: 100%;
+        }
 
         /* Multi-day-of-month picker (1–31) */
         .dom-multi-grid {
@@ -286,7 +323,9 @@ export const OperationWizardDialogElement = defineElement<{open: boolean}>()({
             grid-template-columns: repeat(7, 1fr);
             gap: 3px;
         }
-        .dom-multi-grid ${ViraButton} { width: 100%; }
+        .dom-multi-grid ${ViraButton} {
+            width: 100%;
+        }
 
         /* Time-of-day picker */
         .tod-grid {
@@ -294,12 +333,14 @@ export const OperationWizardDialogElement = defineElement<{open: boolean}>()({
             grid-template-columns: repeat(5, 1fr);
             gap: 6px;
         }
-        .tod-grid ${ViraButton} { width: 100%; }
+        .tod-grid ${ViraButton} {
+            width: 100%;
+        }
 
         .dom-input {
             background: var(--color-input-bg);
-            border: 1px solid rgba(0,0,0,0.25);
-            border-bottom: 2px solid rgba(0,0,0,0.3);
+            border: 1px solid rgba(0, 0, 0, 0.25);
+            border-bottom: 2px solid rgba(0, 0, 0, 0.3);
             padding: 8px 10px;
             font-family: var(--font-mono);
             font-size: 0.9rem;
@@ -309,7 +350,9 @@ export const OperationWizardDialogElement = defineElement<{open: boolean}>()({
             width: 6ch;
             transition: border-color 0.15s;
         }
-        .dom-input:focus { border-color: var(--color-primary); }
+        .dom-input:focus {
+            border-color: var(--color-primary);
+        }
 
         .actions {
             display: flex;
@@ -318,8 +361,9 @@ export const OperationWizardDialogElement = defineElement<{open: boolean}>()({
             align-items: center;
         }
 
-        .actions-grow { flex: 1; }
-
+        .actions-grow {
+            flex: 1;
+        }
 
         .anchor-summary {
             margin-top: 6px;
@@ -329,7 +373,7 @@ export const OperationWizardDialogElement = defineElement<{open: boolean}>()({
         }
     `,
 
-    render({inputs, state, updateState, dispatch, events}) {
+    render({ inputs, state, updateState, dispatch, events }) {
         if (!inputs.open) return html``;
 
         if (state.confirmingCancel) {
@@ -342,15 +386,15 @@ export const OperationWizardDialogElement = defineElement<{open: boolean}>()({
                         </p>
                         <div class="actions">
                             <${ViraButton.assign({
-                                text: 'Keep editing',
+                                text: "Keep editing",
                                 color: ViraColorVariant.Neutral,
                                 buttonEmphasis: ViraEmphasis.Subtle,
                             })}
-                                @click=${() => updateState({confirmingCancel: false})}
+                                @click=${() => updateState({ confirmingCancel: false })}
                             ></${ViraButton}>
                             <span class="actions-grow">
                                 <${ViraButton.assign({
-                                    text: 'Discard',
+                                    text: "Discard",
                                     color: ViraColorVariant.Danger,
                                 })}
                                     @click=${cancel}
@@ -367,26 +411,26 @@ export const OperationWizardDialogElement = defineElement<{open: boolean}>()({
         function reset(): void {
             updateState({
                 step: 1,
-                projectId: generateId(),
+                areaId: generateId(),
                 confirmingCancel: false,
-                operationName: '',
-                operationDescription: '',
-                operationColor: 'navy',
-                brainstormText: '',
+                areaName: "",
+                areaDescription: "",
+                areaColor: "navy",
+                brainstormText: "",
                 routineNames: [],
                 currentRoutineIndex: 0,
-                currentTitle: '',
+                currentTitle: "",
                 currentTier: 3,
-                currentCadence: 'daily',
+                currentCadence: "daily",
                 currentDaysOfWeek: [new Date().getDay()],
                 currentDayOfMonth: 1,
                 currentDaysOfMonth: [1],
                 quarterMonth: 0 as 0 | 1 | 2,
-                monthAnchorMode: 'dom',
+                monthAnchorMode: "dom",
                 monthOrdinalWeek: 1,
                 monthOrdinalDay: new Date().getDay(),
                 annualMonth: new Date().getMonth(),
-                currentTimeOfDay: 'anytime',
+                currentTimeOfDay: "anytime",
                 completedRoutines: [],
             });
         }
@@ -397,22 +441,23 @@ export const OperationWizardDialogElement = defineElement<{open: boolean}>()({
         }
 
         function requestCancel(): void {
-            const hasWork = state.operationName.trim().length > 0
-                || state.brainstormText.trim().length > 0
-                || state.completedRoutines.length > 0;
+            const hasWork =
+                state.areaName.trim().length > 0 ||
+                state.brainstormText.trim().length > 0 ||
+                state.completedRoutines.length > 0;
             if (hasWork) {
-                updateState({confirmingCancel: true});
+                updateState({ confirmingCancel: true });
             } else {
                 cancel();
             }
         }
 
-        function buildProject(): Project {
+        function buildArea(): Area {
             return {
-                id: state.projectId,
-                name: state.operationName.trim(),
-                description: state.operationDescription.trim(),
-                colorKey: state.operationColor,
+                id: state.areaId,
+                name: state.areaName.trim(),
+                description: state.areaDescription.trim(),
+                colorKey: state.areaColor,
                 createdAt: Date.now(),
             };
         }
@@ -420,46 +465,76 @@ export const OperationWizardDialogElement = defineElement<{open: boolean}>()({
         function buildCurrentRoutine(): Task {
             const today = new Date();
             const cadence = state.currentCadence;
-            const scheduleMode = (cadence === 'weekly' || cadence === 'monthly' || cadence === 'quarterly' || cadence === 'yearly') ? 'fixed' : 'rolling';
+            const scheduleMode =
+                cadence === "weekly" ||
+                cadence === "monthly" ||
+                cadence === "quarterly" ||
+                cadence === "yearly"
+                    ? "fixed"
+                    : "rolling";
             const cfg: RecurrenceConfig = {
                 cadence,
                 frequencyPerPeriod: 1,
                 scheduleMode,
-                endMode: 'never',
-                ...(cadence === 'weekly'
-                    ? {hardDaysOfWeek: [...state.currentDaysOfWeek].sort((a, b) => a - b)}
+                endMode: "never",
+                ...(cadence === "weekly"
+                    ? {
+                          hardDaysOfWeek: [...state.currentDaysOfWeek].sort(
+                              (a, b) => a - b,
+                          ),
+                      }
                     : {}),
-                ...(cadence === 'monthly' && state.monthAnchorMode === 'ordinal'
-                    ? {hardDayOfWeek: state.monthOrdinalDay, ordinalWeek: state.monthOrdinalWeek}
+                ...(cadence === "monthly" && state.monthAnchorMode === "ordinal"
+                    ? {
+                          hardDayOfWeek: state.monthOrdinalDay,
+                          ordinalWeek: state.monthOrdinalWeek,
+                      }
                     : {}),
-                ...(cadence === 'monthly' && state.monthAnchorMode === 'dom'
-                    ? (state.currentDaysOfMonth.length > 1
-                        ? {hardDaysOfMonth: [...state.currentDaysOfMonth].sort((a, b) => a - b)}
-                        : {hardDayOfMonth: state.currentDaysOfMonth[0] ?? 1})
+                ...(cadence === "monthly" && state.monthAnchorMode === "dom"
+                    ? state.currentDaysOfMonth.length > 1
+                        ? {
+                              hardDaysOfMonth: [
+                                  ...state.currentDaysOfMonth,
+                              ].sort((a, b) => a - b),
+                          }
+                        : { hardDayOfMonth: state.currentDaysOfMonth[0] ?? 1 }
                     : {}),
-                ...(cadence === 'quarterly'
-                    ? (state.currentDaysOfMonth.length > 1
-                        ? {hardMonthOfQuarter: state.quarterMonth, hardDaysOfMonth: [...state.currentDaysOfMonth].sort((a, b) => a - b)}
-                        : {hardMonthOfQuarter: state.quarterMonth, hardDayOfMonth: state.currentDaysOfMonth[0] ?? 1})
+                ...(cadence === "quarterly"
+                    ? state.currentDaysOfMonth.length > 1
+                        ? {
+                              hardMonthOfQuarter: state.quarterMonth,
+                              hardDaysOfMonth: [
+                                  ...state.currentDaysOfMonth,
+                              ].sort((a, b) => a - b),
+                          }
+                        : {
+                              hardMonthOfQuarter: state.quarterMonth,
+                              hardDayOfMonth: state.currentDaysOfMonth[0] ?? 1,
+                          }
                     : {}),
-                ...(cadence === 'yearly'
-                    ? {hardMonthOfYear: state.annualMonth, hardDayOfMonth: state.currentDayOfMonth}
+                ...(cadence === "yearly"
+                    ? {
+                          hardMonthOfYear: state.annualMonth,
+                          hardDayOfMonth: state.currentDayOfMonth,
+                      }
                     : {}),
             };
-            const init = initialiseRecurrence(
-                {windowType: 'flexible', suggestedDate: null},
+            const init = initializeRecurrence(
+                { windowType: "flexible", suggestedDate: null },
                 cfg,
                 today,
             );
             return {
                 id: generateId(),
-                projectId: state.projectId,
-                title: state.currentTitle.trim() || (state.routineNames[state.currentRoutineIndex] ?? ''),
-                description: '',
-                kind: 'routine' as ItemKind,
+                areaId: state.areaId,
+                title:
+                    state.currentTitle.trim() ||
+                    (state.routineNames[state.currentRoutineIndex] ?? ""),
+                description: "",
+                kind: "routine" as ItemKind,
                 timeOfDay: state.currentTimeOfDay,
                 consequenceTier: state.currentTier,
-                windowType: 'flexible',
+                windowType: "flexible",
                 suggestedDate: init.suggestedDate,
                 windowDeadline: init.windowDeadline,
                 windowLengthDays: init.windowLengthDays,
@@ -486,45 +561,45 @@ export const OperationWizardDialogElement = defineElement<{open: boolean}>()({
             };
         }
 
-        function createOperation(routines: ReadonlyArray<Task>): void {
-            const project = buildProject();
-            dispatch(new events.operationCreated({project, routines}));
+        function createArea(routines: ReadonlyArray<Task>): void {
+            const area = buildArea();
+            dispatch(new events.areaCreated({ area, routines }));
             reset();
         }
 
         function parseBrainstorm(text: string): string[] {
             return text
                 .split(/[\n,]+/)
-                .map(s => s.trim())
-                .filter(s => s.length > 0);
+                .map((s) => s.trim())
+                .filter((s) => s.length > 0);
         }
 
         function goToStep2(): void {
-            updateState({step: 2});
+            updateState({ step: 2 });
         }
 
         function goToStep3(): void {
             const names = parseBrainstorm(state.brainstormText);
             if (names.length === 0) {
-                createOperation([]);
+                createArea([]);
                 return;
             }
             updateState({
                 step: 3,
                 routineNames: names,
                 currentRoutineIndex: 0,
-                currentTitle: names[0] ?? '',
+                currentTitle: names[0] ?? "",
                 currentTier: 3,
-                currentCadence: 'daily',
+                currentCadence: "daily",
                 currentDaysOfWeek: [new Date().getDay()],
                 currentDayOfMonth: 1,
                 currentDaysOfMonth: [1],
                 quarterMonth: 0 as 0 | 1 | 2,
-                monthAnchorMode: 'dom',
+                monthAnchorMode: "dom",
                 monthOrdinalWeek: 1,
                 monthOrdinalDay: new Date().getDay(),
                 annualMonth: new Date().getMonth(),
-                currentTimeOfDay: 'anytime',
+                currentTimeOfDay: "anytime",
                 completedRoutines: [],
             });
         }
@@ -534,44 +609,47 @@ export const OperationWizardDialogElement = defineElement<{open: boolean}>()({
             const accumulated = [...state.completedRoutines, built];
             const nextIndex = state.currentRoutineIndex + 1;
             if (nextIndex >= state.routineNames.length) {
-                createOperation(accumulated);
+                createArea(accumulated);
                 return;
             }
             updateState({
                 completedRoutines: accumulated,
                 currentRoutineIndex: nextIndex,
-                currentTitle: state.routineNames[nextIndex] ?? '',
+                currentTitle: state.routineNames[nextIndex] ?? "",
                 currentTier: 3,
-                currentCadence: 'daily',
+                currentCadence: "daily",
                 currentDaysOfWeek: [new Date().getDay()],
                 currentDayOfMonth: 1,
                 currentDaysOfMonth: [1],
                 quarterMonth: 0 as 0 | 1 | 2,
-                monthAnchorMode: 'dom',
+                monthAnchorMode: "dom",
                 monthOrdinalWeek: 1,
                 monthOrdinalDay: new Date().getDay(),
                 annualMonth: new Date().getMonth(),
-                currentTimeOfDay: 'anytime',
+                currentTimeOfDay: "anytime",
             });
         }
 
         function skipRemaining(): void {
-            createOperation(state.completedRoutines);
+            createArea(state.completedRoutines);
         }
 
         function toggleDay(day: number): void {
             const current = state.currentDaysOfWeek;
             const next = current.includes(day)
-                ? current.filter(d => d !== day)
+                ? current.filter((d) => d !== day)
                 : [...current, day];
-            updateState({currentDaysOfWeek: next});
+            updateState({ currentDaysOfWeek: next });
         }
 
-        const canProceedStep1 = state.operationName.trim().length > 0;
+        const canProceedStep1 = state.areaName.trim().length > 0;
         const routineCount = parseBrainstorm(state.brainstormText).length;
-        const isLastRoutine = state.currentRoutineIndex >= state.routineNames.length - 1;
-        const canConfigureRoutine = state.currentTitle.trim().length > 0
-            && (state.currentCadence !== 'weekly' || state.currentDaysOfWeek.length > 0);
+        const isLastRoutine =
+            state.currentRoutineIndex >= state.routineNames.length - 1;
+        const canConfigureRoutine =
+            state.currentTitle.trim().length > 0 &&
+            (state.currentCadence !== "weekly" ||
+                state.currentDaysOfWeek.length > 0);
 
         // ── Step 1 ────────────────────────────────────────────────────────────
 
@@ -592,12 +670,16 @@ export const OperationWizardDialogElement = defineElement<{open: boolean}>()({
                             <label class="field-label">Area Name *</label>
                             <input
                                 type="text"
-                                .value=${state.operationName}
+                                .value=${state.areaName}
                                 placeholder="e.g. Amateur Baker, Homeowner, Fitness"
                                 @input=${(e: Event) =>
-                                    updateState({operationName: (e.target as HTMLInputElement).value})}
+                                    updateState({
+                                        areaName: (e.target as HTMLInputElement)
+                                            .value,
+                                    })}
                                 @keydown=${(e: KeyboardEvent) => {
-                                    if (e.key === 'Enter' && canProceedStep1) goToStep2();
+                                    if (e.key === "Enter" && canProceedStep1)
+                                        goToStep2();
                                 }}
                             />
                         </div>
@@ -605,56 +687,69 @@ export const OperationWizardDialogElement = defineElement<{open: boolean}>()({
                         <div class="field">
                             <label class="field-label">Briefing (optional)</label>
                             <textarea
-                                .value=${state.operationDescription}
+                                .value=${state.areaDescription}
                                 placeholder="What does it mean to you to be on top of this area?"
                                 @input=${(e: Event) =>
-                                    updateState({operationDescription: (e.target as HTMLTextAreaElement).value})}
+                                    updateState({
+                                        areaDescription: (
+                                            e.target as HTMLTextAreaElement
+                                        ).value,
+                                    })}
                             ></textarea>
                         </div>
 
                         <div class="field">
                             <label class="field-label">Designation Color</label>
                             <div class="color-grid">
-                                ${COLOR_OPTIONS.map(opt => html`
-                                    <div>
-                                        <input
-                                            type="radio"
-                                            class="color-option"
-                                            name="wiz-color"
-                                            id="wc-${opt.key}"
-                                            .checked=${state.operationColor === opt.key}
-                                            @change=${() => updateState({operationColor: opt.key})}
-                                        />
-                                        <label
-                                            for="wc-${opt.key}"
-                                            class="color-swatch ${state.operationColor === opt.key ? 'selected' : ''}"
-                                            style="background:${opt.swatch}"
-                                            title="${opt.label}"
-                                        ></label>
-                                    </div>
-                                `)}
+                                ${COLOR_OPTIONS.map(
+                                    (opt) => html`
+                                        <div>
+                                            <input
+                                                type="radio"
+                                                class="color-option"
+                                                name="wiz-color"
+                                                id="wc-${opt.key}"
+                                                .checked=${state.areaColor ===
+                                                opt.key}
+                                                @change=${() =>
+                                                    updateState({
+                                                        areaColor: opt.key,
+                                                    })}
+                                            />
+                                            <label
+                                                for="wc-${opt.key}"
+                                                class="color-swatch ${state.areaColor ===
+                                                opt.key
+                                                    ? "selected"
+                                                    : ""}"
+                                                style="background:${opt.swatch}"
+                                                title="${opt.label}"
+                                            ></label>
+                                        </div>
+                                    `,
+                                )}
                             </div>
                         </div>
 
                         <div class="actions">
                             <${ViraButton.assign({
-                                text: 'Cancel',
+                                text: "Cancel",
                                 color: ViraColorVariant.Neutral,
                                 buttonEmphasis: ViraEmphasis.Subtle,
                             })}
                                 @click=${requestCancel}
                             ></${ViraButton}>
                             <${ViraButton.assign({
-                                text: 'Quick create (no commitments)',
+                                text: "Quick create (no commitments)",
                                 color: ViraColorVariant.Neutral,
                                 buttonEmphasis: ViraEmphasis.Subtle,
                                 isDisabled: !canProceedStep1,
                             })}
-                                @click=${() => canProceedStep1 && createOperation([])}
+                                @click=${() => canProceedStep1 && createArea([])}
                             ></${ViraButton}>
                             <span class="actions-grow">
                                 <${ViraButton.assign({
-                                    text: 'Continue →',
+                                    text: "Continue →",
                                     color: ViraColorVariant.Info,
                                     isDisabled: !canProceedStep1,
                                 })}
@@ -676,12 +771,12 @@ export const OperationWizardDialogElement = defineElement<{open: boolean}>()({
                     if (e.target === e.currentTarget) requestCancel();
                 }}>
                     <div class="sheet">
-                        <div class="step-indicator">STEP 2 OF 3 · ${state.operationName.toUpperCase()}</div>
+                        <div class="step-indicator">STEP 2 OF 3 · ${state.areaName.toUpperCase()}</div>
                         <div class="sheet-title">IDENTIFY YOUR COMMITMENTS</div>
 
                         <div class="prompt">
                             If you told a friend you were into
-                            <em>${state.operationName}</em>,
+                            <em>${state.areaName}</em>,
                             what would you need to be doing regularly to feel honest saying that?
                             List one item per line.
                         </div>
@@ -692,38 +787,53 @@ export const OperationWizardDialogElement = defineElement<{open: boolean}>()({
                                 .value=${state.brainstormText}
                                 placeholder="e.g.&#10;Bake bread weekly&#10;Try a new technique monthly&#10;Share something I made quarterly"
                                 @input=${(e: Event) =>
-                                    updateState({brainstormText: (e.target as HTMLTextAreaElement).value})}
+                                    updateState({
+                                        brainstormText: (
+                                            e.target as HTMLTextAreaElement
+                                        ).value,
+                                    })}
                             ></textarea>
                         </div>
 
-                        ${parsedNames.length > 0 ? html`
-                            <div class="routine-preview">
-                                ${parsedNames.map(name => html`
-                                    <div class="routine-preview-item">${name}</div>
-                                `)}
-                            </div>
-                        ` : html``}
+                        ${
+                            parsedNames.length > 0
+                                ? html`
+                                      <div class="routine-preview">
+                                          ${parsedNames.map(
+                                              (name) => html`
+                                                  <div
+                                                      class="routine-preview-item"
+                                                  >
+                                                      ${name}
+                                                  </div>
+                                              `,
+                                          )}
+                                      </div>
+                                  `
+                                : html``
+                        }
 
                         <div class="actions">
                             <${ViraButton.assign({
-                                text: '← Back',
+                                text: "← Back",
                                 color: ViraColorVariant.Neutral,
                                 buttonEmphasis: ViraEmphasis.Subtle,
                             })}
-                                @click=${() => updateState({step: 1})}
+                                @click=${() => updateState({ step: 1 })}
                             ></${ViraButton}>
                             <${ViraButton.assign({
-                                text: 'Create without commitments',
+                                text: "Create without commitments",
                                 color: ViraColorVariant.Neutral,
                                 buttonEmphasis: ViraEmphasis.Subtle,
                             })}
-                                @click=${() => createOperation([])}
+                                @click=${() => createArea([])}
                             ></${ViraButton}>
                             <span class="actions-grow">
                                 <${ViraButton.assign({
-                                    text: routineCount > 0
-                                        ? `Configure ${routineCount} commitment${routineCount !== 1 ? 's' : ''} →`
-                                        : 'Create area →',
+                                    text:
+                                        routineCount > 0
+                                            ? `Configure ${routineCount} commitment${routineCount !== 1 ? "s" : ""} →`
+                                            : "Create area →",
                                     color: ViraColorVariant.Info,
                                 })}
                                     @click=${goToStep3}
@@ -738,7 +848,7 @@ export const OperationWizardDialogElement = defineElement<{open: boolean}>()({
         // ── Step 3 ────────────────────────────────────────────────────────────
 
         const totalRoutines = state.routineNames.length;
-        const currentNum   = state.currentRoutineIndex + 1;
+        const currentNum = state.currentRoutineIndex + 1;
 
         return html`
             <div class="overlay" @click=${(e: Event) => {
@@ -751,7 +861,7 @@ export const OperationWizardDialogElement = defineElement<{open: boolean}>()({
                     <div class="sheet-title">CONFIGURE COMMITMENT</div>
 
                     <div class="routine-counter">
-                        ${state.operationName.toUpperCase()} · ${currentNum}/${totalRoutines}
+                        ${state.areaName.toUpperCase()} · ${currentNum}/${totalRoutines}
                     </div>
 
                     <!-- Routine title -->
@@ -762,7 +872,10 @@ export const OperationWizardDialogElement = defineElement<{open: boolean}>()({
                             .value=${state.currentTitle}
                             placeholder="Describe this commitment."
                             @input=${(e: Event) =>
-                                updateState({currentTitle: (e.target as HTMLInputElement).value})}
+                                updateState({
+                                    currentTitle: (e.target as HTMLInputElement)
+                                        .value,
+                                })}
                         />
                     </div>
 
@@ -770,18 +883,21 @@ export const OperationWizardDialogElement = defineElement<{open: boolean}>()({
                     <div class="field">
                         <label class="field-label">Consequence Tier</label>
                         <div class="tier-grid">
-                            ${([1, 2, 3, 4] as ConsequenceTier[]).map(t => html`
+                            ${([1, 2, 3, 4] as ConsequenceTier[]).map(
+                                (t) => html`
                                 <${ViraButton.assign({
                                     text: `T${t}`,
                                     color: wizardTierColor(t),
-                                    buttonEmphasis: state.currentTier === t
-                                        ? ViraEmphasis.Standard
-                                        : ViraEmphasis.Subtle,
+                                    buttonEmphasis:
+                                        state.currentTier === t
+                                            ? ViraEmphasis.Standard
+                                            : ViraEmphasis.Subtle,
                                     buttonSize: ViraSize.Small,
                                 })}
-                                    @click=${() => updateState({currentTier: t})}
+                                    @click=${() => updateState({ currentTier: t })}
                                 ></${ViraButton}>
-                            `)}
+                            `,
+                            )}
                         </div>
                         <div class="tier-help">
                             <strong>${tierLabel(state.currentTier)}.</strong>
@@ -793,274 +909,410 @@ export const OperationWizardDialogElement = defineElement<{open: boolean}>()({
                     <div class="field">
                         <label class="field-label">Cadence</label>
                         <div class="cadence-grid">
-                            ${CADENCES.map(c => html`
+                            ${CADENCES.map(
+                                (c) => html`
                                 <${ViraButton.assign({
                                     text: c.label,
                                     color: ViraColorVariant.Info,
-                                    buttonEmphasis: state.currentCadence === c.value
-                                        ? ViraEmphasis.Standard
-                                        : ViraEmphasis.Subtle,
+                                    buttonEmphasis:
+                                        state.currentCadence === c.value
+                                            ? ViraEmphasis.Standard
+                                            : ViraEmphasis.Subtle,
                                     buttonSize: ViraSize.Small,
                                 })}
-                                    @click=${() => updateState({currentCadence: c.value})}
+                                    @click=${() => updateState({ currentCadence: c.value })}
                                 ></${ViraButton}>
-                            `)}
+                            `,
+                            )}
                         </div>
                     </div>
 
                     <!-- Weekly: day-of-week picker -->
-                    ${state.currentCadence === 'weekly' ? html`
-                        <div class="field">
-                            <label class="field-label">Days of Week</label>
-                            <div class="dow-grid">
-                                ${DAY_LABELS.map(d => html`
+                    ${
+                        state.currentCadence === "weekly"
+                            ? html`
+                                  <div class="field">
+                                      <label class="field-label"
+                                          >Days of Week</label
+                                      >
+                                      <div class="dow-grid">
+                                          ${DAY_LABELS.map(
+                                              (d) => html`
                                     <${ViraButton.assign({
                                         text: d.label,
                                         color: ViraColorVariant.Info,
-                                        buttonEmphasis: state.currentDaysOfWeek.includes(d.value)
-                                            ? ViraEmphasis.Standard
-                                            : ViraEmphasis.Subtle,
+                                        buttonEmphasis:
+                                            state.currentDaysOfWeek.includes(
+                                                d.value,
+                                            )
+                                                ? ViraEmphasis.Standard
+                                                : ViraEmphasis.Subtle,
                                         buttonSize: ViraSize.Small,
                                     })}
                                         @click=${() => toggleDay(d.value)}
                                     ></${ViraButton}>
-                                `)}
-                            </div>
-                            <div class="anchor-summary">
-                                ${formatSelectedDays(state.currentDaysOfWeek)}
-                            </div>
-                        </div>
-                    ` : html``}
+                                `,
+                                          )}
+                                      </div>
+                                      <div class="anchor-summary">
+                                          ${formatSelectedDays(
+                                              state.currentDaysOfWeek,
+                                          )}
+                                      </div>
+                                  </div>
+                              `
+                            : html``
+                    }
 
                     <!-- Monthly: dom vs ordinal toggle -->
-                    ${state.currentCadence === 'monthly' ? html`
+                    ${
+                        state.currentCadence === "monthly"
+                            ? html`
                         <div class="field">
                             <label class="field-label">Monthly Anchor</label>
                             <div class="cadence-grid">
                                 <${ViraButton.assign({
-                                    text: 'Day of month',
+                                    text: "Day of month",
                                     color: ViraColorVariant.Info,
-                                    buttonEmphasis: state.monthAnchorMode === 'dom'
-                                        ? ViraEmphasis.Standard
-                                        : ViraEmphasis.Subtle,
+                                    buttonEmphasis:
+                                        state.monthAnchorMode === "dom"
+                                            ? ViraEmphasis.Standard
+                                            : ViraEmphasis.Subtle,
                                     buttonSize: ViraSize.Small,
                                 })}
-                                    @click=${() => updateState({monthAnchorMode: 'dom'})}
+                                    @click=${() => updateState({ monthAnchorMode: "dom" })}
                                 ></${ViraButton}>
                                 <${ViraButton.assign({
-                                    text: 'Nth weekday',
+                                    text: "Nth weekday",
                                     color: ViraColorVariant.Info,
-                                    buttonEmphasis: state.monthAnchorMode === 'ordinal'
-                                        ? ViraEmphasis.Standard
-                                        : ViraEmphasis.Subtle,
+                                    buttonEmphasis:
+                                        state.monthAnchorMode === "ordinal"
+                                            ? ViraEmphasis.Standard
+                                            : ViraEmphasis.Subtle,
                                     buttonSize: ViraSize.Small,
                                 })}
-                                    @click=${() => updateState({monthAnchorMode: 'ordinal'})}
+                                    @click=${() => updateState({ monthAnchorMode: "ordinal" })}
                                 ></${ViraButton}>
                             </div>
                         </div>
 
-                        ${state.monthAnchorMode === 'dom' ? html`
-                            <div class="field">
-                                <label class="field-label">Day(s) of Month</label>
-                                <div class="dom-multi-grid">
-                                    ${DOM_RANGE.map(d => html`
+                        ${
+                            state.monthAnchorMode === "dom"
+                                ? html`
+                                      <div class="field">
+                                          <label class="field-label"
+                                              >Day(s) of Month</label
+                                          >
+                                          <div class="dom-multi-grid">
+                                              ${DOM_RANGE.map(
+                                                  (d) => html`
                                         <${ViraButton.assign({
                                             text: String(d),
                                             color: ViraColorVariant.Info,
-                                            buttonEmphasis: state.currentDaysOfMonth.includes(d)
-                                                ? ViraEmphasis.Standard
-                                                : ViraEmphasis.Subtle,
+                                            buttonEmphasis:
+                                                state.currentDaysOfMonth.includes(
+                                                    d,
+                                                )
+                                                    ? ViraEmphasis.Standard
+                                                    : ViraEmphasis.Subtle,
                                             buttonSize: ViraSize.Small,
                                         })}
                                             @click=${() => {
-                                                const current = state.currentDaysOfMonth;
+                                                const current =
+                                                    state.currentDaysOfMonth;
                                                 const next = current.includes(d)
-                                                    ? (current.length > 1 ? current.filter(x => x !== d) : current)
+                                                    ? current.length > 1
+                                                        ? current.filter(
+                                                              (x) => x !== d,
+                                                          )
+                                                        : current
                                                     : [...current, d];
-                                                updateState({currentDaysOfMonth: next});
+                                                updateState({
+                                                    currentDaysOfMonth: next,
+                                                });
                                             }}
                                         ></${ViraButton}>
-                                    `)}
-                                </div>
-                                <div class="anchor-summary">
-                                    ${formatSelectedDoms(state.currentDaysOfMonth)}
-                                </div>
-                            </div>
-                        ` : html`
-                            <div class="field">
-                                <label class="field-label">Which Occurrence</label>
-                                <div class="cadence-grid">
-                                    ${([1, 2, 3, 4, 5, -1] as Array<1|2|3|4|5|-1>).map(w => html`
+                                    `,
+                                              )}
+                                          </div>
+                                          <div class="anchor-summary">
+                                              ${formatSelectedDoms(
+                                                  state.currentDaysOfMonth,
+                                              )}
+                                          </div>
+                                      </div>
+                                  `
+                                : html`
+                                      <div class="field">
+                                          <label class="field-label"
+                                              >Which Occurrence</label
+                                          >
+                                          <div class="cadence-grid">
+                                              ${(
+                                                  [1, 2, 3, 4, 5, -1] as Array<
+                                                      1 | 2 | 3 | 4 | 5 | -1
+                                                  >
+                                              ).map(
+                                                  (w) => html`
                                         <${ViraButton.assign({
-                                            text: w === -1 ? 'Last' : w === 5 ? '5th*' : `${ordinalSuffix(w)}`,
+                                            text:
+                                                w === -1
+                                                    ? "Last"
+                                                    : w === 5
+                                                      ? "5th*"
+                                                      : `${ordinalSuffix(w)}`,
                                             color: ViraColorVariant.Info,
-                                            buttonEmphasis: state.monthOrdinalWeek === w
-                                                ? ViraEmphasis.Standard
-                                                : ViraEmphasis.Subtle,
+                                            buttonEmphasis:
+                                                state.monthOrdinalWeek === w
+                                                    ? ViraEmphasis.Standard
+                                                    : ViraEmphasis.Subtle,
                                             buttonSize: ViraSize.Small,
                                         })}
-                                            @click=${() => updateState({monthOrdinalWeek: w})}
+                                            @click=${() => updateState({ monthOrdinalWeek: w })}
                                         ></${ViraButton}>
-                                    `)}
-                                </div>
-                            </div>
-                            <div class="field">
-                                <label class="field-label">Day of Week</label>
-                                <div class="dow-grid">
-                                    ${DAY_LABELS.map(d => html`
+                                    `,
+                                              )}
+                                          </div>
+                                      </div>
+                                      <div class="field">
+                                          <label class="field-label"
+                                              >Day of Week</label
+                                          >
+                                          <div class="dow-grid">
+                                              ${DAY_LABELS.map(
+                                                  (d) => html`
                                         <${ViraButton.assign({
                                             text: d.label,
                                             color: ViraColorVariant.Info,
-                                            buttonEmphasis: state.monthOrdinalDay === d.value
-                                                ? ViraEmphasis.Standard
-                                                : ViraEmphasis.Subtle,
+                                            buttonEmphasis:
+                                                state.monthOrdinalDay ===
+                                                d.value
+                                                    ? ViraEmphasis.Standard
+                                                    : ViraEmphasis.Subtle,
                                             buttonSize: ViraSize.Small,
                                         })}
-                                            @click=${() => updateState({monthOrdinalDay: d.value})}
+                                            @click=${() => updateState({ monthOrdinalDay: d.value })}
                                         ></${ViraButton}>
-                                    `)}
-                                </div>
-                                <div class="anchor-summary">
-                                    The ${state.monthOrdinalWeek === -1 ? 'last' : ordinalSuffix(state.monthOrdinalWeek)}
-                                    ${DAY_LABELS.find(d => d.value === state.monthOrdinalDay)?.label ?? ''}
-                                    of each month${state.monthOrdinalWeek === 5 ? ' (skips months without a 5th)' : ''}.
-                                </div>
-                            </div>
-                        `}
-                    ` : html``}
+                                    `,
+                                              )}
+                                          </div>
+                                          <div class="anchor-summary">
+                                              The
+                                              ${state.monthOrdinalWeek === -1
+                                                  ? "last"
+                                                  : ordinalSuffix(
+                                                        state.monthOrdinalWeek,
+                                                    )}
+                                              ${DAY_LABELS.find(
+                                                  (d) =>
+                                                      d.value ===
+                                                      state.monthOrdinalDay,
+                                              )?.label ?? ""}
+                                              of each
+                                              month${state.monthOrdinalWeek ===
+                                              5
+                                                  ? " (skips months without a 5th)"
+                                                  : ""}.
+                                          </div>
+                                      </div>
+                                  `
+                        }
+                    `
+                            : html``
+                    }
 
                     <!-- Quarterly anchor: month-within-quarter + day(s)-of-month -->
-                    ${state.currentCadence === 'quarterly' ? html`
-                        <div class="field">
-                            <label class="field-label">Month of Quarter</label>
-                            <div class="cadence-grid" style="grid-template-columns: repeat(3, 1fr);">
-                                ${QUARTER_MONTH_LABELS.map(q => html`
+                    ${
+                        state.currentCadence === "quarterly"
+                            ? html`
+                                  <div class="field">
+                                      <label class="field-label"
+                                          >Month of Quarter</label
+                                      >
+                                      <div
+                                          class="cadence-grid"
+                                          style="grid-template-columns: repeat(3, 1fr);"
+                                      >
+                                          ${QUARTER_MONTH_LABELS.map(
+                                              (q) => html`
                                     <${ViraButton.assign({
                                         text: q.label,
                                         color: ViraColorVariant.Info,
-                                        buttonEmphasis: state.quarterMonth === q.value
-                                            ? ViraEmphasis.Standard
-                                            : ViraEmphasis.Subtle,
+                                        buttonEmphasis:
+                                            state.quarterMonth === q.value
+                                                ? ViraEmphasis.Standard
+                                                : ViraEmphasis.Subtle,
                                         buttonSize: ViraSize.Small,
                                     })}
-                                        @click=${() => updateState({quarterMonth: q.value})}
+                                        @click=${() => updateState({ quarterMonth: q.value })}
                                     ></${ViraButton}>
-                                `)}
-                            </div>
-                            <div class="anchor-summary">
-                                ${quarterMonthSummary(state.quarterMonth)}
-                            </div>
-                        </div>
-                        <div class="field">
-                            <label class="field-label">Day(s) of Month</label>
-                            <div class="dom-multi-grid">
-                                ${DOM_RANGE.map(d => html`
+                                `,
+                                          )}
+                                      </div>
+                                      <div class="anchor-summary">
+                                          ${quarterMonthSummary(
+                                              state.quarterMonth,
+                                          )}
+                                      </div>
+                                  </div>
+                                  <div class="field">
+                                      <label class="field-label"
+                                          >Day(s) of Month</label
+                                      >
+                                      <div class="dom-multi-grid">
+                                          ${DOM_RANGE.map(
+                                              (d) => html`
                                     <${ViraButton.assign({
                                         text: String(d),
                                         color: ViraColorVariant.Info,
-                                        buttonEmphasis: state.currentDaysOfMonth.includes(d)
-                                            ? ViraEmphasis.Standard
-                                            : ViraEmphasis.Subtle,
+                                        buttonEmphasis:
+                                            state.currentDaysOfMonth.includes(d)
+                                                ? ViraEmphasis.Standard
+                                                : ViraEmphasis.Subtle,
                                         buttonSize: ViraSize.Small,
                                     })}
                                         @click=${() => {
-                                            const current = state.currentDaysOfMonth;
+                                            const current =
+                                                state.currentDaysOfMonth;
                                             const next = current.includes(d)
-                                                ? (current.length > 1 ? current.filter(x => x !== d) : current)
+                                                ? current.length > 1
+                                                    ? current.filter(
+                                                          (x) => x !== d,
+                                                      )
+                                                    : current
                                                 : [...current, d];
-                                            updateState({currentDaysOfMonth: next});
+                                            updateState({
+                                                currentDaysOfMonth: next,
+                                            });
                                         }}
                                     ></${ViraButton}>
-                                `)}
-                            </div>
-                            <div class="anchor-summary">
-                                ${formatSelectedDoms(state.currentDaysOfMonth)}
-                            </div>
-                        </div>
-                    ` : html``}
+                                `,
+                                          )}
+                                      </div>
+                                      <div class="anchor-summary">
+                                          ${formatSelectedDoms(
+                                              state.currentDaysOfMonth,
+                                          )}
+                                      </div>
+                                  </div>
+                              `
+                            : html``
+                    }
 
                     <!-- Annually anchor (yearly only): month + day-of-month -->
-                    ${state.currentCadence === 'yearly' ? html`
-                        <div class="field">
-                            <label class="field-label">Season</label>
-                            <div class="cadence-grid">
-                                ${SEASON_SHORTCUTS.map(s => html`
+                    ${
+                        state.currentCadence === "yearly"
+                            ? html`
+                                  <div class="field">
+                                      <label class="field-label">Season</label>
+                                      <div class="cadence-grid">
+                                          ${SEASON_SHORTCUTS.map(
+                                              (s) => html`
                                     <${ViraButton.assign({
                                         text: s.label,
                                         color: ViraColorVariant.Info,
-                                        buttonEmphasis: state.annualMonth === s.month
-                                            ? ViraEmphasis.Standard
-                                            : ViraEmphasis.Subtle,
+                                        buttonEmphasis:
+                                            state.annualMonth === s.month
+                                                ? ViraEmphasis.Standard
+                                                : ViraEmphasis.Subtle,
                                         buttonSize: ViraSize.Small,
                                     })}
-                                        @click=${() => updateState({annualMonth: s.month})}
+                                        @click=${() => updateState({ annualMonth: s.month })}
                                     ></${ViraButton}>
-                                `)}
-                            </div>
-                        </div>
-                        <div class="field">
-                            <label class="field-label">Month</label>
-                            <div class="month-grid">
-                                ${MONTH_LABELS.map(m => html`
+                                `,
+                                          )}
+                                      </div>
+                                  </div>
+                                  <div class="field">
+                                      <label class="field-label">Month</label>
+                                      <div class="month-grid">
+                                          ${MONTH_LABELS.map(
+                                              (m) => html`
                                     <${ViraButton.assign({
                                         text: m.label,
                                         color: ViraColorVariant.Info,
-                                        buttonEmphasis: state.annualMonth === m.value
-                                            ? ViraEmphasis.Standard
-                                            : ViraEmphasis.Subtle,
+                                        buttonEmphasis:
+                                            state.annualMonth === m.value
+                                                ? ViraEmphasis.Standard
+                                                : ViraEmphasis.Subtle,
                                         buttonSize: ViraSize.Small,
                                     })}
-                                        @click=${() => updateState({annualMonth: m.value})}
+                                        @click=${() => updateState({ annualMonth: m.value })}
                                     ></${ViraButton}>
-                                `)}
-                            </div>
-                        </div>
-                        <div class="field">
-                            <label class="field-label">Day of Month (1–31)</label>
-                            <input
-                                class="dom-input"
-                                type="number"
-                                min="1"
-                                max="31"
-                                .value=${String(state.currentDayOfMonth)}
-                                @input=${(e: Event) => {
-                                    const n = parseInt((e.target as HTMLInputElement).value, 10);
-                                    if (!Number.isNaN(n) && n >= 1 && n <= 31) {
-                                        updateState({currentDayOfMonth: n});
-                                    }
-                                }}
-                            />
-                            <div class="anchor-summary">
-                                Every ${MONTH_LABELS[state.annualMonth]?.label ?? ''} ${ordinalSuffix(state.currentDayOfMonth)}.
-                            </div>
-                        </div>
-                    ` : html``}
+                                `,
+                                          )}
+                                      </div>
+                                  </div>
+                                  <div class="field">
+                                      <label class="field-label"
+                                          >Day of Month (1–31)</label
+                                      >
+                                      <input
+                                          class="dom-input"
+                                          type="number"
+                                          min="1"
+                                          max="31"
+                                          .value=${String(
+                                              state.currentDayOfMonth,
+                                          )}
+                                          @input=${(e: Event) => {
+                                              const n = parseInt(
+                                                  (e.target as HTMLInputElement)
+                                                      .value,
+                                                  10,
+                                              );
+                                              if (
+                                                  !Number.isNaN(n) &&
+                                                  n >= 1 &&
+                                                  n <= 31
+                                              ) {
+                                                  updateState({
+                                                      currentDayOfMonth: n,
+                                                  });
+                                              }
+                                          }}
+                                      />
+                                      <div class="anchor-summary">
+                                          Every
+                                          ${MONTH_LABELS[state.annualMonth]
+                                              ?.label ?? ""}
+                                          ${ordinalSuffix(
+                                              state.currentDayOfMonth,
+                                          )}.
+                                      </div>
+                                  </div>
+                              `
+                            : html``
+                    }
 
                     <!-- Time of day -->
                     <div class="field">
                         <label class="field-label">Time of Day</label>
                         <div class="tod-grid">
-                            ${TIME_OF_DAY_SLOTS.map(slot => html`
+                            ${TIME_OF_DAY_SLOTS.map(
+                                (slot) => html`
                                 <${ViraButton.assign({
                                     text: timeOfDayLabel(slot),
                                     color: ViraColorVariant.Info,
-                                    buttonEmphasis: state.currentTimeOfDay === slot
-                                        ? ViraEmphasis.Standard
-                                        : ViraEmphasis.Subtle,
+                                    buttonEmphasis:
+                                        state.currentTimeOfDay === slot
+                                            ? ViraEmphasis.Standard
+                                            : ViraEmphasis.Subtle,
                                     buttonSize: ViraSize.Small,
                                 })}
-                                    @click=${() => updateState({currentTimeOfDay: slot})}
+                                    @click=${() => updateState({ currentTimeOfDay: slot })}
                                 ></${ViraButton}>
-                            `)}
+                            `,
+                            )}
                         </div>
                     </div>
 
                     <div class="actions">
                         <${ViraButton.assign({
-                            text: state.completedRoutines.length > 0
-                                ? 'Create with commitments so far'
-                                : 'Create without commitments',
+                            text:
+                                state.completedRoutines.length > 0
+                                    ? "Create with commitments so far"
+                                    : "Create without commitments",
                             color: ViraColorVariant.Neutral,
                             buttonEmphasis: ViraEmphasis.Subtle,
                         })}
@@ -1068,7 +1320,9 @@ export const OperationWizardDialogElement = defineElement<{open: boolean}>()({
                         ></${ViraButton}>
                         <span class="actions-grow">
                             <${ViraButton.assign({
-                                text: isLastRoutine ? 'Create Area ✓' : `Next Commitment →`,
+                                text: isLastRoutine
+                                    ? "Create Area ✓"
+                                    : `Next Commitment →`,
                                 color: ViraColorVariant.Info,
                                 isDisabled: !canConfigureRoutine,
                             })}
@@ -1086,23 +1340,29 @@ export const OperationWizardDialogElement = defineElement<{open: boolean}>()({
 
 function wizardTierColor(tier: ConsequenceTier): ViraColorVariant {
     switch (tier) {
-        case 1: return ViraColorVariant.Danger;
-        case 2: return ViraColorVariant.Warning;
-        case 3: return ViraColorVariant.Info;
-        case 4: return ViraColorVariant.Neutral;
+        case 1:
+            return ViraColorVariant.Danger;
+        case 2:
+            return ViraColorVariant.Warning;
+        case 3:
+            return ViraColorVariant.Info;
+        case 4:
+            return ViraColorVariant.Neutral;
     }
 }
 
 function formatSelectedDays(days: number[]): string {
     const sorted = [...days].sort((a, b) => a - b);
-    const names = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-    if (sorted.length === 0) return 'No days selected.';
-    if (sorted.length === 7) return 'Every day.';
+    const names = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+    if (sorted.length === 0) return "No days selected.";
+    if (sorted.length === 7) return "Every day.";
     if (sorted.length === 5 && !sorted.includes(0) && !sorted.includes(6))
-        return 'Every weekday (Mon–Fri).';
-    if (sorted.length === 6 && !sorted.includes(6)) return 'Every day except Saturday.';
-    if (sorted.length === 6 && !sorted.includes(0)) return 'Every day except Sunday.';
-    return sorted.map(d => names[d]).join(', ') + '.';
+        return "Every weekday (Mon–Fri).";
+    if (sorted.length === 6 && !sorted.includes(6))
+        return "Every day except Saturday.";
+    if (sorted.length === 6 && !sorted.includes(0))
+        return "Every day except Sunday.";
+    return sorted.map((d) => names[d]).join(", ") + ".";
 }
 
 function ordinalSuffix(n: number): string {
@@ -1114,50 +1374,55 @@ function ordinalSuffix(n: number): string {
     return `${n}th`;
 }
 
-const DOM_RANGE: ReadonlyArray<number> = Array.from({length: 31}, (_, i) => i + 1);
+const DOM_RANGE: ReadonlyArray<number> = Array.from(
+    { length: 31 },
+    (_, i) => i + 1,
+);
 
-const QUARTER_MONTH_LABELS: ReadonlyArray<{value: 0 | 1 | 2; label: string}> = [
-    {value: 0, label: '1st month'},
-    {value: 1, label: '2nd month'},
-    {value: 2, label: '3rd month'},
-];
+const QUARTER_MONTH_LABELS: ReadonlyArray<{ value: 0 | 1 | 2; label: string }> =
+    [
+        { value: 0, label: "1st month" },
+        { value: 1, label: "2nd month" },
+        { value: 2, label: "3rd month" },
+    ];
 
 function quarterMonthSummary(m: 0 | 1 | 2): string {
     const labels = [
-        'Jan · Apr · Jul · Oct',
-        'Feb · May · Aug · Nov',
-        'Mar · Jun · Sep · Dec',
+        "Jan · Apr · Jul · Oct",
+        "Feb · May · Aug · Nov",
+        "Mar · Jun · Sep · Dec",
     ];
-    return labels[m] ?? '';
+    return labels[m] ?? "";
 }
 
 function formatSelectedDoms(doms: number[]): string {
-    if (doms.length === 0) return 'No days selected.';
+    if (doms.length === 0) return "No days selected.";
     const sorted = [...doms].sort((a, b) => a - b);
     const labels = sorted.map(ordinalSuffix);
     if (labels.length === 1) return `The ${labels[0]} of each month.`;
-    if (labels.length === 2) return `The ${labels[0]} and ${labels[1]} of each month.`;
-    return `The ${labels.slice(0, -1).join(', ')}, and ${labels[labels.length - 1]} of each month.`;
+    if (labels.length === 2)
+        return `The ${labels[0]} and ${labels[1]} of each month.`;
+    return `The ${labels.slice(0, -1).join(", ")}, and ${labels[labels.length - 1]} of each month.`;
 }
 
-const MONTH_LABELS: ReadonlyArray<{value: number; label: string}> = [
-    {value: 0,  label: 'Jan'},
-    {value: 1,  label: 'Feb'},
-    {value: 2,  label: 'Mar'},
-    {value: 3,  label: 'Apr'},
-    {value: 4,  label: 'May'},
-    {value: 5,  label: 'Jun'},
-    {value: 6,  label: 'Jul'},
-    {value: 7,  label: 'Aug'},
-    {value: 8,  label: 'Sep'},
-    {value: 9,  label: 'Oct'},
-    {value: 10, label: 'Nov'},
-    {value: 11, label: 'Dec'},
+const MONTH_LABELS: ReadonlyArray<{ value: number; label: string }> = [
+    { value: 0, label: "Jan" },
+    { value: 1, label: "Feb" },
+    { value: 2, label: "Mar" },
+    { value: 3, label: "Apr" },
+    { value: 4, label: "May" },
+    { value: 5, label: "Jun" },
+    { value: 6, label: "Jul" },
+    { value: 7, label: "Aug" },
+    { value: 8, label: "Sep" },
+    { value: 9, label: "Oct" },
+    { value: 10, label: "Nov" },
+    { value: 11, label: "Dec" },
 ];
 
-const SEASON_SHORTCUTS: ReadonlyArray<{label: string; month: number}> = [
-    {label: 'Spring', month: 2},   // March
-    {label: 'Summer', month: 5},   // June
-    {label: 'Fall',   month: 8},   // September
-    {label: 'Winter', month: 11},  // December
+const SEASON_SHORTCUTS: ReadonlyArray<{ label: string; month: number }> = [
+    { label: "Spring", month: 2 }, // March
+    { label: "Summer", month: 5 }, // June
+    { label: "Fall", month: 8 }, // September
+    { label: "Winter", month: 11 }, // December
 ];

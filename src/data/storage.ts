@@ -6,23 +6,23 @@ import type {
     ItemKind,
     Task,
     TimeOfDay,
-} from './types.js';
-import {SCHEMA_VERSION} from './types.js';
+} from "./types.js";
+import { SCHEMA_VERSION } from "./types.js";
 
-const STORAGE_KEY = 'bureau_v1';
+const STORAGE_KEY = "bureau_v1";
 
 export const DEFAULT_STATE: AppState = {
     schemaVersion: SCHEMA_VERSION,
-    projects: [],
+    areas: [],
     tasks: [],
     goals: [],
     ideas: [],
-    view: 'daily',
-    selectedProjectId: null,
+    view: "daily",
+    selectedAreaId: null,
     patriotScore: 100,
     completionStreak: 0,
     dialogueQueue: [],
-    lastActiveDate: '',
+    lastActiveDate: "",
     reportNoticeDismissedAt: null,
 };
 
@@ -34,7 +34,10 @@ export function loadState(): AppState {
         if (!raw) return structuredClone(DEFAULT_STATE);
         const parsed = JSON.parse(raw) as Partial<AppState>;
         // Merge with defaults so newly added top-level fields are populated.
-        const merged = {...structuredClone(DEFAULT_STATE), ...parsed} as AppState;
+        const merged = {
+            ...structuredClone(DEFAULT_STATE),
+            ...parsed,
+        } as AppState;
         return migrateState(merged);
     } catch {
         return structuredClone(DEFAULT_STATE);
@@ -57,13 +60,14 @@ export function saveState(state: AppState): void {
  */
 export function migrateState(state: AppState): AppState {
     const version = state.schemaVersion ?? 1;
-    // Normalize the view value — Phase 1 used 'dashboard' for the project grid.
-    // Phase 2 splits the top level into 'daily' (default) and 'operations' (the
+    // Normalize the view value — Phase 1 used 'dashboard' for the area grid.
+    // Phase 2 splits the top level into 'daily' (default) and 'area' (the
     // grid). Map the old name forward but pop the user back to 'daily' so they
     // see the new landing view on their first Phase 2 launch.
-    const normalizedView = state.view === ('dashboard' as unknown as AppState['view'])
-        ? 'daily'
-        : state.view ?? 'daily';
+    const normalizedView =
+        state.view === ("dashboard" as unknown as AppState["view"])
+            ? "daily"
+            : (state.view ?? "daily");
 
     if (version >= SCHEMA_VERSION) {
         return {
@@ -88,7 +92,7 @@ function migrateTaskV1ToV2(raw: any): Task {
     return ensureTaskShape({
         ...raw,
         consequenceTier: raw.consequenceTier ?? priorityToTier(raw.priority),
-        windowType: raw.windowType ?? 'flexible',
+        windowType: raw.windowType ?? "flexible",
         suggestedDate: raw.suggestedDate ?? raw.dueDate ?? null,
         windowDeadline: raw.windowDeadline ?? null,
         windowLengthDays: raw.windowLengthDays ?? null,
@@ -99,12 +103,14 @@ function migrateTaskV1ToV2(raw: any): Task {
 }
 
 function normalizeRecurrence(raw: any): any {
-    const isWeekly = raw.cadence === 'weekly' || raw.cadence === 'multiple_per_week';
+    const isWeekly =
+        raw.cadence === "weekly" || raw.cadence === "multiple_per_week";
     // Migrate single hardDayOfWeek → hardDaysOfWeek for weekly cadences
     const hardDaysOfWeek = isWeekly
-        ? (raw.hardDaysOfWeek ?? (raw.hardDayOfWeek !== undefined ? [raw.hardDayOfWeek] : undefined))
+        ? (raw.hardDaysOfWeek ??
+          (raw.hardDayOfWeek !== undefined ? [raw.hardDayOfWeek] : undefined))
         : raw.hardDaysOfWeek;
-    return {...raw, endMode: raw.endMode ?? 'never', hardDaysOfWeek};
+    return { ...raw, endMode: raw.endMode ?? "never", hardDaysOfWeek };
 }
 
 /**
@@ -114,24 +120,21 @@ function normalizeRecurrence(raw: any): any {
 function ensureTaskShape(raw: any): Task {
     return {
         id: raw.id,
-        projectId: raw.projectId,
-        title: raw.title ?? '',
-        description: raw.description ?? '',
-        timeOfDay: (raw.timeOfDay ?? 'anytime') as TimeOfDay,
+        areaId: raw.areaId,
+        title: raw.title ?? "",
+        description: raw.description ?? "",
+        timeOfDay: (raw.timeOfDay ?? "anytime") as TimeOfDay,
         // Migrate: existing recurring + no-end tasks become 'routine', others 'task'.
-        kind: (raw.kind ?? (
-            raw.recurrence && (raw.recurrence.endMode ?? 'never') === 'never'
-                ? 'routine'
-                : 'task'
-        )) as ItemKind,
+        kind: (raw.kind ??
+            (raw.recurrence && (raw.recurrence.endMode ?? "never") === "never"
+                ? "routine"
+                : "task")) as ItemKind,
         consequenceTier: (raw.consequenceTier ?? 3) as ConsequenceTier,
-        windowType: raw.windowType ?? 'flexible',
+        windowType: raw.windowType ?? "flexible",
         suggestedDate: raw.suggestedDate ?? null,
         windowDeadline: raw.windowDeadline ?? null,
         windowLengthDays: raw.windowLengthDays ?? null,
-        recurrence: raw.recurrence
-            ? normalizeRecurrence(raw.recurrence)
-            : null,
+        recurrence: raw.recurrence ? normalizeRecurrence(raw.recurrence) : null,
         currentPeriodStart: raw.currentPeriodStart ?? null,
         completionsThisPeriod: raw.completionsThisPeriod ?? 0,
         totalCompletions: raw.totalCompletions ?? 0,
@@ -139,11 +142,12 @@ function ensureTaskShape(raw: any): Task {
         // Optional fields — undefined when absent from old data (backward compat).
         lastProgressAt: raw.lastProgressAt ?? null,
         // Migrate: radarLeadDays (old hard-date-only field) → leadTimeDays.
-        leadTimeDays: 'leadTimeDays' in raw
-            ? raw.leadTimeDays
-            : ('radarLeadDays' in raw && raw.radarLeadDays !== undefined)
-                ? raw.radarLeadDays
-                : undefined,
+        leadTimeDays:
+            "leadTimeDays" in raw
+                ? raw.leadTimeDays
+                : "radarLeadDays" in raw && raw.radarLeadDays !== undefined
+                  ? raw.radarLeadDays
+                  : undefined,
         pausedUntil: raw.pausedUntil ?? null,
         pausedIndefinitely: raw.pausedIndefinitely ?? false,
         snoozeCount: raw.snoozeCount ?? 0,
@@ -165,11 +169,16 @@ function ensureTaskShape(raw: any): Task {
 
 function priorityToTier(priority: string | undefined): ConsequenceTier {
     switch (priority) {
-        case 'critical': return 1;
-        case 'high':     return 2;
-        case 'medium':   return 3;
-        case 'low':      return 4;
-        default:         return 3;
+        case "critical":
+            return 1;
+        case "high":
+            return 2;
+        case "medium":
+            return 3;
+        case "low":
+            return 4;
+        default:
+            return 3;
     }
 }
 
@@ -192,15 +201,18 @@ export function startOfDay(d: Date): Date {
 
 /** Whole-day difference (b - a), using local midnight boundaries. */
 export function daysBetween(a: Date | number, b: Date | number): number {
-    const ms = startOfDay(new Date(b)).getTime() - startOfDay(new Date(a)).getTime();
+    const ms =
+        startOfDay(new Date(b)).getTime() - startOfDay(new Date(a)).getTime();
     return Math.round(ms / 86_400_000);
 }
 
-export function isCurrentlySnoozed(task: Pick<Task, 'snoozedUntil'>): boolean {
+export function isCurrentlySnoozed(task: Pick<Task, "snoozedUntil">): boolean {
     return task.snoozedUntil !== null && task.snoozedUntil > Date.now();
 }
 
-export function isCurrentlyPaused(task: Pick<Task, 'pausedUntil' | 'pausedIndefinitely'>): boolean {
+export function isCurrentlyPaused(
+    task: Pick<Task, "pausedUntil" | "pausedIndefinitely">,
+): boolean {
     if (task.pausedIndefinitely) return true;
     return task.pausedUntil !== null && task.pausedUntil > Date.now();
 }
@@ -217,16 +229,24 @@ export function isTaskCompleteForPeriod(task: Task): boolean {
  * AND not currently snoozed or paused. Used by legacy components — daily view
  * uses urgency.ts/getDailyBand instead.
  */
-export function isTaskVisible(task: Pick<Task, 'snoozedUntil' | 'completedAt' | 'pausedUntil' | 'pausedIndefinitely'> & {missedAt?: number | null}): boolean {
+export function isTaskVisible(
+    task: Pick<
+        Task,
+        "snoozedUntil" | "completedAt" | "pausedUntil" | "pausedIndefinitely"
+    > & { missedAt?: number | null },
+): boolean {
     if (task.completedAt !== null) return false;
     // eslint-disable-next-line eqeqeq
     if (task.missedAt != null) return false;
-    if (task.snoozedUntil !== null && task.snoozedUntil > Date.now()) return false;
+    if (task.snoozedUntil !== null && task.snoozedUntil > Date.now())
+        return false;
     if (isCurrentlyPaused(task)) return false;
     return true;
 }
 
-export function isTaskOverdue(task: Pick<Task, 'suggestedDate' | 'dueDate' | 'completedAt'>): boolean {
+export function isTaskOverdue(
+    task: Pick<Task, "suggestedDate" | "dueDate" | "completedAt">,
+): boolean {
     if (task.completedAt !== null) return false;
     const due = task.suggestedDate ?? task.dueDate;
     if (due === null || due === undefined) return false;

@@ -17,16 +17,16 @@
             position: relative;
             overflow: hidden;
         }
+
         .philosophy-hero::before {
             content: '';
             position: absolute;
             inset: 0;
-            background: repeating-linear-gradient(
-                -55deg, transparent, transparent 18px,
-                rgba(255,255,255,0.02) 18px, rgba(255,255,255,0.02) 20px
-            );
+            background: repeating-linear-gradient(-55deg, transparent, transparent 18px,
+                    rgba(255, 255, 255, 0.02) 18px, rgba(255, 255, 255, 0.02) 20px);
             pointer-events: none;
         }
+
         .philosophy-hero .hero-eyebrow {
             font-family: 'Courier Prime', monospace;
             font-size: 0.7rem;
@@ -35,6 +35,7 @@
             color: var(--gold);
             margin-bottom: 12px;
         }
+
         .philosophy-hero h1 {
             font-family: 'Oswald', sans-serif;
             font-size: 2.2rem;
@@ -43,11 +44,12 @@
             text-transform: uppercase;
             margin: 0 0 12px;
         }
+
         .philosophy-hero .lead {
             max-width: 600px;
             margin: 0 auto;
             font-size: 1.05rem;
-            color: rgba(255,255,255,0.8);
+            color: rgba(255, 255, 255, 0.8);
             line-height: 1.7;
             font-style: italic;
         }
@@ -59,16 +61,19 @@
             gap: 20px;
             margin: 24px 0;
         }
+
         .feature-card {
             border: 1px solid var(--border);
             background: #fff;
             padding: 20px 22px;
         }
+
         .feature-card-icon {
             font-size: 1.5rem;
             margin-bottom: 10px;
             line-height: 1;
         }
+
         .feature-card-title {
             font-family: 'Oswald', sans-serif;
             font-size: 0.95rem;
@@ -78,6 +83,7 @@
             color: var(--navy);
             margin: 0 0 8px;
         }
+
         .feature-card p {
             font-size: 0.88rem;
             line-height: 1.65;
@@ -92,6 +98,7 @@
             padding: 0;
             list-style: none;
         }
+
         .steps li {
             counter-increment: steps;
             display: flex;
@@ -99,7 +106,11 @@
             padding: 18px 0;
             border-bottom: 1px solid var(--border);
         }
-        .steps li:last-child { border-bottom: none; }
+
+        .steps li:last-child {
+            border-bottom: none;
+        }
+
         .step-num {
             font-family: 'Oswald', sans-serif;
             font-size: 2rem;
@@ -112,8 +123,15 @@
             text-align: center;
             content: counter(steps);
         }
-        .step-num::before { content: counter(steps); }
-        .step-body { flex: 1; }
+
+        .step-num::before {
+            content: counter(steps);
+        }
+
+        .step-body {
+            flex: 1;
+        }
+
         .step-title {
             font-family: 'Oswald', sans-serif;
             font-size: 1rem;
@@ -123,6 +141,7 @@
             color: var(--navy);
             margin: 0 0 6px;
         }
+
         .step-body p {
             font-size: 0.88rem;
             line-height: 1.65;
@@ -131,7 +150,13 @@
         }
 
         /* ── Score tier table ───────────────────────────────────── */
-        .tier-row { display: flex; gap: 12px; margin-bottom: 10px; align-items: flex-start; }
+        .tier-row {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 10px;
+            align-items: flex-start;
+        }
+
         .tier-badge {
             font-family: 'Courier Prime', monospace;
             font-size: 0.72rem;
@@ -142,8 +167,17 @@
             min-width: 80px;
             text-align: center;
         }
-        .tier-body { font-size: 0.88rem; color: var(--muted); line-height: 1.55; }
-        .tier-body strong { color: var(--text); font-weight: normal; }
+
+        .tier-body {
+            font-size: 0.88rem;
+            color: var(--muted);
+            line-height: 1.55;
+        }
+
+        .tier-body strong {
+            color: var(--text);
+            font-weight: normal;
+        }
 
         /* ── Pull quote ─────────────────────────────────────────── */
         .pull-quote {
@@ -156,6 +190,7 @@
             color: var(--navy);
             line-height: 1.7;
         }
+
         .pull-quote cite {
             display: block;
             font-style: normal;
@@ -174,6 +209,7 @@
             text-align: center;
             margin: 48px -24px -32px;
         }
+
         .cta-strip h2 {
             font-family: 'Oswald', sans-serif;
             font-size: 1.4rem;
@@ -181,8 +217,9 @@
             text-transform: uppercase;
             margin: 0 0 10px;
         }
+
         .cta-strip p {
-            color: rgba(255,255,255,0.75);
+            color: rgba(255, 255, 255, 0.75);
             font-size: 0.9rem;
             margin: 0 0 20px;
         }
@@ -292,43 +329,43 @@
                     <div class="feature-card-icon">📋</div>
                     <div class="feature-card-title">Commitment Tiers</div>
                     <p>Every item you add carries a consequence tier — from critical obligations (hard deadlines,
-                    serious fallout if missed) down to aspirational work (nice to do, no external pressure).
-                    The tier shapes how the app responds when you fall behind.</p>
+                        serious fallout if missed) down to aspirational work (nice to do, no external pressure).
+                        The tier shapes how the app responds when you fall behind.</p>
                 </div>
                 <div class="feature-card">
                     <div class="feature-card-icon">⏱</div>
                     <div class="feature-card-title">Urgency Bands</div>
                     <p>Your daily view isn't a flat list. Work sorts automatically into four bands: things
-                    due today, things recommended for today, things coming up soon, and everything else.
-                    You see the right work at the right time without manually prioritizing.</p>
+                        due today, things recommended for today, things coming up soon, and everything else.
+                        You see the right work at the right time without manually prioritizing.</p>
                 </div>
                 <div class="feature-card">
                     <div class="feature-card-icon">📊</div>
                     <div class="feature-card-title">The Score</div>
                     <p>A rolling accountability number, visible only to you. It rises when you follow through
-                    and falls when you miss or skip. A healthy, consistent person lands around 100–130.
-                    It's honest feedback — not a grade, not surveillance.</p>
+                        and falls when you miss or skip. A healthy, consistent person lands around 100–130.
+                        It's honest feedback — not a grade, not surveillance.</p>
                 </div>
                 <div class="feature-card">
                     <div class="feature-card-icon">🔥</div>
                     <div class="feature-card-title">Streaks & Patterns</div>
                     <p>CLEAR tracks how many times in a row you've snoozed or skipped a specific item.
-                    A task snoozed once is understandable. Snoozed six times is a different conversation.
-                    The app names the pattern so you can decide what to do about it.</p>
+                        A task snoozed once is understandable. Snoozed six times is a different conversation.
+                        The app names the pattern so you can decide what to do about it.</p>
                 </div>
                 <div class="feature-card">
                     <div class="feature-card-icon">💬</div>
                     <div class="feature-card-title">Character Voices</div>
                     <p>Brief, contextual messages respond to what you actually do — complete a streak,
-                    skip something twice, open the app fresh in the morning. The voices vary by skin,
-                    but the underlying logic is the same: the app reacts to your behavior.</p>
+                        skip something twice, open the app fresh in the morning. The voices vary by skin,
+                        but the underlying logic is the same: the app reacts to your behavior.</p>
                 </div>
                 <div class="feature-card">
                     <div class="feature-card-icon">🎨</div>
                     <div class="feature-card-title">Skins</div>
                     <p>The entire vocabulary and aesthetic of the app is swappable. The default BCR
-                    theme is one option. Others use completely different terminology, characters,
-                    and color palettes — same logic, different flavor. Choose what motivates you.</p>
+                        theme is one option. Others use completely different terminology, characters,
+                        and color palettes — same logic, different flavor. Choose what motivates you.</p>
                 </div>
             </div>
 
@@ -397,7 +434,7 @@
             <p>
                 When a pattern like that surfaces, CLEAR gives you options: <strong>pause</strong> it
                 (suspend without penalty — useful when life changes temporarily), <strong>convert it
-                to an idea</strong> (preserve the aspiration without the commitment pressure), or
+                    to an idea</strong> (preserve the aspiration without the commitment pressure), or
                 <strong>set it to Tier IV</strong>. Tier IV is the "I want to be the kind of person
                 who does this" tier — it tracks your aspirations with zero score consequences for
                 skipping, snoozing, or missing. Your commitments should reflect your life, not guilt
@@ -411,21 +448,22 @@
                     <span class="step-num"></span>
                     <div class="step-body">
                         <div class="step-title">Install CLEAR</div>
-                        <p>Open <a href="https://clear.bureauofcivicresponsibility.org" target="_blank">clear.bureauofcivicresponsibility.org</a>
-                        on your phone or desktop. From the browser menu, choose "Add to Home Screen" or
-                        "Install App" to install it as a PWA. It runs fully offline — no account required.</p>
+                        <p>Open <a href="https://clear.bureauofcivicresponsibility.org"
+                                target="_blank">clear.bureauofcivicresponsibility.org</a>
+                            on your phone or desktop. From the browser menu, choose "Add to Home Screen" or
+                            "Install App" to install it as a PWA. It runs fully offline — no account required.</p>
                     </div>
                 </li>
                 <li>
                     <span class="step-num"></span>
                     <div class="step-body">
                         <div class="step-title">Map your areas of responsibility</div>
-                        <p>Use the project creation wizard (the + button on the Operations view) to
-                        map out the areas of your life — work, health, family, finances, creative
-                        projects, whatever applies. For each area, add the routines, tasks, goals, and
-                        ideas that match your vision of what success there looks like. The app is built
-                        to help align your daily action with your actual aspirations, not to tell you
-                        what to aspire to.</p>
+                        <p>Use the area creation wizard (the + button on the Areas of Responsibility view) to
+                            map out the areas of your life — work, health, family, finances, creative
+                            projects, whatever applies. For each area, add the routines, tasks, goals, and
+                            ideas that match your vision of what success there looks like. The app is built
+                            to help align your daily action with your actual aspirations, not to tell you
+                            what to aspire to.</p>
                     </div>
                 </li>
                 <li>
@@ -433,9 +471,9 @@
                     <div class="step-body">
                         <div class="step-title">Check in daily</div>
                         <p>Open the app each day. The daily view shows what matters today — sorted
-                        automatically by urgency. Complete items as you do them. Snooze honestly —
-                        not to avoid, but to defer with intention. The check-in takes as long as it
-                        takes, which will vary depending on how much is on your plate.</p>
+                            automatically by urgency. Complete items as you do them. Snooze honestly —
+                            not to avoid, but to defer with intention. The check-in takes as long as it
+                            takes, which will vary depending on how much is on your plate.</p>
                     </div>
                 </li>
                 <li>
@@ -443,10 +481,10 @@
                     <div class="step-body">
                         <div class="step-title">Adjust over time</div>
                         <p>Use the Insights view to review patterns. If something keeps getting snoozed,
-                        change the schedule, lower the tier, or convert it to an idea or Tier IV
-                        aspiration. A commitment that doesn't fit your life right now is worth
-                        understanding — maybe the timing is off, maybe the vision behind it shifted.
-                        Pause it, reclassify it, sit with it. The goal is alignment, not attrition.</p>
+                            change the schedule, lower the tier, or convert it to an idea or Tier IV
+                            aspiration. A commitment that doesn't fit your life right now is worth
+                            understanding — maybe the timing is off, maybe the vision behind it shifted.
+                            Pause it, reclassify it, sit with it. The goal is alignment, not attrition.</p>
                     </div>
                 </li>
                 <li>
@@ -454,9 +492,9 @@
                     <div class="step-body">
                         <div class="step-title">Choose your skin</div>
                         <p>Open the hamburger menu (top right) and select a skin under Appearance.
-                        The BCR theme is the default — surveillance state, patriot scores, communist
-                        threat levels. If that's not your vibe, other themes offer the same
-                        functionality with completely different vocabulary and aesthetics.</p>
+                            The BCR theme is the default — surveillance state, patriot scores, communist
+                            threat levels. If that's not your vibe, other themes offer the same
+                            functionality with completely different vocabulary and aesthetics.</p>
                     </div>
                 </li>
             </ol>
@@ -502,4 +540,5 @@
     </footer>
 
 </body>
+
 </html>

@@ -1,5 +1,15 @@
-import {css, defineElement, html, listen} from 'element-vir';
-import type {AppState, AppView, ConsequenceTier, DialogueEntry, FormKind, Goal, Idea, Project, Task} from '../data/types.js';
+import { css, defineElement, html, listen } from "element-vir";
+import type {
+    AppState,
+    AppView,
+    ConsequenceTier,
+    DialogueEntry,
+    FormKind,
+    Goal,
+    Idea,
+    Area,
+    Task,
+} from "../data/types.js";
 import {
     generateId,
     getTodayString,
@@ -7,30 +17,47 @@ import {
     loadState,
     saveState,
     startOfDay,
-} from '../data/storage.js';
-import {advanceRecurrence, isMultiplePerPeriod, isRecurrenceEnded, rolloverIfNeeded} from '../data/recurrence.js';
-import {countActiveTasks, missPenalty, skipPenalty, snoozePenalty, streakDepthMultiplier, taskScaleMultiplier, tierCompletionReward} from '../data/scoring.js';
-import {isNextOccurrenceTomorrow} from '../data/urgency.js';
-import {computeRemediationOnComplete, computeRemediationOnSkip, computeRemediationOnSnooze} from '../data/remediation.js';
-import {getDialogueFor} from '../data/dialogues.js';
-import {setActiveSkin} from '../skins/active-skin.js';
-import {getSkinById, loadSkinId, saveSkinId} from '../skins/all-skins.js';
-import {AddTaskDialogElement} from './add-task-dialog.element.js';
-import {BureauBottomNavElement} from './bureau-bottom-nav.element.js';
-import {BureauHeaderElement} from './bureau-header.element.js';
-import {CharacterDialogueElement} from './character-dialogue.element.js';
-import {DailyViewElement} from './daily-view.element.js';
-import {DashboardViewElement} from './dashboard-view.element.js';
-import {InsightsViewElement} from './insights-view.element.js';
-import {IdeasViewElement} from './ideas-view.element.js';
-import {GoalDetailElement} from './goal-detail.element.js';
-import {GoalsViewElement} from './goals-view.element.js';
-import {ProjectDetailElement} from './project-detail.element.js';
+} from "../data/storage.js";
+import {
+    advanceRecurrence,
+    isMultiplePerPeriod,
+    isRecurrenceEnded,
+    rolloverIfNeeded,
+} from "../data/recurrence.js";
+import {
+    countActiveTasks,
+    missPenalty,
+    skipPenalty,
+    snoozePenalty,
+    streakDepthMultiplier,
+    taskScaleMultiplier,
+    tierCompletionReward,
+} from "../data/scoring.js";
+import { isNextOccurrenceTomorrow } from "../data/urgency.js";
+import {
+    computeRemediationOnComplete,
+    computeRemediationOnSkip,
+    computeRemediationOnSnooze,
+} from "../data/remediation.js";
+import { getDialogueFor } from "../data/dialogues.js";
+import { setActiveSkin } from "../skins/active-skin.js";
+import { getSkinById, loadSkinId, saveSkinId } from "../skins/all-skins.js";
+import { AddTaskDialogElement } from "./add-task-dialog.element.js";
+import { BureauBottomNavElement } from "./bureau-bottom-nav.element.js";
+import { BureauHeaderElement } from "./bureau-header.element.js";
+import { CharacterDialogueElement } from "./character-dialogue.element.js";
+import { DailyViewElement } from "./daily-view.element.js";
+import { DashboardViewElement } from "./dashboard-view.element.js";
+import { InsightsViewElement } from "./insights-view.element.js";
+import { IdeasViewElement } from "./ideas-view.element.js";
+import { GoalDetailElement } from "./goal-detail.element.js";
+import { GoalsViewElement } from "./goals-view.element.js";
+import { AreaDetailElement } from "./project-detail.element.js";
 
 // ─────────────────────────────────────────────────────────────────────────────
 // BureauAppElement — Root element. Owns all state.
 // All state changes flow through here. Children communicate via events up.
-// Phase 2: top-level routing is Daily / Operations / Project.
+// Phase 2: top-level routing is Daily / Area.
 // ─────────────────────────────────────────────────────────────────────────────
 
 function bootstrap(): AppState {
@@ -46,24 +73,28 @@ function bootstrap(): AppState {
     const multiplier = taskScaleMultiplier(activeCount);
     let scoreAdjustment = 0;
 
-    const tasks = loaded.tasks.map(t => {
+    const tasks = loaded.tasks.map((t) => {
         const rolled = rolloverIfNeeded(t, today);
 
         // Recurring: period rolled over without completion — charge a miss penalty.
         if (rolled.totalMisses > t.totalMisses) {
-            scoreAdjustment -= missPenalty(t.consequenceTier as ConsequenceTier)
-                * (rolled.totalMisses - t.totalMisses)
-                * multiplier;
+            scoreAdjustment -=
+                missPenalty(t.consequenceTier as ConsequenceTier) *
+                (rolled.totalMisses - t.totalMisses) *
+                multiplier;
         }
 
         // One-time hard-date tasks past their date can never be done — mark missed.
-        if (!rolled.recurrence
-            && rolled.completedAt === null
-            && rolled.missedAt === null
-            && rolled.windowType === 'hard'
-            && rolled.suggestedDate !== null
-            && rolled.suggestedDate < todayMidnight) {
-            scoreAdjustment -= missPenalty(t.consequenceTier as ConsequenceTier) * multiplier;
+        if (
+            !rolled.recurrence &&
+            rolled.completedAt === null &&
+            rolled.missedAt === null &&
+            rolled.windowType === "hard" &&
+            rolled.suggestedDate !== null &&
+            rolled.suggestedDate < todayMidnight
+        ) {
+            scoreAdjustment -=
+                missPenalty(t.consequenceTier as ConsequenceTier) * multiplier;
             return {
                 ...rolled,
                 missedAt: rolled.suggestedDate,
@@ -78,7 +109,7 @@ function bootstrap(): AppState {
     let dialogueQueue = loaded.dialogueQueue;
     let lastActiveDate = loaded.lastActiveDate;
     if (loaded.lastActiveDate !== todayStr) {
-        const dayLine = getDialogueFor('day_start', false);
+        const dayLine = getDialogueFor("day_start", false);
         const dayEntry: DialogueEntry = {
             id: generateId(),
             character: dayLine.character,
@@ -91,13 +122,19 @@ function bootstrap(): AppState {
     }
 
     const patriotScore = Math.max(0, loaded.patriotScore + scoreAdjustment);
-    const next: AppState = {...loaded, tasks, dialogueQueue, lastActiveDate, patriotScore};
+    const next: AppState = {
+        ...loaded,
+        tasks,
+        dialogueQueue,
+        lastActiveDate,
+        patriotScore,
+    };
     saveState(next);
     return next;
 }
 
 export const BureauAppElement = defineElement()({
-    tagName: 'bureau-app',
+    tagName: "bureau-app",
 
     styles: css`
         :host {
@@ -105,15 +142,25 @@ export const BureauAppElement = defineElement()({
             min-height: 100vh;
             background-color: var(--color-surface);
             background-image:
-                radial-gradient(ellipse at 0% 100%, rgba(184,134,11,0.03) 0%, transparent 60%),
-                radial-gradient(ellipse at 100% 0%, rgba(var(--color-danger-rgb),0.03) 0%, transparent 60%);
+                radial-gradient(
+                    ellipse at 0% 100%,
+                    rgba(184, 134, 11, 0.03) 0%,
+                    transparent 60%
+                ),
+                radial-gradient(
+                    ellipse at 100% 0%,
+                    rgba(var(--color-danger-rgb), 0.03) 0%,
+                    transparent 60%
+                );
         }
 
         .app-shell {
             max-width: 640px;
             margin: 0 auto;
             /* Leave room for the fixed bottom nav bar (64px) + safe area */
-            padding-bottom: calc(64px + max(16px, env(safe-area-inset-bottom, 0px)));
+            padding-bottom: calc(
+                64px + max(16px, env(safe-area-inset-bottom, 0px))
+            );
         }
 
         .empty-msg {
@@ -125,7 +172,9 @@ export const BureauAppElement = defineElement()({
 
         .undo-toast {
             position: fixed;
-            bottom: calc(64px + max(16px, env(safe-area-inset-bottom, 0px)) + 8px);
+            bottom: calc(
+                64px + max(16px, env(safe-area-inset-bottom, 0px)) + 8px
+            );
             left: 50%;
             transform: translateX(-50%);
             background: var(--color-primary);
@@ -144,8 +193,14 @@ export const BureauAppElement = defineElement()({
         }
 
         @keyframes toast-in {
-            from { opacity: 0; transform: translateX(-50%) translateY(8px); }
-            to   { opacity: 1; transform: translateX(-50%) translateY(0); }
+            from {
+                opacity: 0;
+                transform: translateX(-50%) translateY(8px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(-50%) translateY(0);
+            }
         }
 
         .undo-toast-label {
@@ -165,7 +220,9 @@ export const BureauAppElement = defineElement()({
             cursor: pointer;
             flex-shrink: 0;
         }
-        .undo-btn:hover { background: rgba(255,255,255,0.1); }
+        .undo-btn:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
     `,
 
     state: () => {
@@ -178,8 +235,8 @@ export const BureauAppElement = defineElement()({
             editingGoal: null as Goal | null,
             editingIdea: null as Idea | null,
             addingTask: false,
-            newTaskProjectId: null as string | null,
-            newTaskDefaultKind: 'task' as FormKind,
+            newTaskAreaId: null as string | null,
+            newTaskDefaultKind: "task" as FormKind,
             promotingIdea: null as Idea | null,
             spawningForGoalId: null as string | null,
             selectedGoalId: null as string | null,
@@ -193,33 +250,42 @@ export const BureauAppElement = defineElement()({
         };
     },
 
-    render({state, updateState}) {
+    render({ state, updateState }) {
         // `state.app` is a live reactive ref: updateState mutates it in place,
         // so reading state.app inside any handler always returns the latest
         // committed value. Don't snapshot it into a local — that would freeze
         // the value at render time and silently swallow updates between two
         // commits in the same handler.
-        const {view, selectedProjectId, dialogueQueue, patriotScore, completionStreak} =
-            state.app;
+        const {
+            view,
+            selectedAreaId,
+            dialogueQueue,
+            patriotScore,
+            completionStreak,
+        } = state.app;
 
-        const currentDialogue = dialogueQueue.find(d => !d.dismissed) ?? null;
-        const selectedProject = selectedProjectId
-            ? state.app.projects.find(p => p.id === selectedProjectId) ?? null
+        const currentDialogue = dialogueQueue.find((d) => !d.dismissed) ?? null;
+        const selectedArea = selectedAreaId
+            ? (state.app.areas.find((p) => p.id === selectedAreaId) ?? null)
             : null;
 
         const selectedGoal = state.selectedGoalId
-            ? state.app.goals.find(g => g.id === state.selectedGoalId) ?? null
+            ? (state.app.goals.find((g) => g.id === state.selectedGoalId) ??
+              null)
             : null;
 
         // ── State helpers ──────────────────────────────────────────────────────
 
         function commit(updates: Partial<AppState>): void {
-            const next = {...state.app, ...updates} as AppState;
+            const next = { ...state.app, ...updates } as AppState;
             saveState(next);
-            updateState({app: next});
+            updateState({ app: next });
         }
 
-        function pushDialogue(character: 'director' | 'agent', message: string): void {
+        function pushDialogue(
+            character: "director" | "agent",
+            message: string,
+        ): void {
             const queue = state.app.dialogueQueue;
             const last = queue[0];
             if (last && last.message === message) return;
@@ -231,8 +297,10 @@ export const BureauAppElement = defineElement()({
                 dismissed: false,
             };
             // A new memo replaces any existing visible one rather than stacking.
-            const clearedQueue = queue.map(d => d.dismissed ? d : {...d, dismissed: true});
-            commit({dialogueQueue: [entry, ...clearedQueue.slice(0, 9)]});
+            const clearedQueue = queue.map((d) =>
+                d.dismissed ? d : { ...d, dismissed: true },
+            );
+            commit({ dialogueQueue: [entry, ...clearedQueue.slice(0, 9)] });
         }
 
         function triggerDialogue(
@@ -247,11 +315,15 @@ export const BureauAppElement = defineElement()({
 
         const UNDO_TTL_MS = 3_000; // 3 seconds
 
-        function offerUndo(prevTask: Task, prevScore: number, label: string): void {
+        function offerUndo(
+            prevTask: Task,
+            prevScore: number,
+            label: string,
+        ): void {
             // Cancel any existing undo timer.
             if (state.undoAction) clearTimeout(state.undoAction.timerId);
             const timerId = setTimeout(
-                () => updateState({undoAction: null}),
+                () => updateState({ undoAction: null }),
                 UNDO_TTL_MS,
             );
             updateState({
@@ -268,26 +340,29 @@ export const BureauAppElement = defineElement()({
         function onUndo(): void {
             if (!state.undoAction) return;
             clearTimeout(state.undoAction.timerId);
-            const {prevTask, prevScore} = state.undoAction;
-            const tasks = state.app.tasks.map(t =>
+            const { prevTask, prevScore } = state.undoAction;
+            const tasks = state.app.tasks.map((t) =>
                 t.id === prevTask.id ? prevTask : t,
             );
-            commit({tasks, patriotScore: prevScore});
-            updateState({undoAction: null});
+            commit({ tasks, patriotScore: prevScore });
+            updateState({ undoAction: null });
         }
 
         // ── Event handlers ─────────────────────────────────────────────────────
 
         function onTaskCompleted(taskId: string): void {
-            const target = state.app.tasks.find(t => t.id === taskId);
+            const target = state.app.tasks.find((t) => t.id === taskId);
             if (!target) return;
 
             const now = new Date();
-            const tasks = state.app.tasks.map(t => {
+            const tasks = state.app.tasks.map((t) => {
                 if (t.id !== taskId) return t;
 
                 const newTotalCompletions = t.totalCompletions + 1;
-                const withCount = {...t, totalCompletions: newTotalCompletions};
+                const withCount = {
+                    ...t,
+                    totalCompletions: newTotalCompletions,
+                };
 
                 // Compute remediation state from the current skip/snooze streak.
                 const remediation = computeRemediationOnComplete(
@@ -315,20 +390,28 @@ export const BureauAppElement = defineElement()({
                 // The urgency engine treats count >= target as "complete for
                 // this period," so the task hides correctly until rollover.
                 if (isMultiplePerPeriod(t)) {
-                    const isFullPeriodComplete = t.completionsThisPeriod + 1 >= t.recurrence!.frequencyPerPeriod;
-                    const newStreak = isFullPeriodComplete ? t.taskCompletionStreak + 1 : t.taskCompletionStreak;
+                    const isFullPeriodComplete =
+                        t.completionsThisPeriod + 1 >=
+                        t.recurrence!.frequencyPerPeriod;
+                    const newStreak = isFullPeriodComplete
+                        ? t.taskCompletionStreak + 1
+                        : t.taskCompletionStreak;
                     return {
                         ...withCount,
                         completionsThisPeriod: t.completionsThisPeriod + 1,
                         snoozedUntil: null,
                         taskCompletionStreak: newStreak,
-                        maxTaskCompletionStreak: Math.max(t.maxTaskCompletionStreak, newStreak),
+                        maxTaskCompletionStreak: Math.max(
+                            t.maxTaskCompletionStreak,
+                            newStreak,
+                        ),
                         ...(isFullPeriodComplete
                             ? {
-                                skipStreak: remediation.skipStreak,
-                                snoozeCount: remediation.snoozeCount,
-                                remediationCount: remediation.remediationCount,
-                            }
+                                  skipStreak: remediation.skipStreak,
+                                  snoozeCount: remediation.snoozeCount,
+                                  remediationCount:
+                                      remediation.remediationCount,
+                              }
                             : {}),
                     };
                 }
@@ -339,7 +422,10 @@ export const BureauAppElement = defineElement()({
                     return {
                         ...advanceRecurrence(withCount, now),
                         taskCompletionStreak: newStreak,
-                        maxTaskCompletionStreak: Math.max(t.maxTaskCompletionStreak, newStreak),
+                        maxTaskCompletionStreak: Math.max(
+                            t.maxTaskCompletionStreak,
+                            newStreak,
+                        ),
                         skipStreak: remediation.skipStreak,
                         snoozeCount: remediation.snoozeCount,
                         remediationCount: remediation.remediationCount,
@@ -355,38 +441,48 @@ export const BureauAppElement = defineElement()({
                     skipStreak: remediation.skipStreak,
                     remediationCount: remediation.remediationCount,
                     taskCompletionStreak: t.taskCompletionStreak + 1,
-                    maxTaskCompletionStreak: Math.max(t.maxTaskCompletionStreak, t.taskCompletionStreak + 1),
+                    maxTaskCompletionStreak: Math.max(
+                        t.maxTaskCompletionStreak,
+                        t.taskCompletionStreak + 1,
+                    ),
                 };
             });
 
             const tier = (target.consequenceTier ?? 3) as ConsequenceTier;
             const active = countActiveTasks(state.app.tasks);
-            const reward = tierCompletionReward(tier) * taskScaleMultiplier(active);
+            const reward =
+                tierCompletionReward(tier) * taskScaleMultiplier(active);
             const prevScore = state.app.patriotScore;
             const newScore = Math.min(200, prevScore + reward);
             const newStreak = state.app.completionStreak + 1;
 
-            commit({tasks, patriotScore: newScore, completionStreak: newStreak});
+            commit({
+                tasks,
+                patriotScore: newScore,
+                completionStreak: newStreak,
+            });
 
             const preferDirector = Math.random() < 0.25;
-            triggerDialogue('task_completed', preferDirector);
+            triggerDialogue("task_completed", preferDirector);
 
             if (newStreak > 0 && newStreak % 5 === 0) {
-                setTimeout(() => triggerDialogue('streak'), 400);
+                setTimeout(() => triggerDialogue("streak"), 400);
             }
             if (newScore >= 150 && prevScore < 150) {
-                setTimeout(() => triggerDialogue('score_high'), 800);
+                setTimeout(() => triggerDialogue("score_high"), 800);
             }
         }
 
         function onTaskSnoozed(taskId: string): void {
-            const task = state.app.tasks.find(t => t.id === taskId);
+            const task = state.app.tasks.find((t) => t.id === taskId);
             if (!task) return;
 
             // Daily routines cannot be snoozed.
-            if (task.kind === 'routine'
-                && (task.recurrence?.cadence === 'daily'
-                    || task.recurrence?.cadence === 'multiple_per_day')) {
+            if (
+                task.kind === "routine" &&
+                (task.recurrence?.cadence === "daily" ||
+                    task.recurrence?.cadence === "multiple_per_day")
+            ) {
                 return;
             }
 
@@ -398,9 +494,11 @@ export const BureauAppElement = defineElement()({
             if (isNextOccurrenceTomorrow(task)) return;
 
             // Hard-date tasks: cannot snooze past the date.
-            if (task.windowType === 'hard'
-                && task.suggestedDate !== null
-                && task.suggestedDate <= Date.now()) {
+            if (
+                task.windowType === "hard" &&
+                task.suggestedDate !== null &&
+                task.suggestedDate <= Date.now()
+            ) {
                 return;
             }
 
@@ -410,34 +508,39 @@ export const BureauAppElement = defineElement()({
             );
             const newSnoozeCount = snoozeRemediation.snoozeCount;
             let snoozedUntil = Date.now() + 24 * 60 * 60 * 1000;
-            if (task.windowType === 'hard' && task.suggestedDate !== null) {
+            if (task.windowType === "hard" && task.suggestedDate !== null) {
                 snoozedUntil = Math.min(snoozedUntil, task.suggestedDate);
             }
 
             const tier = task.consequenceTier as ConsequenceTier;
             const active = countActiveTasks(state.app.tasks);
             const rawPenalty = Math.min(
-                snoozePenalty(tier) * newSnoozeCount * streakDepthMultiplier(newSnoozeCount),
+                snoozePenalty(tier) *
+                    newSnoozeCount *
+                    streakDepthMultiplier(newSnoozeCount),
                 30,
             );
             // Floor at 1 so a snooze always produces a visible score change,
             // even when taskScaleMultiplier is tiny (many tasks).
-            const penalty = Math.max(1, rawPenalty * taskScaleMultiplier(active));
+            const penalty = Math.max(
+                1,
+                rawPenalty * taskScaleMultiplier(active),
+            );
             const prevScore = state.app.patriotScore;
             const newScore = Math.max(0, prevScore - penalty);
 
-            const tasks = state.app.tasks.map(t =>
+            const tasks = state.app.tasks.map((t) =>
                 t.id === taskId
                     ? {
-                        ...t,
-                        snoozeCount: newSnoozeCount,
-                        snoozedUntil,
-                        totalSnoozes: t.totalSnoozes + 1,
-                        remediationCount: snoozeRemediation.remediationCount,
-                    }
+                          ...t,
+                          snoozeCount: newSnoozeCount,
+                          snoozedUntil,
+                          totalSnoozes: t.totalSnoozes + 1,
+                          remediationCount: snoozeRemediation.remediationCount,
+                      }
                     : t,
             );
-            commit({tasks, patriotScore: newScore});
+            commit({ tasks, patriotScore: newScore });
             offerUndo(task, prevScore, `Snoozed "${task.title}"`);
 
             // Tier-aware dialogue escalation: tier 1 escalates faster.
@@ -447,48 +550,55 @@ export const BureauAppElement = defineElement()({
             }
 
             if (newScore < 40 && prevScore >= 40) {
-                setTimeout(() => triggerDialogue('score_low', true), 600);
+                setTimeout(() => triggerDialogue("score_low", true), 600);
             }
         }
 
         function onTaskUnSnoozed(taskId: string): void {
-            const tasks = state.app.tasks.map(t =>
-                t.id === taskId ? {...t, snoozedUntil: null} : t,
+            const tasks = state.app.tasks.map((t) =>
+                t.id === taskId ? { ...t, snoozedUntil: null } : t,
             );
-            commit({tasks});
+            commit({ tasks });
         }
 
         function onTaskProgressLogged(taskId: string): void {
-            const target = state.app.tasks.find(t => t.id === taskId);
+            const target = state.app.tasks.find((t) => t.id === taskId);
             if (!target) return;
             const now = Date.now();
-            const tasks = state.app.tasks.map(t =>
+            const tasks = state.app.tasks.map((t) =>
                 t.id === taskId
                     ? {
-                        ...t,
-                        progressCount: t.progressCount + 1,
-                        // Record when progress was logged so the urgency engine can
-                        // hide the milestone for the rest of today (see step2Milestone).
-                        lastProgressAt: now,
-                        snoozedUntil: null,
+                          ...t,
+                          progressCount: t.progressCount + 1,
+                          // Record when progress was logged so the urgency engine can
+                          // hide the milestone for the rest of today (see step2Milestone).
+                          lastProgressAt: now,
+                          snoozedUntil: null,
                       }
                     : t,
             );
             const active = countActiveTasks(state.app.tasks);
-            const reward = tierCompletionReward(target.consequenceTier as ConsequenceTier)
-                * taskScaleMultiplier(active) / 4;
+            const reward =
+                (tierCompletionReward(
+                    target.consequenceTier as ConsequenceTier,
+                ) *
+                    taskScaleMultiplier(active)) /
+                4;
             const newScore = Math.min(200, state.app.patriotScore + reward);
-            commit({tasks, patriotScore: newScore});
+            commit({ tasks, patriotScore: newScore });
         }
 
         function onTaskSkipped(taskId: string): void {
-            const target = state.app.tasks.find(t => t.id === taskId);
+            const target = state.app.tasks.find((t) => t.id === taskId);
             if (!target || !target.recurrence) return;
 
             const now = new Date();
-            const tasks = state.app.tasks.map(t => {
+            const tasks = state.app.tasks.map((t) => {
                 if (t.id !== taskId || !t.recurrence) return t;
-                const skipRemediation = computeRemediationOnSkip(t.skipStreak, t.remediationCount);
+                const skipRemediation = computeRemediationOnSkip(
+                    t.skipStreak,
+                    t.remediationCount,
+                );
                 const advanced = advanceRecurrence(t, now);
                 return {
                     ...advanced,
@@ -501,193 +611,288 @@ export const BureauAppElement = defineElement()({
 
             const tier = target.consequenceTier as ConsequenceTier;
             const active = countActiveTasks(state.app.tasks);
-            const newSkipStreak = tasks.find(t => t.id === taskId)?.skipStreak ?? 1;
+            const newSkipStreak =
+                tasks.find((t) => t.id === taskId)?.skipStreak ?? 1;
             // Floor at 1 so a skip always produces a visible score change,
             // even when taskScaleMultiplier is tiny (many tasks).
             const penalty = Math.max(
                 1,
-                skipPenalty(tier) * streakDepthMultiplier(newSkipStreak) * taskScaleMultiplier(active),
+                skipPenalty(tier) *
+                    streakDepthMultiplier(newSkipStreak) *
+                    taskScaleMultiplier(active),
             );
             const prevScore = state.app.patriotScore;
             const newScore = Math.max(0, prevScore - penalty);
 
-            commit({tasks, patriotScore: newScore});
+            commit({ tasks, patriotScore: newScore });
             offerUndo(target, prevScore, `Skipped "${target.title}"`);
             // Skip is intentionally silent — no character dialogue fires.
             // The skip-indicator badge on the card provides the feedback.
 
             if (newScore < 40 && prevScore >= 40) {
-                setTimeout(() => triggerDialogue('score_low', true), 600);
+                setTimeout(() => triggerDialogue("score_low", true), 600);
             }
         }
 
         function onTaskAdded(task: Task): void {
             const ideas = state.promotingIdea
-                ? state.app.ideas.filter(i => i.id !== state.promotingIdea!.id)
+                ? state.app.ideas.filter(
+                      (i) => i.id !== state.promotingIdea!.id,
+                  )
                 : state.app.ideas;
-            commit({tasks: [...state.app.tasks, task], ideas});
-            updateState({addingTask: false, newTaskProjectId: null, promotingIdea: null, spawningForGoalId: null});
+            commit({ tasks: [...state.app.tasks, task], ideas });
+            updateState({
+                addingTask: false,
+                newTaskAreaId: null,
+                promotingIdea: null,
+                spawningForGoalId: null,
+            });
             if (Math.random() < 0.6) {
-                triggerDialogue('task_added', false);
+                triggerDialogue("task_added", false);
             }
         }
 
-        function onTaskGoalLinked({taskId, goalId}: {taskId: string; goalId: string}): void {
-            onGoalTaskLinked({goalId, taskId});
+        function onTaskGoalLinked({
+            taskId,
+            goalId,
+        }: {
+            taskId: string;
+            goalId: string;
+        }): void {
+            onGoalTaskLinked({ goalId, taskId });
         }
 
-        function onProjectAdded(project: Project): void {
-            commit({projects: [...state.app.projects, project]});
+        function onAreaAdded(area: Area): void {
+            commit({ areas: [...state.app.areas, area] });
         }
 
-        function onProjectDeleted(projectId: string): void {
-            const projects = state.app.projects.filter(p => p.id !== projectId);
-            const tasks    = state.app.tasks.filter(t => t.projectId !== projectId);
-            const goals    = state.app.goals.filter(g => g.projectId !== projectId);
-            const ideas    = state.app.ideas.filter(i => i.projectId !== projectId);
-            commit({projects, tasks, goals, ideas, view: 'operations', selectedProjectId: null});
+        function onAreaDeleted(areaId: string): void {
+            const areas = state.app.areas.filter((p) => p.id !== areaId);
+            const tasks = state.app.tasks.filter((t) => t.areaId !== areaId);
+            const goals = state.app.goals.filter((g) => g.areaId !== areaId);
+            const ideas = state.app.ideas.filter((i) => i.areaId !== areaId);
+            commit({
+                areas,
+                tasks,
+                goals,
+                ideas,
+                view: "areas",
+                selectedAreaId: null,
+            });
         }
 
-        function onProjectUpdated(project: Project): void {
-            const projects = state.app.projects.map(p => p.id === project.id ? project : p);
-            commit({projects});
+        function onAreaUpdated(area: Area): void {
+            const areas = state.app.areas.map((p) =>
+                p.id === area.id ? area : p,
+            );
+            commit({ areas });
         }
 
         function onTaskDeleted(taskId: string): void {
-            const tasks = state.app.tasks.filter(t => t.id !== taskId);
-            commit({tasks});
-            updateState({editingTask: null});
+            const tasks = state.app.tasks.filter((t) => t.id !== taskId);
+            commit({ tasks });
+            updateState({ editingTask: null });
         }
 
         function onMissedTaskRevived(taskId: string): void {
             const todayMs = startOfDay(new Date()).getTime();
-            const tasks = state.app.tasks.map(t => {
+            const tasks = state.app.tasks.map((t) => {
                 if (t.id !== taskId) return t;
                 // Clear missed status; if suggestedDate is in the past, reset to
                 // today so the task surfaces in the mandatory band immediately.
-                const suggestedDate = (t.suggestedDate !== null && t.suggestedDate < todayMs)
-                    ? todayMs
-                    : t.suggestedDate;
-                return {...t, missedAt: null, suggestedDate};
+                const suggestedDate =
+                    t.suggestedDate !== null && t.suggestedDate < todayMs
+                        ? todayMs
+                        : t.suggestedDate;
+                return { ...t, missedAt: null, suggestedDate };
             });
-            commit({tasks});
+            commit({ tasks });
         }
 
-        function onOperationCreated(project: Project, routines: ReadonlyArray<Task>): void {
+        function onAreaCreated(
+            area: Area,
+            routines: ReadonlyArray<Task>,
+        ): void {
             commit({
-                projects: [...state.app.projects, project],
-                tasks:    [...state.app.tasks, ...routines],
+                areas: [...state.app.areas, area],
+                tasks: [...state.app.tasks, ...routines],
             });
-            triggerDialogue('task_added', false);
+            triggerDialogue("task_added", false);
         }
 
         function onTaskEditRequested(taskId: string): void {
-            const task = state.app.tasks.find(t => t.id === taskId) ?? null;
-            updateState({editingTask: task});
+            const task = state.app.tasks.find((t) => t.id === taskId) ?? null;
+            updateState({ editingTask: task });
         }
 
-        function onNewTaskRequested(projectId: string | null, kind: FormKind = 'task'): void {
-            updateState({addingTask: true, newTaskProjectId: projectId, editingTask: null, newTaskDefaultKind: kind});
+        function onNewTaskRequested(
+            areaId: string | null,
+            kind: FormKind = "task",
+        ): void {
+            updateState({
+                addingTask: true,
+                newTaskAreaId: areaId,
+                editingTask: null,
+                newTaskDefaultKind: kind,
+            });
         }
 
         function onGoalSubmitted(goal: Goal): void {
-            commit({goals: [...state.app.goals, goal]});
-            updateState({addingTask: false, newTaskProjectId: null});
+            commit({ goals: [...state.app.goals, goal] });
+            updateState({ addingTask: false, newTaskAreaId: null });
         }
 
         function onIdeaSubmitted(idea: Idea): void {
-            commit({ideas: [...state.app.ideas, idea]});
-            updateState({addingTask: false, newTaskProjectId: null, spawningForGoalId: null});
+            commit({ ideas: [...state.app.ideas, idea] });
+            updateState({
+                addingTask: false,
+                newTaskAreaId: null,
+                spawningForGoalId: null,
+            });
         }
 
-        function onProjectsReordered(orderedIds: ReadonlyArray<string>): void {
+        function onAreasReordered(orderedIds: ReadonlyArray<string>): void {
             const orderedSet = new Set(orderedIds);
-            const orderedProjects = orderedIds
-                .map(id => state.app.projects.find(p => p.id === id))
-                .filter((p): p is Project => p !== undefined);
+            const orderedAreas = orderedIds
+                .map((id) => state.app.areas.find((p) => p.id === id))
+                .filter((p): p is Area => p !== undefined);
             let idx = 0;
-            const newProjects = state.app.projects.map(p =>
-                orderedSet.has(p.id) ? orderedProjects[idx++]! : p,
+            const newAreas = state.app.areas.map((p) =>
+                orderedSet.has(p.id) ? orderedAreas[idx++]! : p,
             );
-            commit({projects: newProjects});
+            commit({ areas: newAreas });
         }
 
         function onIdeaUpdated(idea: Idea): void {
-            commit({ideas: state.app.ideas.map(i => i.id === idea.id ? idea : i)});
-            updateState({editingIdea: null});
+            commit({
+                ideas: state.app.ideas.map((i) =>
+                    i.id === idea.id ? idea : i,
+                ),
+            });
+            updateState({ editingIdea: null });
         }
 
         function onIdeaDeleted(id: string): void {
-            commit({ideas: state.app.ideas.filter(i => i.id !== id)});
-            updateState({editingIdea: null});
+            commit({ ideas: state.app.ideas.filter((i) => i.id !== id) });
+            updateState({ editingIdea: null });
         }
 
         function onIdeaUnlinkFromGoal(ideaId: string): void {
-            commit({ideas: state.app.ideas.map(i => i.id === ideaId ? {...i, goalId: null} : i)});
+            commit({
+                ideas: state.app.ideas.map((i) =>
+                    i.id === ideaId ? { ...i, goalId: null } : i,
+                ),
+            });
         }
 
         function onGoalUpdated(goal: Goal): void {
-            commit({goals: state.app.goals.map(g => g.id === goal.id ? goal : g)});
-            updateState({editingGoal: null});
+            commit({
+                goals: state.app.goals.map((g) =>
+                    g.id === goal.id ? goal : g,
+                ),
+            });
+            updateState({ editingGoal: null });
         }
 
         function onGoalDeleted(id: string): void {
-            commit({goals: state.app.goals.filter(g => g.id !== id)});
-            updateState({editingGoal: null});
+            commit({ goals: state.app.goals.filter((g) => g.id !== id) });
+            updateState({ editingGoal: null });
         }
 
         function onGoalEditRequested(goal: Goal): void {
-            updateState({editingGoal: goal, editingTask: null, addingTask: false, editingIdea: null});
+            updateState({
+                editingGoal: goal,
+                editingTask: null,
+                addingTask: false,
+                editingIdea: null,
+            });
         }
 
         function onIdeaEditRequested(idea: Idea): void {
-            updateState({editingIdea: idea, editingTask: null, addingTask: false, editingGoal: null});
+            updateState({
+                editingIdea: idea,
+                editingTask: null,
+                addingTask: false,
+                editingGoal: null,
+            });
         }
 
-        function onLinkedGoalChanged({taskId, oldGoalId, newGoalId}: {taskId: string; oldGoalId: string|null; newGoalId: string|null}): void {
+        function onLinkedGoalChanged({
+            taskId,
+            oldGoalId,
+            newGoalId,
+        }: {
+            taskId: string;
+            oldGoalId: string | null;
+            newGoalId: string | null;
+        }): void {
             let goals = state.app.goals;
             if (oldGoalId) {
-                goals = goals.map(g =>
+                goals = goals.map((g) =>
                     g.id === oldGoalId
-                        ? {...g, linkedTaskIds: g.linkedTaskIds.filter(id => id !== taskId)}
+                        ? {
+                              ...g,
+                              linkedTaskIds: g.linkedTaskIds.filter(
+                                  (id) => id !== taskId,
+                              ),
+                          }
                         : g,
                 );
             }
             if (newGoalId) {
-                goals = goals.map(g =>
+                goals = goals.map((g) =>
                     g.id === newGoalId && !g.linkedTaskIds.includes(taskId)
-                        ? {...g, linkedTaskIds: [...g.linkedTaskIds, taskId]}
+                        ? { ...g, linkedTaskIds: [...g.linkedTaskIds, taskId] }
                         : g,
                 );
             }
-            commit({goals});
+            commit({ goals });
         }
 
-        function onUnlinkRequested({goalId, taskId}: {goalId: string; taskId: string}): void {
+        function onUnlinkRequested({
+            goalId,
+            taskId,
+        }: {
+            goalId: string;
+            taskId: string;
+        }): void {
             commit({
-                goals: state.app.goals.map(g =>
+                goals: state.app.goals.map((g) =>
                     g.id === goalId
-                        ? {...g, linkedTaskIds: g.linkedTaskIds.filter(id => id !== taskId)}
+                        ? {
+                              ...g,
+                              linkedTaskIds: g.linkedTaskIds.filter(
+                                  (id) => id !== taskId,
+                              ),
+                          }
                         : g,
                 ),
             });
         }
 
-        function onGoalTaskLinked({goalId, taskId}: {goalId: string; taskId: string}): void {
+        function onGoalTaskLinked({
+            goalId,
+            taskId,
+        }: {
+            goalId: string;
+            taskId: string;
+        }): void {
             commit({
-                goals: state.app.goals.map(g =>
+                goals: state.app.goals.map((g) =>
                     g.id === goalId
-                        ? {...g, linkedTaskIds: [...g.linkedTaskIds, taskId]}
+                        ? { ...g, linkedTaskIds: [...g.linkedTaskIds, taskId] }
                         : g,
                 ),
             });
         }
 
         function onGoalDetailMakeCommitment(kind: FormKind): void {
-            const goal = state.app.goals.find(g => g.id === state.selectedGoalId) ?? null;
+            const goal =
+                state.app.goals.find((g) => g.id === state.selectedGoalId) ??
+                null;
             updateState({
                 addingTask: true,
-                newTaskProjectId: goal?.projectId ?? null,
+                newTaskAreaId: goal?.areaId ?? null,
                 editingTask: null,
                 newTaskDefaultKind: kind,
                 spawningForGoalId: state.selectedGoalId,
@@ -695,14 +900,14 @@ export const BureauAppElement = defineElement()({
         }
 
         function onGoalSelected(goalId: string): void {
-            updateState({selectedGoalId: goalId});
+            updateState({ selectedGoalId: goalId });
         }
 
         function onPromoteRequested(idea: Idea): void {
             updateState({
                 promotingIdea: idea,
                 addingTask: true,
-                newTaskProjectId: idea.projectId,
+                newTaskAreaId: idea.areaId,
                 editingTask: null,
                 // Pre-fill the linked objective if the idea had one
                 spawningForGoalId: idea.goalId ?? null,
@@ -712,52 +917,59 @@ export const BureauAppElement = defineElement()({
         function onTasksReordered(orderedIds: ReadonlyArray<string>): void {
             const orderedSet = new Set(orderedIds);
             const orderedTasks = orderedIds
-                .map(id => state.app.tasks.find(t => t.id === id))
+                .map((id) => state.app.tasks.find((t) => t.id === id))
                 .filter((t): t is Task => t !== undefined);
             let idx = 0;
-            const newTasks = state.app.tasks.map(t =>
+            const newTasks = state.app.tasks.map((t) =>
                 orderedSet.has(t.id) ? orderedTasks[idx++]! : t,
             );
-            commit({tasks: newTasks});
+            commit({ tasks: newTasks });
         }
 
         function onTaskUpdated(task: Task): void {
-            const tasks = state.app.tasks.map(t => t.id === task.id ? task : t);
-            commit({tasks});
-            updateState({editingTask: null});
+            const tasks = state.app.tasks.map((t) =>
+                t.id === task.id ? task : t,
+            );
+            commit({ tasks });
+            updateState({ editingTask: null });
         }
 
-        function onProjectSelected(projectId: string): void {
-            const projectTasks = state.app.tasks.filter(t => t.projectId === projectId);
-            const overdue = projectTasks.filter(t => isTaskOverdue(t));
-            commit({view: 'project', selectedProjectId: projectId});
+        function onAreaSelected(areaId: string): void {
+            const areaTasks = state.app.tasks.filter(
+                (t) => t.areaId === areaId,
+            );
+            const overdue = areaTasks.filter((t) => isTaskOverdue(t));
+            commit({ view: "area", selectedAreaId: areaId });
             if (overdue.length > 0) {
                 const preferDirector = overdue.length >= 3;
-                setTimeout(() => triggerDialogue('task_overdue', preferDirector), 300);
+                setTimeout(
+                    () => triggerDialogue("task_overdue", preferDirector),
+                    300,
+                );
             }
         }
 
         function setView(next: AppView): void {
-            commit({view: next, selectedProjectId: null});
+            commit({ view: next, selectedAreaId: null });
             // Clear any sub-detail state so the target view shows its top level.
-            updateState({selectedGoalId: null});
+            updateState({ selectedGoalId: null });
         }
 
         function onBack(): void {
             if (state.selectedGoalId !== null) {
-                updateState({selectedGoalId: null});
+                updateState({ selectedGoalId: null });
             } else {
-                commit({view: 'operations', selectedProjectId: null});
+                commit({ view: "areas", selectedAreaId: null });
             }
         }
 
         function onDismissDialogue(): void {
-            const target = state.app.dialogueQueue.find(d => !d.dismissed);
+            const target = state.app.dialogueQueue.find((d) => !d.dismissed);
             if (!target) return;
-            const dialogueQueue = state.app.dialogueQueue.map(d =>
-                d.id === target.id ? {...d, dismissed: true} : d,
+            const dialogueQueue = state.app.dialogueQueue.map((d) =>
+                d.id === target.id ? { ...d, dismissed: true } : d,
             );
-            commit({dialogueQueue});
+            commit({ dialogueQueue });
         }
 
         // ── Render ─────────────────────────────────────────────────────────────
@@ -767,272 +979,433 @@ export const BureauAppElement = defineElement()({
                 <${BureauHeaderElement.assign({
                     patriotScore,
                     streak: completionStreak,
-                    onBack: (view === 'project' || state.selectedGoalId !== null) ? onBack : null,
-                    projectName: selectedGoal?.title ?? selectedProject?.name ?? null,
+                    onBack:
+                        view === "area" || state.selectedGoalId !== null
+                            ? onBack
+                            : null,
+                    areaName: selectedGoal?.title ?? selectedArea?.name ?? null,
                     activeSkinId: state.activeSkinId,
                 })}
-                    ${listen(BureauHeaderElement.events.insightsRequested,
-                        () => setView('insights'))}
-                    ${listen(BureauHeaderElement.events.skinChangeRequested, e => {
-                        const newSkin = getSkinById(e.detail);
-                        setActiveSkin(newSkin);
-                        saveSkinId(e.detail);
-                        // Clear any un-dismissed dialogues — their text was resolved
-                        // against the old skin and would show the wrong vocabulary.
-                        const clearedQueue = state.app.dialogueQueue.map(d =>
-                            d.dismissed ? d : {...d, dismissed: true},
-                        );
-                        commit({dialogueQueue: clearedQueue});
-                        updateState({activeSkinId: e.detail});
-                    })}
+                    ${listen(BureauHeaderElement.events.insightsRequested, () =>
+                        setView("insights"),
+                    )}
+                    ${listen(
+                        BureauHeaderElement.events.skinChangeRequested,
+                        (e) => {
+                            const newSkin = getSkinById(e.detail);
+                            setActiveSkin(newSkin);
+                            saveSkinId(e.detail);
+                            // Clear any un-dismissed dialogues — their text was resolved
+                            // against the old skin and would show the wrong vocabulary.
+                            const clearedQueue = state.app.dialogueQueue.map(
+                                (d) =>
+                                    d.dismissed ? d : { ...d, dismissed: true },
+                            );
+                            commit({ dialogueQueue: clearedQueue });
+                            updateState({ activeSkinId: e.detail });
+                        },
+                    )}
                 ></${BureauHeaderElement}>
 
-                ${currentDialogue
-                    ? html`
-                        <${CharacterDialogueElement.assign({dialogue: currentDialogue})}
+                ${
+                    currentDialogue
+                        ? html`
+                        <${CharacterDialogueElement.assign({ dialogue: currentDialogue })}
                             ${listen(CharacterDialogueElement.events.dismissed, onDismissDialogue)}
                         ></${CharacterDialogueElement}>
                       `
-                    : html``}
+                        : html``
+                }
 
-                ${selectedGoal !== null
-                    ? html`
+                ${
+                    selectedGoal !== null
+                        ? html`
                         <${GoalDetailElement.assign({
                             goal: selectedGoal,
                             tasks: state.app.tasks,
-                            projects: state.app.projects,
+                            areas: state.app.areas,
                             ideas: state.app.ideas,
                             activeSkinId: state.activeSkinId,
                         })}
-                            ${listen(GoalDetailElement.events.goalUpdated, e =>
-                                onGoalUpdated(e.detail))}
-                            ${listen(GoalDetailElement.events.goalEditRequested, e =>
-                                onGoalEditRequested(e.detail))}
-                            ${listen(GoalDetailElement.events.goalDeleted, e => {
-                                onGoalDeleted(e.detail);
-                                updateState({selectedGoalId: null});
-                            })}
-                            ${listen(GoalDetailElement.events.taskCompleted, e =>
-                                onTaskCompleted(e.detail))}
-                            ${listen(GoalDetailElement.events.taskSnoozed, e =>
-                                onTaskSnoozed(e.detail))}
-                            ${listen(GoalDetailElement.events.taskUnSnoozed, e =>
-                                onTaskUnSnoozed(e.detail))}
-                            ${listen(GoalDetailElement.events.taskSkipped, e =>
-                                onTaskSkipped(e.detail))}
-                            ${listen(GoalDetailElement.events.taskProgressLogged, e =>
-                                onTaskProgressLogged(e.detail))}
-                            ${listen(GoalDetailElement.events.taskEditRequested, e =>
-                                onTaskEditRequested(e.detail))}
-                            ${listen(GoalDetailElement.events.makeCommitmentRequested, e =>
-                                onGoalDetailMakeCommitment(e.detail))}
-                            ${listen(GoalDetailElement.events.taskUnlinked, e =>
-                                onUnlinkRequested(e.detail))}
-                            ${listen(GoalDetailElement.events.taskLinked, e =>
-                                onGoalTaskLinked(e.detail))}
-                            ${listen(GoalDetailElement.events.ideaUpdated, e =>
-                                onIdeaUpdated(e.detail))}
-                            ${listen(GoalDetailElement.events.ideaDeleted, e =>
-                                onIdeaDeleted(e.detail))}
-                            ${listen(GoalDetailElement.events.ideaEditRequested, e =>
-                                onIdeaEditRequested(e.detail))}
-                            ${listen(GoalDetailElement.events.ideaPromoteRequested, e =>
-                                onPromoteRequested(e.detail))}
+                            ${listen(
+                                GoalDetailElement.events.goalUpdated,
+                                (e) => onGoalUpdated(e.detail),
+                            )}
+                            ${listen(
+                                GoalDetailElement.events.goalEditRequested,
+                                (e) => onGoalEditRequested(e.detail),
+                            )}
+                            ${listen(
+                                GoalDetailElement.events.goalDeleted,
+                                (e) => {
+                                    onGoalDeleted(e.detail);
+                                    updateState({ selectedGoalId: null });
+                                },
+                            )}
+                            ${listen(
+                                GoalDetailElement.events.taskCompleted,
+                                (e) => onTaskCompleted(e.detail),
+                            )}
+                            ${listen(
+                                GoalDetailElement.events.taskSnoozed,
+                                (e) => onTaskSnoozed(e.detail),
+                            )}
+                            ${listen(
+                                GoalDetailElement.events.taskUnSnoozed,
+                                (e) => onTaskUnSnoozed(e.detail),
+                            )}
+                            ${listen(
+                                GoalDetailElement.events.taskSkipped,
+                                (e) => onTaskSkipped(e.detail),
+                            )}
+                            ${listen(
+                                GoalDetailElement.events.taskProgressLogged,
+                                (e) => onTaskProgressLogged(e.detail),
+                            )}
+                            ${listen(
+                                GoalDetailElement.events.taskEditRequested,
+                                (e) => onTaskEditRequested(e.detail),
+                            )}
+                            ${listen(
+                                GoalDetailElement.events
+                                    .makeCommitmentRequested,
+                                (e) => onGoalDetailMakeCommitment(e.detail),
+                            )}
+                            ${listen(
+                                GoalDetailElement.events.taskUnlinked,
+                                (e) => onUnlinkRequested(e.detail),
+                            )}
+                            ${listen(GoalDetailElement.events.taskLinked, (e) =>
+                                onGoalTaskLinked(e.detail),
+                            )}
+                            ${listen(
+                                GoalDetailElement.events.ideaUpdated,
+                                (e) => onIdeaUpdated(e.detail),
+                            )}
+                            ${listen(
+                                GoalDetailElement.events.ideaDeleted,
+                                (e) => onIdeaDeleted(e.detail),
+                            )}
+                            ${listen(
+                                GoalDetailElement.events.ideaEditRequested,
+                                (e) => onIdeaEditRequested(e.detail),
+                            )}
+                            ${listen(
+                                GoalDetailElement.events.ideaPromoteRequested,
+                                (e) => onPromoteRequested(e.detail),
+                            )}
                         ></${GoalDetailElement}>
                       `
-                    : view === 'goals'
-                    ? html`
+                        : view === "goals"
+                          ? html`
                         <${GoalsViewElement.assign({
                             goals: state.app.goals,
                             tasks: state.app.tasks,
-                            projects: state.app.projects,
+                            areas: state.app.areas,
                             activeSkinId: state.activeSkinId,
                         })}
-                            ${listen(GoalsViewElement.events.makeCommitmentRequested, e =>
-                                onNewTaskRequested(null, e.detail))}
-                            ${listen(GoalsViewElement.events.goalUpdated, e =>
-                                onGoalUpdated(e.detail))}
-                            ${listen(GoalsViewElement.events.goalSelected, e =>
-                                onGoalSelected(e.detail))}
+                            ${listen(
+                                GoalsViewElement.events.makeCommitmentRequested,
+                                (e) => onNewTaskRequested(null, e.detail),
+                            )}
+                            ${listen(GoalsViewElement.events.goalUpdated, (e) =>
+                                onGoalUpdated(e.detail),
+                            )}
+                            ${listen(
+                                GoalsViewElement.events.goalSelected,
+                                (e) => onGoalSelected(e.detail),
+                            )}
                         ></${GoalsViewElement}>
                       `
-                    : view === 'ideas'
-                    ? html`
+                          : view === "ideas"
+                            ? html`
                         <${IdeasViewElement.assign({
                             ideas: state.app.ideas,
                             goals: state.app.goals,
-                            projects: state.app.projects,
+                            areas: state.app.areas,
                             activeSkinId: state.activeSkinId,
                         })}
-                            ${listen(IdeasViewElement.events.makeCommitmentRequested, e =>
-                                onNewTaskRequested(null, e.detail))}
-                            ${listen(IdeasViewElement.events.ideaUpdated, e =>
-                                onIdeaUpdated(e.detail))}
-                            ${listen(IdeasViewElement.events.ideaDeleted, e =>
-                                onIdeaDeleted(e.detail))}
-                            ${listen(IdeasViewElement.events.ideaEditRequested, e =>
-                                onIdeaEditRequested(e.detail))}
-                            ${listen(IdeasViewElement.events.promoteRequested, e =>
-                                onPromoteRequested(e.detail))}
+                            ${listen(
+                                IdeasViewElement.events.makeCommitmentRequested,
+                                (e) => onNewTaskRequested(null, e.detail),
+                            )}
+                            ${listen(IdeasViewElement.events.ideaUpdated, (e) =>
+                                onIdeaUpdated(e.detail),
+                            )}
+                            ${listen(IdeasViewElement.events.ideaDeleted, (e) =>
+                                onIdeaDeleted(e.detail),
+                            )}
+                            ${listen(
+                                IdeasViewElement.events.ideaEditRequested,
+                                (e) => onIdeaEditRequested(e.detail),
+                            )}
+                            ${listen(
+                                IdeasViewElement.events.promoteRequested,
+                                (e) => onPromoteRequested(e.detail),
+                            )}
                         ></${IdeasViewElement}>
                       `
-                    : view === 'insights'
-                    ? html`
+                            : view === "insights"
+                              ? html`
                         <${InsightsViewElement.assign({
                             tasks: state.app.tasks,
-                            projects: state.app.projects,
+                            areas: state.app.areas,
                             activeSkinId: state.activeSkinId,
                         })}
-                            ${listen(InsightsViewElement.events.missedTaskDismissed, e =>
-                                onTaskDeleted(e.detail))}
-                            ${listen(InsightsViewElement.events.missedTaskRevived, e =>
-                                onMissedTaskRevived(e.detail))}
+                            ${listen(
+                                InsightsViewElement.events.missedTaskDismissed,
+                                (e) => onTaskDeleted(e.detail),
+                            )}
+                            ${listen(
+                                InsightsViewElement.events.missedTaskRevived,
+                                (e) => onMissedTaskRevived(e.detail),
+                            )}
                         ></${InsightsViewElement}>
                       `
-                    : view === 'daily'
-                    ? html`
+                              : view === "daily"
+                                ? html`
                         <${DailyViewElement.assign({
                             tasks: state.app.tasks,
-                            projects: state.app.projects,
+                            areas: state.app.areas,
                             activeSkinId: state.activeSkinId,
                         })}
-                            ${listen(DailyViewElement.events.taskCompleted, e =>
-                                onTaskCompleted(e.detail))}
-                            ${listen(DailyViewElement.events.taskSnoozed, e =>
-                                onTaskSnoozed(e.detail))}
-                            ${listen(DailyViewElement.events.taskUnSnoozed, e =>
-                                onTaskUnSnoozed(e.detail))}
-                            ${listen(DailyViewElement.events.taskSkipped, e =>
-                                onTaskSkipped(e.detail))}
-                            ${listen(DailyViewElement.events.taskProgressLogged, e =>
-                                onTaskProgressLogged(e.detail))}
-                            ${listen(DailyViewElement.events.taskEditRequested, e =>
-                                onTaskEditRequested(e.detail))}
-                            ${listen(DailyViewElement.events.newTaskRequested, () =>
-                                onNewTaskRequested(null))}
-                            ${listen(DailyViewElement.events.tasksReordered, e =>
-                                onTasksReordered(e.detail))}
+                            ${listen(
+                                DailyViewElement.events.taskCompleted,
+                                (e) => onTaskCompleted(e.detail),
+                            )}
+                            ${listen(DailyViewElement.events.taskSnoozed, (e) =>
+                                onTaskSnoozed(e.detail),
+                            )}
+                            ${listen(
+                                DailyViewElement.events.taskUnSnoozed,
+                                (e) => onTaskUnSnoozed(e.detail),
+                            )}
+                            ${listen(DailyViewElement.events.taskSkipped, (e) =>
+                                onTaskSkipped(e.detail),
+                            )}
+                            ${listen(
+                                DailyViewElement.events.taskProgressLogged,
+                                (e) => onTaskProgressLogged(e.detail),
+                            )}
+                            ${listen(
+                                DailyViewElement.events.taskEditRequested,
+                                (e) => onTaskEditRequested(e.detail),
+                            )}
+                            ${listen(
+                                DailyViewElement.events.newTaskRequested,
+                                () => onNewTaskRequested(null),
+                            )}
+                            ${listen(
+                                DailyViewElement.events.tasksReordered,
+                                (e) => onTasksReordered(e.detail),
+                            )}
                         ></${DailyViewElement}>
                       `
-                    : view === 'operations'
-                    ? html`
+                                : view === "areas"
+                                  ? html`
                         <${DashboardViewElement.assign({
-                            projects: state.app.projects,
+                            areas: state.app.areas,
                             tasks: state.app.tasks,
                         })}
-                            ${listen(DashboardViewElement.events.projectSelected, e =>
-                                onProjectSelected(e.detail))}
-                            ${listen(DashboardViewElement.events.projectAdded, e =>
-                                onProjectAdded(e.detail))}
-                            ${listen(DashboardViewElement.events.operationCreated, e =>
-                                onOperationCreated(e.detail.project, e.detail.routines))}
-                            ${listen(DashboardViewElement.events.projectsReordered, e =>
-                                onProjectsReordered(e.detail))}
+                            ${listen(
+                                DashboardViewElement.events.areaSelected,
+                                (e) => onAreaSelected(e.detail),
+                            )}
+                            ${listen(
+                                DashboardViewElement.events.areaAdded,
+                                (e) => onAreaAdded(e.detail),
+                            )}
+                            ${listen(
+                                DashboardViewElement.events.areaCreated,
+                                (e) =>
+                                    onAreaCreated(
+                                        e.detail.area,
+                                        e.detail.routines,
+                                    ),
+                            )}
+                            ${listen(
+                                DashboardViewElement.events.areasReordered,
+                                (e) => onAreasReordered(e.detail),
+                            )}
                         ></${DashboardViewElement}>
                       `
-                    : selectedProject
-                    ? html`
-                        <${ProjectDetailElement.assign({
-                            project: selectedProject,
+                                  : selectedArea
+                                    ? html`
+                        <${AreaDetailElement.assign({
+                            area: selectedArea,
                             tasks: state.app.tasks.filter(
-                                t => t.projectId === selectedProject.id,
+                                (t) => t.areaId === selectedArea.id,
                             ),
                             goals: state.app.goals.filter(
-                                g => g.projectId === selectedProject.id,
+                                (g) => g.areaId === selectedArea.id,
                             ),
                             ideas: state.app.ideas,
-                            projects: state.app.projects,
+                            areas: state.app.areas,
                             activeSkinId: state.activeSkinId,
                         })}
-                            ${listen(ProjectDetailElement.events.taskCompleted, e =>
-                                onTaskCompleted(e.detail))}
-                            ${listen(ProjectDetailElement.events.taskSnoozed, e =>
-                                onTaskSnoozed(e.detail))}
-                            ${listen(ProjectDetailElement.events.taskUnSnoozed, e =>
-                                onTaskUnSnoozed(e.detail))}
-                            ${listen(ProjectDetailElement.events.taskSkipped, e =>
-                                onTaskSkipped(e.detail))}
-                            ${listen(ProjectDetailElement.events.taskProgressLogged, e =>
-                                onTaskProgressLogged(e.detail))}
-                            ${listen(ProjectDetailElement.events.newTaskRequested, e =>
-                                onNewTaskRequested(e.detail))}
-                            ${listen(ProjectDetailElement.events.newCommitmentRequested, e =>
-                                onNewTaskRequested(e.detail.projectId, e.detail.kind))}
-                            ${listen(ProjectDetailElement.events.back, onBack)}
-                            ${listen(ProjectDetailElement.events.taskEditRequested, e =>
-                                onTaskEditRequested(e.detail))}
-                            ${listen(ProjectDetailElement.events.projectDeleted, e =>
-                                onProjectDeleted(e.detail))}
-                            ${listen(ProjectDetailElement.events.projectUpdated, e =>
-                                onProjectUpdated(e.detail))}
-                            ${listen(ProjectDetailElement.events.tasksReordered, e =>
-                                onTasksReordered(e.detail))}
-                            ${listen(ProjectDetailElement.events.goalUpdated, e =>
-                                onGoalUpdated(e.detail))}
-                            ${listen(ProjectDetailElement.events.goalSelected, e =>
-                                onGoalSelected(e.detail))}
-                            ${listen(ProjectDetailElement.events.ideaUpdated, e =>
-                                onIdeaUpdated(e.detail))}
-                            ${listen(ProjectDetailElement.events.ideaDeleted, e =>
-                                onIdeaDeleted(e.detail))}
-                            ${listen(ProjectDetailElement.events.ideaPromoteRequested, e =>
-                                onPromoteRequested(e.detail))}
-                        ></${ProjectDetailElement}>
+                            ${listen(
+                                AreaDetailElement.events.taskCompleted,
+                                (e) => onTaskCompleted(e.detail),
+                            )}
+                            ${listen(
+                                AreaDetailElement.events.taskSnoozed,
+                                (e) => onTaskSnoozed(e.detail),
+                            )}
+                            ${listen(
+                                AreaDetailElement.events.taskUnSnoozed,
+                                (e) => onTaskUnSnoozed(e.detail),
+                            )}
+                            ${listen(
+                                AreaDetailElement.events.taskSkipped,
+                                (e) => onTaskSkipped(e.detail),
+                            )}
+                            ${listen(
+                                AreaDetailElement.events.taskProgressLogged,
+                                (e) => onTaskProgressLogged(e.detail),
+                            )}
+                            ${listen(
+                                AreaDetailElement.events.newTaskRequested,
+                                (e) => onNewTaskRequested(e.detail),
+                            )}
+                            ${listen(
+                                AreaDetailElement.events.newCommitmentRequested,
+                                (e) =>
+                                    onNewTaskRequested(
+                                        e.detail.areaId,
+                                        e.detail.kind,
+                                    ),
+                            )}
+                            ${listen(AreaDetailElement.events.back, onBack)}
+                            ${listen(
+                                AreaDetailElement.events.taskEditRequested,
+                                (e) => onTaskEditRequested(e.detail),
+                            )}
+                            ${listen(
+                                AreaDetailElement.events.areaDeleted,
+                                (e) => onAreaDeleted(e.detail),
+                            )}
+                            ${listen(
+                                AreaDetailElement.events.areaUpdated,
+                                (e) => onAreaUpdated(e.detail),
+                            )}
+                            ${listen(
+                                AreaDetailElement.events.tasksReordered,
+                                (e) => onTasksReordered(e.detail),
+                            )}
+                            ${listen(
+                                AreaDetailElement.events.goalUpdated,
+                                (e) => onGoalUpdated(e.detail),
+                            )}
+                            ${listen(
+                                AreaDetailElement.events.goalSelected,
+                                (e) => onGoalSelected(e.detail),
+                            )}
+                            ${listen(
+                                AreaDetailElement.events.ideaUpdated,
+                                (e) => onIdeaUpdated(e.detail),
+                            )}
+                            ${listen(
+                                AreaDetailElement.events.ideaDeleted,
+                                (e) => onIdeaDeleted(e.detail),
+                            )}
+                            ${listen(
+                                AreaDetailElement.events.ideaPromoteRequested,
+                                (e) => onPromoteRequested(e.detail),
+                            )}
+                        ></${AreaDetailElement}>
                       `
-                    : html`
-                        <p class="empty-msg">
-                            Area not found. Return to dashboard.
-                        </p>
-                      `}
+                                    : html`
+                                          <p class="empty-msg">
+                                              Area not found. Return to
+                                              dashboard.
+                                          </p>
+                                      `
+                }
                 <!-- Root-level dialog — handles creating and editing all commitment types -->
                 <${AddTaskDialogElement.assign({
-                    projectId: state.editingTask?.projectId ?? state.editingGoal?.projectId ?? state.editingIdea?.projectId ?? state.newTaskProjectId,
-                    open: state.editingTask !== null || state.addingTask || state.editingGoal !== null || state.editingIdea !== null,
+                    areaId:
+                        state.editingTask?.areaId ??
+                        state.editingGoal?.areaId ??
+                        state.editingIdea?.areaId ??
+                        state.newTaskAreaId,
+                    open:
+                        state.editingTask !== null ||
+                        state.addingTask ||
+                        state.editingGoal !== null ||
+                        state.editingIdea !== null,
                     editTask: state.editingTask,
                     editGoal: state.editingGoal,
                     editIdea: state.editingIdea,
-                    projects: state.app.projects,
+                    areas: state.app.areas,
                     goals: state.app.goals,
                     prefillTitle: state.promotingIdea?.title ?? null,
-                    prefillDescription: state.promotingIdea?.description ?? null,
+                    prefillDescription:
+                        state.promotingIdea?.description ?? null,
                     defaultKind: state.newTaskDefaultKind,
                     defaultGoalId: state.spawningForGoalId,
                     activeSkinId: state.activeSkinId,
                 })}
-                    ${listen(AddTaskDialogElement.events.taskSubmitted, e =>
-                        onTaskAdded(e.detail))}
-                    ${listen(AddTaskDialogElement.events.taskGoalLinked, e =>
-                        onTaskGoalLinked(e.detail))}
-                    ${listen(AddTaskDialogElement.events.taskUpdated, e =>
-                        onTaskUpdated(e.detail))}
-                    ${listen(AddTaskDialogElement.events.taskDeleted, e =>
-                        onTaskDeleted(e.detail))}
-                    ${listen(AddTaskDialogElement.events.goalSubmitted, e =>
-                        onGoalSubmitted(e.detail))}
-                    ${listen(AddTaskDialogElement.events.goalUpdated, e =>
-                        onGoalUpdated(e.detail))}
-                    ${listen(AddTaskDialogElement.events.goalDeleted, e =>
-                        onGoalDeleted(e.detail))}
-                    ${listen(AddTaskDialogElement.events.ideaSubmitted, e =>
-                        onIdeaSubmitted(e.detail))}
-                    ${listen(AddTaskDialogElement.events.ideaUpdated, e =>
-                        onIdeaUpdated(e.detail))}
-                    ${listen(AddTaskDialogElement.events.ideaDeleted, e =>
-                        onIdeaDeleted(e.detail))}
-                    ${listen(AddTaskDialogElement.events.linkedGoalChanged, e =>
-                        onLinkedGoalChanged(e.detail))}
+                    ${listen(AddTaskDialogElement.events.taskSubmitted, (e) =>
+                        onTaskAdded(e.detail),
+                    )}
+                    ${listen(AddTaskDialogElement.events.taskGoalLinked, (e) =>
+                        onTaskGoalLinked(e.detail),
+                    )}
+                    ${listen(AddTaskDialogElement.events.taskUpdated, (e) =>
+                        onTaskUpdated(e.detail),
+                    )}
+                    ${listen(AddTaskDialogElement.events.taskDeleted, (e) =>
+                        onTaskDeleted(e.detail),
+                    )}
+                    ${listen(AddTaskDialogElement.events.goalSubmitted, (e) =>
+                        onGoalSubmitted(e.detail),
+                    )}
+                    ${listen(AddTaskDialogElement.events.goalUpdated, (e) =>
+                        onGoalUpdated(e.detail),
+                    )}
+                    ${listen(AddTaskDialogElement.events.goalDeleted, (e) =>
+                        onGoalDeleted(e.detail),
+                    )}
+                    ${listen(AddTaskDialogElement.events.ideaSubmitted, (e) =>
+                        onIdeaSubmitted(e.detail),
+                    )}
+                    ${listen(AddTaskDialogElement.events.ideaUpdated, (e) =>
+                        onIdeaUpdated(e.detail),
+                    )}
+                    ${listen(AddTaskDialogElement.events.ideaDeleted, (e) =>
+                        onIdeaDeleted(e.detail),
+                    )}
+                    ${listen(
+                        AddTaskDialogElement.events.linkedGoalChanged,
+                        (e) => onLinkedGoalChanged(e.detail),
+                    )}
                     ${listen(AddTaskDialogElement.events.cancelled, () =>
-                        updateState({editingTask: null, editingGoal: null, editingIdea: null, addingTask: false, newTaskProjectId: null, promotingIdea: null, spawningForGoalId: null}))}
+                        updateState({
+                            editingTask: null,
+                            editingGoal: null,
+                            editingIdea: null,
+                            addingTask: false,
+                            newTaskAreaId: null,
+                            promotingIdea: null,
+                            spawningForGoalId: null,
+                        }),
+                    )}
                 ></${AddTaskDialogElement}>
 
-                ${state.undoAction
-                    ? html`
-                        <div class="undo-toast">
-                            <span class="undo-toast-label">${state.undoAction.label}</span>
-                            <button class="undo-btn" @click=${onUndo}>UNDO</button>
-                        </div>
-                      `
-                    : html``}
+                ${
+                    state.undoAction
+                        ? html`
+                              <div class="undo-toast">
+                                  <span class="undo-toast-label"
+                                      >${state.undoAction.label}</span
+                                  >
+                                  <button class="undo-btn" @click=${onUndo}>
+                                      UNDO
+                                  </button>
+                              </div>
+                          `
+                        : html``
+                }
             </div>
 
             <!-- Fixed bottom navigation bar — primary view switching -->
@@ -1041,8 +1414,10 @@ export const BureauAppElement = defineElement()({
                 goalDetailActive: state.selectedGoalId !== null,
                 activeSkinId: state.activeSkinId,
             })}
-                ${listen(BureauBottomNavElement.events.viewChangeRequested,
-                    e => setView(e.detail))}
+                ${listen(
+                    BureauBottomNavElement.events.viewChangeRequested,
+                    (e) => setView(e.detail),
+                )}
             ></${BureauBottomNavElement}>
         `;
     },
@@ -1054,28 +1429,47 @@ export const BureauAppElement = defineElement()({
 function computeSnoozeDialogue(
     tier: ConsequenceTier,
     snoozeCount: number,
-): {trigger: 'task_snoozed_1' | 'task_snoozed_2_3' | 'task_snoozed_4_5' | 'task_snoozed_6plus';
-   preferDirector: boolean} | null {
+): {
+    trigger:
+        | "task_snoozed_1"
+        | "task_snoozed_2_3"
+        | "task_snoozed_4_5"
+        | "task_snoozed_6plus";
+    preferDirector: boolean;
+} | null {
     if (tier === 1) {
-        if (snoozeCount >= 4) return {trigger: 'task_snoozed_6plus', preferDirector: true};
-        if (snoozeCount >= 2) return {trigger: 'task_snoozed_4_5', preferDirector: false};
-        if (snoozeCount >= 1) return {trigger: 'task_snoozed_2_3', preferDirector: false};
+        if (snoozeCount >= 4)
+            return { trigger: "task_snoozed_6plus", preferDirector: true };
+        if (snoozeCount >= 2)
+            return { trigger: "task_snoozed_4_5", preferDirector: false };
+        if (snoozeCount >= 1)
+            return { trigger: "task_snoozed_2_3", preferDirector: false };
     }
     if (tier === 2) {
-        if (snoozeCount >= 6) return {trigger: 'task_snoozed_6plus', preferDirector: true};
-        if (snoozeCount >= 4) return {trigger: 'task_snoozed_4_5', preferDirector: false};
-        if (snoozeCount >= 2) return {trigger: 'task_snoozed_2_3', preferDirector: false};
-        if (snoozeCount >= 1) return {trigger: 'task_snoozed_1', preferDirector: false};
+        if (snoozeCount >= 6)
+            return { trigger: "task_snoozed_6plus", preferDirector: true };
+        if (snoozeCount >= 4)
+            return { trigger: "task_snoozed_4_5", preferDirector: false };
+        if (snoozeCount >= 2)
+            return { trigger: "task_snoozed_2_3", preferDirector: false };
+        if (snoozeCount >= 1)
+            return { trigger: "task_snoozed_1", preferDirector: false };
     }
     if (tier === 3) {
-        if (snoozeCount >= 8) return {trigger: 'task_snoozed_6plus', preferDirector: true};
-        if (snoozeCount >= 5) return {trigger: 'task_snoozed_4_5', preferDirector: false};
-        if (snoozeCount >= 3) return {trigger: 'task_snoozed_2_3', preferDirector: false};
-        if (snoozeCount >= 1) return {trigger: 'task_snoozed_1', preferDirector: false};
+        if (snoozeCount >= 8)
+            return { trigger: "task_snoozed_6plus", preferDirector: true };
+        if (snoozeCount >= 5)
+            return { trigger: "task_snoozed_4_5", preferDirector: false };
+        if (snoozeCount >= 3)
+            return { trigger: "task_snoozed_2_3", preferDirector: false };
+        if (snoozeCount >= 1)
+            return { trigger: "task_snoozed_1", preferDirector: false };
     }
     if (tier === 4) {
-        if (snoozeCount >= 10) return {trigger: 'task_snoozed_2_3', preferDirector: false};
-        if (snoozeCount >= 3)  return {trigger: 'task_snoozed_1', preferDirector: false};
+        if (snoozeCount >= 10)
+            return { trigger: "task_snoozed_2_3", preferDirector: false };
+        if (snoozeCount >= 3)
+            return { trigger: "task_snoozed_1", preferDirector: false };
     }
     return null;
 }

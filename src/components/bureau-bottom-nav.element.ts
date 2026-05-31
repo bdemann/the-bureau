@@ -1,6 +1,6 @@
-import {css, defineElement, defineElementEvent, html} from 'element-vir';
-import type {AppView} from '../data/types.js';
-import {getActiveSkin} from '../skins/active-skin.js';
+import { css, defineElement, defineElementEvent, html } from "element-vir";
+import type { AppView } from "../data/types.js";
+import { getActiveSkin } from "../skins/active-skin.js";
 
 // ─────────────────────────────────────────────────────────────────────────────
 // BureauBottomNavElement
@@ -16,11 +16,15 @@ interface NavTab {
 }
 
 // Icons and target views are skin-agnostic; labels are resolved in render().
-const TAB_BASES: ReadonlyArray<{icon: string; view: AppView; navKey: keyof ReturnType<typeof getActiveSkin>['nav']}> = [
-    {icon: '◈', view: 'daily',      navKey: 'daily'},
-    {icon: '⊟', view: 'operations', navKey: 'areas'},
-    {icon: '◇', view: 'ideas',      navKey: 'ideas'},
-    {icon: '▲', view: 'goals',      navKey: 'goals'},
+const TAB_BASES: ReadonlyArray<{
+    icon: string;
+    view: AppView;
+    navKey: keyof ReturnType<typeof getActiveSkin>["nav"];
+}> = [
+    { icon: "◈", view: "daily", navKey: "daily" },
+    { icon: "⊟", view: "areas", navKey: "areas" },
+    { icon: "◇", view: "ideas", navKey: "ideas" },
+    { icon: "▲", view: "goals", navKey: "goals" },
 ];
 
 export const BureauBottomNavElement = defineElement<{
@@ -30,7 +34,7 @@ export const BureauBottomNavElement = defineElement<{
     /** Passed from bureau-app so this element re-renders when the skin changes. */
     activeSkinId: string;
 }>()({
-    tagName: 'bureau-bottom-nav',
+    tagName: "bureau-bottom-nav",
 
     events: {
         viewChangeRequested: defineElementEvent<AppView>(),
@@ -93,7 +97,7 @@ export const BureauBottomNavElement = defineElement<{
 
         /* Amber indicator bar at the top of the active tab */
         .tab.active::before {
-            content: '';
+            content: "";
             position: absolute;
             top: 0;
             left: 20%;
@@ -115,31 +119,41 @@ export const BureauBottomNavElement = defineElement<{
         }
     `,
 
-    render({inputs, dispatch, events}) {
-        const {currentView, goalDetailActive} = inputs;
+    render({ inputs, dispatch, events }) {
+        const { currentView, goalDetailActive } = inputs;
         const nav = getActiveSkin().nav;
-        const TABS: ReadonlyArray<NavTab> = TAB_BASES.map(t => ({...t, label: nav[t.navKey]}));
+        const TABS: ReadonlyArray<NavTab> = TAB_BASES.map((t) => ({
+            ...t,
+            label: nav[t.navKey],
+        }));
 
         function isActive(tab: NavTab): boolean {
-            // Project detail → Areas tab stays lit
-            if (tab.view === 'operations' && currentView === 'project') return true;
+            // Area detail → Areas tab stays lit
+            if (tab.view === "areas" && currentView === "area") return true;
             // Goal detail → Goals tab stays lit
-            if (tab.view === 'goals' && goalDetailActive) return true;
+            if (tab.view === "goals" && goalDetailActive) return true;
             return currentView === tab.view;
         }
 
         return html`
             <nav>
-                ${TABS.map(tab => html`
-                    <button
-                        class=${`tab${isActive(tab) ? ' active' : ''}`}
-                        aria-label=${tab.label}
-                        @click=${() => dispatch(new events.viewChangeRequested(tab.view))}
-                    >
-                        <span class="tab-icon" aria-hidden="true">${tab.icon}</span>
-                        <span class="tab-label">${tab.label}</span>
-                    </button>
-                `)}
+                ${TABS.map(
+                    (tab) => html`
+                        <button
+                            class=${`tab${isActive(tab) ? " active" : ""}`}
+                            aria-label=${tab.label}
+                            @click=${() =>
+                                dispatch(
+                                    new events.viewChangeRequested(tab.view),
+                                )}
+                        >
+                            <span class="tab-icon" aria-hidden="true"
+                                >${tab.icon}</span
+                            >
+                            <span class="tab-label">${tab.label}</span>
+                        </button>
+                    `,
+                )}
             </nav>
         `;
     },
