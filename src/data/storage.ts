@@ -59,25 +59,30 @@ export function saveState(state: AppState): void {
  * Idempotent — safe to run on already-migrated data.
  */
 export function migrateState(state: AppState): AppState {
+    const raw = state as any;
     const version = state.schemaVersion ?? 1;
+
     // Normalize the view value — Phase 1 used 'dashboard' for the area grid.
-    // Phase 2 splits the top level into 'daily' (default) and 'area' (the
-    // grid). Map the old name forward but pop the user back to 'daily' so they
-    // see the new landing view on their first Phase 2 launch.
     const normalizedView =
         state.view === ("dashboard" as unknown as AppState["view"])
             ? "daily"
             : (state.view ?? "daily");
 
+    // Rename migration: 'projects' → 'areas' (stored key changed during rename).
+    const areas: AppState['areas'] =
+        state.areas?.length > 0 ? state.areas : (raw.projects ?? []);
+
     if (version >= SCHEMA_VERSION) {
         return {
             ...state,
+            areas,
             view: normalizedView,
             tasks: state.tasks.map(ensureTaskShape),
         };
     }
     return {
         ...state,
+        areas,
         schemaVersion: SCHEMA_VERSION,
         view: normalizedView,
         tasks: state.tasks.map(migrateTaskV1ToV2),
@@ -128,7 +133,7 @@ function normalizeRecurrence(raw: any): any {
 function ensureTaskShape(raw: any): Task {
     return {
         id: raw.id,
-        areaId: raw.areaId,
+        areaId: raw.areaId ?? raw.projectId ?? null,
         title: raw.title ?? "",
         description: raw.description ?? "",
         timeOfDay: (raw.timeOfDay ?? "anytime") as TimeOfDay,
