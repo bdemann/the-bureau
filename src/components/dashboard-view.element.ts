@@ -6,8 +6,8 @@ import {
     listen,
 } from "element-vir";
 import type { Area, Task } from "../data/types.js";
-import { AreaCardElement } from "./project-card.element.js";
-import { AreaWizardDialogElement } from "./operation-wizard-dialog.element.js";
+import { AreaCardElement } from "./area-card.element.js";
+import { AreaWizardDialogElement } from "./area-wizard-dialog.element.js";
 import { isTaskOverdue, isTaskVisible } from "../data/storage.js";
 
 // ─────────────────────────────────────────────────────────────────────────────

@@ -4,25 +4,25 @@
 // element to <urgency-test> when ?dev=urgency is present in the URL.
 // ─────────────────────────────────────────────────────────────────────────────
 
-import './components/bureau-app.element.js';
-import './components/bureau-header.element.js';
-import './components/character-dialogue.element.js';
-import './components/snooze-indicator.element.js';
-import './components/task-item.element.js';
-import './components/add-task-dialog.element.js';
-import './components/add-project-dialog.element.js';
-import './components/project-card.element.js';
-import './components/project-detail.element.js';
-import './components/dashboard-view.element.js';
-import './components/urgency-test.element.js';
+import "./components/bureau-app.element.js";
+import "./components/bureau-header.element.js";
+import "./components/character-dialogue.element.js";
+import "./components/snooze-indicator.element.js";
+import "./components/task-item.element.js";
+import "./components/add-task-dialog.element.js";
+import "./components/add-area-dialog.element.js";
+import "./components/area-card.element.js";
+import "./components/area-detail.element.js";
+import "./components/dashboard-view.element.js";
+import "./components/urgency-test.element.js";
 
 // Dev routes ------------------------------------------------------------------
 const params = new URLSearchParams(window.location.search);
-const dev = params.get('dev');
-if (dev === 'urgency') {
-    const root = document.querySelector('bureau-app');
+const dev = params.get("dev");
+if (dev === "urgency") {
+    const root = document.querySelector("bureau-app");
     if (root) {
-        const replacement = document.createElement('urgency-test');
+        const replacement = document.createElement("urgency-test");
         root.replaceWith(replacement);
     }
 }

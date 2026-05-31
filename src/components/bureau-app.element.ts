@@ -52,7 +52,7 @@ import { InsightsViewElement } from "./insights-view.element.js";
 import { IdeasViewElement } from "./ideas-view.element.js";
 import { GoalDetailElement } from "./goal-detail.element.js";
 import { GoalsViewElement } from "./goals-view.element.js";
-import { AreaDetailElement } from "./project-detail.element.js";
+import { AreaDetailElement } from "./area-detail.element.js";
 
 // ─────────────────────────────────────────────────────────────────────────────
 // BureauAppElement — Root element. Owns all state.

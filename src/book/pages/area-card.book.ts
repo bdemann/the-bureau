@@ -1,6 +1,6 @@
 import { html } from "element-vir";
 import { defineBookPage } from "element-book";
-import { AreaCardElement } from "../../components/project-card.element.js";
+import { AreaCardElement } from "../../components/area-card.element.js";
 import type { ItemKind, Area, Task } from "../../data/types.js";
 
 const NOW = Date.now();

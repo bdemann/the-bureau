@@ -1,6 +1,6 @@
 import { html } from "element-vir";
 import { defineBookPage } from "element-book";
-import { AddAreaDialogElement } from "../../components/add-project-dialog.element.js";
+import { AddAreaDialogElement } from "../../components/add-area-dialog.element.js";
 import { AddTaskDialogElement } from "../../components/add-task-dialog.element.js";
 
 export const addAreaPage = defineBookPage({
