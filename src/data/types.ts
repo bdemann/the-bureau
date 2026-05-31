@@ -61,15 +61,11 @@ export type AreaColor = "red" | "navy" | "gold" | "olive" | "slate";
 // ── Recurrence ───────────────────────────────────────────────────────────────
 
 export type RecurrenceCadence =
-    | "multiple_per_day"
+    | "multiple_per_day" // legacy — will be replaced by time-slot selection (see issue #1)
     | "daily"
-    | "multiple_per_week"
     | "weekly"
-    | "multiple_per_month"
     | "monthly"
-    | "multiple_per_quarter"
     | "quarterly"
-    | "multiple_per_year"
     | "yearly";
 
 export type ScheduleMode =
@@ -80,6 +76,15 @@ export type WindowType =
     | "hard" // must happen on suggestedDate specifically (trash day)
     | "flexible" // can happen any day within the window
     | "milestone"; // long-horizon task; track incremental progress until truly done
+
+/**
+ * How often the user intends to make progress on a milestone within a period.
+ * Simpler than RecurrenceConfig — no schedule mode, anchor days, or end conditions.
+ */
+export interface MilestoneProgressCadence {
+    cadence: RecurrenceCadence;
+    frequencyPerPeriod: number;
+}
 
 export type RecurrenceEndMode = "never" | "after_count" | "after_date";
 
@@ -230,7 +235,7 @@ export interface Task {
     totalCompletions: number;
 
     // ── Milestone progress (only used when windowType === 'milestone') ──
-    /** Number of times progress has been logged. */
+    /** Number of times progress has been logged (lifetime). */
     progressCount: number;
     /**
      * ms timestamp of the last time progress was logged. Used to hide the
@@ -239,6 +244,15 @@ export interface Task {
      * null = no progress yet (or never used this feature).
      */
     lastProgressAt?: number | null;
+    /**
+     * How often the user wants to make progress on this milestone per period.
+     * null / undefined = legacy behaviour (hide for the rest of today after any progress).
+     */
+    progressCadence?: MilestoneProgressCadence | null;
+    /** How many times progress has been logged in the current progress period. */
+    progressCompletionsThisPeriod?: number;
+    /** Start of the current progress period (ms). null = no period started yet. */
+    currentProgressPeriodStart?: number | null;
 
     // ── Lead time ────────────────────────────────────────────────────────────
     /**
@@ -362,7 +376,7 @@ export function getSkipSeverity(skipStreak: number): SkipSeverity {
 export function isMultiplePerPeriodCadence(
     cadence: RecurrenceCadence,
 ): boolean {
-    return cadence.startsWith("multiple_per_");
+    return cadence === 'multiple_per_day';
 }
 
 /** Human-readable label for a cadence (UI). */
@@ -372,20 +386,12 @@ export function cadenceLabel(cadence: RecurrenceCadence): string {
             return "Multiple times per day";
         case "daily":
             return "Daily";
-        case "multiple_per_week":
-            return "Multiple times per week";
         case "weekly":
             return "Weekly";
-        case "multiple_per_month":
-            return "Multiple times per month";
         case "monthly":
             return "Monthly";
-        case "multiple_per_quarter":
-            return "Multiple times per quarter";
         case "quarterly":
             return "Quarterly";
-        case "multiple_per_year":
-            return "Multiple times per year";
         case "yearly":
             return "Annually";
     }
@@ -394,11 +400,9 @@ export function cadenceLabel(cadence: RecurrenceCadence): string {
 /** Short cadence period word ("week", "month", etc.) for "1/3 this week" style labels. */
 export function cadencePeriodWord(cadence: RecurrenceCadence): string {
     if (cadence === "multiple_per_day" || cadence === "daily") return "day";
-    if (cadence === "multiple_per_week" || cadence === "weekly") return "week";
-    if (cadence === "multiple_per_month" || cadence === "monthly")
-        return "month";
-    if (cadence === "multiple_per_quarter" || cadence === "quarterly")
-        return "quarter";
+    if (cadence === "weekly") return "week";
+    if (cadence === "monthly") return "month";
+    if (cadence === "quarterly") return "quarter";
     return "year";
 }
 

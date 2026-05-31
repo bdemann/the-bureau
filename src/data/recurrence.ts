@@ -5,7 +5,6 @@
 // ─────────────────────────────────────────────────────────────────────────────
 
 import type {RecurrenceCadence, RecurrenceConfig, Task} from './types.js';
-import {isMultiplePerPeriodCadence} from './types.js';
 import {isCurrentlyPaused, startOfDay} from './storage.js';
 
 // ── Period boundary computation ─────────────────────────────────────────────
@@ -37,27 +36,27 @@ export function getCurrentPeriod(
         return makePeriod(start, end);
     }
 
-    if (cadence === 'weekly' || cadence === 'multiple_per_week') {
+    if (cadence === 'weekly') {
         const start = new Date(ref);
         start.setDate(start.getDate() - start.getDay()); // back up to Sunday
         const end = endOfDay(addDays(start, 6));
         return makePeriod(start, end);
     }
 
-    if (cadence === 'monthly' || cadence === 'multiple_per_month') {
+    if (cadence === 'monthly') {
         const start = new Date(ref.getFullYear(), ref.getMonth(), 1);
         const end = endOfDay(new Date(ref.getFullYear(), ref.getMonth() + 1, 0));
         return makePeriod(start, end);
     }
 
-    if (cadence === 'quarterly' || cadence === 'multiple_per_quarter') {
+    if (cadence === 'quarterly') {
         const qStartMonth = Math.floor(ref.getMonth() / 3) * 3;
         const start = new Date(ref.getFullYear(), qStartMonth, 1);
         const end = endOfDay(new Date(ref.getFullYear(), qStartMonth + 3, 0));
         return makePeriod(start, end);
     }
 
-    // yearly / multiple_per_year
+    // yearly
     const start = new Date(ref.getFullYear(), 0, 1);
     const end = endOfDay(new Date(ref.getFullYear(), 11, 31));
     return makePeriod(start, end);
@@ -92,7 +91,7 @@ export function getNextSuggestedDate(
     }
 
     // Fixed mode — keep relative position within the period.
-    if (cfg.cadence === 'weekly' || cfg.cadence === 'multiple_per_week') {
+    if (cfg.cadence === 'weekly') {
         const days = cfg.hardDaysOfWeek;
         if (days && days.length > 0) {
             if (days.length === 1) {
@@ -114,7 +113,7 @@ export function getNextSuggestedDate(
         d.setDate(d.getDate() + dow);
         return d;
     }
-    if (cfg.cadence === 'monthly' || cfg.cadence === 'multiple_per_month') {
+    if (cfg.cadence === 'monthly') {
         const start = new Date(nextPeriod.start);
         // Ordinal weekday ("3rd Thursday of the month") wins if both fields set.
         if (cfg.ordinalWeek !== undefined && cfg.hardDayOfWeek !== undefined) {
@@ -132,7 +131,7 @@ export function getNextSuggestedDate(
         const lastDay = new Date(start.getFullYear(), start.getMonth() + 1, 0).getDate();
         return new Date(start.getFullYear(), start.getMonth(), Math.min(dom, lastDay));
     }
-    if (cfg.cadence === 'quarterly' || cfg.cadence === 'multiple_per_quarter') {
+    if (cfg.cadence === 'quarterly') {
         if (cfg.hardMonthOfQuarter !== undefined) {
             const doms = cfg.hardDaysOfMonth?.length ? cfg.hardDaysOfMonth : [cfg.hardDayOfMonth ?? 1];
             if (doms.length > 1) {
@@ -158,7 +157,7 @@ export function getNextSuggestedDate(
         const lastDay = new Date(target.getFullYear(), target.getMonth() + 1, 0).getDate();
         return new Date(target.getFullYear(), target.getMonth(), Math.min(dom, lastDay));
     }
-    if (cfg.cadence === 'yearly' || cfg.cadence === 'multiple_per_year') {
+    if (cfg.cadence === 'yearly') {
         const ref = task.suggestedDate ? new Date(task.suggestedDate) : new Date(nextPeriod.start);
         const start = new Date(nextPeriod.start);
         const month = cfg.hardMonthOfYear ?? ref.getMonth();
@@ -166,7 +165,7 @@ export function getNextSuggestedDate(
         const lastDayOfMonth = new Date(start.getFullYear(), month + 1, 0).getDate();
         return new Date(start.getFullYear(), month, Math.min(dom, lastDayOfMonth));
     }
-    // daily / multiple_per_day
+    // daily / multiple_per_day (legacy)
     return new Date(nextPeriod.start);
 }
 
@@ -220,6 +219,18 @@ export function advanceRecurrence(task: Task, completedAt: Date): Task {
  * If the task already has currentPeriodStart in or after today's period, returns unchanged.
  */
 export function rolloverIfNeeded(task: Task, today: Date): Task {
+    // Progress-period rollover for milestones — runs regardless of outer recurrence.
+    if (task.windowType === 'milestone' && task.progressCadence != null && task.currentProgressPeriodStart != null) {
+        const progressPeriod = getCurrentPeriod(task.progressCadence.cadence, today);
+        if (task.currentProgressPeriodStart < progressPeriod.start) {
+            task = {
+                ...task,
+                progressCompletionsThisPeriod: 0,
+                currentProgressPeriodStart: progressPeriod.start,
+            };
+        }
+    }
+
     if (!task.recurrence) return task;
 
     const cfg = task.recurrence;
@@ -264,12 +275,12 @@ export function rolloverIfNeeded(task: Task, today: Date): Task {
     // if it's a selected day/dom). getNextSuggestedDate uses "strictly after" which
     // would skip today; bypass it here.
     const days = cfg.hardDaysOfWeek;
-    const isMultiDay = (cfg.cadence === 'weekly' || cfg.cadence === 'multiple_per_week')
+    const isMultiDay = (cfg.cadence === 'weekly')
         && days !== undefined && days.length > 1;
     const doms = cfg.hardDaysOfMonth;
-    const isMultiDom = (cfg.cadence === 'monthly' || cfg.cadence === 'multiple_per_month')
+    const isMultiDom = (cfg.cadence === 'monthly')
         && doms !== undefined && doms.length > 1;
-    const isMultiDomQuarterly = (cfg.cadence === 'quarterly' || cfg.cadence === 'multiple_per_quarter')
+    const isMultiDomQuarterly = (cfg.cadence === 'quarterly')
         && cfg.hardMonthOfQuarter !== undefined
         && doms !== undefined && doms.length > 1;
     const nextSuggested = isMultiDay
@@ -327,14 +338,14 @@ export function initialiseRecurrence(
 }
 
 function deriveInitialSuggested(cfg: RecurrenceConfig, period: Period, today: Date): number {
-    if (cfg.cadence === 'weekly' || cfg.cadence === 'multiple_per_week') {
+    if (cfg.cadence === 'weekly') {
         const days = cfg.hardDaysOfWeek ?? (cfg.hardDayOfWeek !== undefined ? [cfg.hardDayOfWeek] : null);
         if (days && days.length > 0) {
             // Soonest occurrence today-or-later (include today if it's a selected day).
             return nextOccurrenceOfSelectedDays(today, days).getTime();
         }
     }
-    if (cfg.cadence === 'monthly' || cfg.cadence === 'multiple_per_month') {
+    if (cfg.cadence === 'monthly') {
         // Ordinal weekday ("3rd Thursday of the month") — pick this month's
         // occurrence if it hasn't passed, else next month's.
         if (cfg.ordinalWeek !== undefined && cfg.hardDayOfWeek !== undefined) {
@@ -355,7 +366,7 @@ function deriveInitialSuggested(cfg: RecurrenceConfig, period: Period, today: Da
             return new Date(start.getFullYear(), start.getMonth(), dom).getTime();
         }
     }
-    if (cfg.cadence === 'quarterly' || cfg.cadence === 'multiple_per_quarter') {
+    if (cfg.cadence === 'quarterly') {
         if (cfg.hardMonthOfQuarter !== undefined) {
             const doms = cfg.hardDaysOfMonth?.length ? cfg.hardDaysOfMonth : [cfg.hardDayOfMonth ?? 1];
             const todayQuarterPeriod = getCurrentPeriod(cfg.cadence, today);
@@ -364,7 +375,7 @@ function deriveInitialSuggested(cfg: RecurrenceConfig, period: Period, today: Da
             ).getTime();
         }
     }
-    if (cfg.cadence === 'yearly' || cfg.cadence === 'multiple_per_year') {
+    if (cfg.cadence === 'yearly') {
         if (cfg.hardMonthOfYear !== undefined) {
             const todayMs = startOfDay(today).getTime();
             const month = cfg.hardMonthOfYear;
@@ -403,9 +414,7 @@ export function isRecurrenceEnded(task: Task, now: Date): boolean {
 // ── Multiple-per-period helpers ─────────────────────────────────────────────
 
 export function isMultiplePerPeriod(task: Task): boolean {
-    return !!task.recurrence
-        && task.recurrence.frequencyPerPeriod > 1
-        && isMultiplePerPeriodCadence(task.recurrence.cadence);
+    return !!task.recurrence && task.recurrence.frequencyPerPeriod > 1;
 }
 
 // ── Internal date helpers ───────────────────────────────────────────────────
@@ -567,19 +576,15 @@ function addCadenceLength(d: Date, cadence: RecurrenceCadence): Date {
             r.setDate(r.getDate() + 1);
             return r;
         case 'weekly':
-        case 'multiple_per_week':
             r.setDate(r.getDate() + 7);
             return r;
         case 'monthly':
-        case 'multiple_per_month':
             r.setMonth(r.getMonth() + 1);
             return r;
         case 'quarterly':
-        case 'multiple_per_quarter':
             r.setMonth(r.getMonth() + 3);
             return r;
         case 'yearly':
-        case 'multiple_per_year':
             r.setFullYear(r.getFullYear() + 1);
             return r;
     }

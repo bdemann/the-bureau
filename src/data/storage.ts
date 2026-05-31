@@ -102,15 +102,23 @@ function migrateTaskV1ToV2(raw: any): Task {
     });
 }
 
+// Maps removed multiple_per_* cadences to their base cadence.
+const CADENCE_MIGRATIONS: Record<string, string> = {
+    multiple_per_week:    'weekly',
+    multiple_per_month:   'monthly',
+    multiple_per_quarter: 'quarterly',
+    multiple_per_year:    'yearly',
+};
+
 function normalizeRecurrence(raw: any): any {
-    const isWeekly =
-        raw.cadence === "weekly" || raw.cadence === "multiple_per_week";
+    const cadence = CADENCE_MIGRATIONS[raw.cadence] ?? raw.cadence;
+    const isWeekly = cadence === 'weekly';
     // Migrate single hardDayOfWeek → hardDaysOfWeek for weekly cadences
     const hardDaysOfWeek = isWeekly
         ? (raw.hardDaysOfWeek ??
           (raw.hardDayOfWeek !== undefined ? [raw.hardDayOfWeek] : undefined))
         : raw.hardDaysOfWeek;
-    return { ...raw, endMode: raw.endMode ?? "never", hardDaysOfWeek };
+    return { ...raw, cadence, endMode: raw.endMode ?? "never", hardDaysOfWeek };
 }
 
 /**
@@ -141,6 +149,9 @@ function ensureTaskShape(raw: any): Task {
         progressCount: raw.progressCount ?? 0,
         // Optional fields — undefined when absent from old data (backward compat).
         lastProgressAt: raw.lastProgressAt ?? null,
+        progressCadence: raw.progressCadence ?? null,
+        progressCompletionsThisPeriod: raw.progressCompletionsThisPeriod ?? 0,
+        currentProgressPeriodStart: raw.currentProgressPeriodStart ?? null,
         // Migrate: radarLeadDays (old hard-date-only field) → leadTimeDays.
         leadTimeDays:
             "leadTimeDays" in raw

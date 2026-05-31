@@ -218,6 +218,19 @@ Mark each row as you verify in the browser. Reset the localStorage entry
 - [ ] **5th weekday**: skips months that don't have a 5th occurrence (e.g., 5th Sunday skips Sep and Oct 2026, lands Nov 29)
 - [ ] Card label `3rd Thursday of each month · next {date}`
 
+### Milestone commitment — progress cadence
+
+- [ ] Create a milestone commitment → "Progress Cadence" field appears below window type
+- [ ] Default is "Once per day" (no custom cadence)
+- [ ] Switching to "Custom" reveals a frequency number input and cadence dropdown
+- [ ] Frequency input accepts 2–99; rejects values below 2
+- [ ] Submit with "Once per day" → milestone hides after logging progress once today; reappears tomorrow
+- [ ] Submit with custom cadence (e.g. 3× / week) → milestone hides after logging progress 3 times that week; reappears next week
+- [ ] After hitting the weekly quota the milestone does not reappear until the next progress period starts
+- [ ] Logging progress on the same day twice is blocked (still hides for rest of today even when quota not yet met)
+- [ ] Edit an existing milestone with a progress cadence → cadence and frequency pre-populate correctly
+- [ ] Changing window type away from Milestone → progress cadence section disappears
+
 ### Task commitment creation — multiple-per-period
 
 - [ ] Cadence: Multiple per week (or per-day/month/quarter/year)

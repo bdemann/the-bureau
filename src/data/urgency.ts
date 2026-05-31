@@ -43,6 +43,10 @@ export function getDailyBand(task: Task, today: Date = new Date()): DailyBand {
     // Step 2 — Timing band (only if step 1 didn't already pin it MANDATORY)
     const timing = step1 === 'mandatory' ? 'mandatory' : step2Timing(task, today);
 
+    // 'hidden' from step 2 is a hard gate — snooze cannot surface a task that
+    // isn't due yet, has logged progress today, or has met its period quota.
+    if (timing === 'hidden') return 'hidden';
+
     // Step 3 — Snooze escalation band
     const snooze = step3Snooze(task);
 
@@ -68,7 +72,7 @@ function isCompletedForPeriod(task: Task, today: Date): boolean {
         // Use suggestedDate directly: if it's strictly in the future, today's
         // occurrence has already been completed and the next one hasn't arrived.
         const cfg = task.recurrence;
-        if ((cfg.cadence === 'weekly' || cfg.cadence === 'multiple_per_week')
+        if ((cfg.cadence === 'weekly')
                 && cfg.hardDaysOfWeek !== undefined
                 && cfg.hardDaysOfWeek.length > 1
                 && task.suggestedDate !== null
@@ -90,7 +94,7 @@ function step1HardMandatory(task: Task, today: Date): DailyBand | 'unresolved' {
 
     // Weekly task with specific committed days: today being one of those days
     // means the commitment is due today — mandatory, not merely suggested.
-    if ((cadence === 'weekly' || cadence === 'multiple_per_week')
+    if ((cadence === 'weekly')
             && task.recurrence?.hardDaysOfWeek?.includes(today.getDay())) {
         return 'mandatory';
     }
@@ -180,7 +184,13 @@ function step2FlexibleWindow(task: Task, today: Date): DailyBand {
 }
 
 function step2Milestone(task: Task, today: Date): DailyBand {
-    // Progress logged today → hide for the rest of the day so it doesn't nag.
+    // Progress-cadence mode: hide when this period's quota is met.
+    if (task.progressCadence != null) {
+        const completions = task.progressCompletionsThisPeriod ?? 0;
+        if (completions >= task.progressCadence.frequencyPerPeriod) return 'hidden';
+    }
+
+    // Hide for the rest of today after any progress (both cadence modes).
     if (task.lastProgressAt != null) {
         const progressDay = startOfDay(new Date(task.lastProgressAt)).getTime();
         const todayDay    = startOfDay(today).getTime();
@@ -280,7 +290,7 @@ export function isNextOccurrenceTomorrow(task: Task, today: Date = new Date()): 
     // Multi-day weekly: if tomorrow is a committed day, snooze is futile.
     const cfg = task.recurrence;
     if (cfg
-            && (cfg.cadence === 'weekly' || cfg.cadence === 'multiple_per_week')
+            && (cfg.cadence === 'weekly')
             && cfg.hardDaysOfWeek !== undefined
             && cfg.hardDaysOfWeek.length > 1) {
         const tomorrowDow = new Date(tomorrowMs).getDay();

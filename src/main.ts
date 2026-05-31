@@ -9,6 +9,7 @@ import "./components/bureau-header.element.js";
 import "./components/character-dialogue.element.js";
 import "./components/snooze-indicator.element.js";
 import "./components/task-item.element.js";
+import "./components/cadence-picker.element.js";
 import "./components/add-task-dialog.element.js";
 import "./components/add-area-dialog.element.js";
 import "./components/area-card.element.js";

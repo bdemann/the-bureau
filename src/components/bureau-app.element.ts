@@ -20,6 +20,7 @@ import {
 } from "../data/storage.js";
 import {
     advanceRecurrence,
+    getCurrentPeriod,
     isMultiplePerPeriod,
     isRecurrenceEnded,
     rolloverIfNeeded,
@@ -565,18 +566,31 @@ export const BureauAppElement = defineElement()({
             const target = state.app.tasks.find((t) => t.id === taskId);
             if (!target) return;
             const now = Date.now();
-            const tasks = state.app.tasks.map((t) =>
-                t.id === taskId
-                    ? {
-                          ...t,
-                          progressCount: t.progressCount + 1,
-                          // Record when progress was logged so the urgency engine can
-                          // hide the milestone for the rest of today (see step2Milestone).
-                          lastProgressAt: now,
-                          snoozedUntil: null,
-                      }
-                    : t,
-            );
+            const tasks = state.app.tasks.map((t) => {
+                if (t.id !== taskId) return t;
+                let progressPeriodUpdates: Partial<typeof t> = {};
+                if (t.progressCadence != null) {
+                    const todayPeriod = getCurrentPeriod(t.progressCadence.cadence, now);
+                    const inCurrentPeriod =
+                        t.currentProgressPeriodStart != null &&
+                        t.currentProgressPeriodStart >= todayPeriod.start;
+                    progressPeriodUpdates = {
+                        progressCompletionsThisPeriod: inCurrentPeriod
+                            ? (t.progressCompletionsThisPeriod ?? 0) + 1
+                            : 1,
+                        currentProgressPeriodStart: todayPeriod.start,
+                    };
+                }
+                return {
+                    ...t,
+                    progressCount: t.progressCount + 1,
+                    // Record when progress was logged so the urgency engine can
+                    // hide the milestone for the rest of today (see step2Milestone).
+                    lastProgressAt: now,
+                    snoozedUntil: null,
+                    ...progressPeriodUpdates,
+                };
+            });
             const active = countActiveTasks(state.app.tasks);
             const reward =
                 (tierCompletionReward(

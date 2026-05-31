@@ -90,7 +90,7 @@ describe("isTaskCompleteForPeriod", () => {
     test("multi-per-period under target → not complete", () => {
         const t = makeTask({
             recurrence: makeRecurrence({
-                cadence: "multiple_per_week",
+                cadence: "weekly",
                 frequencyPerPeriod: 3,
             }),
             completionsThisPeriod: 1,
@@ -101,7 +101,7 @@ describe("isTaskCompleteForPeriod", () => {
     test("multi-per-period at target → complete", () => {
         const t = makeTask({
             recurrence: makeRecurrence({
-                cadence: "multiple_per_week",
+                cadence: "weekly",
                 frequencyPerPeriod: 3,
             }),
             completionsThisPeriod: 3,

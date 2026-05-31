@@ -13,7 +13,7 @@ describe('getDailyBand — Step 0 (visibility)', () => {
 
     test('multi-per-period task at completion target is hidden', () => {
         const t = makeTask({
-            recurrence: makeRecurrence({cadence: 'multiple_per_week', frequencyPerPeriod: 3}),
+            recurrence: makeRecurrence({cadence: 'weekly', frequencyPerPeriod: 3}),
             completionsThisPeriod: 3,
         });
         assert.strictEquals(getDailyBand(t, date('2026-05-09')), 'hidden');
@@ -215,7 +215,7 @@ describe('getDailyBand — Step 2 (multiple-per-period ratio)', () => {
 
     test('high ratio (urgent) → mandatory', () => {
         const t = makeTask({
-            recurrence: makeRecurrence({cadence: 'multiple_per_week', frequencyPerPeriod: 5}),
+            recurrence: makeRecurrence({cadence: 'weekly', frequencyPerPeriod: 5}),
             completionsThisPeriod: 0,
             windowDeadline: today.getTime() + 2 * DAY_MS, // need 5 in 2 days = 2.5 ratio
         });
@@ -224,7 +224,7 @@ describe('getDailyBand — Step 2 (multiple-per-period ratio)', () => {
 
     test('moderate ratio → suggested', () => {
         const t = makeTask({
-            recurrence: makeRecurrence({cadence: 'multiple_per_week', frequencyPerPeriod: 3}),
+            recurrence: makeRecurrence({cadence: 'weekly', frequencyPerPeriod: 3}),
             completionsThisPeriod: 0,
             windowDeadline: today.getTime() + 3 * DAY_MS, // 3/3 = 1.0 ratio
         });
@@ -233,7 +233,7 @@ describe('getDailyBand — Step 2 (multiple-per-period ratio)', () => {
 
     test('low ratio → backlog', () => {
         const t = makeTask({
-            recurrence: makeRecurrence({cadence: 'multiple_per_week', frequencyPerPeriod: 2}),
+            recurrence: makeRecurrence({cadence: 'weekly', frequencyPerPeriod: 2}),
             completionsThisPeriod: 0,
             windowDeadline: today.getTime() + 7 * DAY_MS, // 2/7 = ~0.28
         });
@@ -266,6 +266,45 @@ describe('getDailyBand — Step 2 (milestone)', () => {
 
     test('completed milestone is hidden', () => {
         const t = makeTask({windowType: 'milestone', completedAt: Date.now()});
+        assert.strictEquals(getDailyBand(t, today), 'hidden');
+    });
+
+    test('progress cadence: hides when period quota is met', () => {
+        const t = makeTask({
+            windowType: 'milestone',
+            progressCadence: { cadence: 'weekly', frequencyPerPeriod: 3 },
+            progressCompletionsThisPeriod: 3,
+        });
+        assert.strictEquals(getDailyBand(t, today), 'hidden');
+    });
+
+    test('progress cadence: visible when period quota is not yet met', () => {
+        const t = makeTask({
+            windowType: 'milestone',
+            windowDeadline: null,
+            progressCadence: { cadence: 'weekly', frequencyPerPeriod: 3 },
+            progressCompletionsThisPeriod: 2,
+        });
+        assert.strictEquals(getDailyBand(t, today), 'backlog');
+    });
+
+    test('progress cadence: hides for rest of today even when quota not yet met', () => {
+        const t = makeTask({
+            windowType: 'milestone',
+            progressCadence: { cadence: 'weekly', frequencyPerPeriod: 3 },
+            progressCompletionsThisPeriod: 1,
+            lastProgressAt: today.getTime(),
+        });
+        assert.strictEquals(getDailyBand(t, today), 'hidden');
+    });
+
+    test('no progress cadence: legacy hide-for-today behaviour still works', () => {
+        const t = makeTask({
+            windowType: 'milestone',
+            windowDeadline: null,
+            progressCadence: null,
+            lastProgressAt: today.getTime(),
+        });
         assert.strictEquals(getDailyBand(t, today), 'hidden');
     });
 });

@@ -1,5 +1,5 @@
 import { defineElement, css, html } from "element-vir";
-import type { DailyBand, RecurrenceConfig, Task } from "../data/types.js";
+import type { DailyBand, RecurrenceCadence, RecurrenceConfig, Task } from "../data/types.js";
 import { getDailyBand } from "../data/urgency.js";
 import { getCurrentPeriod } from "../data/recurrence.js";
 
@@ -305,7 +305,7 @@ function buildCases(today: Date): CaseGroup[] {
                     note: "ratio = 3/daysLeft; expect MANDATORY late week",
                     task: multiPerPeriod({
                         tier: 2,
-                        cadence: "multiple_per_week",
+                        cadence: "weekly",
                         frequencyPerPeriod: 3,
                         completionsThisPeriod: 0,
                         today,
@@ -316,7 +316,7 @@ function buildCases(today: Date): CaseGroup[] {
                     note: "remaining=1; lower ratio",
                     task: multiPerPeriod({
                         tier: 2,
-                        cadence: "multiple_per_week",
+                        cadence: "weekly",
                         frequencyPerPeriod: 3,
                         completionsThisPeriod: 2,
                         today,
@@ -327,7 +327,7 @@ function buildCases(today: Date): CaseGroup[] {
                     note: "long horizon — expect mostly BACKLOG → RADAR late month",
                     task: multiPerPeriod({
                         tier: 3,
-                        cadence: "multiple_per_month",
+                        cadence: "monthly",
                         frequencyPerPeriod: 2,
                         completionsThisPeriod: 0,
                         today,
@@ -483,12 +483,7 @@ function recurringTask(o: RecurringOpts): Task {
 
 interface MultiPerPeriodOpts {
     tier: 1 | 2 | 3 | 4;
-    cadence:
-        | "multiple_per_day"
-        | "multiple_per_week"
-        | "multiple_per_month"
-        | "multiple_per_quarter"
-        | "multiple_per_year";
+    cadence: RecurrenceCadence;
     frequencyPerPeriod: number;
     completionsThisPeriod: number;
     today: Date;
