@@ -33,12 +33,15 @@ export function loadState(): AppState {
         const raw = localStorage.getItem(STORAGE_KEY);
         if (!raw) return structuredClone(DEFAULT_STATE);
         const parsed = JSON.parse(raw) as Partial<AppState>;
+        const needsResave = !!(parsed as any).projects; // old key still present
         // Merge with defaults so newly added top-level fields are populated.
         const merged = {
             ...structuredClone(DEFAULT_STATE),
             ...parsed,
         } as AppState;
-        return migrateState(merged);
+        const migrated = migrateState(merged);
+        if (needsResave) saveState(migrated); // write back under new keys immediately
+        return migrated;
     } catch {
         return structuredClone(DEFAULT_STATE);
     }
