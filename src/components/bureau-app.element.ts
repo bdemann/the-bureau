@@ -908,6 +908,18 @@ export const BureauAppElement = defineElement()({
             });
         }
 
+        function onCommitmentsReordered(orderedIds: ReadonlyArray<string>): void {
+            const orderedSet = new Set(orderedIds);
+            const orderedItems = orderedIds
+                .map((id) => state.app.commitments.find((c) => c.id === id))
+                .filter((c): c is AnyCommitment => c !== undefined);
+            let idx = 0;
+            const commitments = state.app.commitments.map((c) =>
+                orderedSet.has(c.id) ? orderedItems[idx++]! : c,
+            ) as AnyCommitment[];
+            commit({ commitments });
+        }
+
         function onTasksReordered(orderedIds: ReadonlyArray<string>): void {
             const orderedSet = new Set(orderedIds);
             const orderedTasks = orderedIds
@@ -1109,6 +1121,9 @@ export const BureauAppElement = defineElement()({
                                 GoalsViewElement.events.goalSelected,
                                 (e) => onGoalSelected(e.detail),
                             )}
+                            ${listen(GoalsViewElement.events.goalsReordered, (e) =>
+                                onCommitmentsReordered(e.detail),
+                            )}
                         ></${GoalsViewElement}>
                       `
                           : view === "ideas"
@@ -1136,6 +1151,9 @@ export const BureauAppElement = defineElement()({
                             ${listen(
                                 IdeasViewElement.events.promoteRequested,
                                 (e) => onPromoteRequested(e.detail),
+                            )}
+                            ${listen(IdeasViewElement.events.ideasReordered, (e) =>
+                                onCommitmentsReordered(e.detail),
                             )}
                         ></${IdeasViewElement}>
                       `
@@ -1245,6 +1263,9 @@ export const BureauAppElement = defineElement()({
                             ${listen(CommitmentsViewElement.events.makeCommitmentRequested, (e) =>
                                 onNewTaskRequested(null, e.detail),
                             )}
+                            ${listen(CommitmentsViewElement.events.commitmentsReordered, (e) =>
+                                onCommitmentsReordered(e.detail),
+                            )}
                         ></${CommitmentsViewElement}>
                       `
                                     : view === "all-routines"
@@ -1265,6 +1286,9 @@ export const BureauAppElement = defineElement()({
                             ${listen(CommitmentsViewElement.events.makeCommitmentRequested, (e) =>
                                 onNewTaskRequested(null, e.detail),
                             )}
+                            ${listen(CommitmentsViewElement.events.commitmentsReordered, (e) =>
+                                onCommitmentsReordered(e.detail),
+                            )}
                         ></${CommitmentsViewElement}>
                       `
                                       : view === "all-commitments"
@@ -1284,6 +1308,9 @@ export const BureauAppElement = defineElement()({
                             ${listen(CommitmentsViewElement.events.makeCommitmentRequested, (e) =>
                                 onNewTaskRequested(null, e.detail),
                             )}
+                            ${listen(CommitmentsViewElement.events.commitmentsReordered, (e) =>
+                                onCommitmentsReordered(e.detail),
+                            )}
                         ></${CommitmentsViewElement}>
                       `
                                         : view === "unlinked"
@@ -1302,6 +1329,9 @@ export const BureauAppElement = defineElement()({
                             )}
                             ${listen(CommitmentsViewElement.events.makeCommitmentRequested, (e) =>
                                 onNewTaskRequested(null, e.detail),
+                            )}
+                            ${listen(CommitmentsViewElement.events.commitmentsReordered, (e) =>
+                                onCommitmentsReordered(e.detail),
                             )}
                         ></${CommitmentsViewElement}>
                       `

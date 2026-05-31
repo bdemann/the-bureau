@@ -15,6 +15,7 @@ import { CommitmentCardElement } from "./commitment-card.element.js";
 // array. Used for: All Tasks, All Routines, All Commitments, Unlinked.
 //
 // showTimeOfDayToggle=true enables grouping by time-of-day slot (tasks only).
+// Drag-to-reorder is available in flat (non-grouped) mode.
 // ─────────────────────────────────────────────────────────────────────────────
 
 export const CommitmentsViewElement = defineElement<{
@@ -35,10 +36,13 @@ export const CommitmentsViewElement = defineElement<{
     events: {
         commitmentEditRequested: defineElementEvent<AnyCommitment>(),
         makeCommitmentRequested: defineElementEvent<FormKind>(),
+        commitmentsReordered: defineElementEvent<ReadonlyArray<string>>(),
     },
 
     state: () => ({
         groupByTimeOfDay: false,
+        draggedId: null as string | null,
+        dragOverId: null as string | null,
     }),
 
     styles: css`
@@ -116,6 +120,27 @@ export const CommitmentsViewElement = defineElement<{
             margin-bottom: 4px;
         }
 
+        .card-drag-wrapper {
+            position: relative;
+        }
+        .card-drag-wrapper.is-dragging {
+            opacity: 0.3;
+        }
+        .card-drag-wrapper.is-drag-over::before {
+            content: "";
+            display: block;
+            height: 2px;
+            background: var(--color-primary);
+            margin-bottom: 2px;
+        }
+
+        .drop-zone-end {
+            height: 18px;
+        }
+        .drop-zone-end.is-drag-over {
+            border-top: 2px solid var(--color-primary);
+        }
+
         .empty {
             font-family: var(--font-mono);
             font-size: 0.8rem;
@@ -145,8 +170,49 @@ export const CommitmentsViewElement = defineElement<{
 
     render({ inputs, state, updateState, dispatch, events }) {
         const { commitments, areas, goals, pageTitle, subtitle, showTimeOfDayToggle, addLabel } = inputs;
+        const canDrag = !state.groupByTimeOfDay;
 
-        function renderCard(c: AnyCommitment) {
+        function renderDraggableCard(c: AnyCommitment) {
+            return html`
+                <div
+                    class="card-drag-wrapper ${state.draggedId === c.id ? "is-dragging" : ""} ${state.dragOverId === c.id ? "is-drag-over" : ""}"
+                    draggable="true"
+                    @dragstart=${(e: DragEvent) => {
+                        e.dataTransfer?.setData("text/plain", c.id);
+                        updateState({ draggedId: c.id });
+                    }}
+                    @dragover=${(e: DragEvent) => {
+                        e.preventDefault();
+                        if (state.draggedId && state.draggedId !== c.id) {
+                            updateState({ dragOverId: c.id });
+                        }
+                    }}
+                    @dragleave=${() => {
+                        if (state.dragOverId === c.id)
+                            updateState({ dragOverId: null });
+                    }}
+                    @drop=${(e: DragEvent) => {
+                        e.preventDefault();
+                        const fromId = e.dataTransfer?.getData("text/plain") ?? state.draggedId;
+                        if (fromId && fromId !== c.id) {
+                            dispatch(new events.commitmentsReordered(
+                                reorderBefore(commitments, fromId, c.id).map((x) => x.id),
+                            ));
+                        }
+                        updateState({ draggedId: null, dragOverId: null });
+                    }}
+                    @dragend=${() => updateState({ draggedId: null, dragOverId: null })}
+                >
+                    <${CommitmentCardElement.assign({ commitment: c, areas, goals })}
+                        ${listen(CommitmentCardElement.events.editRequested, (e) =>
+                            dispatch(new events.commitmentEditRequested(e.detail)),
+                        )}
+                    ></${CommitmentCardElement}>
+                </div>
+            `;
+        }
+
+        function renderStaticCard(c: AnyCommitment) {
             return html`
                 <${CommitmentCardElement.assign({ commitment: c, areas, goals })}
                     ${listen(CommitmentCardElement.events.editRequested, (e) =>
@@ -161,19 +227,15 @@ export const CommitmentsViewElement = defineElement<{
         if (commitments.length === 0) {
             listContent = html`<div class="empty">No commitments here.</div>`;
         } else if (showTimeOfDayToggle && state.groupByTimeOfDay) {
-            // Group tasks by time-of-day slot
             const slotMap = new Map<TimeOfDay, AnyCommitment[]>();
             for (const slot of TIME_OF_DAY_SLOTS) slotMap.set(slot, []);
-
             for (const c of commitments) {
                 const slot = (c as any).timeOfDay as TimeOfDay | undefined;
                 slotMap.get(slot ?? "anytime")!.push(c);
             }
-
             const sortedSlots = [...TIME_OF_DAY_SLOTS].sort(
                 (a, b) => TIME_OF_DAY_ORDER[a] - TIME_OF_DAY_ORDER[b],
             );
-
             listContent = html`
                 ${sortedSlots.map((slot) => {
                     const items = slotMap.get(slot)!;
@@ -181,7 +243,7 @@ export const CommitmentsViewElement = defineElement<{
                     return html`
                         <div class="section-label">${timeOfDayLabel(slot).toUpperCase()} (${items.length})</div>
                         <div class="card-list">
-                            ${items.map(renderCard)}
+                            ${items.map(renderStaticCard)}
                         </div>
                     `;
                 })}
@@ -189,8 +251,32 @@ export const CommitmentsViewElement = defineElement<{
         } else {
             listContent = html`
                 <div class="card-list">
-                    ${commitments.map(renderCard)}
+                    ${commitments.map(canDrag ? renderDraggableCard : renderStaticCard)}
                 </div>
+                ${canDrag && commitments.length > 0
+                    ? html`
+                          <div
+                              class="drop-zone-end ${state.dragOverId === "__end__" ? "is-drag-over" : ""}"
+                              @dragover=${(e: DragEvent) => {
+                                  e.preventDefault();
+                                  if (state.draggedId) updateState({ dragOverId: "__end__" });
+                              }}
+                              @dragleave=${() => {
+                                  if (state.dragOverId === "__end__") updateState({ dragOverId: null });
+                              }}
+                              @drop=${(e: DragEvent) => {
+                                  e.preventDefault();
+                                  const fromId = e.dataTransfer?.getData("text/plain") ?? state.draggedId;
+                                  if (fromId) {
+                                      dispatch(new events.commitmentsReordered(
+                                          moveToEnd(commitments, fromId).map((x) => x.id),
+                                      ));
+                                  }
+                                  updateState({ draggedId: null, dragOverId: null });
+                              }}
+                          ></div>
+                      `
+                    : html``}
             `;
         }
 
@@ -228,17 +314,10 @@ export const CommitmentsViewElement = defineElement<{
                 ${showTimeOfDayToggle
                     ? html`
                           <button
-                              class=${"toggle-btn" +
-                              (state.groupByTimeOfDay ? " active" : "")}
-                              @click=${() =>
-                                  updateState({
-                                      groupByTimeOfDay:
-                                          !state.groupByTimeOfDay,
-                                  })}
+                              class=${"toggle-btn" + (state.groupByTimeOfDay ? " active" : "")}
+                              @click=${() => updateState({ groupByTimeOfDay: !state.groupByTimeOfDay })}
                           >
-                              ${state.groupByTimeOfDay
-                                  ? "⊞ BY TIME"
-                                  : "⊟ BY TIME"}
+                              ${state.groupByTimeOfDay ? "⊞ BY TIME" : "⊟ BY TIME"}
                           </button>
                       `
                     : html``}
@@ -248,3 +327,28 @@ export const CommitmentsViewElement = defineElement<{
         `;
     },
 });
+
+// ── Helpers ───────────────────────────────────────────────────────────────────
+
+function reorderBefore<T extends { id: string }>(
+    list: ReadonlyArray<T>,
+    fromId: string,
+    toId: string,
+): T[] {
+    const item = list.find((x) => x.id === fromId);
+    if (!item) return [...list];
+    const rest = list.filter((x) => x.id !== fromId);
+    const idx = rest.findIndex((x) => x.id === toId);
+    if (idx === -1) return [...list];
+    rest.splice(idx, 0, item);
+    return rest;
+}
+
+function moveToEnd<T extends { id: string }>(
+    list: ReadonlyArray<T>,
+    fromId: string,
+): T[] {
+    const item = list.find((x) => x.id === fromId);
+    if (!item) return [...list];
+    return [...list.filter((x) => x.id !== fromId), item];
+}

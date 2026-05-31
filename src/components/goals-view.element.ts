@@ -42,9 +42,13 @@ export const GoalsViewElement = defineElement<{
         makeCommitmentRequested: defineElementEvent<FormKind>(),
         goalUpdated: defineElementEvent<Goal>(),
         goalSelected: defineElementEvent<string>(), // goal id → open detail
+        goalsReordered: defineElementEvent<ReadonlyArray<string>>(),
     },
 
-    state: () => ({}),
+    state: () => ({
+        draggedId: null as string | null,
+        dragOverId: null as string | null,
+    }),
 
     styles: css`
         :host {
@@ -256,6 +260,26 @@ export const GoalsViewElement = defineElement<{
             flex-wrap: wrap;
         }
 
+        .card-drag-wrapper {
+            position: relative;
+        }
+        .card-drag-wrapper.is-dragging {
+            opacity: 0.3;
+        }
+        .card-drag-wrapper.is-drag-over::before {
+            content: "";
+            display: block;
+            height: 2px;
+            background: var(--color-primary);
+            margin-bottom: 4px;
+        }
+        .drop-zone-end {
+            height: 18px;
+        }
+        .drop-zone-end.is-drag-over {
+            border-top: 2px solid var(--color-primary);
+        }
+
         .action-btn {
             font-family: var(--font-display);
             letter-spacing: 0.1em;
@@ -290,7 +314,7 @@ export const GoalsViewElement = defineElement<{
         }
     `,
 
-    render({ inputs, dispatch, events }) {
+    render({ inputs, state, updateState, dispatch, events }) {
         const skin = getActiveSkin();
         const { goals, tasks, areas } = inputs;
         const filterAreaId = inputs.filterAreaId ?? null;
@@ -424,6 +448,64 @@ export const GoalsViewElement = defineElement<{
             `;
         }
 
+        function renderDraggableGoal(goal: Goal, group: ReadonlyArray<Goal>) {
+            return html`
+                <div
+                    class="card-drag-wrapper ${state.draggedId === goal.id ? "is-dragging" : ""} ${state.dragOverId === goal.id ? "is-drag-over" : ""}"
+                    draggable="true"
+                    @dragstart=${(e: DragEvent) => {
+                        e.dataTransfer?.setData("text/plain", goal.id);
+                        updateState({ draggedId: goal.id });
+                    }}
+                    @dragover=${(e: DragEvent) => {
+                        e.preventDefault();
+                        if (state.draggedId && state.draggedId !== goal.id)
+                            updateState({ dragOverId: goal.id });
+                    }}
+                    @dragleave=${() => {
+                        if (state.dragOverId === goal.id) updateState({ dragOverId: null });
+                    }}
+                    @drop=${(e: DragEvent) => {
+                        e.preventDefault();
+                        const fromId = e.dataTransfer?.getData("text/plain") ?? state.draggedId;
+                        if (fromId && fromId !== goal.id) {
+                            dispatch(new events.goalsReordered(
+                                reorderBefore(visibleGoals, fromId, goal.id).map((g) => g.id),
+                            ));
+                        }
+                        updateState({ draggedId: null, dragOverId: null });
+                    }}
+                    @dragend=${() => updateState({ draggedId: null, dragOverId: null })}
+                >
+                    ${renderGoalCard(goal)}
+                </div>
+            `;
+        }
+
+        function renderSection(sectionGoals: ReadonlyArray<Goal>) {
+            return html`
+                ${sectionGoals.map((g) => renderDraggableGoal(g, sectionGoals))}
+                <div
+                    class="drop-zone-end ${state.dragOverId === "__end_" + sectionGoals[0]?.id ? "is-drag-over" : ""}"
+                    @dragover=${(e: DragEvent) => {
+                        e.preventDefault();
+                        if (state.draggedId) updateState({ dragOverId: "__end_" + sectionGoals[0]?.id });
+                    }}
+                    @dragleave=${() => { if (state.dragOverId?.startsWith("__end_")) updateState({ dragOverId: null }); }}
+                    @drop=${(e: DragEvent) => {
+                        e.preventDefault();
+                        const fromId = e.dataTransfer?.getData("text/plain") ?? state.draggedId;
+                        if (fromId) {
+                            dispatch(new events.goalsReordered(
+                                moveToEnd(visibleGoals, fromId).map((g) => g.id),
+                            ));
+                        }
+                        updateState({ draggedId: null, dragOverId: null });
+                    }}
+                ></div>
+            `;
+        }
+
         return html`
             ${!isFiltered
                 ? html`
@@ -447,7 +529,7 @@ export const GoalsViewElement = defineElement<{
                       <div class="section-header">
                           ACTIVE (${active.length})
                       </div>
-                      ${active.map(renderGoalCard)}
+                      ${renderSection(active)}
                   `
                 : visibleGoals.length === 0
                   ? html`<div class="empty">
@@ -459,7 +541,7 @@ export const GoalsViewElement = defineElement<{
                       <div class="section-header">
                           ACHIEVED (${achieved.length})
                       </div>
-                      ${achieved.map(renderGoalCard)}
+                      ${renderSection(achieved)}
                   `
                 : html``}
             ${abandoned.length > 0
@@ -467,9 +549,34 @@ export const GoalsViewElement = defineElement<{
                       <div class="section-header">
                           ABANDONED (${abandoned.length})
                       </div>
-                      ${abandoned.map(renderGoalCard)}
+                      ${renderSection(abandoned)}
                   `
                 : html``}
         `;
     },
 });
+
+// ── Helpers ───────────────────────────────────────────────────────────────────
+
+function reorderBefore<T extends { id: string }>(
+    list: ReadonlyArray<T>,
+    fromId: string,
+    toId: string,
+): T[] {
+    const item = list.find((x) => x.id === fromId);
+    if (!item) return [...list];
+    const rest = list.filter((x) => x.id !== fromId);
+    const idx = rest.findIndex((x) => x.id === toId);
+    if (idx === -1) return [...list];
+    rest.splice(idx, 0, item);
+    return rest;
+}
+
+function moveToEnd<T extends { id: string }>(
+    list: ReadonlyArray<T>,
+    fromId: string,
+): T[] {
+    const item = list.find((x) => x.id === fromId);
+    if (!item) return [...list];
+    return [...list.filter((x) => x.id !== fromId), item];
+}

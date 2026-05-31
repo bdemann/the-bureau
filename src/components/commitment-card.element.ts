@@ -4,8 +4,8 @@ import type { AnyCommitment, Area, Goal, Task } from "../data/types.js";
 // ─────────────────────────────────────────────────────────────────────────────
 // CommitmentCardElement
 // Simplified organization-focused card for all four commitment types.
-// Used in the unified list views (all-tasks, all-routines, all-commitments,
-// unlinked). Not an action surface — the edit button opens the dialog.
+// Click anywhere on the card to open edit. Parent wraps in a draggable div
+// for reordering.
 // ─────────────────────────────────────────────────────────────────────────────
 
 export const CommitmentCardElement = defineElement<{
@@ -26,12 +26,20 @@ export const CommitmentCardElement = defineElement<{
 
         .card {
             display: flex;
-            align-items: flex-start;
+            align-items: center;
             gap: 10px;
             background: var(--color-card);
             border: 1px solid rgba(0, 0, 0, 0.1);
             border-left: 4px solid var(--kind-color, var(--color-text-faint));
             padding: 10px 12px;
+            cursor: pointer;
+            transition: background 0.12s, box-shadow 0.12s;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        .card:hover {
+            background: rgba(var(--color-primary-rgb), 0.03);
+            box-shadow: 0 1px 4px rgba(0, 0, 0, 0.07);
         }
 
         .card-body {
@@ -96,9 +104,6 @@ export const CommitmentCardElement = defineElement<{
             color: var(--color-primary);
         }
 
-        .badge.goal-status {
-            padding: 1px 5px;
-        }
         .badge.goal-status.achieved {
             border-color: var(--color-success);
             color: var(--color-success);
@@ -108,22 +113,16 @@ export const CommitmentCardElement = defineElement<{
             color: var(--color-text-faint);
         }
 
-        .edit-btn {
-            background: none;
-            border: 1px solid rgba(0, 0, 0, 0.15);
-            color: var(--color-text-muted);
+        .card-arrow {
             font-family: var(--font-mono);
-            font-size: 0.62rem;
-            letter-spacing: 0.08em;
-            padding: 4px 8px;
-            cursor: pointer;
+            font-size: 1rem;
+            color: rgba(var(--color-primary-rgb), 0.25);
             flex-shrink: 0;
-            align-self: center;
-            transition: border-color 0.15s, color 0.15s;
+            transition: color 0.12s;
         }
-        .edit-btn:hover {
-            border-color: var(--color-primary);
-            color: var(--color-primary);
+
+        .card:hover .card-arrow {
+            color: rgba(var(--color-primary-rgb), 0.6);
         }
     `,
 
@@ -190,17 +189,16 @@ export const CommitmentCardElement = defineElement<{
         }
 
         return html`
-            <div class="card" style="--kind-color:${kindColor}">
+            <div
+                class="card"
+                style="--kind-color:${kindColor}"
+                @click=${() => dispatch(new events.editRequested(commitment))}
+            >
                 <div class="card-body">
                     <div class="card-title">${commitment.title}</div>
                     <div class="card-meta">${meta}</div>
                 </div>
-                <button
-                    class="edit-btn"
-                    @click=${() => dispatch(new events.editRequested(commitment))}
-                >
-                    EDIT
-                </button>
+                <span class="card-arrow">→</span>
             </div>
         `;
     },
