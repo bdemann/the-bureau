@@ -560,9 +560,7 @@ export const GoalDetailElement = defineElement<{
         const { goal, tasks, areas } = inputs;
         const now = Date.now();
 
-        const linkedTasks = tasks.filter((t) =>
-            goal.linkedTaskIds.includes(t.id),
-        );
+        const linkedTasks = tasks.filter((t) => t.goalId === goal.id);
 
         const activeTasks = linkedTasks.filter(isTaskVisible);
         const pausedTasks = linkedTasks.filter(
@@ -580,7 +578,7 @@ export const GoalDetailElement = defineElement<{
             .sort((a, b) => (b.completedAt ?? 0) - (a.completedAt ?? 0));
 
         const linkableTasks = tasks.filter(
-            (t) => !goal.linkedTaskIds.includes(t.id) && t.completedAt === null,
+            (t) => t.goalId !== goal.id && t.completedAt === null,
         );
 
         const areaName = areas.find((p) => p.id === goal.areaId)?.name ?? null;

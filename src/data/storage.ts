@@ -1,4 +1,5 @@
 import type {
+    AnyCommitment,
     AppState,
     ConsequenceTier,
     Goal,
@@ -14,9 +15,7 @@ const STORAGE_KEY = "bureau_v1";
 export const DEFAULT_STATE: AppState = {
     schemaVersion: SCHEMA_VERSION,
     areas: [],
-    tasks: [],
-    goals: [],
-    ideas: [],
+    commitments: [],
     view: "daily",
     selectedAreaId: null,
     patriotScore: 100,
@@ -32,8 +31,9 @@ export function loadState(): AppState {
     try {
         const raw = localStorage.getItem(STORAGE_KEY);
         if (!raw) return structuredClone(DEFAULT_STATE);
-        const parsed = JSON.parse(raw) as Partial<AppState>;
-        const needsResave = !!(parsed as any).projects; // old key still present
+        const parsed = JSON.parse(raw) as Partial<AppState> & Record<string, unknown>;
+        const needsResave = !!(parsed as any).projects || // old key still present
+            !!(parsed as any).tasks; // pre-v3 separate arrays still present
         // Merge with defaults so newly added top-level fields are populated.
         const merged = {
             ...structuredClone(DEFAULT_STATE),
@@ -73,22 +73,71 @@ export function migrateState(state: AppState): AppState {
 
     // Rename migration: 'projects' → 'areas' (stored key changed during rename).
     const areas: AppState['areas'] =
-        state.areas?.length > 0 ? state.areas : (raw.projects ?? []);
+        (state.areas?.length ?? 0) > 0 ? state.areas : (raw.projects ?? []);
 
     if (version >= SCHEMA_VERSION) {
+        // Already at v3 — just normalise task shapes.
         return {
             ...state,
             areas,
             view: normalizedView,
-            tasks: state.tasks.map(ensureTaskShape),
+            commitments: state.commitments.map((c) =>
+                c.kind === "routine" || c.kind === "task"
+                    ? ensureTaskShape(c)
+                    : c,
+            ) as AnyCommitment[],
         };
     }
+
+    // v1 or v2 — old separate arrays need merging.
+    const rawTasks: any[] = raw.tasks ?? [];
+    const rawGoals: any[] = raw.goals ?? [];
+    const rawIdeas: any[] = raw.ideas ?? [];
+
+    const migratedTasks: Task[] =
+        version < 2
+            ? rawTasks.map(migrateTaskV1ToV2)
+            : rawTasks.map(ensureTaskShape);
+
+    const migratedGoals: Goal[] = rawGoals.map(
+        (g: any): Goal => ({
+            kind: "goal",
+            id: g.id,
+            areaId: g.areaId ?? null,
+            goalId: null,
+            title: g.title ?? "",
+            description: g.description ?? "",
+            status: g.status ?? "active",
+            targetDate: g.targetDate ?? null,
+            createdAt: g.createdAt ?? Date.now(),
+        }),
+    );
+
+    const migratedIdeas: Idea[] = rawIdeas.map(
+        (i: any): Idea => ({
+            kind: "idea",
+            id: i.id,
+            title: i.title ?? "",
+            description: i.description ?? "",
+            areaId: i.areaId ?? null,
+            goalId: i.goalId ?? null,
+            createdAt: i.createdAt ?? Date.now(),
+        }),
+    );
+
+    // Concat: preserve task order (user-reordered), goals then ideas at end.
+    const commitments: AnyCommitment[] = [
+        ...migratedTasks,
+        ...migratedGoals,
+        ...migratedIdeas,
+    ];
+
     return {
         ...state,
         areas,
         schemaVersion: SCHEMA_VERSION,
         view: normalizedView,
-        tasks: state.tasks.map(migrateTaskV1ToV2),
+        commitments,
     };
 }
 
@@ -182,6 +231,7 @@ function ensureTaskShape(raw: any): Task {
         remediationCount: raw.remediationCount ?? 0,
         completedAt: raw.completedAt ?? null,
         createdAt: raw.createdAt ?? Date.now(),
+        goalId: raw.goalId ?? raw.linkedGoalId ?? null,
         dueDate: raw.dueDate ?? null,
     };
 }

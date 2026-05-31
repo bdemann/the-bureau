@@ -3,6 +3,7 @@
 // ─────────────────────────────────────────────────────────────────────────────
 
 export type ItemKind = "routine" | "task";
+export type CommitmentKind = "routine" | "task" | "goal" | "idea";
 export type FormKind = "routine" | "task" | "goal" | "idea";
 export type AppView =
     | "daily"
@@ -10,38 +11,44 @@ export type AppView =
     | "area"
     | "insights"
     | "ideas"
-    | "goals";
+    | "goals"
+    | "all-tasks"
+    | "all-routines"
+    | "all-commitments"
+    | "unlinked";
 export type Character = "director" | "agent";
 
-export const SCHEMA_VERSION = 2;
+export const SCHEMA_VERSION = 3;
 
 // ── Goal ─────────────────────────────────────────────────────────────────────
 
 export type GoalStatus = "active" | "achieved" | "abandoned";
 
 export interface Goal {
+    kind: "goal";
     id: string;
     /** The area this goal belongs to. */
     areaId: string | null;
+    /** Parent goal (for sub-goals). null = top-level. */
+    goalId: string | null;
     title: string;
     description: string;
     status: GoalStatus;
     /** ms timestamp (midnight local); null = no deadline. */
     targetDate: number | null;
-    /** IDs of tasks/routines that contribute to this goal. */
-    linkedTaskIds: string[];
     createdAt: number;
 }
 
 // ── Idea ─────────────────────────────────────────────────────────────────────
 
 export interface Idea {
+    kind: "idea";
     id: string;
     title: string;
     description: string;
     /** The area this idea belongs to. */
     areaId: string | null;
-    /** The goal within the area this idea is fleshing out (optional). */
+    /** The goal this idea is fleshing out (optional). */
     goalId: string | null;
     createdAt: number;
 }
@@ -322,10 +329,18 @@ export interface Task {
     completedAt: number | null;
     createdAt: number;
 
+    /** Goal this commitment is contributing to. null = not linked to a goal. */
+    goalId?: string | null;
+
     // ── Legacy (Phase 1) — kept for backward compat ──
     /** @deprecated Use suggestedDate. Retained so old data still renders. */
     dueDate: number | null;
 }
+
+// ── Unified commitment type ───────────────────────────────────────────────────
+
+/** Discriminated union of all four commitment types. */
+export type AnyCommitment = Task | Goal | Idea;
 
 // ── Snooze severity (visual) ─────────────────────────────────────────────────
 
@@ -460,9 +475,7 @@ export interface DialogueEntry {
 export interface AppState {
     readonly schemaVersion: number;
     readonly areas: ReadonlyArray<Area>;
-    readonly tasks: ReadonlyArray<Task>;
-    readonly goals: ReadonlyArray<Goal>;
-    readonly ideas: ReadonlyArray<Idea>;
+    readonly commitments: ReadonlyArray<AnyCommitment>;
     readonly view: AppView;
     readonly selectedAreaId: string | null;
     readonly patriotScore: number;

@@ -19,6 +19,8 @@ import { isTaskOverdue, isTaskVisible } from "../data/storage.js";
 export const DashboardViewElement = defineElement<{
     areas: ReadonlyArray<Area>;
     tasks: ReadonlyArray<Task>;
+    /** Count of commitments with no area assigned (all 4 types). */
+    unlinkedCount?: number;
 }>()({
     tagName: "dashboard-view",
 
@@ -30,6 +32,8 @@ export const DashboardViewElement = defineElement<{
             routines: ReadonlyArray<Task>;
         }>(),
         areasReordered: defineElementEvent<ReadonlyArray<string>>(), // ordered area ids
+        /** Fired when user clicks the unlinked commitments card. */
+        unlinkedRequested: defineElementEvent<void>(),
     },
 
     state: () => ({
@@ -168,10 +172,46 @@ export const DashboardViewElement = defineElement<{
         .drop-zone-end.is-drag-over {
             border-top: 2px solid var(--color-primary);
         }
+
+        .unlinked-card {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            margin: 14px 0 0;
+            padding: 10px 14px;
+            background: none;
+            border: 1px solid rgba(var(--color-danger-rgb), 0.3);
+            border-left: 4px solid var(--color-danger);
+            cursor: pointer;
+            width: 100%;
+            text-align: left;
+            transition: border-color 0.15s, background 0.15s;
+        }
+        .unlinked-card:hover {
+            background: rgba(var(--color-danger-rgb), 0.04);
+            border-color: rgba(var(--color-danger-rgb), 0.5);
+        }
+        .unlinked-card-label {
+            font-family: var(--font-display);
+            font-size: 0.75rem;
+            letter-spacing: 0.2em;
+            color: var(--color-danger);
+        }
+        .unlinked-card-count {
+            font-family: var(--font-mono);
+            font-size: 0.72rem;
+            color: var(--color-text-muted);
+        }
+        .unlinked-card-arrow {
+            font-family: var(--font-mono);
+            color: rgba(var(--color-danger-rgb), 0.4);
+        }
     `,
 
     render({ inputs, state, updateState, dispatch, events }) {
         const { areas, tasks } = inputs;
+        const unlinkedCount = inputs.unlinkedCount ?? 0;
 
         // Calculate summary stats for the intel banner
         const allVisible = tasks.filter(isTaskVisible);
@@ -219,6 +259,22 @@ export const DashboardViewElement = defineElement<{
                       `
                     : html``
             }
+
+            <!-- Unlinked commitments shortcut -->
+            ${unlinkedCount > 0
+                ? html`
+                      <button
+                          class="unlinked-card"
+                          @click=${() => dispatch(new events.unlinkedRequested())}
+                      >
+                          <div>
+                              <div class="unlinked-card-label">UNLINKED COMMITMENTS</div>
+                              <div class="unlinked-card-count">${unlinkedCount} commitment${unlinkedCount !== 1 ? "s" : ""} with no area assigned</div>
+                          </div>
+                          <span class="unlinked-card-arrow">→</span>
+                      </button>
+                  `
+                : html``}
 
             <!-- Area grid -->
             ${

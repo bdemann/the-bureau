@@ -1,5 +1,6 @@
 import { css, defineElement, defineElementEvent, html } from "element-vir";
 import { getRank, rankColor } from "../data/ranks.js";
+import type { AppView } from "../data/types.js";
 import { getActiveSkin, getRankLabel } from "../skins/active-skin.js";
 import { ALL_SKINS } from "../skins/all-skins.js";
 
@@ -26,6 +27,8 @@ export const BureauHeaderElement = defineElement<{
         insightsRequested: defineElementEvent<void>(),
         /** Fired when the user selects a different skin from the picker. */
         skinChangeRequested: defineElementEvent<string>(),
+        /** Fired for any view navigation from the hamburger menu. */
+        viewRequested: defineElementEvent<AppView>(),
     },
 
     state: () => ({
@@ -490,6 +493,33 @@ export const BureauHeaderElement = defineElement<{
                                       @click=${closeMenu}
                                   >
                                       ×
+                                  </button>
+                              </div>
+
+                              <div class="menu-section">
+                                  <div class="menu-section-label">
+                                      All Commitments
+                                  </div>
+                                  <button
+                                      class="menu-item"
+                                      @click=${() => { dispatch(new events.viewRequested("all-tasks")); closeMenu(); }}
+                                  >
+                                      All Tasks
+                                      <span class="menu-item-sub">Every task &amp; routine across all areas</span>
+                                  </button>
+                                  <button
+                                      class="menu-item"
+                                      @click=${() => { dispatch(new events.viewRequested("all-routines")); closeMenu(); }}
+                                  >
+                                      All Routines
+                                      <span class="menu-item-sub">Every recurring routine across all areas</span>
+                                  </button>
+                                  <button
+                                      class="menu-item"
+                                      @click=${() => { dispatch(new events.viewRequested("all-commitments")); closeMenu(); }}
+                                  >
+                                      All Commitments
+                                      <span class="menu-item-sub">Every task, routine, goal &amp; idea in order</span>
                                   </button>
                               </div>
 

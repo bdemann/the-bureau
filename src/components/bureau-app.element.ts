@@ -1,5 +1,6 @@
 import { css, defineElement, html, listen } from "element-vir";
 import type {
+    AnyCommitment,
     AppState,
     AppView,
     ConsequenceTier,
@@ -54,6 +55,7 @@ import { IdeasViewElement } from "./ideas-view.element.js";
 import { GoalDetailElement } from "./goal-detail.element.js";
 import { GoalsViewElement } from "./goals-view.element.js";
 import { AreaDetailElement } from "./area-detail.element.js";
+import { CommitmentsViewElement } from "./commitments-view.element.js";
 
 // ─────────────────────────────────────────────────────────────────────────────
 // BureauAppElement — Root element. Owns all state.
@@ -70,11 +72,12 @@ function bootstrap(): AppState {
 
     // Compute N-scaling from the pre-rollover active task count so missed tasks
     // are penalised using the state they were missed in.
-    const activeCount = countActiveTasks(loaded.tasks);
+    const loadedTasks = tasksOf(loaded.commitments);
+    const activeCount = countActiveTasks(loadedTasks);
     const multiplier = taskScaleMultiplier(activeCount);
     let scoreAdjustment = 0;
 
-    const tasks = loaded.tasks.map((t) => {
+    const updatedTasks = loadedTasks.map((t) => {
         const rolled = rolloverIfNeeded(t, today);
 
         // Recurring: period rolled over without completion — charge a miss penalty.
@@ -123,9 +126,10 @@ function bootstrap(): AppState {
     }
 
     const patriotScore = Math.max(0, loaded.patriotScore + scoreAdjustment);
+    const commitments = rebuildWithTasks(loaded.commitments, updatedTasks);
     const next: AppState = {
         ...loaded,
-        tasks,
+        commitments,
         dialogueQueue,
         lastActiveDate,
         patriotScore,
@@ -271,7 +275,7 @@ export const BureauAppElement = defineElement()({
             : null;
 
         const selectedGoal = state.selectedGoalId
-            ? (state.app.goals.find((g) => g.id === state.selectedGoalId) ??
+            ? (goalsOf(state.app.commitments).find((g) => g.id === state.selectedGoalId) ??
               null)
             : null;
 
@@ -342,21 +346,20 @@ export const BureauAppElement = defineElement()({
             if (!state.undoAction) return;
             clearTimeout(state.undoAction.timerId);
             const { prevTask, prevScore } = state.undoAction;
-            const tasks = state.app.tasks.map((t) =>
-                t.id === prevTask.id ? prevTask : t,
-            );
-            commit({ tasks, patriotScore: prevScore });
+            const commitments = replaceById(state.app.commitments, prevTask);
+            commit({ commitments, patriotScore: prevScore });
             updateState({ undoAction: null });
         }
 
         // ── Event handlers ─────────────────────────────────────────────────────
 
         function onTaskCompleted(taskId: string): void {
-            const target = state.app.tasks.find((t) => t.id === taskId);
+            const currentTasks = tasksOf(state.app.commitments);
+            const target = currentTasks.find((t) => t.id === taskId);
             if (!target) return;
 
             const now = new Date();
-            const tasks = state.app.tasks.map((t) => {
+            const tasks = currentTasks.map((t) => {
                 if (t.id !== taskId) return t;
 
                 const newTotalCompletions = t.totalCompletions + 1;
@@ -450,7 +453,7 @@ export const BureauAppElement = defineElement()({
             });
 
             const tier = (target.consequenceTier ?? 3) as ConsequenceTier;
-            const active = countActiveTasks(state.app.tasks);
+            const active = countActiveTasks(currentTasks);
             const reward =
                 tierCompletionReward(tier) * taskScaleMultiplier(active);
             const prevScore = state.app.patriotScore;
@@ -458,7 +461,7 @@ export const BureauAppElement = defineElement()({
             const newStreak = state.app.completionStreak + 1;
 
             commit({
-                tasks,
+                commitments: rebuildWithTasks(state.app.commitments, tasks),
                 patriotScore: newScore,
                 completionStreak: newStreak,
             });
@@ -475,7 +478,7 @@ export const BureauAppElement = defineElement()({
         }
 
         function onTaskSnoozed(taskId: string): void {
-            const task = state.app.tasks.find((t) => t.id === taskId);
+            const task = tasksOf(state.app.commitments).find((t) => t.id === taskId);
             if (!task) return;
 
             // Daily routines cannot be snoozed.
@@ -514,7 +517,7 @@ export const BureauAppElement = defineElement()({
             }
 
             const tier = task.consequenceTier as ConsequenceTier;
-            const active = countActiveTasks(state.app.tasks);
+            const active = countActiveTasks(tasksOf(state.app.commitments));
             const rawPenalty = Math.min(
                 snoozePenalty(tier) *
                     newSnoozeCount *
@@ -530,18 +533,18 @@ export const BureauAppElement = defineElement()({
             const prevScore = state.app.patriotScore;
             const newScore = Math.max(0, prevScore - penalty);
 
-            const tasks = state.app.tasks.map((t) =>
-                t.id === taskId
+            const commitments = state.app.commitments.map((c) =>
+                c.id === taskId && (c.kind === 'task' || c.kind === 'routine')
                     ? {
-                          ...t,
+                          ...c,
                           snoozeCount: newSnoozeCount,
                           snoozedUntil,
-                          totalSnoozes: t.totalSnoozes + 1,
+                          totalSnoozes: (c as Task).totalSnoozes + 1,
                           remediationCount: snoozeRemediation.remediationCount,
                       }
-                    : t,
-            );
-            commit({ tasks, patriotScore: newScore });
+                    : c,
+            ) as AnyCommitment[];
+            commit({ commitments, patriotScore: newScore });
             offerUndo(task, prevScore, `Snoozed "${task.title}"`);
 
             // Tier-aware dialogue escalation: tier 1 escalates faster.
@@ -556,17 +559,18 @@ export const BureauAppElement = defineElement()({
         }
 
         function onTaskUnSnoozed(taskId: string): void {
-            const tasks = state.app.tasks.map((t) =>
-                t.id === taskId ? { ...t, snoozedUntil: null } : t,
-            );
-            commit({ tasks });
+            const commitments = state.app.commitments.map((c) =>
+                c.id === taskId ? { ...c, snoozedUntil: null } : c,
+            ) as AnyCommitment[];
+            commit({ commitments });
         }
 
         function onTaskProgressLogged(taskId: string): void {
-            const target = state.app.tasks.find((t) => t.id === taskId);
+            const currentTasks = tasksOf(state.app.commitments);
+            const target = currentTasks.find((t) => t.id === taskId);
             if (!target) return;
             const now = Date.now();
-            const tasks = state.app.tasks.map((t) => {
+            const tasks = currentTasks.map((t) => {
                 if (t.id !== taskId) return t;
                 let progressPeriodUpdates: Partial<typeof t> = {};
                 if (t.progressCadence != null) {
@@ -591,7 +595,7 @@ export const BureauAppElement = defineElement()({
                     ...progressPeriodUpdates,
                 };
             });
-            const active = countActiveTasks(state.app.tasks);
+            const active = countActiveTasks(currentTasks);
             const reward =
                 (tierCompletionReward(
                     target.consequenceTier as ConsequenceTier,
@@ -599,15 +603,16 @@ export const BureauAppElement = defineElement()({
                     taskScaleMultiplier(active)) /
                 4;
             const newScore = Math.min(200, state.app.patriotScore + reward);
-            commit({ tasks, patriotScore: newScore });
+            commit({ commitments: rebuildWithTasks(state.app.commitments, tasks), patriotScore: newScore });
         }
 
         function onTaskSkipped(taskId: string): void {
-            const target = state.app.tasks.find((t) => t.id === taskId);
+            const currentTasks = tasksOf(state.app.commitments);
+            const target = currentTasks.find((t) => t.id === taskId);
             if (!target || !target.recurrence) return;
 
             const now = new Date();
-            const tasks = state.app.tasks.map((t) => {
+            const tasks = currentTasks.map((t) => {
                 if (t.id !== taskId || !t.recurrence) return t;
                 const skipRemediation = computeRemediationOnSkip(
                     t.skipStreak,
@@ -624,7 +629,7 @@ export const BureauAppElement = defineElement()({
             });
 
             const tier = target.consequenceTier as ConsequenceTier;
-            const active = countActiveTasks(state.app.tasks);
+            const active = countActiveTasks(currentTasks);
             const newSkipStreak =
                 tasks.find((t) => t.id === taskId)?.skipStreak ?? 1;
             // Floor at 1 so a skip always produces a visible score change,
@@ -638,7 +643,7 @@ export const BureauAppElement = defineElement()({
             const prevScore = state.app.patriotScore;
             const newScore = Math.max(0, prevScore - penalty);
 
-            commit({ tasks, patriotScore: newScore });
+            commit({ commitments: rebuildWithTasks(state.app.commitments, tasks), patriotScore: newScore });
             offerUndo(target, prevScore, `Skipped "${target.title}"`);
             // Skip is intentionally silent — no character dialogue fires.
             // The skip-indicator badge on the card provides the feedback.
@@ -649,12 +654,11 @@ export const BureauAppElement = defineElement()({
         }
 
         function onTaskAdded(task: Task): void {
-            const ideas = state.promotingIdea
-                ? state.app.ideas.filter(
-                      (i) => i.id !== state.promotingIdea!.id,
-                  )
-                : state.app.ideas;
-            commit({ tasks: [...state.app.tasks, task], ideas });
+            let commitments = insertTask(state.app.commitments, task);
+            if (state.promotingIdea) {
+                commitments = removeById(commitments, state.promotingIdea.id);
+            }
+            commit({ commitments });
             updateState({
                 addingTask: false,
                 newTaskAreaId: null,
@@ -673,7 +677,10 @@ export const BureauAppElement = defineElement()({
             taskId: string;
             goalId: string;
         }): void {
-            onGoalTaskLinked({ goalId, taskId });
+            const commitments = state.app.commitments.map((c) =>
+                c.id === taskId ? { ...c, goalId } : c,
+            ) as AnyCommitment[];
+            commit({ commitments });
         }
 
         function onAreaAdded(area: Area): void {
@@ -682,14 +689,12 @@ export const BureauAppElement = defineElement()({
 
         function onAreaDeleted(areaId: string): void {
             const areas = state.app.areas.filter((p) => p.id !== areaId);
-            const tasks = state.app.tasks.filter((t) => t.areaId !== areaId);
-            const goals = state.app.goals.filter((g) => g.areaId !== areaId);
-            const ideas = state.app.ideas.filter((i) => i.areaId !== areaId);
+            const commitments = state.app.commitments.filter(
+                (c) => (c as any).areaId !== areaId,
+            ) as AnyCommitment[];
             commit({
                 areas,
-                tasks,
-                goals,
-                ideas,
+                commitments,
                 view: "areas",
                 selectedAreaId: null,
             });
@@ -703,15 +708,15 @@ export const BureauAppElement = defineElement()({
         }
 
         function onTaskDeleted(taskId: string): void {
-            const tasks = state.app.tasks.filter((t) => t.id !== taskId);
-            commit({ tasks });
+            commit({ commitments: removeById(state.app.commitments, taskId) });
             updateState({ editingTask: null });
         }
 
         function onMissedTaskRevived(taskId: string): void {
             const todayMs = startOfDay(new Date()).getTime();
-            const tasks = state.app.tasks.map((t) => {
-                if (t.id !== taskId) return t;
+            const commitments = state.app.commitments.map((c) => {
+                if (c.id !== taskId || (c.kind !== 'task' && c.kind !== 'routine')) return c;
+                const t = c as Task;
                 // Clear missed status; if suggestedDate is in the past, reset to
                 // today so the task surfaces in the mandatory band immediately.
                 const suggestedDate =
@@ -719,23 +724,27 @@ export const BureauAppElement = defineElement()({
                         ? todayMs
                         : t.suggestedDate;
                 return { ...t, missedAt: null, suggestedDate };
-            });
-            commit({ tasks });
+            }) as AnyCommitment[];
+            commit({ commitments });
         }
 
         function onAreaCreated(
             area: Area,
             routines: ReadonlyArray<Task>,
         ): void {
+            let commitments = state.app.commitments;
+            for (const routine of routines) {
+                commitments = insertTask(commitments, routine);
+            }
             commit({
                 areas: [...state.app.areas, area],
-                tasks: [...state.app.tasks, ...routines],
+                commitments,
             });
             triggerDialogue("task_added", false);
         }
 
         function onTaskEditRequested(taskId: string): void {
-            const task = state.app.tasks.find((t) => t.id === taskId) ?? null;
+            const task = tasksOf(state.app.commitments).find((t) => t.id === taskId) ?? null;
             updateState({ editingTask: task });
         }
 
@@ -752,12 +761,12 @@ export const BureauAppElement = defineElement()({
         }
 
         function onGoalSubmitted(goal: Goal): void {
-            commit({ goals: [...state.app.goals, goal] });
+            commit({ commitments: insertGoal(state.app.commitments, goal) });
             updateState({ addingTask: false, newTaskAreaId: null });
         }
 
         function onIdeaSubmitted(idea: Idea): void {
-            commit({ ideas: [...state.app.ideas, idea] });
+            commit({ commitments: [...state.app.commitments, idea] });
             updateState({
                 addingTask: false,
                 newTaskAreaId: null,
@@ -778,38 +787,29 @@ export const BureauAppElement = defineElement()({
         }
 
         function onIdeaUpdated(idea: Idea): void {
-            commit({
-                ideas: state.app.ideas.map((i) =>
-                    i.id === idea.id ? idea : i,
-                ),
-            });
+            commit({ commitments: replaceById(state.app.commitments, idea) });
             updateState({ editingIdea: null });
         }
 
         function onIdeaDeleted(id: string): void {
-            commit({ ideas: state.app.ideas.filter((i) => i.id !== id) });
+            commit({ commitments: removeById(state.app.commitments, id) });
             updateState({ editingIdea: null });
         }
 
         function onIdeaUnlinkFromGoal(ideaId: string): void {
-            commit({
-                ideas: state.app.ideas.map((i) =>
-                    i.id === ideaId ? { ...i, goalId: null } : i,
-                ),
-            });
+            const commitments = state.app.commitments.map((c) =>
+                c.id === ideaId ? { ...c, goalId: null } : c,
+            ) as AnyCommitment[];
+            commit({ commitments });
         }
 
         function onGoalUpdated(goal: Goal): void {
-            commit({
-                goals: state.app.goals.map((g) =>
-                    g.id === goal.id ? goal : g,
-                ),
-            });
+            commit({ commitments: replaceById(state.app.commitments, goal) });
             updateState({ editingGoal: null });
         }
 
         function onGoalDeleted(id: string): void {
-            commit({ goals: state.app.goals.filter((g) => g.id !== id) });
+            commit({ commitments: removeById(state.app.commitments, id) });
             updateState({ editingGoal: null });
         }
 
@@ -831,57 +831,40 @@ export const BureauAppElement = defineElement()({
             });
         }
 
+        function onCommitmentEditRequested(commitment: AnyCommitment): void {
+            if (commitment.kind === "goal") {
+                onGoalEditRequested(commitment as Goal);
+            } else if (commitment.kind === "idea") {
+                onIdeaEditRequested(commitment as Idea);
+            } else {
+                onTaskEditRequested(commitment.id);
+            }
+        }
+
         function onLinkedGoalChanged({
             taskId,
-            oldGoalId,
             newGoalId,
         }: {
             taskId: string;
             oldGoalId: string | null;
             newGoalId: string | null;
         }): void {
-            let goals = state.app.goals;
-            if (oldGoalId) {
-                goals = goals.map((g) =>
-                    g.id === oldGoalId
-                        ? {
-                              ...g,
-                              linkedTaskIds: g.linkedTaskIds.filter(
-                                  (id) => id !== taskId,
-                              ),
-                          }
-                        : g,
-                );
-            }
-            if (newGoalId) {
-                goals = goals.map((g) =>
-                    g.id === newGoalId && !g.linkedTaskIds.includes(taskId)
-                        ? { ...g, linkedTaskIds: [...g.linkedTaskIds, taskId] }
-                        : g,
-                );
-            }
-            commit({ goals });
+            const commitments = state.app.commitments.map((c) =>
+                c.id === taskId ? { ...c, goalId: newGoalId } : c,
+            ) as AnyCommitment[];
+            commit({ commitments });
         }
 
         function onUnlinkRequested({
-            goalId,
             taskId,
         }: {
             goalId: string;
             taskId: string;
         }): void {
-            commit({
-                goals: state.app.goals.map((g) =>
-                    g.id === goalId
-                        ? {
-                              ...g,
-                              linkedTaskIds: g.linkedTaskIds.filter(
-                                  (id) => id !== taskId,
-                              ),
-                          }
-                        : g,
-                ),
-            });
+            const commitments = state.app.commitments.map((c) =>
+                c.id === taskId ? { ...c, goalId: null } : c,
+            ) as AnyCommitment[];
+            commit({ commitments });
         }
 
         function onGoalTaskLinked({
@@ -891,18 +874,15 @@ export const BureauAppElement = defineElement()({
             goalId: string;
             taskId: string;
         }): void {
-            commit({
-                goals: state.app.goals.map((g) =>
-                    g.id === goalId
-                        ? { ...g, linkedTaskIds: [...g.linkedTaskIds, taskId] }
-                        : g,
-                ),
-            });
+            const commitments = state.app.commitments.map((c) =>
+                c.id === taskId ? { ...c, goalId } : c,
+            ) as AnyCommitment[];
+            commit({ commitments });
         }
 
         function onGoalDetailMakeCommitment(kind: FormKind): void {
             const goal =
-                state.app.goals.find((g) => g.id === state.selectedGoalId) ??
+                goalsOf(state.app.commitments).find((g) => g.id === state.selectedGoalId) ??
                 null;
             updateState({
                 addingTask: true,
@@ -931,25 +911,22 @@ export const BureauAppElement = defineElement()({
         function onTasksReordered(orderedIds: ReadonlyArray<string>): void {
             const orderedSet = new Set(orderedIds);
             const orderedTasks = orderedIds
-                .map((id) => state.app.tasks.find((t) => t.id === id))
-                .filter((t): t is Task => t !== undefined);
+                .map((id) => state.app.commitments.find((c) => c.id === id))
+                .filter((c): c is Task => c !== undefined && (c.kind === 'task' || c.kind === 'routine'));
             let idx = 0;
-            const newTasks = state.app.tasks.map((t) =>
-                orderedSet.has(t.id) ? orderedTasks[idx++]! : t,
-            );
-            commit({ tasks: newTasks });
+            const commitments = state.app.commitments.map((c) =>
+                orderedSet.has(c.id) ? orderedTasks[idx++]! : c,
+            ) as AnyCommitment[];
+            commit({ commitments });
         }
 
         function onTaskUpdated(task: Task): void {
-            const tasks = state.app.tasks.map((t) =>
-                t.id === task.id ? task : t,
-            );
-            commit({ tasks });
+            commit({ commitments: replaceById(state.app.commitments, task) });
             updateState({ editingTask: null });
         }
 
         function onAreaSelected(areaId: string): void {
-            const areaTasks = state.app.tasks.filter(
+            const areaTasks = tasksOf(state.app.commitments).filter(
                 (t) => t.areaId === areaId,
             );
             const overdue = areaTasks.filter((t) => isTaskOverdue(t));
@@ -1003,6 +980,9 @@ export const BureauAppElement = defineElement()({
                     ${listen(BureauHeaderElement.events.insightsRequested, () =>
                         setView("insights"),
                     )}
+                    ${listen(BureauHeaderElement.events.viewRequested, (e) =>
+                        setView(e.detail),
+                    )}
                     ${listen(
                         BureauHeaderElement.events.skinChangeRequested,
                         (e) => {
@@ -1036,9 +1016,9 @@ export const BureauAppElement = defineElement()({
                         ? html`
                         <${GoalDetailElement.assign({
                             goal: selectedGoal,
-                            tasks: state.app.tasks,
+                            tasks: tasksOf(state.app.commitments),
                             areas: state.app.areas,
-                            ideas: state.app.ideas,
+                            ideas: ideasOf(state.app.commitments),
                             activeSkinId: state.activeSkinId,
                         })}
                             ${listen(
@@ -1113,8 +1093,8 @@ export const BureauAppElement = defineElement()({
                         : view === "goals"
                           ? html`
                         <${GoalsViewElement.assign({
-                            goals: state.app.goals,
-                            tasks: state.app.tasks,
+                            goals: goalsOf(state.app.commitments),
+                            tasks: tasksOf(state.app.commitments),
                             areas: state.app.areas,
                             activeSkinId: state.activeSkinId,
                         })}
@@ -1134,8 +1114,8 @@ export const BureauAppElement = defineElement()({
                           : view === "ideas"
                             ? html`
                         <${IdeasViewElement.assign({
-                            ideas: state.app.ideas,
-                            goals: state.app.goals,
+                            ideas: ideasOf(state.app.commitments),
+                            goals: goalsOf(state.app.commitments),
                             areas: state.app.areas,
                             activeSkinId: state.activeSkinId,
                         })}
@@ -1162,7 +1142,7 @@ export const BureauAppElement = defineElement()({
                             : view === "insights"
                               ? html`
                         <${InsightsViewElement.assign({
-                            tasks: state.app.tasks,
+                            tasks: tasksOf(state.app.commitments),
                             areas: state.app.areas,
                             activeSkinId: state.activeSkinId,
                         })}
@@ -1179,7 +1159,7 @@ export const BureauAppElement = defineElement()({
                               : view === "daily"
                                 ? html`
                         <${DailyViewElement.assign({
-                            tasks: state.app.tasks,
+                            tasks: tasksOf(state.app.commitments),
                             areas: state.app.areas,
                             activeSkinId: state.activeSkinId,
                         })}
@@ -1219,8 +1199,12 @@ export const BureauAppElement = defineElement()({
                                   ? html`
                         <${DashboardViewElement.assign({
                             areas: state.app.areas,
-                            tasks: state.app.tasks,
+                            tasks: tasksOf(state.app.commitments),
+                            unlinkedCount: state.app.commitments.filter(c => (c as any).areaId === null).length,
                         })}
+                            ${listen(DashboardViewElement.events.unlinkedRequested, () =>
+                                setView("unlinked"),
+                            )}
                             ${listen(
                                 DashboardViewElement.events.areaSelected,
                                 (e) => onAreaSelected(e.detail),
@@ -1243,17 +1227,95 @@ export const BureauAppElement = defineElement()({
                             )}
                         ></${DashboardViewElement}>
                       `
-                                  : selectedArea
+                                  : view === "all-tasks"
                                     ? html`
+                        <${CommitmentsViewElement.assign({
+                            commitments: tasksOf(state.app.commitments),
+                            areas: state.app.areas,
+                            goals: goalsOf(state.app.commitments),
+                            pageTitle: "ALL TASKS",
+                            subtitle: "Every task and routine across all areas, in array order.",
+                            showTimeOfDayToggle: true,
+                            addLabel: "NEW TASK",
+                            activeSkinId: state.activeSkinId,
+                        })}
+                            ${listen(CommitmentsViewElement.events.commitmentEditRequested, (e) =>
+                                onCommitmentEditRequested(e.detail),
+                            )}
+                            ${listen(CommitmentsViewElement.events.makeCommitmentRequested, (e) =>
+                                onNewTaskRequested(null, e.detail),
+                            )}
+                        ></${CommitmentsViewElement}>
+                      `
+                                    : view === "all-routines"
+                                      ? html`
+                        <${CommitmentsViewElement.assign({
+                            commitments: tasksOf(state.app.commitments).filter(t => t.kind === "routine"),
+                            areas: state.app.areas,
+                            goals: goalsOf(state.app.commitments),
+                            pageTitle: "ALL ROUTINES",
+                            subtitle: "Every recurring routine across all areas, in array order.",
+                            showTimeOfDayToggle: true,
+                            addLabel: "NEW ROUTINE",
+                            activeSkinId: state.activeSkinId,
+                        })}
+                            ${listen(CommitmentsViewElement.events.commitmentEditRequested, (e) =>
+                                onCommitmentEditRequested(e.detail),
+                            )}
+                            ${listen(CommitmentsViewElement.events.makeCommitmentRequested, (e) =>
+                                onNewTaskRequested(null, e.detail),
+                            )}
+                        ></${CommitmentsViewElement}>
+                      `
+                                      : view === "all-commitments"
+                                        ? html`
+                        <${CommitmentsViewElement.assign({
+                            commitments: state.app.commitments,
+                            areas: state.app.areas,
+                            goals: goalsOf(state.app.commitments),
+                            pageTitle: "ALL COMMITMENTS",
+                            subtitle: "Every task, routine, goal, and idea in array order.",
+                            showTimeOfDayToggle: false,
+                            activeSkinId: state.activeSkinId,
+                        })}
+                            ${listen(CommitmentsViewElement.events.commitmentEditRequested, (e) =>
+                                onCommitmentEditRequested(e.detail),
+                            )}
+                            ${listen(CommitmentsViewElement.events.makeCommitmentRequested, (e) =>
+                                onNewTaskRequested(null, e.detail),
+                            )}
+                        ></${CommitmentsViewElement}>
+                      `
+                                        : view === "unlinked"
+                                          ? html`
+                        <${CommitmentsViewElement.assign({
+                            commitments: state.app.commitments.filter(c => (c as any).areaId === null) as AnyCommitment[],
+                            areas: state.app.areas,
+                            goals: goalsOf(state.app.commitments),
+                            pageTitle: "UNLINKED",
+                            subtitle: "All commitments with no area assigned. Edit to assign them.",
+                            showTimeOfDayToggle: false,
+                            activeSkinId: state.activeSkinId,
+                        })}
+                            ${listen(CommitmentsViewElement.events.commitmentEditRequested, (e) =>
+                                onCommitmentEditRequested(e.detail),
+                            )}
+                            ${listen(CommitmentsViewElement.events.makeCommitmentRequested, (e) =>
+                                onNewTaskRequested(null, e.detail),
+                            )}
+                        ></${CommitmentsViewElement}>
+                      `
+                                          : selectedArea
+                                            ? html`
                         <${AreaDetailElement.assign({
                             area: selectedArea,
-                            tasks: state.app.tasks.filter(
+                            tasks: tasksOf(state.app.commitments).filter(
                                 (t) => t.areaId === selectedArea.id,
                             ),
-                            goals: state.app.goals.filter(
+                            goals: goalsOf(state.app.commitments).filter(
                                 (g) => g.areaId === selectedArea.id,
                             ),
-                            ideas: state.app.ideas,
+                            ideas: ideasOf(state.app.commitments),
                             areas: state.app.areas,
                             activeSkinId: state.activeSkinId,
                         })}
@@ -1351,7 +1413,7 @@ export const BureauAppElement = defineElement()({
                     editGoal: state.editingGoal,
                     editIdea: state.editingIdea,
                     areas: state.app.areas,
-                    goals: state.app.goals,
+                    goals: goalsOf(state.app.commitments),
                     prefillTitle: state.promotingIdea?.title ?? null,
                     prefillDescription:
                         state.promotingIdea?.description ?? null,
@@ -1436,6 +1498,71 @@ export const BureauAppElement = defineElement()({
         `;
     },
 });
+
+// ── Commitment array helpers ─────────────────────────────────────────────────
+
+export function tasksOf(commitments: ReadonlyArray<AnyCommitment>): Task[] {
+    return commitments.filter(
+        (c): c is Task => c.kind === "routine" || c.kind === "task",
+    );
+}
+
+export function goalsOf(commitments: ReadonlyArray<AnyCommitment>): Goal[] {
+    return commitments.filter((c): c is Goal => c.kind === "goal");
+}
+
+export function ideasOf(commitments: ReadonlyArray<AnyCommitment>): Idea[] {
+    return commitments.filter((c): c is Idea => c.kind === "idea");
+}
+
+function replaceById(
+    commitments: ReadonlyArray<AnyCommitment>,
+    updated: AnyCommitment,
+): AnyCommitment[] {
+    return commitments.map((c) => (c.id === updated.id ? updated : c));
+}
+
+function removeById(
+    commitments: ReadonlyArray<AnyCommitment>,
+    id: string,
+): AnyCommitment[] {
+    return commitments.filter((c) => c.id !== id);
+}
+
+/** Insert a task before the first goal or idea in the array. */
+function insertTask(
+    commitments: ReadonlyArray<AnyCommitment>,
+    task: Task,
+): AnyCommitment[] {
+    const idx = commitments.findIndex(
+        (c) => c.kind === "goal" || c.kind === "idea",
+    );
+    if (idx === -1) return [...commitments, task];
+    return [...commitments.slice(0, idx), task, ...commitments.slice(idx)];
+}
+
+/** Insert a goal before the first idea in the array. */
+function insertGoal(
+    commitments: ReadonlyArray<AnyCommitment>,
+    goal: Goal,
+): AnyCommitment[] {
+    const idx = commitments.findIndex((c) => c.kind === "idea");
+    if (idx === -1) return [...commitments, goal];
+    return [...commitments.slice(0, idx), goal, ...commitments.slice(idx)];
+}
+
+/** Rebuild the commitments array, replacing all tasks with the provided updated array. */
+function rebuildWithTasks(
+    commitments: ReadonlyArray<AnyCommitment>,
+    updatedTasks: Task[],
+): AnyCommitment[] {
+    const taskMap = new Map(updatedTasks.map((t) => [t.id, t]));
+    return commitments.map((c) =>
+        (c.kind === "task" || c.kind === "routine") && taskMap.has(c.id)
+            ? taskMap.get(c.id)!
+            : c,
+    );
+}
 
 // ── Helpers ─────────────────────────────────────────────────────────────────
 

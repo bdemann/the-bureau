@@ -1,6 +1,6 @@
 // Shared fixtures for unit tests. Build a Task in one line via makeTask({...}).
 
-import type { ItemKind, RecurrenceConfig, Task } from "./types.js";
+import type { Goal, Idea, ItemKind, RecurrenceConfig, Task } from "./types.js";
 
 export function makeTask(overrides: Partial<Task> = {}): Task {
     return {
@@ -47,6 +47,34 @@ export function makeRecurrence(
         frequencyPerPeriod: 1,
         scheduleMode: "fixed",
         endMode: "never",
+        ...overrides,
+    };
+}
+
+export function makeGoal(overrides: Partial<Goal> = {}): Goal {
+    return {
+        kind: "goal",
+        id: "goal-id",
+        areaId: null,
+        goalId: null,
+        title: "Test goal",
+        description: "",
+        status: "active",
+        targetDate: null,
+        createdAt: 0,
+        ...overrides,
+    };
+}
+
+export function makeIdea(overrides: Partial<Idea> = {}): Idea {
+    return {
+        kind: "idea",
+        id: "idea-id",
+        title: "Test idea",
+        description: "",
+        areaId: null,
+        goalId: null,
+        createdAt: 0,
         ...overrides,
     };
 }

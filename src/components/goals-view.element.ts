@@ -371,16 +371,17 @@ export const GoalsViewElement = defineElement<{
                             : html``}
                     </div>
 
+                    ${(() => {
+                            const linked = tasks.filter(t => t.goalId === goal.id);
+                            return html`
                     <div class="linked-section">
                         <div class="linked-label">Linked Commitments</div>
-                        ${goal.linkedTaskIds.length > 0
+                        ${linked.length > 0
                             ? html`
                                   <div class="linked-chips">
-                                      ${goal.linkedTaskIds.map(
-                                          (tid) => html`
-                                              <span class="linked-chip"
-                                                  >${taskTitle(tid)}</span
-                                              >
+                                      ${linked.map(
+                                          (t) => html`
+                                              <span class="linked-chip">${t.title}</span>
                                           `,
                                       )}
                                   </div>
@@ -388,7 +389,8 @@ export const GoalsViewElement = defineElement<{
                             : html`<div class="linked-empty">
                                   No commitments linked yet.
                               </div>`}
-                    </div>
+                    </div>`;
+                        })()}
 
                     <div class="goal-actions">
                         ${isActive

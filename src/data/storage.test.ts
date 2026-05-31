@@ -10,9 +10,9 @@ import {
     migrateState,
     startOfDay,
 } from "./storage.js";
-import type { AppState, Task } from "./types.js";
+import type { AppState, Goal, Idea, Task } from "./types.js";
 import { SCHEMA_VERSION } from "./types.js";
-import { date, makeRecurrence, makeTask } from "./test-fixtures.js";
+import { date, makeGoal, makeIdea, makeRecurrence, makeTask } from "./test-fixtures.js";
 
 const DAY_MS = 86_400_000;
 
@@ -229,15 +229,30 @@ function legacyTask(recurrence: unknown = null): unknown {
     };
 }
 
+/** Build a v2 AppState (separate tasks/goals/ideas arrays) for migration testing. */
+function v2State(overrides: {
+    tasks?: Task[];
+    goals?: Goal[];
+    ideas?: Idea[];
+} = {}): AppState {
+    return {
+        ...DEFAULT_STATE,
+        schemaVersion: 2,
+        // Cast as any to inject old-schema fields that TypeScript no longer knows about
+        ...(overrides as any),
+    };
+}
+
 describe("migrateState", () => {
     test("Phase 1 critical priority → tier 1", () => {
-        const v1: AppState = {
+        const state = {
             ...DEFAULT_STATE,
             schemaVersion: 1,
-            tasks: [v1Task("critical")],
-        };
-        const out = migrateState(v1);
-        assert.strictEquals(out.tasks[0]!.consequenceTier, 1);
+        } as any;
+        state.tasks = [v1Task("critical")];
+        const out = migrateState(state as AppState);
+        const task = out.commitments.find(c => c.kind === 'task' || c.kind === 'routine') as Task;
+        assert.strictEquals(task!.consequenceTier, 1);
     });
 
     test("Phase 1 priority mapping covers all four tiers", () => {
@@ -250,26 +265,21 @@ describe("migrateState", () => {
             ["low", 4],
         ];
         for (const [priority, expected] of cases) {
-            const v1: AppState = {
-                ...DEFAULT_STATE,
-                schemaVersion: 1,
-                tasks: [v1Task(priority)],
-            };
-            assert.strictEquals(
-                migrateState(v1).tasks[0]!.consequenceTier,
-                expected,
-            );
+            const state = { ...DEFAULT_STATE, schemaVersion: 1 } as any;
+            state.tasks = [v1Task(priority)];
+            const out = migrateState(state as AppState);
+            const task = out.commitments.find(c => c.kind === 'task' || c.kind === 'routine') as Task;
+            assert.strictEquals(task!.consequenceTier, expected);
         }
     });
 
     test("Phase 1 dueDate → suggestedDate", () => {
         const due = Date.now() + DAY_MS;
-        const v1: AppState = {
-            ...DEFAULT_STATE,
-            schemaVersion: 1,
-            tasks: [v1Task("medium", due)],
-        };
-        assert.strictEquals(migrateState(v1).tasks[0]!.suggestedDate, due);
+        const state = { ...DEFAULT_STATE, schemaVersion: 1 } as any;
+        state.tasks = [v1Task("medium", due)];
+        const out = migrateState(state as AppState);
+        const task = out.commitments[0] as Task;
+        assert.strictEquals(task!.suggestedDate, due);
     });
 
     test('legacy "dashboard" view → "daily"', () => {
@@ -281,98 +291,149 @@ describe("migrateState", () => {
     });
 
     test("bumps schemaVersion forward", () => {
-        const v1: AppState = { ...DEFAULT_STATE, schemaVersion: 1 };
-        assert.strictEquals(migrateState(v1).schemaVersion, SCHEMA_VERSION);
+        const state = { ...DEFAULT_STATE, schemaVersion: 1 } as any;
+        state.tasks = [];
+        assert.strictEquals(migrateState(state as AppState).schemaVersion, SCHEMA_VERSION);
     });
 
     test("idempotent on already-current schema", () => {
         const t = makeTask({ consequenceTier: 2 });
-        const v2: AppState = {
+        const v3: AppState = {
             ...DEFAULT_STATE,
             schemaVersion: SCHEMA_VERSION,
-            tasks: [t],
+            commitments: [t],
         };
-        const out = migrateState(v2);
-        assert.strictEquals(out.tasks[0]!.consequenceTier, 2);
+        const out = migrateState(v3);
+        const task = out.commitments[0] as Task;
+        assert.strictEquals(task!.consequenceTier, 2);
         assert.strictEquals(out.schemaVersion, SCHEMA_VERSION);
+    });
+
+    test("v2 tasks migrate to commitments array", () => {
+        const state = v2State({ tasks: [makeTask({ id: "t1" })] });
+        const out = migrateState(state);
+        assert.strictEquals(out.commitments.length, 1);
+        assert.strictEquals(out.commitments[0]!.id, "t1");
+    });
+
+    test("v2 goals tagged with kind='goal' and no linkedTaskIds", () => {
+        const state = v2State({
+            goals: [makeGoal({ id: "g1" })] as any,
+        });
+        const out = migrateState(state);
+        const goal = out.commitments.find(c => c.kind === 'goal');
+        assert.strictEquals(goal?.id, "g1");
+        assert.strictEquals(goal?.kind, "goal");
+    });
+
+    test("v2 ideas tagged with kind='idea'", () => {
+        const state = v2State({
+            ideas: [makeIdea({ id: "i1" })] as any,
+        });
+        const out = migrateState(state);
+        const idea = out.commitments.find(c => c.kind === 'idea');
+        assert.strictEquals(idea?.id, "i1");
+        assert.strictEquals(idea?.kind, "idea");
+    });
+
+    test("v2 concat order: tasks first, then goals, then ideas", () => {
+        const state = v2State({
+            tasks: [makeTask({ id: "t1" })],
+            goals: [makeGoal({ id: "g1" })] as any,
+            ideas: [makeIdea({ id: "i1" })] as any,
+        });
+        const out = migrateState(state);
+        assert.strictEquals(out.commitments[0]!.id, "t1");
+        assert.strictEquals(out.commitments[1]!.id, "g1");
+        assert.strictEquals(out.commitments[2]!.id, "i1");
+    });
+
+    test("v2 task linkedGoalId migrates to goalId", () => {
+        const state = v2State({
+            tasks: [makeTask({ id: "t1" })] as any,
+        });
+        // Inject old field
+        (state as any).tasks[0].linkedGoalId = "g1";
+        const out = migrateState(state);
+        const task = out.commitments[0] as Task;
+        assert.strictEquals(task.goalId, "g1");
     });
 });
 
 describe("kind migration", () => {
     test("no recurrence + no kind → task", () => {
-        const state: AppState = {
-            ...DEFAULT_STATE,
-            tasks: [legacyTask(null)] as unknown as Task[],
-        };
-        assert.strictEquals(migrateState(state).tasks[0]!.kind, "task");
+        const state = { ...DEFAULT_STATE, schemaVersion: 2 } as any;
+        state.tasks = [legacyTask(null)];
+        const out = migrateState(state as AppState);
+        const task = out.commitments[0] as Task;
+        assert.strictEquals(task!.kind, "task");
     });
 
     test("recurring endMode=never + no kind → routine", () => {
-        const state: AppState = {
-            ...DEFAULT_STATE,
-            tasks: [
-                legacyTask({
-                    cadence: "weekly",
-                    frequencyPerPeriod: 1,
-                    scheduleMode: "fixed",
-                    endMode: "never",
-                }),
-            ] as unknown as Task[],
-        };
-        assert.strictEquals(migrateState(state).tasks[0]!.kind, "routine");
+        const state = { ...DEFAULT_STATE, schemaVersion: 2 } as any;
+        state.tasks = [
+            legacyTask({
+                cadence: "weekly",
+                frequencyPerPeriod: 1,
+                scheduleMode: "fixed",
+                endMode: "never",
+            }),
+        ];
+        const out = migrateState(state as AppState);
+        const task = out.commitments[0] as Task;
+        assert.strictEquals(task!.kind, "routine");
     });
 
     test("recurring with no endMode field + no kind → routine (default to never)", () => {
-        const state: AppState = {
-            ...DEFAULT_STATE,
-            tasks: [
-                legacyTask({
-                    cadence: "weekly",
-                    frequencyPerPeriod: 1,
-                    scheduleMode: "fixed",
-                }),
-            ] as unknown as Task[],
-        };
-        assert.strictEquals(migrateState(state).tasks[0]!.kind, "routine");
+        const state = { ...DEFAULT_STATE, schemaVersion: 2 } as any;
+        state.tasks = [
+            legacyTask({
+                cadence: "weekly",
+                frequencyPerPeriod: 1,
+                scheduleMode: "fixed",
+            }),
+        ];
+        const out = migrateState(state as AppState);
+        const task = out.commitments[0] as Task;
+        assert.strictEquals(task!.kind, "routine");
     });
 
     test("recurring endMode=after_count + no kind → task", () => {
-        const state: AppState = {
-            ...DEFAULT_STATE,
-            tasks: [
-                legacyTask({
-                    cadence: "weekly",
-                    frequencyPerPeriod: 1,
-                    scheduleMode: "fixed",
-                    endMode: "after_count",
-                    endAfterCount: 10,
-                }),
-            ] as unknown as Task[],
-        };
-        assert.strictEquals(migrateState(state).tasks[0]!.kind, "task");
+        const state = { ...DEFAULT_STATE, schemaVersion: 2 } as any;
+        state.tasks = [
+            legacyTask({
+                cadence: "weekly",
+                frequencyPerPeriod: 1,
+                scheduleMode: "fixed",
+                endMode: "after_count",
+                endAfterCount: 10,
+            }),
+        ];
+        const out = migrateState(state as AppState);
+        const task = out.commitments[0] as Task;
+        assert.strictEquals(task!.kind, "task");
     });
 
     test("recurring endMode=after_date + no kind → task", () => {
-        const state: AppState = {
-            ...DEFAULT_STATE,
-            tasks: [
-                legacyTask({
-                    cadence: "monthly",
-                    frequencyPerPeriod: 1,
-                    scheduleMode: "fixed",
-                    endMode: "after_date",
-                    endAfterDate: Date.now() + DAY_MS * 30,
-                }),
-            ] as unknown as Task[],
-        };
-        assert.strictEquals(migrateState(state).tasks[0]!.kind, "task");
+        const state = { ...DEFAULT_STATE, schemaVersion: 2 } as any;
+        state.tasks = [
+            legacyTask({
+                cadence: "monthly",
+                frequencyPerPeriod: 1,
+                scheduleMode: "fixed",
+                endMode: "after_date",
+                endAfterDate: Date.now() + DAY_MS * 30,
+            }),
+        ];
+        const out = migrateState(state as AppState);
+        const task = out.commitments[0] as Task;
+        assert.strictEquals(task!.kind, "task");
     });
 
     test("existing kind field is preserved, not overwritten", () => {
-        const state: AppState = {
-            ...DEFAULT_STATE,
-            tasks: [makeTask({ kind: "routine", recurrence: null })],
-        };
-        assert.strictEquals(migrateState(state).tasks[0]!.kind, "routine");
+        const state = v2State({ tasks: [makeTask({ kind: "routine", recurrence: null })] });
+        const out = migrateState(state);
+        const task = out.commitments[0] as Task;
+        assert.strictEquals(task!.kind, "routine");
     });
 });

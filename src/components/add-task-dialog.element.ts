@@ -561,9 +561,7 @@ export const AddTaskDialogElement = defineElement<{
             const t = editTask;
             const cfg = t.recurrence;
             const currentLinkedGoal =
-                (inputs.goals ?? []).find((g) =>
-                    g.linkedTaskIds.includes(t.id),
-                ) ?? null;
+                (inputs.goals ?? []).find((g) => g.id === (t.goalId ?? null)) ?? null;
             updateState({
                 currentEditId: t.id,
                 wasOpen: true,
@@ -640,7 +638,7 @@ export const AddTaskDialogElement = defineElement<{
                     ? msToDateString(editGoal.targetDate)
                     : "",
                 editGoalId: editGoal.id,
-                goalLinkedTaskIds: [...editGoal.linkedTaskIds],
+                goalLinkedTaskIds: [], // count computed externally now
                 editIdeaId: null,
                 linkedGoalId: null,
                 originalLinkedGoalId: null,
@@ -914,23 +912,21 @@ export const AddTaskDialogElement = defineElement<{
                   ).getTime()
                 : null;
             return {
+                kind: "goal",
                 id: existing?.id ?? generateId(),
                 areaId: state.selectedAreaId,
+                goalId: existing?.goalId ?? null,
                 title: state.titleValue.trim(),
                 description: state.description.trim(),
                 status: existing?.status ?? "active",
                 targetDate: targetMs,
-                // Preserve links unless the user confirmed dissociation.
-                linkedTaskIds:
-                    state.willDissociateLinks || existing === null
-                        ? []
-                        : existing.linkedTaskIds,
                 createdAt: existing?.createdAt ?? Date.now(),
             };
         }
 
         function buildIdea(existing: Idea | null): Idea {
             return {
+                kind: "idea",
                 id: existing?.id ?? generateId(),
                 areaId: state.selectedAreaId,
                 title: state.titleValue.trim(),
