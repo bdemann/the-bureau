@@ -90,7 +90,7 @@ export const AreaWizardDialogElement = defineElement<{
             position: fixed;
             inset: 0;
             background: rgba(var(--color-primary-rgb), 0.65);
-            z-index: 300;
+            z-index: 200;
             display: flex;
             align-items: flex-end;
             justify-content: center;
@@ -117,7 +117,7 @@ export const AreaWizardDialogElement = defineElement<{
             width: 100%;
             max-width: 600px;
             border-top: 4px solid var(--color-warning);
-            padding: 20px 20px 32px;
+            padding: 20px 20px calc(32px + 64px + env(safe-area-inset-bottom, 0px));
             animation: sheet-in 0.2s ease-out;
             max-height: 90vh;
             overflow-y: auto;
