@@ -1,3 +1,4 @@
+import { defaultSkin } from "./default.skin.js";
 import type { Skin } from "./types.js";
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -16,6 +17,8 @@ import type { Skin } from "./types.js";
 // ─────────────────────────────────────────────────────────────────────────────
 
 export const freemasonSkin: Skin = {
+    ...defaultSkin,
+
     id: "freemason",
     displayName: "The Trestle Board",
 
@@ -103,6 +106,8 @@ export const freemasonSkin: Skin = {
         goalPlural: "Great Works",
         idea: "Rough Ashlar",
         ideaPlural: "Rough Ashlars",
+        goalAchieved: "perfected",
+        goalAbandoned: "released",
     },
 
     nav: {
@@ -127,10 +132,20 @@ export const freemasonSkin: Skin = {
 
     menu: {
         menuTitle: "Lodge Menu",
+        allCommitmentsSection: "The Trestle Board",
+        allTasksLabel: "All Labors",
+        allTasksSub: "Every labor and ritual across all pillars",
+        allRoutinesLabel: "All Rituals",
+        allRoutinesSub: "Every recurring ritual across all pillars",
+        allCommitmentsLabel: "All Obligations",
+        allCommitmentsSub: "Every labor, ritual, great work & ashlar on record",
         insightsSectionLabel: "Working Tools",
+        insightsLabel: "Working Tools",
+        insightsSub: "A Mason keeps an accurate account of his labor",
         shareSectionLabel: "Spread the Light",
         shareItemLabel: "Hail a Fellow Craftsman",
         shareItemSub: "Invite a brother to the lodge",
+        appearanceLabel: "Regalia",
     },
 
     actions: {
@@ -170,6 +185,77 @@ export const freemasonSkin: Skin = {
         deleteIdeaBtn: "DISCARD",
 
         makeCommitmentCta: "+ UNDERTAKE LABOR",
+    },
+
+    areaCard: {
+        ...defaultSkin.areaCard,
+        watchingFlag: "★ LODGE WATCHING",
+        allClearedFlag: "✓ PILLAR STANDS",
+    },
+
+    commitmentList: {
+        ...defaultSkin.commitmentList,
+        activeHeader: "ACTIVE LABORS",
+        pausedHeader: "DEFERRED",
+        snoozedHeader: "SUSPENDED",
+        clearedToggleShow: (n) =>
+            `Show ${n} completed labor${n !== 1 ? "s" : ""}`,
+        clearedToggleHide: (n) =>
+            `Hide ${n} completed labor${n !== 1 ? "s" : ""}`,
+        emptyState: "No active labors in this pillar.",
+        emptyQuote:
+            '"By work, all things are accomplished." — Masonic Maxim',
+        newCommitmentCta: "+ UNDERTAKE NEW LABOR",
+    },
+
+    areaEdit: {
+        ...defaultSkin.areaEdit,
+        nameLabel: "Pillar Name",
+        briefingLabel: "Purpose",
+        colorLabel: "Regalia Color",
+        editBtn: "AMEND PILLAR",
+        deleteBtn: "DISSOLVE PILLAR",
+        deleteConfirmBtn: "DISSOLVE",
+        deletePrompt:
+            "PERMANENTLY DISSOLVE THIS PILLAR AND ALL ITS OBLIGATIONS?",
+    },
+
+    commitmentRow: {
+        ...defaultSkin.commitmentRow,
+        completeTitle: "Mark labor complete",
+        logProgressTitle: "Log progress or complete the labor",
+        snoozeBtn: "Defer (+24h)",
+        skipBtn: "Avoid",
+        wakeUpBtn: "Resume",
+        routineKindBadge: "RITUAL",
+    },
+
+    wizard: {
+        ...defaultSkin.wizard,
+        step1Title: "NEW PILLAR",
+        step1Prompt: "What area of your life calls you to build with intention?",
+        step1NameLabel: "Pillar Name *",
+        step1NamePlaceholder: "e.g. Health & Vitality, Craft Practice, Home",
+        step1BriefingLabel: "Purpose (optional)",
+        step1BriefingPlaceholder: "What does this pillar mean to you and the lodge?",
+        step1ColorLabel: "Regalia Color",
+        step1QuickCreateBtn: "Establish without obligations",
+        step2Title: "NAME YOUR OBLIGATIONS",
+        step2Prompt: (areaName) =>
+            `What labors define your commitment to "${areaName}"? A Mason who cannot name his work cannot account for it. List one per line.`,
+        step2CommitmentsLabel: "Obligations (one per line)",
+        step2CommitmentsPlaceholder:
+            "e.g.\nMeet lodge dues monthly\nPractice the ritual weekly\nAttend stated communication quarterly",
+        step2CreateWithoutBtn: "Establish without obligations",
+        step2ConfigureBtn: (n) =>
+            `Configure ${n} obligation${n !== 1 ? "s" : ""} →`,
+        step2CreateAreaBtn: "Establish pillar →",
+        step3Title: "CONFIGURE OBLIGATION",
+        step3NameLabel: "Obligation Name *",
+        step3NamePlaceholder: "Describe this labor.",
+        step3CreateSoFarBtn: "Establish with obligations so far",
+        step3CreateWithoutBtn: "Establish without obligations",
+        step3FinishBtn: "Establish Pillar ✓",
     },
 
     dialogues: {

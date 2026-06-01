@@ -498,28 +498,28 @@ export const BureauHeaderElement = defineElement<{
 
                               <div class="menu-section">
                                   <div class="menu-section-label">
-                                      All Commitments
+                                      ${skin.menu.allCommitmentsSection}
                                   </div>
                                   <button
                                       class="menu-item"
                                       @click=${() => { dispatch(new events.viewRequested("all-tasks")); closeMenu(); }}
                                   >
-                                      All Tasks
-                                      <span class="menu-item-sub">Every task &amp; routine across all areas</span>
+                                      ${skin.menu.allTasksLabel}
+                                      <span class="menu-item-sub">${skin.menu.allTasksSub}</span>
                                   </button>
                                   <button
                                       class="menu-item"
                                       @click=${() => { dispatch(new events.viewRequested("all-routines")); closeMenu(); }}
                                   >
-                                      All Routines
-                                      <span class="menu-item-sub">Every recurring routine across all areas</span>
+                                      ${skin.menu.allRoutinesLabel}
+                                      <span class="menu-item-sub">${skin.menu.allRoutinesSub}</span>
                                   </button>
                                   <button
                                       class="menu-item"
                                       @click=${() => { dispatch(new events.viewRequested("all-commitments")); closeMenu(); }}
                                   >
-                                      All Commitments
-                                      <span class="menu-item-sub">Every task, routine, goal &amp; idea in order</span>
+                                      ${skin.menu.allCommitmentsLabel}
+                                      <span class="menu-item-sub">${skin.menu.allCommitmentsSub}</span>
                                   </button>
                               </div>
 
@@ -531,11 +531,8 @@ export const BureauHeaderElement = defineElement<{
                                       class="menu-item"
                                       @click=${onInsights}
                                   >
-                                      Insights
-                                      <span class="menu-item-sub"
-                                          >Missed tasks, completions,
-                                          patterns</span
-                                      >
+                                      ${skin.menu.insightsLabel}
+                                      <span class="menu-item-sub">${skin.menu.insightsSub}</span>
                                   </button>
                               </div>
 
@@ -556,7 +553,7 @@ export const BureauHeaderElement = defineElement<{
 
                               <div class="menu-section">
                                   <div class="menu-section-label">
-                                      Appearance
+                                      ${skin.menu.appearanceLabel}
                                   </div>
                                   <div class="skin-picker">
                                       ${ALL_SKINS.map(

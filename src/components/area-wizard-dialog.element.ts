@@ -1,4 +1,5 @@
 import { css, defineElement, defineElementEvent, html, listen } from "element-vir";
+import { getActiveSkin } from "../skins/active-skin.js";
 import { ViraButton, ViraColorVariant, ViraEmphasis, ViraSize } from "vira";
 import type {
     ConsequenceTier,
@@ -43,7 +44,11 @@ const COLOR_OPTIONS: { key: AreaColor; label: string; swatch: string }[] = [
 ];
 
 
-export const AreaWizardDialogElement = defineElement<{ open: boolean }>()({
+export const AreaWizardDialogElement = defineElement<{
+    open: boolean;
+    /** Re-render trigger — changes when the active skin changes. */
+    activeSkinId: string;
+}>()({
     tagName: "area-wizard-dialog",
 
     events: {
@@ -293,18 +298,19 @@ export const AreaWizardDialogElement = defineElement<{ open: boolean }>()({
 
     render({ inputs, state, updateState, dispatch, events }) {
         if (!inputs.open) return html``;
+        const skin = getActiveSkin();
 
         if (state.confirmingCancel) {
             return html`
                 <div class="overlay">
                     <div class="sheet" style="padding-bottom:24px">
-                        <div class="sheet-title">DISCARD CHANGES?</div>
+                        <div class="sheet-title">${skin.wizard.discardTitle}</div>
                         <p style="font-family:var(--font-mono);font-size:0.85rem;color:var(--color-text);margin:0 0 20px">
-                            Your progress on this area will be lost.
+                            ${skin.wizard.discardMessage}
                         </p>
                         <div class="actions">
                             <${ViraButton.assign({
-                                text: "Keep editing",
+                                text: skin.wizard.discardKeepBtn,
                                 color: ViraColorVariant.Neutral,
                                 buttonEmphasis: ViraEmphasis.Subtle,
                             })}
@@ -312,7 +318,7 @@ export const AreaWizardDialogElement = defineElement<{ open: boolean }>()({
                             ></${ViraButton}>
                             <span class="actions-grow">
                                 <${ViraButton.assign({
-                                    text: "Discard",
+                                    text: skin.wizard.discardConfirmBtn,
                                     color: ViraColorVariant.Danger,
                                 })}
                                     @click=${cancel}
@@ -499,19 +505,17 @@ export const AreaWizardDialogElement = defineElement<{ open: boolean }>()({
                     if (e.target === e.currentTarget) requestCancel();
                 }}>
                     <div class="sheet">
-                        <div class="step-indicator">STEP 1 OF 3</div>
-                        <div class="sheet-title">NEW AREA OF RESPONSIBILITY</div>
+                        <div class="step-indicator">${skin.wizard.step1Indicator}</div>
+                        <div class="sheet-title">${skin.wizard.step1Title}</div>
 
-                        <div class="prompt">
-                            What area of your life will you be taking responsibility for?
-                        </div>
+                        <div class="prompt">${skin.wizard.step1Prompt}</div>
 
                         <div class="field">
-                            <label class="field-label">Area Name *</label>
+                            <label class="field-label">${skin.wizard.step1NameLabel}</label>
                             <input
                                 type="text"
                                 .value=${state.areaName}
-                                placeholder="e.g. Amateur Baker, Homeowner, Fitness"
+                                placeholder="${skin.wizard.step1NamePlaceholder}"
                                 @input=${(e: Event) =>
                                     updateState({
                                         areaName: (e.target as HTMLInputElement)
@@ -525,10 +529,10 @@ export const AreaWizardDialogElement = defineElement<{ open: boolean }>()({
                         </div>
 
                         <div class="field">
-                            <label class="field-label">Briefing (optional)</label>
+                            <label class="field-label">${skin.wizard.step1BriefingLabel}</label>
                             <textarea
                                 .value=${state.areaDescription}
-                                placeholder="What does it mean to you to be on top of this area?"
+                                placeholder="${skin.wizard.step1BriefingPlaceholder}"
                                 @input=${(e: Event) =>
                                     updateState({
                                         areaDescription: (
@@ -539,7 +543,7 @@ export const AreaWizardDialogElement = defineElement<{ open: boolean }>()({
                         </div>
 
                         <div class="field">
-                            <label class="field-label">Designation Color</label>
+                            <label class="field-label">${skin.wizard.step1ColorLabel}</label>
                             <div class="color-grid">
                                 ${COLOR_OPTIONS.map(
                                     (opt) => html`
@@ -573,14 +577,14 @@ export const AreaWizardDialogElement = defineElement<{ open: boolean }>()({
 
                         <div class="actions">
                             <${ViraButton.assign({
-                                text: "Cancel",
+                                text: skin.wizard.cancelBtn,
                                 color: ViraColorVariant.Neutral,
                                 buttonEmphasis: ViraEmphasis.Subtle,
                             })}
                                 @click=${requestCancel}
                             ></${ViraButton}>
                             <${ViraButton.assign({
-                                text: "Quick create (no commitments)",
+                                text: skin.wizard.step1QuickCreateBtn,
                                 color: ViraColorVariant.Neutral,
                                 buttonEmphasis: ViraEmphasis.Subtle,
                                 isDisabled: !canProceedStep1,
@@ -589,7 +593,7 @@ export const AreaWizardDialogElement = defineElement<{ open: boolean }>()({
                             ></${ViraButton}>
                             <span class="actions-grow">
                                 <${ViraButton.assign({
-                                    text: "Continue →",
+                                    text: skin.wizard.step1ContinueBtn,
                                     color: ViraColorVariant.Info,
                                     isDisabled: !canProceedStep1,
                                 })}
@@ -612,20 +616,15 @@ export const AreaWizardDialogElement = defineElement<{ open: boolean }>()({
                 }}>
                     <div class="sheet">
                         <div class="step-indicator">STEP 2 OF 3 · ${state.areaName.toUpperCase()}</div>
-                        <div class="sheet-title">IDENTIFY YOUR COMMITMENTS</div>
+                        <div class="sheet-title">${skin.wizard.step2Title}</div>
 
-                        <div class="prompt">
-                            If you told a friend you were into
-                            <em>${state.areaName}</em>,
-                            what would you need to be doing regularly to feel honest saying that?
-                            List one item per line.
-                        </div>
+                        <div class="prompt">${skin.wizard.step2Prompt(state.areaName)}</div>
 
                         <div class="field">
-                            <label class="field-label">Your Commitments (one per line)</label>
+                            <label class="field-label">${skin.wizard.step2CommitmentsLabel}</label>
                             <textarea
                                 .value=${state.brainstormText}
-                                placeholder="e.g.&#10;Bake bread weekly&#10;Try a new technique monthly&#10;Share something I made quarterly"
+                                placeholder="${skin.wizard.step2CommitmentsPlaceholder}"
                                 @input=${(e: Event) =>
                                     updateState({
                                         brainstormText: (
@@ -655,14 +654,14 @@ export const AreaWizardDialogElement = defineElement<{ open: boolean }>()({
 
                         <div class="actions">
                             <${ViraButton.assign({
-                                text: "← Back",
+                                text: skin.wizard.step2BackBtn,
                                 color: ViraColorVariant.Neutral,
                                 buttonEmphasis: ViraEmphasis.Subtle,
                             })}
                                 @click=${() => updateState({ step: 1 })}
                             ></${ViraButton}>
                             <${ViraButton.assign({
-                                text: "Create without commitments",
+                                text: skin.wizard.step2CreateWithoutBtn,
                                 color: ViraColorVariant.Neutral,
                                 buttonEmphasis: ViraEmphasis.Subtle,
                             })}
@@ -672,8 +671,8 @@ export const AreaWizardDialogElement = defineElement<{ open: boolean }>()({
                                 <${ViraButton.assign({
                                     text:
                                         routineCount > 0
-                                            ? `Configure ${routineCount} commitment${routineCount !== 1 ? "s" : ""} →`
-                                            : "Create area →",
+                                            ? skin.wizard.step2ConfigureBtn(routineCount)
+                                            : skin.wizard.step2CreateAreaBtn,
                                     color: ViraColorVariant.Info,
                                 })}
                                     @click=${goToStep3}
@@ -698,7 +697,7 @@ export const AreaWizardDialogElement = defineElement<{ open: boolean }>()({
                     <div class="step-indicator">
                         STEP 3 OF 3 · COMMITMENT ${currentNum} OF ${totalRoutines}
                     </div>
-                    <div class="sheet-title">CONFIGURE COMMITMENT</div>
+                    <div class="sheet-title">${skin.wizard.step3Title}</div>
 
                     <div class="routine-counter">
                         ${state.areaName.toUpperCase()} · ${currentNum}/${totalRoutines}
@@ -706,11 +705,11 @@ export const AreaWizardDialogElement = defineElement<{ open: boolean }>()({
 
                     <!-- Routine title -->
                     <div class="field">
-                        <label class="field-label">Commitment Name *</label>
+                        <label class="field-label">${skin.wizard.step3NameLabel}</label>
                         <input
                             type="text"
                             .value=${state.currentTitle}
-                            placeholder="Describe this commitment."
+                            placeholder="${skin.wizard.step3NamePlaceholder}"
                             @input=${(e: Event) =>
                                 updateState({
                                     currentTitle: (e.target as HTMLInputElement)
@@ -780,8 +779,8 @@ export const AreaWizardDialogElement = defineElement<{ open: boolean }>()({
                         <${ViraButton.assign({
                             text:
                                 state.completedRoutines.length > 0
-                                    ? "Create with commitments so far"
-                                    : "Create without commitments",
+                                    ? skin.wizard.step3CreateSoFarBtn
+                                    : skin.wizard.step3CreateWithoutBtn,
                             color: ViraColorVariant.Neutral,
                             buttonEmphasis: ViraEmphasis.Subtle,
                         })}
@@ -790,8 +789,8 @@ export const AreaWizardDialogElement = defineElement<{ open: boolean }>()({
                         <span class="actions-grow">
                             <${ViraButton.assign({
                                 text: isLastRoutine
-                                    ? "Create Area ✓"
-                                    : `Next Commitment →`,
+                                    ? skin.wizard.step3FinishBtn
+                                    : skin.wizard.step3NextBtn,
                                 color: ViraColorVariant.Info,
                                 isDisabled: !canConfigureRoutine,
                             })}

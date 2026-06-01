@@ -307,7 +307,7 @@ export const TaskItemElement = defineElement<{
             .filter(Boolean)
             .join(" ");
 
-        const dueLabel = formatDueLabel(task, overdue);
+        const dueLabel = formatDueLabel(task, overdue, skin.commitmentRow.dueDatePrefix, skin.commitmentRow.missedDatePrefix);
         const snoozedUntilStr =
             currentlySnoozed && task.snoozedUntil
                 ? new Date(task.snoozedUntil).toLocaleDateString("en-US", {
@@ -353,8 +353,8 @@ export const TaskItemElement = defineElement<{
                 <button
                     class="complete-checkbox"
                     title=${isMilestone
-                        ? "Log progress or complete"
-                        : "Mark complete"}
+                        ? skin.commitmentRow.logProgressTitle
+                        : skin.commitmentRow.completeTitle}
                     @click=${(e: Event) => {
                         e.stopPropagation();
                         isMilestone
@@ -406,13 +406,11 @@ export const TaskItemElement = defineElement<{
                             : html``}
                         ${isMilestone && task.progressCount > 0
                             ? html`<span class="progress-log-chip"
-                                  >${task.progressCount}
-                                  session${task.progressCount === 1 ? "" : "s"}
-                                  logged</span
+                                  >${skin.commitmentRow.sessionsLoggedLabel(task.progressCount)}</span
                               >`
                             : html``}
                         ${task.kind === "routine"
-                            ? html`<span class="kind-chip">ROUTINE</span>`
+                            ? html`<span class="kind-chip">${skin.commitmentRow.routineKindBadge}</span>`
                             : html``}
                         ${task.snoozeCount > 0
                             ? html`
@@ -434,7 +432,7 @@ export const TaskItemElement = defineElement<{
                             : html``}
                         ${snoozedUntilStr
                             ? html`<span class="snoozed-until"
-                                  >Snoozed until ${snoozedUntilStr}</span
+                                  >${skin.commitmentRow.snoozedUntilLabel(snoozedUntilStr)}</span
                               >`
                             : html``}
                     </div>
@@ -445,7 +443,7 @@ export const TaskItemElement = defineElement<{
                                   ${currentlySnoozed
                                       ? html`
                             <${ViraButton.assign({
-                                text: "Wake up",
+                                text: skin.commitmentRow.wakeUpBtn,
                                 color: ViraColorVariant.Info,
                                 buttonEmphasis: ViraEmphasis.Subtle,
                                 buttonSize: ViraSize.Small,
@@ -462,8 +460,8 @@ export const TaskItemElement = defineElement<{
                                                 : html`
                                 <${ViraButton.assign({
                                     text: canSnooze
-                                        ? "Snooze (+24h)"
-                                        : "Cannot snooze",
+                                        ? skin.commitmentRow.snoozeBtn
+                                        : skin.commitmentRow.cannotSnoozeBtn,
                                     color: ViraColorVariant.Warning,
                                     buttonEmphasis: ViraEmphasis.Subtle,
                                     buttonSize: ViraSize.Small,
@@ -481,7 +479,7 @@ export const TaskItemElement = defineElement<{
                                             ${task.recurrence
                                                 ? html`
                                 <${ViraButton.assign({
-                                    text: "Skip",
+                                    text: skin.commitmentRow.skipBtn,
                                     color: ViraColorVariant.Info,
                                     buttonEmphasis: ViraEmphasis.Subtle,
                                     buttonSize: ViraSize.Small,
@@ -498,7 +496,7 @@ export const TaskItemElement = defineElement<{
                                                 ? html`
                                 <span class="milestone-confirm">
                                     <${ViraButton.assign({
-                                        text: "Log session",
+                                        text: skin.commitmentRow.logSessionBtn,
                                         color: ViraColorVariant.Neutral,
                                         buttonEmphasis: ViraEmphasis.Subtle,
                                         buttonSize: ViraSize.Small,
@@ -516,7 +514,7 @@ export const TaskItemElement = defineElement<{
                                         }}
                                     ></${ViraButton}>
                                     <${ViraButton.assign({
-                                        text: "All done",
+                                        text: skin.commitmentRow.allDoneBtn,
                                         color: ViraColorVariant.Info,
                                         buttonEmphasis: ViraEmphasis.Standard,
                                         buttonSize: ViraSize.Small,
@@ -559,7 +557,7 @@ export const TaskItemElement = defineElement<{
 
 // ── Helpers ─────────────────────────────────────────────────────────────────
 
-function formatDueLabel(task: Task, overdue: boolean): string | null {
+function formatDueLabel(task: Task, overdue: boolean, duePfx: string, missedPfx: string): string | null {
     const pattern = formatRecurrencePattern(task);
     const due = task.suggestedDate ?? task.dueDate;
     if (due === null) return pattern;
@@ -569,7 +567,7 @@ function formatDueLabel(task: Task, overdue: boolean): string | null {
         day: "numeric",
     });
     if (task.windowType === "hard") {
-        const base = overdue ? `⚠ MISSED — ${fmt}` : `Due ${fmt}`;
+        const base = overdue ? `${missedPfx}${fmt}` : `${duePfx}${fmt}`;
         return pattern ? `${pattern} · next ${fmt}` : base;
     }
     if (pattern) {

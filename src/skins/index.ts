@@ -1,4 +1,5 @@
-export type {Skin, SkinActions, SkinBand, SkinBands, SkinCharacter, SkinCharacters, SkinCommitmentTypes, SkinDialogueLine, SkinIdentity, SkinNav, SkinPages, SkinRanks, SkinStreakLabels, DialogueMap} from './types.js';
+export type {Skin, SkinActions, SkinAreaCard, SkinAreaEdit, SkinBand, SkinBands, SkinCharacter, SkinCharacters, SkinCommitmentList, SkinCommitmentRow, SkinCommitmentTypes, SkinDialogueLine, SkinIdentity, SkinMenu, SkinNav, SkinPages, SkinRanks, SkinStreakLabels, SkinWizard, DialogueMap} from './types.js';
+export {defaultSkin} from './default.skin.js';
 export {bcrSkin} from './bcr.skin.js';
 export {vanillaSkin} from './vanilla.skin.js';
 export {freemasonSkin} from './freemason.skin.js';

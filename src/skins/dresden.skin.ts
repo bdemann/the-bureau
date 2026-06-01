@@ -1,3 +1,4 @@
+import { defaultSkin } from "./default.skin.js";
 import type { Skin } from "./types.js";
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -28,6 +29,8 @@ import type { Skin } from "./types.js";
 // ─────────────────────────────────────────────────────────────────────────────
 
 export const dresdenSkin: Skin = {
+    ...defaultSkin,
+
     id: "dresden",
     displayName: "Dresden's Docket",
 
@@ -115,6 +118,8 @@ export const dresdenSkin: Skin = {
         goalPlural: "Investigations",
         idea: "Hunch",
         ideaPlural: "Hunches",
+        goalAchieved: "solved",
+        goalAbandoned: "cold case",
     },
 
     nav: {
@@ -141,10 +146,20 @@ export const dresdenSkin: Skin = {
 
     menu: {
         menuTitle: "Case Files",
+        allCommitmentsSection: "The Docket",
+        allTasksLabel: "All Obligations",
+        allTasksSub: "Every obligation and ritual across all cases",
+        allRoutinesLabel: "All Rituals",
+        allRoutinesSub: "Every recurring ritual across all cases",
+        allCommitmentsLabel: "Full Docket",
+        allCommitmentsSub: "Every obligation, ritual, investigation & hunch on file",
         insightsSectionLabel: "Harry's Notes",
+        insightsLabel: "Case Summary",
+        insightsSub: "Missed obligations, patterns, and field performance",
         shareSectionLabel: "Spread the Word",
         shareItemLabel: "Recommend a Wizard",
         shareItemSub: "Tell a friend about the docket",
+        appearanceLabel: "Wardrobe",
     },
 
     actions: {
@@ -184,6 +199,79 @@ export const dresdenSkin: Skin = {
         deleteIdeaBtn: "DISCARD",
 
         makeCommitmentCta: "+ ADD OBLIGATION",
+    },
+
+    areaCard: {
+        ...defaultSkin.areaCard,
+        watchingFlag: "★ BOB WATCHING",
+        allClearedFlag: "✓ CASE CLOSED",
+    },
+
+    commitmentList: {
+        ...defaultSkin.commitmentList,
+        activeHeader: "OPEN OBLIGATIONS",
+        pausedHeader: "ON HOLD",
+        snoozedHeader: "PUNTED",
+        clearedToggleShow: (n) =>
+            `Show ${n} closed obligation${n !== 1 ? "s" : ""}`,
+        clearedToggleHide: (n) =>
+            `Hide ${n} closed obligation${n !== 1 ? "s" : ""}`,
+        emptyState: "No open obligations on this case.",
+        emptyQuote:
+            '"The only way out is through." — Harry Dresden',
+        newCommitmentCta: "+ TAKE ON OBLIGATION",
+    },
+
+    areaEdit: {
+        ...defaultSkin.areaEdit,
+        nameLabel: "Case Name",
+        briefingLabel: "Case Notes",
+        colorLabel: "Case Color",
+        editBtn: "REVISE CASE",
+        deleteBtn: "CLOSE CASE FILE",
+        deleteConfirmBtn: "CLOSE",
+        deletePrompt:
+            "PERMANENTLY CLOSE THIS CASE AND ALL ITS OBLIGATIONS?",
+    },
+
+    commitmentRow: {
+        ...defaultSkin.commitmentRow,
+        completeTitle: "Mark obligation fulfilled",
+        logProgressTitle: "Log progress or fulfill the obligation",
+        snoozeBtn: "Punt (+24h)",
+        skipBtn: "Dodge",
+        wakeUpBtn: "Back on it",
+        routineKindBadge: "RITUAL",
+    },
+
+    wizard: {
+        ...defaultSkin.wizard,
+        step1Title: "OPEN A NEW CASE",
+        step1Prompt:
+            "What area of your life is asking for your attention? Give it a name and put it on the board.",
+        step1NameLabel: "Case Name *",
+        step1NamePlaceholder: "e.g. Health, Side Business, Home",
+        step1BriefingLabel: "Case Notes (optional)",
+        step1BriefingPlaceholder:
+            "What's the deal with this one? Give yourself context.",
+        step1ColorLabel: "Case Color",
+        step1QuickCreateBtn: "Open case (no obligations yet)",
+        step2Title: "NAME YOUR OBLIGATIONS",
+        step2Prompt: (areaName) =>
+            `If this is a real case — "${areaName}" — what are you actually on the hook for? Be honest. List one per line.`,
+        step2CommitmentsLabel: "Obligations (one per line)",
+        step2CommitmentsPlaceholder:
+            "e.g.\nRun 3× per week\nCall accountant monthly\nReview investments quarterly",
+        step2CreateWithoutBtn: "Open without obligations",
+        step2ConfigureBtn: (n) =>
+            `Configure ${n} obligation${n !== 1 ? "s" : ""} →`,
+        step2CreateAreaBtn: "Open case →",
+        step3Title: "CONFIGURE OBLIGATION",
+        step3NameLabel: "Obligation Name *",
+        step3NamePlaceholder: "What exactly are you on the hook for?",
+        step3CreateSoFarBtn: "Open case with obligations so far",
+        step3CreateWithoutBtn: "Open without obligations",
+        step3FinishBtn: "Open Case ✓",
     },
 
     dialogues: {

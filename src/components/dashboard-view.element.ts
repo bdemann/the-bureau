@@ -418,7 +418,7 @@ export const DashboardViewElement = defineElement<{
             </button>
 
             <!-- Area wizard dialog -->
-            <${AreaWizardDialogElement.assign({ open: state.wizardOpen })}
+            <${AreaWizardDialogElement.assign({ open: state.wizardOpen, activeSkinId: inputs.activeSkinId })}
                 ${listen(AreaWizardDialogElement.events.areaCreated, (e) => {
                     dispatch(new events.areaCreated(e.detail));
                     updateState({ wizardOpen: false });

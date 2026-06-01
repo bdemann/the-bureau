@@ -414,12 +414,10 @@ export const AreaDetailElement = defineElement<{
                 snoozedTasks.length === 0
                     ? html`
                           <div class="empty-state">
-                              <p>No active commitments in this area.</p>
-                              <p class="empty-quote">
-                                  "A cleared docket is not an idle one — it is a
-                                  prepared one."<br />
-                                  — Agent H. Whitaker
-                              </p>
+                              <p>${skin.commitmentList.emptyState}</p>
+                              ${skin.commitmentList.emptyQuote
+                                  ? html`<p class="empty-quote">${skin.commitmentList.emptyQuote}</p>`
+                                  : html``}
                           </div>
                       `
                     : html``
@@ -428,7 +426,7 @@ export const AreaDetailElement = defineElement<{
             ${
                 activeTasks.length > 0
                     ? html`
-                          <div class="section-label">ACTIVE COMMITMENTS</div>
+                          <div class="section-label">${skin.commitmentList.activeHeader}</div>
                           <div class="task-list">
                               ${activeTasks.map(
                                   (task) => html`
@@ -586,7 +584,7 @@ export const AreaDetailElement = defineElement<{
                     ? html`
                           <div class="snoozed-section">
                               <div class="section-label">
-                                  PAUSED (${pausedTasks.length})
+                                  ${skin.commitmentList.pausedHeader} (${pausedTasks.length})
                               </div>
                               <div class="task-list">
                                   ${pausedTasks.map(
@@ -617,7 +615,7 @@ export const AreaDetailElement = defineElement<{
                     ? html`
                           <div class="snoozed-section">
                               <div class="section-label">
-                                  SNOOZED (${snoozedTasks.length})
+                                  ${skin.commitmentList.snoozedHeader} (${snoozedTasks.length})
                               </div>
                               <div class="task-list">
                                   ${snoozedTasks.map(
@@ -674,7 +672,7 @@ export const AreaDetailElement = defineElement<{
                 class="add-btn"
                 @click=${() => dispatch(new events.newTaskRequested(area.id))}
             >
-                + MAKE NEW COMMITMENT
+                ${skin.commitmentList.newCommitmentCta}
             </button>
 
             <!-- Completed tasks (collapsed by default) -->
@@ -688,16 +686,14 @@ export const AreaDetailElement = defineElement<{
                                       showCompleted: !state.showCompleted,
                                   })}
                           >
-                              ${state.showCompleted ? "Hide" : "Show"}
-                              ${completedTasks.length} cleared
-                              commitment${completedTasks.length !== 1
-                                  ? "s"
-                                  : ""}
+                              ${state.showCompleted
+                                  ? skin.commitmentList.clearedToggleHide(completedTasks.length)
+                                  : skin.commitmentList.clearedToggleShow(completedTasks.length)}
                           </button>
 
                           ${state.showCompleted
                               ? html`
-                                    <div class="section-label">CLEARED</div>
+                                    <div class="section-label">${skin.commitmentList.clearedHeader}</div>
                                     <div class="task-list">
                                         ${completedTasks.map(
                                             (task) => html`
@@ -823,7 +819,7 @@ export const AreaDetailElement = defineElement<{
                               <div class="edit-form">
                                   <div>
                                       <label class="edit-label"
-                                          >Area Name</label
+                                          >${skin.areaEdit.nameLabel}</label
                                       >
                                       <input
                                           class="edit-input"
@@ -838,7 +834,7 @@ export const AreaDetailElement = defineElement<{
                                       />
                                   </div>
                                   <div>
-                                      <label class="edit-label">Briefing</label>
+                                      <label class="edit-label">${skin.areaEdit.briefingLabel}</label>
                                       <textarea
                                           class="edit-input edit-textarea"
                                           .value=${state.editDescription}
@@ -852,7 +848,7 @@ export const AreaDetailElement = defineElement<{
                                   </div>
                                   <div>
                                       <label class="edit-label"
-                                          >Designation Color</label
+                                          >${skin.areaEdit.colorLabel}</label
                                       >
                                       <div class="color-grid">
                                           ${COLOR_OPTIONS.map(
@@ -906,7 +902,7 @@ export const AreaDetailElement = defineElement<{
                                               });
                                           }}
                                       >
-                                          SAVE CHANGES
+                                          ${skin.areaEdit.saveBtn}
                                       </button>
                                       <button
                                           class="confirm-no"
@@ -915,7 +911,7 @@ export const AreaDetailElement = defineElement<{
                                                   editingArea: false,
                                               })}
                                       >
-                                          CANCEL
+                                          ${skin.areaEdit.cancelBtn}
                                       </button>
                                   </div>
                               </div>
@@ -923,10 +919,7 @@ export const AreaDetailElement = defineElement<{
                         : state.confirmingDelete
                           ? html`
                                 <div class="confirm-delete">
-                                    <p>
-                                        PERMANENTLY DECOMMISSION THIS AREA AND
-                                        ALL ITS COMMITMENTS?
-                                    </p>
+                                    <p>${skin.areaEdit.deletePrompt}</p>
                                     <div class="confirm-actions">
                                         <button
                                             class="confirm-yes"
@@ -937,7 +930,7 @@ export const AreaDetailElement = defineElement<{
                                                     ),
                                                 )}
                                         >
-                                            DECOMMISSION
+                                            ${skin.areaEdit.deleteConfirmBtn}
                                         </button>
                                         <button
                                             class="confirm-no"
@@ -946,7 +939,7 @@ export const AreaDetailElement = defineElement<{
                                                     confirmingDelete: false,
                                                 })}
                                         >
-                                            CANCEL
+                                            ${skin.areaEdit.cancelBtn}
                                         </button>
                                     </div>
                                 </div>
@@ -964,7 +957,7 @@ export const AreaDetailElement = defineElement<{
                                                 editColor: area.colorKey,
                                             })}
                                     >
-                                        EDIT AREA
+                                        ${skin.areaEdit.editBtn}
                                     </button>
                                     <button
                                         class="delete-btn"
@@ -973,7 +966,7 @@ export const AreaDetailElement = defineElement<{
                                                 confirmingDelete: true,
                                             })}
                                     >
-                                        DECOMMISSION AREA
+                                        ${skin.areaEdit.deleteBtn}
                                     </button>
                                 </div>
                             `

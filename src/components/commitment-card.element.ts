@@ -1,5 +1,6 @@
 import { css, defineElement, defineElementEvent, html } from "element-vir";
 import type { AnyCommitment, Area, Goal, Task } from "../data/types.js";
+import { getActiveSkin } from "../skins/active-skin.js";
 
 // ─────────────────────────────────────────────────────────────────────────────
 // CommitmentCardElement
@@ -12,6 +13,8 @@ export const CommitmentCardElement = defineElement<{
     commitment: AnyCommitment;
     areas: ReadonlyArray<Area>;
     goals: ReadonlyArray<Goal>;
+    /** Re-render trigger — changes when the active skin changes. */
+    activeSkinId: string;
 }>()({
     tagName: "commitment-card",
 
@@ -127,6 +130,7 @@ export const CommitmentCardElement = defineElement<{
     `,
 
     render({ inputs, dispatch, events }) {
+        const skin = getActiveSkin();
         const { commitment, areas, goals } = inputs;
 
         const areaName = (areaId: string | null) =>
@@ -150,7 +154,7 @@ export const CommitmentCardElement = defineElement<{
             const t = commitment as Task;
             const gTitle = goalTitle(t.goalId ?? null);
             meta = html`
-                <span class=${"badge kind-" + commitment.kind}>${commitment.kind}</span>
+                <span class=${"badge kind-" + commitment.kind}>${skin.types[commitment.kind as "routine" | "task"]}</span>
                 ${area
                     ? html`<span class="badge">${area}</span>`
                     : html`<span class="badge no-area">no area</span>`}
@@ -164,12 +168,14 @@ export const CommitmentCardElement = defineElement<{
         } else if (commitment.kind === "goal") {
             const g = commitment as Goal;
             meta = html`
-                <span class="badge kind-goal">goal</span>
+                <span class="badge kind-goal">${skin.types.goal}</span>
                 ${area
                     ? html`<span class="badge">${area}</span>`
                     : html`<span class="badge no-area">no area</span>`}
-                ${g.status !== "active"
-                    ? html`<span class=${"badge goal-status " + g.status}>${g.status}</span>`
+                ${g.status === "achieved"
+                    ? html`<span class=${"badge goal-status achieved"}>${skin.types.goalAchieved}</span>`
+                    : g.status === "abandoned"
+                    ? html`<span class=${"badge goal-status abandoned"}>${skin.types.goalAbandoned}</span>`
                     : html``}
                 ${g.targetDate
                     ? html`<span class="badge">${new Date(g.targetDate).toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" })}</span>`
@@ -178,7 +184,7 @@ export const CommitmentCardElement = defineElement<{
         } else {
             const gTitle = goalTitle(commitment.goalId ?? null);
             meta = html`
-                <span class="badge kind-idea">idea</span>
+                <span class="badge kind-idea">${skin.types.idea}</span>
                 ${area
                     ? html`<span class="badge">${area}</span>`
                     : html`<span class="badge no-area">no area</span>`}

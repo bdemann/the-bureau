@@ -1,12 +1,18 @@
 // ─────────────────────────────────────────────────────────────────────────────
 // Skin — the full flavour contract for the app.
 //
-// A skin file supplies every piece of user-visible text that has a flavour
-// opinion, plus optional CSS custom-property overrides for colours and fonts.
-// The data model, scoring maths, and recurrence logic are skin-agnostic.
+// Every piece of user-visible text lives here so any skin can rephrase,
+// rename, or reframe the entire UI without touching component code.
 //
-// Usage: load a skin at startup and pass it down via SkinProvider (to come).
-// For now, import the skin object directly where needed.
+// All fields are required. Import defaultSkin and spread it to inherit
+// neutral defaults, then override only what your skin needs to change:
+//
+//   export const mySkin: Skin = {
+//     ...defaultSkin,
+//     identity: { ...defaultSkin.identity, appName: "My App" },
+//   };
+//
+// The data model, scoring maths, and recurrence logic are skin-agnostic.
 // ─────────────────────────────────────────────────────────────────────────────
 
 import type { DialogueTrigger } from "../data/dialogues.js";
@@ -31,20 +37,19 @@ export type DialogueMap = Record<
 // ── Rank tiers (5 levels, low → high) ────────────────────────────────────────
 
 export interface SkinRanks {
-    /** Thresholds are fixed (40 / 70 / 100 / 130); only labels change. */
-    level0: string; // score < 40    (BCR: "Suspected Communist")
-    level1: string; // 40–69         (BCR: "Disengaged Citizen")
-    level2: string; // 70–99         (BCR: "Citizen")
-    level3: string; // 100–129       (BCR: "Loyal Citizen")
-    level4: string; // 130+          (BCR: "Patriot")
+    level0: string; // lowest tier
+    level1: string;
+    level2: string;
+    level3: string;
+    level4: string; // highest tier
 }
 
 // ── Daily view bands ──────────────────────────────────────────────────────────
 
 export interface SkinBand {
-    label: string; // short all-caps header  ("TODAY'S MANDATORY")
+    label: string;    // short header shown above the band
     subtitle: string; // one-line description shown below the header
-    empty: string; // shown when the band has no items
+    empty: string;    // shown when the band has no items
 }
 
 export interface SkinBands {
@@ -57,165 +62,254 @@ export interface SkinBands {
 // ── Streak / remediation badge text ──────────────────────────────────────────
 
 export interface SkinStreakLabels {
-    /** skip badge, severity warning  — e.g. "Skipped ×N"                   */
-    skipWarning: (n: number) => string;
-    /** skip badge, severity caution  — e.g. "Skipped ×N — Pattern noted"   */
-    skipCaution: (n: number) => string;
-    /** skip badge, severity danger   — e.g. "FLAGGED — Skipped ×N"         */
-    skipDanger: (n: number) => string;
-    /** skip badge, severity critical — e.g. "CHRONIC AVOIDANCE ×N"         */
-    skipCritical: (n: number) => string;
+    skipWarning: (n: number) => string;    // low-level skip badge
+    skipCaution: (n: number) => string;    // mid-level skip badge
+    skipDanger: (n: number) => string;     // high-level skip badge
+    skipCritical: (n: number) => string;   // critical skip badge
 
-    /** snooze badge, severity warning  — e.g. "Snoozed ×N"                 */
-    snoozeWarning: (n: number) => string;
-    /** snooze badge, severity caution  — e.g. "Snoozed ×N — Noted"         */
-    snoozeCaution: (n: number) => string;
-    /** snooze badge, severity danger   — e.g. "FLAGGED — Snoozed ×N"       */
-    snoozeDanger: (n: number) => string;
-    /** snooze badge, severity critical — e.g. "UNDER REVIEW ×N"            */
-    snoozeCritical: (n: number) => string;
+    snoozeWarning: (n: number) => string;  // low-level snooze badge
+    snoozeCaution: (n: number) => string;  // mid-level snooze badge
+    snoozeDanger: (n: number) => string;   // high-level snooze badge
+    snoozeCritical: (n: number) => string; // critical snooze badge
 
-    /** remediation badge, low severity    — e.g. "Recovering — N left"     */
-    remediationLow: (n: number) => string;
-    /** remediation badge, medium severity — e.g. "Remediation — N needed"  */
-    remediationMedium: (n: number) => string;
-    /** remediation badge, high severity   — e.g. "INTEGRITY AUDIT ×N"      */
-    remediationHigh: (n: number) => string;
-    /** Diagonal watermark on a task card when snooze count reaches critical level. */
-    criticalSnoozeLabel: string; // "UNDER REVIEW" / "FLAGGED" / "CASE STALLED"
+    remediationLow: (n: number) => string;    // early recovery badge
+    remediationMedium: (n: number) => string; // mid recovery badge
+    remediationHigh: (n: number) => string;   // severe recovery badge
+
+    /** Watermark text stamped diagonally on a card at critical snooze level. */
+    criticalSnoozeLabel: string;
 }
 
 // ── Commitment type names ─────────────────────────────────────────────────────
 
 export interface SkinCommitmentTypes {
-    routine: string; // "Routine"      / "Ritual"
-    task: string; // "Task"         / "Obligation"
-    goal: string; // "Objective"    / "Investigation"
-    goalPlural: string; // "Objectives"   / "Investigations"
-    idea: string; // "Idea"         / "Hunch"
-    ideaPlural: string; // "Ideas"        / "Hunches"
+    routine: string;      // recurring commitment label
+    task: string;         // one-time or recurring task label
+    goal: string;         // goal / objective label (singular)
+    goalPlural: string;   // goal / objective label (plural)
+    idea: string;         // idea / hunch label (singular)
+    ideaPlural: string;   // idea / hunch label (plural)
+    goalAchieved: string; // status badge on a completed goal
+    goalAbandoned: string; // status badge on an abandoned goal
 }
 
 // ── Navigation labels ─────────────────────────────────────────────────────────
 
 export interface SkinNav {
-    daily: string; // "Daily"           / "Today's Case"
-    areas: string; // "Areas"           / "Open Cases"
-    ideas: string; // "Ideas"           / "Hunches"
-    goals: string; // "Goals"           / "Long Game"
-    /** Used in the breadcrumb inside an area: "RESPONSIBILITIES › NAME" */
-    areasBreadcrumb: string; // "RESPONSIBILITIES" / "AREAS"
+    daily: string;          // primary daily view tab
+    areas: string;          // areas-of-responsibility tab
+    ideas: string;          // ideas / intel tab
+    goals: string;          // goals / objectives tab
+    areasBreadcrumb: string; // breadcrumb prefix when inside an area
 }
 
 // ── Action verbs (dialog titles, submit/delete buttons, CTA) ─────────────────
 
 export interface SkinActions {
-    // Sheet titles — creating
-    newRoutineTitle: string; // "MAKE NEW ROUTINE"
-    newTaskTitle: string; // "MAKE NEW TASK"
-    newGoalTitle: string; // "NEW GOAL"
-    newIdeaTitle: string; // "NEW IDEA"
+    newRoutineTitle: string;
+    newTaskTitle: string;
+    newGoalTitle: string;
+    newIdeaTitle: string;
 
-    // Sheet titles — editing
-    editRoutineTitle: string; // "AMEND ROUTINE"
-    editTaskTitle: string; // "AMEND TASK"
-    editGoalTitle: string; // "AMEND OBJECTIVE"
-    editIdeaTitle: string; // "AMEND IDEA"
+    editRoutineTitle: string;
+    editTaskTitle: string;
+    editGoalTitle: string;
+    editIdeaTitle: string;
 
-    // Submit button — creating
-    submitRoutine: string; // "COMMIT ROUTINE"
-    submitTask: string; // "FILE TASK"
-    submitGoal: string; // "SET GOAL"
-    submitIdea: string; // "FILE IDEA"
+    submitRoutine: string;
+    submitTask: string;
+    submitGoal: string;
+    submitIdea: string;
 
-    // Submit button — editing / saving
-    saveRoutine: string; // "SAVE ROUTINE"
-    saveTask: string; // "SAVE TASK"
-    saveGoal: string; // "SAVE OBJECTIVE"
-    saveIdea: string; // "SAVE IDEA"
+    saveRoutine: string;
+    saveTask: string;
+    saveGoal: string;
+    saveIdea: string;
 
-    // Delete section — initial button (before confirmation)
-    deleteRoutineLabel: string; // "TERMINATE COMMITMENT"
-    deleteTaskLabel: string; // "TERMINATE COMMITMENT"
-    deleteGoalLabel: string; // "DELETE OBJECTIVE"
-    deleteIdeaLabel: string; // "DELETE IDEA"
+    deleteRoutineLabel: string;
+    deleteTaskLabel: string;
+    deleteGoalLabel: string;
+    deleteIdeaLabel: string;
 
-    // Delete section — confirmation question
-    deleteRoutineConfirm: string; // "PERMANENTLY TERMINATE THIS COMMITMENT?"
-    deleteTaskConfirm: string; // "PERMANENTLY TERMINATE THIS COMMITMENT?"
-    deleteGoalConfirm: string; // "PERMANENTLY DELETE THIS OBJECTIVE?"
-    deleteIdeaConfirm: string; // "PERMANENTLY DELETE THIS IDEA?"
+    deleteRoutineConfirm: string;
+    deleteTaskConfirm: string;
+    deleteGoalConfirm: string;
+    deleteIdeaConfirm: string;
 
-    // Delete section — confirm button
-    deleteRoutineBtn: string; // "TERMINATE"
-    deleteTaskBtn: string; // "TERMINATE"
-    deleteGoalBtn: string; // "DELETE"
-    deleteIdeaBtn: string; // "DELETE"
+    deleteRoutineBtn: string;
+    deleteTaskBtn: string;
+    deleteGoalBtn: string;
+    deleteIdeaBtn: string;
 
     /** Floating CTA on the daily view. */
-    makeCommitmentCta: string; // "+ MAKE COMMITMENT"
+    makeCommitmentCta: string;
 }
 
 // ── Page titles & subtitles ───────────────────────────────────────────────────
 
 export interface SkinPages {
-    ideasTitle: string; // "IDEAS"
-    ideasSubtitle: string; // "UNPROCESSED OBSERVATIONS · PROPOSED AREAS"
-    ideasEmpty: string; // "No intelligence on file. Observations go here."
+    ideasTitle: string;
+    ideasSubtitle: string;
+    ideasEmpty: string;
 
-    goalsTitle: string; // "GOALS"
-    goalsSubtitle: string; // "LONG-HORIZON OUTCOMES · CLICK AN OBJECTIVE TO MANAGE COMMITMENTS"
+    goalsTitle: string;
+    goalsSubtitle: string;
 
-    insightsTitle: string; // "Insights"
-    insightsSubtitle: string; // "Behavioral patterns, compliance gaps, and field performance."
+    insightsTitle: string;
+    insightsSubtitle: string;
 }
 
 // ── Score & app identity ──────────────────────────────────────────────────────
 
 export interface SkinIdentity {
-    appName: string; // "BCR Clear"   / "Dresden's Docket"
-    appShort: string; // "CLEAR"       / "DOCKET"
-    /** Sub-brand line shown under the logotype. */
-    appTagline: string; // "BUREAU OF CIVIC RESPONSIBILITY" / "COMMITMENT TRACKER"
-    scoreName: string; // "Patriot Score" / "White Council Standing"
-    /** Title used in the OS share sheet. */
-    shareTitle: string; // "CLEAR — Civic Engagement Tracking System"
-    /** Body text used in the OS share sheet. */
-    sharePitch: string;
+    appName: string;
+    appShort: string;       // abbreviated name used in headers
+    appTagline: string;     // sub-brand line shown under the logotype
+    scoreName: string;      // label for the running score
+    shareTitle: string;     // title used in the OS share sheet
+    sharePitch: string;     // body text used in the OS share sheet
 }
 
-// ── Hamburger menu strings ────────────────────────────────────────────────────
+// ── Hamburger menu ────────────────────────────────────────────────────────────
 
 export interface SkinMenu {
-    menuTitle: string; // "Bureau Menu"   / "Menu"
-    insightsSectionLabel: string; // "Intelligence"  / "Insights"
-    shareSectionLabel: string; // "Community Duty" / "Share"
-    shareItemLabel: string; // "Report a Neighbor" / "Invite a Friend"
-    shareItemSub: string; // "Refer a civic non-compliant to CLEAR" / "Share the app"
+    menuTitle: string;
+
+    /** Section heading above the all-tasks / all-routines / all-commitments links. */
+    allCommitmentsSection: string;
+    allTasksLabel: string;
+    allTasksSub: string;
+    allRoutinesLabel: string;
+    allRoutinesSub: string;
+    allCommitmentsLabel: string;
+    allCommitmentsSub: string;
+
+    insightsSectionLabel: string;
+    insightsLabel: string;
+    insightsSub: string;
+
+    shareSectionLabel: string;
+    shareItemLabel: string;
+    shareItemSub: string;
+
+    /** Section heading above the skin / appearance picker. */
+    appearanceLabel: string;
 }
 
 // ── Characters ────────────────────────────────────────────────────────────────
 
 export interface SkinCharacter {
-    name: string; // "Agent Whitaker"  / "Harry Dresden"
-    shortName: string; // "Whitaker"        / "Harry"
-    title: string; // "Field Agent"     / "Wizard for Hire"
-    /** Short label shown in the memo header, e.g. "OFFICIAL NOTICE" / "FIELD NOTE" */
-    memoType: string;
-    /** 'agent' = empathetic ally; 'director' = demanding overseer */
+    name: string;      // full display name
+    shortName: string; // abbreviated name used in compact labels
+    title: string;     // role / position label
+    memoType: string;  // header label on the dialogue memo card
     role: "agent" | "director";
 }
 
 export interface SkinCharacters {
-    ally: SkinCharacter; // warm, on your side
-    overseer: SkinCharacter; // demanding, compliance-focused
+    ally: SkinCharacter;     // supportive voice
+    overseer: SkinCharacter; // demanding / evaluative voice
+}
+
+// ── Area summary card ─────────────────────────────────────────────────────────
+
+export interface SkinAreaCard {
+    pendingLabel: string;                    // label next to the pending-task count
+    clearedLabel: string;                    // label next to the cleared-task count
+    overdueFlag: (n: number) => string;      // flag shown when tasks are overdue
+    watchingFlag: string;                    // flag shown when any task is at critical snooze
+    allClearedFlag: string;                  // flag shown when every task is complete
+}
+
+// ── Commitment list section headers & controls ────────────────────────────────
+
+export interface SkinCommitmentList {
+    activeHeader: string;                           // heading above active commitments
+    pausedHeader: string;                           // heading above paused commitments
+    snoozedHeader: string;                          // heading above snoozed commitments
+    clearedHeader: string;                          // heading above the revealed cleared section
+    clearedToggleShow: (n: number) => string;       // expand-cleared toggle (collapsed state)
+    clearedToggleHide: (n: number) => string;       // expand-cleared toggle (expanded state)
+    emptyState: string;                             // shown when an area has no active items
+    emptyQuote: string;                             // optional flavour quote below the empty state
+    newCommitmentCta: string;                       // button that opens the add-commitment sheet
+}
+
+// ── Area edit / management form ───────────────────────────────────────────────
+
+export interface SkinAreaEdit {
+    nameLabel: string;
+    briefingLabel: string;
+    colorLabel: string;
+    saveBtn: string;
+    cancelBtn: string;
+    editBtn: string;
+    deleteBtn: string;
+    deleteConfirmBtn: string;
+    deletePrompt: string;
+}
+
+// ── Individual commitment row ─────────────────────────────────────────────────
+
+export interface SkinCommitmentRow {
+    completeTitle: string;                         // tooltip / title on the complete button
+    logProgressTitle: string;                      // tooltip on the log-progress button (milestone)
+    snoozeBtn: string;                             // snooze action button
+    cannotSnoozeBtn: string;                       // snooze button when snoozing is blocked
+    skipBtn: string;                               // skip action button
+    wakeUpBtn: string;                             // un-snooze button
+    snoozedUntilLabel: (date: string) => string;   // label showing when item wakes
+    sessionsLoggedLabel: (n: number) => string;    // progress-count label on milestone cards
+    logSessionBtn: string;                         // log-a-session button (milestone confirmation)
+    allDoneBtn: string;                            // final-completion button (milestone)
+    routineKindBadge: string;                      // chip shown on routine cards
+    dueDatePrefix: string;                         // text prepended to a future due date
+    missedDatePrefix: string;                      // text prepended to an overdue date
+}
+
+// ── Area creation wizard ──────────────────────────────────────────────────────
+
+export interface SkinWizard {
+    discardTitle: string;
+    discardMessage: string;
+    discardKeepBtn: string;
+    discardConfirmBtn: string;
+    cancelBtn: string;
+
+    step1Indicator: string;
+    step1Title: string;
+    step1Prompt: string;
+    step1NameLabel: string;
+    step1NamePlaceholder: string;
+    step1BriefingLabel: string;
+    step1BriefingPlaceholder: string;
+    step1ColorLabel: string;
+    step1QuickCreateBtn: string;
+    step1ContinueBtn: string;
+
+    step2Title: string;
+    step2Prompt: (areaName: string) => string;
+    step2CommitmentsLabel: string;
+    step2CommitmentsPlaceholder: string;
+    step2BackBtn: string;
+    step2CreateWithoutBtn: string;
+    step2ConfigureBtn: (n: number) => string;
+    step2CreateAreaBtn: string;
+
+    step3Title: string;
+    step3NameLabel: string;
+    step3NamePlaceholder: string;
+    step3CreateSoFarBtn: string;
+    step3CreateWithoutBtn: string;
+    step3NextBtn: string;
+    step3FinishBtn: string;
 }
 
 // ── The full skin ─────────────────────────────────────────────────────────────
 
 export interface Skin {
-    id: string; // 'bcr' | 'vanilla' | 'dresden'
-    displayName: string; // shown in a future skin-picker UI
+    id: string;
+    displayName: string;
 
     identity: SkinIdentity;
     characters: SkinCharacters;
@@ -227,6 +321,11 @@ export interface Skin {
     pages: SkinPages;
     menu: SkinMenu;
     actions: SkinActions;
+    areaCard: SkinAreaCard;
+    commitmentList: SkinCommitmentList;
+    areaEdit: SkinAreaEdit;
+    commitmentRow: SkinCommitmentRow;
+    wizard: SkinWizard;
     dialogues: DialogueMap;
 
     /**

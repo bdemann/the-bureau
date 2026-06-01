@@ -1,3 +1,4 @@
+import { defaultSkin } from "./default.skin.js";
 import type { Skin } from "./types.js";
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -6,6 +7,8 @@ import type { Skin } from "./types.js";
 // ─────────────────────────────────────────────────────────────────────────────
 
 export const bcrSkin: Skin = {
+    ...defaultSkin,
+
     id: "bcr",
     displayName: "BCR Clear",
 
@@ -71,23 +74,16 @@ export const bcrSkin: Skin = {
     },
 
     streaks: {
-        skipWarning: (n) => `Skipped ×${n}`,
+        ...defaultSkin.streaks,
         skipCaution: (n) => `Skipped ×${n} — Pattern noted`,
-        skipDanger: (n) => `FLAGGED — Skipped ×${n}`,
-        skipCritical: (n) => `CHRONIC AVOIDANCE ×${n}`,
-
-        snoozeWarning: (n) => `Snoozed ×${n}`,
-        snoozeCaution: (n) => `Snoozed ×${n} — Noted`,
-        snoozeDanger: (n) => `FLAGGED — Snoozed ×${n}`,
         snoozeCritical: (n) => `UNDER REVIEW ×${n}`,
-
-        remediationLow: (n) => `Recovering — ${n} left`,
         remediationMedium: (n) => `Remediation — ${n} needed`,
         remediationHigh: (n) => `INTEGRITY AUDIT ×${n}`,
         criticalSnoozeLabel: "UNDER REVIEW",
     },
 
     types: {
+        ...defaultSkin.types,
         routine: "Routine",
         task: "Task",
         goal: "Goal",
@@ -97,72 +93,110 @@ export const bcrSkin: Skin = {
     },
 
     nav: {
-        daily: "Daily",
-        areas: "Areas",
-        ideas: "Ideas",
-        goals: "Goals",
+        ...defaultSkin.nav,
         areasBreadcrumb: "RESPONSIBILITIES",
     },
 
     menu: {
+        ...defaultSkin.menu,
         menuTitle: "Bureau Menu",
+        allCommitmentsSection: "Filed Records",
+        allTasksLabel: "All Tasks",
+        allTasksSub: "Every task & routine across all areas",
+        allRoutinesLabel: "All Routines",
+        allRoutinesSub: "Every recurring routine across all areas",
+        allCommitmentsLabel: "All Commitments",
+        allCommitmentsSub: "Every task, routine, goal & idea on file",
         insightsSectionLabel: "Intelligence",
+        insightsLabel: "Field Report",
+        insightsSub: "Compliance gaps, behavioral patterns, field performance",
         shareSectionLabel: "Community Duty",
         shareItemLabel: "Report a Neighbor",
         shareItemSub: "Refer a civic non-compliant to CLEAR",
+        appearanceLabel: "Presentation",
     },
 
     pages: {
         ideasTitle: "IDEAS",
         ideasSubtitle: "UNPROCESSED OBSERVATIONS · PROPOSED AREAS",
         ideasEmpty: "No intelligence on file. Observations go here.",
-
         goalsTitle: "GOALS",
         goalsSubtitle:
             "LONG-HORIZON OUTCOMES · CLICK A GOAL TO MANAGE COMMITMENTS",
-
         insightsTitle: "Insights",
         insightsSubtitle:
             "Behavioral patterns, compliance gaps, and field performance.",
     },
 
     actions: {
+        ...defaultSkin.actions,
         newRoutineTitle: "MAKE NEW ROUTINE",
         newTaskTitle: "MAKE NEW TASK",
         newGoalTitle: "NEW GOAL",
         newIdeaTitle: "NEW IDEA",
-
         editRoutineTitle: "AMEND ROUTINE",
         editTaskTitle: "AMEND TASK",
         editGoalTitle: "AMEND GOAL",
         editIdeaTitle: "AMEND IDEA",
-
         submitRoutine: "COMMIT ROUTINE",
         submitTask: "FILE TASK",
         submitGoal: "SET GOAL",
         submitIdea: "FILE IDEA",
-
         saveRoutine: "SAVE ROUTINE",
         saveTask: "SAVE TASK",
         saveGoal: "SAVE GOAL",
         saveIdea: "SAVE IDEA",
-
         deleteRoutineLabel: "TERMINATE COMMITMENT",
         deleteTaskLabel: "TERMINATE COMMITMENT",
         deleteGoalLabel: "DELETE GOAL",
         deleteIdeaLabel: "DELETE IDEA",
-
         deleteRoutineConfirm: "PERMANENTLY TERMINATE THIS COMMITMENT?",
         deleteTaskConfirm: "PERMANENTLY TERMINATE THIS COMMITMENT?",
         deleteGoalConfirm: "PERMANENTLY DELETE THIS GOAL?",
         deleteIdeaConfirm: "PERMANENTLY DELETE THIS IDEA?",
-
         deleteRoutineBtn: "TERMINATE",
         deleteTaskBtn: "TERMINATE",
         deleteGoalBtn: "DELETE",
         deleteIdeaBtn: "DELETE",
-
         makeCommitmentCta: "+ MAKE COMMITMENT",
+    },
+
+    areaCard: {
+        ...defaultSkin.areaCard,
+        watchingFlag: "★ BRIGGS WATCHING",
+        allClearedFlag: "✓ CLEARED",
+    },
+
+    commitmentList: {
+        ...defaultSkin.commitmentList,
+        emptyQuote:
+            '"A cleared docket is not an idle one — it is a prepared one."\n— Agent H. Whitaker',
+    },
+
+    areaEdit: {
+        ...defaultSkin.areaEdit,
+        briefingLabel: "Briefing",
+        colorLabel: "Designation Color",
+        editBtn: "EDIT AREA",
+        deleteBtn: "DECOMMISSION AREA",
+        deleteConfirmBtn: "DECOMMISSION",
+        deletePrompt:
+            "PERMANENTLY DECOMMISSION THIS AREA AND ALL ITS COMMITMENTS?",
+    },
+
+    wizard: {
+        ...defaultSkin.wizard,
+        step1Title: "NEW AREA OF RESPONSIBILITY",
+        step1BriefingLabel: "Briefing (optional)",
+        step1BriefingPlaceholder:
+            "What does it mean to you to be on top of this area?",
+        step1ColorLabel: "Designation Color",
+        step2Title: "IDENTIFY YOUR COMMITMENTS",
+        step2Prompt: (areaName) =>
+            `If you told a friend you were into ${areaName}, what would you need to be doing regularly to feel honest saying that? List one item per line.`,
+        step2CommitmentsLabel: "Your Commitments (one per line)",
+        step2CommitmentsPlaceholder:
+            "e.g.\nBake bread weekly\nTry a new technique monthly\nShare something I made quarterly",
     },
 
     dialogues: {
@@ -479,6 +513,5 @@ export const bcrSkin: Skin = {
         ],
     },
 
-    // BCR uses the base stylesheet directly — no overrides needed.
     cssVars: undefined,
 };

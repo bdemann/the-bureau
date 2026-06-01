@@ -203,7 +203,7 @@ export const CommitmentsViewElement = defineElement<{
                     }}
                     @dragend=${() => updateState({ draggedId: null, dragOverId: null })}
                 >
-                    <${CommitmentCardElement.assign({ commitment: c, areas, goals })}
+                    <${CommitmentCardElement.assign({ commitment: c, areas, goals, activeSkinId: inputs.activeSkinId })}
                         ${listen(CommitmentCardElement.events.editRequested, (e) =>
                             dispatch(new events.commitmentEditRequested(e.detail)),
                         )}
@@ -214,7 +214,7 @@ export const CommitmentsViewElement = defineElement<{
 
         function renderStaticCard(c: AnyCommitment) {
             return html`
-                <${CommitmentCardElement.assign({ commitment: c, areas, goals })}
+                <${CommitmentCardElement.assign({ commitment: c, areas, goals, activeSkinId: inputs.activeSkinId })}
                     ${listen(CommitmentCardElement.events.editRequested, (e) =>
                         dispatch(new events.commitmentEditRequested(e.detail)),
                     )}

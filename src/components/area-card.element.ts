@@ -204,26 +204,26 @@ export const AreaCardElement = defineElement<{
                 <div class="stats">
                     <div class="stat">
                         <strong>${visibleTasks.length}</strong>
-                        pending
+                        ${skin.areaCard.pendingLabel}
                     </div>
                     <div class="stat">
                         <strong>${completedCount}</strong>
-                        cleared
+                        ${skin.areaCard.clearedLabel}
                     </div>
 
                     ${overdueTasks.length > 0
                         ? html`<span class="flag flag-overdue">
-                              ⚠ ${overdueTasks.length} overdue
+                              ${skin.areaCard.overdueFlag(overdueTasks.length)}
                           </span>`
                         : html``}
                     ${criticalSnooze.length > 0
                         ? html`<span class="flag flag-critical">
-                              ★ ${skin.characters.overseer.shortName.toUpperCase()} WATCHING
+                              ${skin.areaCard.watchingFlag}
                           </span>`
                         : html``}
                     ${allDone
                         ? html`<span class="flag flag-complete"
-                              >✓ CLEARED</span
+                              >${skin.areaCard.allClearedFlag}</span
                           >`
                         : html``}
                 </div>
