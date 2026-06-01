@@ -72,9 +72,14 @@ function isCompletedForPeriod(task: Task, today: Date): boolean {
         // Use suggestedDate directly: if it's strictly in the future, today's
         // occurrence has already been completed and the next one hasn't arrived.
         const cfg = task.recurrence;
-        if ((cfg.cadence === 'weekly')
-                && cfg.hardDaysOfWeek !== undefined
-                && cfg.hardDaysOfWeek.length > 1
+        // Multi-occurrence tasks where the next occurrence lands in the same
+        // period: advanceRecurrence keeps currentPeriodStart at the current
+        // period's start (≤ today), so check suggestedDate directly instead.
+        // Applies to: multi-day weekly, multi-dom monthly, multi-dom quarterly.
+        const isMultiOccurrenceWithinPeriod =
+            (cfg.cadence === 'weekly' && cfg.hardDaysOfWeek !== undefined && cfg.hardDaysOfWeek.length > 1) ||
+            ((cfg.cadence === 'monthly' || cfg.cadence === 'quarterly') && cfg.hardDaysOfMonth !== undefined && cfg.hardDaysOfMonth.length > 1);
+        if (isMultiOccurrenceWithinPeriod
                 && task.suggestedDate !== null
                 && task.suggestedDate > todayMs) {
             return true;

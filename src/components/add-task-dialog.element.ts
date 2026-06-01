@@ -1146,7 +1146,7 @@ export const AddTaskDialogElement = defineElement<{
                             ? html`
                                   <div class="kind-switch-warning">
                                       <p>
-                                          ⚠ This objective has
+                                          ⚠ This ${skin.types.goal.toLowerCase()} has
                                           ${state.goalLinkedTaskIds.length}
                                           linked
                                           commitment${state.goalLinkedTaskIds
@@ -1881,64 +1881,51 @@ export const AddTaskDialogElement = defineElement<{
                             : html``
                     }
 
-                    <!-- Task / Routine: optional linked objective -->
+                    <!-- Task / Routine: optional linked goal -->
                     ${
                         isTaskOrRoutine
                             ? html`
-                                  ${(() => {
-                                      const availableGoals = (
-                                          inputs.goals ?? []
-                                      ).filter(
-                                          (g) =>
-                                              g.status === "active" &&
-                                              (state.selectedAreaId === null ||
-                                                  g.areaId ===
-                                                      state.selectedAreaId),
-                                      );
-                                      return availableGoals.length > 0
-                                          ? html`
-                                                <div class="field">
-                                                    <label class="field-label"
-                                                        >Linked Objective
-                                                        (optional)</label
-                                                    >
-                                                    <select
-                                                        class="area-select"
-                                                        .value=${state.linkedGoalId ??
-                                                        ""}
-                                                        @change=${(
-                                                            e: Event,
-                                                        ) => {
-                                                            const val = (
-                                                                e.target as HTMLSelectElement
-                                                            ).value;
-                                                            updateState({
-                                                                linkedGoalId:
-                                                                    val === ""
-                                                                        ? null
-                                                                        : val,
-                                                            });
-                                                        }}
-                                                    >
-                                                        <option value="">
-                                                            — None —
-                                                        </option>
-                                                        ${availableGoals.map(
-                                                            (g) => html`
-                                                                <option
-                                                                    value="${g.id}"
-                                                                    .selected=${state.linkedGoalId ===
-                                                                    g.id}
-                                                                >
-                                                                    ${g.title}
-                                                                </option>
-                                                            `,
-                                                        )}
-                                                    </select>
-                                                </div>
-                                            `
-                                          : html``;
-                                  })()}
+                                  <div class="field">
+                                      <label class="field-label"
+                                          >Linked ${skin.types.goal}
+                                          (optional)</label
+                                      >
+                                      <select
+                                          class="area-select"
+                                          .value=${state.linkedGoalId ?? ""}
+                                          @change=${(e: Event) => {
+                                              const val = (
+                                                  e.target as HTMLSelectElement
+                                              ).value;
+                                              updateState({
+                                                  linkedGoalId:
+                                                      val === "" ? null : val,
+                                              });
+                                          }}
+                                      >
+                                          <option value="">— None —</option>
+                                          ${(inputs.goals ?? [])
+                                              .filter(
+                                                  (g) =>
+                                                      g.status === "active" &&
+                                                      (state.selectedAreaId ===
+                                                          null ||
+                                                          g.areaId ===
+                                                              state.selectedAreaId),
+                                              )
+                                              .map(
+                                                  (g) => html`
+                                                      <option
+                                                          value="${g.id}"
+                                                          .selected=${state.linkedGoalId ===
+                                                          g.id}
+                                                      >
+                                                          ${g.title}
+                                                      </option>
+                                                  `,
+                                              )}
+                                      </select>
+                                  </div>
                               `
                             : html``
                     }

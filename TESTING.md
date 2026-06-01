@@ -141,7 +141,7 @@ Mark each row as you verify in the browser. Reset the localStorage entry
 - [ ] Switching to TASK from ROUTINE preserves the isRecurring state (doesn't force it off)
 - [ ] Selecting ROUTINE changes sheet title to "MAKE NEW ROUTINE" / "AMEND ROUTINE" and submit to "COMMIT ROUTINE" / "SAVE ROUTINE"
 - [ ] Selecting TASK shows "MAKE NEW TASK" / "AMEND TASK" and "FILE TASK" / "SAVE TASK"
-- [ ] Selecting GOAL shows "NEW GOAL" / "AMEND OBJECTIVE" and "SET GOAL" / "SAVE OBJECTIVE"
+- [ ] Selecting GOAL shows "NEW GOAL" / "AMEND GOAL" and "SET GOAL" / "SAVE GOAL"
 - [ ] Selecting IDEA shows "NEW IDEA" / "AMEND IDEA" and "FILE IDEA" / "SAVE IDEA"
 - [ ] Commitments with `kind=routine` show a ROUTINE chip in the task-item card
 
@@ -151,14 +151,15 @@ Mark each row as you verify in the browser. Reset the localStorage entry
 - [ ] Edit a routine → switch to IDEA → save: original routine is removed; idea appears in Ideas view
 - [ ] Edit a goal → switch to TASK → save: original goal is removed; new task appears in commitment lists
 - [ ] Edit an idea → switch to TASK → save: original idea is removed; new commitment appears
-- [ ] Linked objective picker is visible in edit mode for TASK/ROUTINE (shows current linked goal pre-selected)
-- [ ] Changing the linked objective in edit mode and saving rewires the goal linkages correctly
-- [ ] Removing the linked objective in edit mode and saving removes the task from the old goal's linked list
+- [ ] Linked goal picker is visible in edit mode for TASK/ROUTINE (shows current linked goal pre-selected)
+- [ ] Linked goal picker is visible even when an area is selected that has no goals — shows "— None —" only (regression: issue #28)
+- [ ] Changing the linked goal in edit mode and saving rewires the goal linkages correctly
+- [ ] Removing the linked goal in edit mode and saving removes the task from the old goal's linked list
 
 ### Goal → other type conversion (dissociation warning)
 
 - [ ] Editing a goal that has linked commitments: switching to any other type shows a yellow warning banner
-- [ ] Warning reads "This objective has N linked commitment(s). Switching type will dissociate them."
+- [ ] Warning reads "This goal has N linked commitment(s). Switching type will dissociate them." (text uses the skin's goal term)
 - [ ] Clicking CANCEL in the warning returns to goal edit mode; no type switch occurs
 - [ ] Clicking PROCEED dismisses the warning and switches to the new type
 - [ ] Save button is disabled while the warning is visible
@@ -498,7 +499,7 @@ Remediation fires whenever a commitment that had a skip streak OR high snooze co
 **Global view (Goals nav item)**
 
 - [ ] Bottom nav → Goals tab navigates to the goals view
-- [ ] Page shows "GOALS" title and subtitle with "CLICK AN OBJECTIVE TO MANAGE COMMITMENTS" hint
+- [ ] Page shows "GOALS" title and subtitle with "CLICK A GOAL TO MANAGE COMMITMENTS" hint
 - [ ] Empty state shows "No objectives on file. Make one above to begin."
 - [ ] "+ MAKE GOAL" button opens the unified commitment sheet pre-set to Goal mode
 - [ ] Goal cards are listed under ACTIVE / ACHIEVED / ABANDONED section headers (counts shown; empty sections hidden)
@@ -511,7 +512,7 @@ Remediation fires whenever a commitment that had a skip streak OR high snooze co
 
 **Per-area view (area detail page)**
 
-- [ ] Area detail page shows an "OBJECTIVES" section
+- [ ] Area detail page shows a "GOALS" section (label matches the active skin's goal term)
 - [ ] Only goals linked to that area appear; other areas' goals are not shown
 - [ ] "+ MAKE GOAL" button in the per-area view opens the commitment sheet pre-set to Goal mode
 - [ ] Goals filed from area detail are automatically linked to that area
@@ -579,6 +580,13 @@ Remediation fires whenever a commitment that had a skip streak OR high snooze co
 - [ ] Menu → "Report a Neighbor": menu closes immediately; share sheet appears (or link is copied) (regression: NEW-3)
 - [ ] Patriot score header shows streak when streak is 0 — e.g. "0d · SUSPECTED COMMUNIST" (regression: Bug #8)
 - [ ] Daily view: expand BACKLOG band → previously-expanded time-of-day slots within other bands stay expanded (regression: NEW-4)
+- [ ] Area detail: Goals section header reads "GOALS" (or skin's goalPlural), not "OBJECTIVES" (regression: issue #7)
+- [ ] Area detail: Ideas section header reads "IDEAS" (or skin's ideaPlural), not "INTELLIGENCE" (regression: issue #7)
+- [ ] BCR skin: editing a goal shows "AMEND GOAL" / "SAVE GOAL", not "AMEND OBJECTIVE" (regression: issue #8)
+- [ ] BCR skin: delete goal shows "DELETE GOAL" / "PERMANENTLY DELETE THIS GOAL?" (regression: issue #8)
+- [ ] Linked goal selector stays visible in the commitment dialog even when the selected area has no goals (regression: issue #28)
+- [ ] Monthly multi-dom task (e.g. 1st + 15th): completing on the 1st hides the task until the 15th (regression: issue #3)
+- [ ] Quarterly multi-dom task: same hide-until-next-dom behavior (regression: issue #3)
 
 ### Persistence
 

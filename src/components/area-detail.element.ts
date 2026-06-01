@@ -5,6 +5,7 @@ import {
     html,
     listen,
 } from "element-vir";
+import { getActiveSkin } from "../skins/active-skin.js";
 import type {
     FormKind,
     Goal,
@@ -384,6 +385,7 @@ export const AreaDetailElement = defineElement<{
     `,
 
     render({ inputs, state, updateState, dispatch, events }) {
+        const skin = getActiveSkin();
         const { area, tasks } = inputs;
 
         const activeTasks = tasks.filter(isTaskVisible);
@@ -754,7 +756,7 @@ export const AreaDetailElement = defineElement<{
 
             <!-- Goals for this area -->
             <div class="goals-section">
-                <div class="section-label" style="margin-bottom:8px">OBJECTIVES</div>
+                <div class="section-label" style="margin-bottom:8px">${skin.types.goalPlural.toUpperCase()}</div>
                 <${GoalsViewElement.assign({
                     goals: inputs.goals,
                     tasks: inputs.tasks,
@@ -783,7 +785,7 @@ export const AreaDetailElement = defineElement<{
 
             <!-- Intelligence for this area -->
             <div class="intel-section">
-                <div class="section-label" style="margin-bottom:0">INTELLIGENCE</div>
+                <div class="section-label" style="margin-bottom:0">${skin.types.ideaPlural.toUpperCase()}</div>
                 <${IdeasViewElement.assign({
                     ideas: inputs.ideas,
                     goals: inputs.goals,

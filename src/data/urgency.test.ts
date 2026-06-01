@@ -88,6 +88,33 @@ describe('getDailyBand — Step 0 (visibility)', () => {
         });
         assert.strictEquals(getDailyBand(t, today), 'hidden');
     });
+
+    test('monthly multi-dom: hidden after completing the 1st when next occurrence is the 15th (same month)', () => {
+        // Bug #3 regression: after advanceRecurrence on the 1st, currentPeriodStart stays at
+        // the month start (≤ today). The task must be hidden based on suggestedDate > today.
+        const today = date('2026-05-01');
+        const fifteenth = date('2026-05-15');
+        const t = makeTask({
+            recurrence: makeRecurrence({cadence: 'monthly', hardDaysOfMonth: [1, 15]}),
+            completedAt: null,
+            currentPeriodStart: date('2026-05-01').getTime(), // same month's start ≤ today
+            suggestedDate: fifteenth.getTime(),               // next occurrence is the 15th
+        });
+        assert.strictEquals(getDailyBand(t, today), 'hidden');
+    });
+
+    test('quarterly multi-dom: hidden after completing first dom when next occurrence is in same quarter', () => {
+        // Same pattern as monthly multi-dom but for quarterly cadence.
+        const today = date('2026-04-01');
+        const fifteenth = date('2026-04-15');
+        const t = makeTask({
+            recurrence: makeRecurrence({cadence: 'quarterly', hardDaysOfMonth: [1, 15]}),
+            completedAt: null,
+            currentPeriodStart: date('2026-04-01').getTime(),
+            suggestedDate: fifteenth.getTime(),
+        });
+        assert.strictEquals(getDailyBand(t, today), 'hidden');
+    });
 });
 
 describe('getDailyBand — Step 1 (mandatory)', () => {

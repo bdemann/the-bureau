@@ -87,8 +87,8 @@ export const bcrSkin: Skin = {
     types: {
         routine: "Routine",
         task: "Task",
-        goal: "Objective",
-        goalPlural: "Objectives",
+        goal: "Goal",
+        goalPlural: "Goals",
         idea: "Idea",
         ideaPlural: "Ideas",
     },
@@ -116,7 +116,7 @@ export const bcrSkin: Skin = {
 
         goalsTitle: "GOALS",
         goalsSubtitle:
-            "LONG-HORIZON OUTCOMES · CLICK AN OBJECTIVE TO MANAGE COMMITMENTS",
+            "LONG-HORIZON OUTCOMES · CLICK A GOAL TO MANAGE COMMITMENTS",
 
         insightsTitle: "Insights",
         insightsSubtitle:
@@ -131,7 +131,7 @@ export const bcrSkin: Skin = {
 
         editRoutineTitle: "AMEND ROUTINE",
         editTaskTitle: "AMEND TASK",
-        editGoalTitle: "AMEND OBJECTIVE",
+        editGoalTitle: "AMEND GOAL",
         editIdeaTitle: "AMEND IDEA",
 
         submitRoutine: "COMMIT ROUTINE",
@@ -141,17 +141,17 @@ export const bcrSkin: Skin = {
 
         saveRoutine: "SAVE ROUTINE",
         saveTask: "SAVE TASK",
-        saveGoal: "SAVE OBJECTIVE",
+        saveGoal: "SAVE GOAL",
         saveIdea: "SAVE IDEA",
 
         deleteRoutineLabel: "TERMINATE COMMITMENT",
         deleteTaskLabel: "TERMINATE COMMITMENT",
-        deleteGoalLabel: "DELETE OBJECTIVE",
+        deleteGoalLabel: "DELETE GOAL",
         deleteIdeaLabel: "DELETE IDEA",
 
         deleteRoutineConfirm: "PERMANENTLY TERMINATE THIS COMMITMENT?",
         deleteTaskConfirm: "PERMANENTLY TERMINATE THIS COMMITMENT?",
-        deleteGoalConfirm: "PERMANENTLY DELETE THIS OBJECTIVE?",
+        deleteGoalConfirm: "PERMANENTLY DELETE THIS GOAL?",
         deleteIdeaConfirm: "PERMANENTLY DELETE THIS IDEA?",
 
         deleteRoutineBtn: "TERMINATE",
