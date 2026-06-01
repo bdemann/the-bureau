@@ -72,6 +72,7 @@ Mark each row as you verify in the browser. Reset the localStorage entry
 
 ### Area of Responsibility creation wizard
 
+- [ ] On mobile: wizard sheet scrolls so all content (including bottom buttons) is visible above the nav bar — nav bar remains visible and on top (regression: issue #10)
 - [ ] Step 1: Continue disabled until area name is typed
 - [ ] Step 1: Description is optional (Continue works with empty description)
 - [ ] Step 1: Color picker selects a highlight color; swatch updates visually
