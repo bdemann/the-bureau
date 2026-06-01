@@ -90,7 +90,7 @@ export const AreaWizardDialogElement = defineElement<{
             position: fixed;
             inset: 0;
             background: rgba(var(--color-primary-rgb), 0.65);
-            z-index: 200;
+            z-index: 300;
             display: flex;
             align-items: flex-end;
             justify-content: center;
