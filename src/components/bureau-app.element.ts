@@ -1016,7 +1016,7 @@ export const BureauAppElement = defineElement()({
                 ${
                     currentDialogue
                         ? html`
-                        <${CharacterDialogueElement.assign({ dialogue: currentDialogue })}
+                        <${CharacterDialogueElement.assign({ dialogue: currentDialogue, activeSkinId: state.activeSkinId })}
                             ${listen(CharacterDialogueElement.events.dismissed, onDismissDialogue)}
                         ></${CharacterDialogueElement}>
                       `
@@ -1219,6 +1219,7 @@ export const BureauAppElement = defineElement()({
                             areas: state.app.areas,
                             tasks: tasksOf(state.app.commitments),
                             unlinkedCount: state.app.commitments.filter(c => (c as any).areaId === null).length,
+                            activeSkinId: state.activeSkinId,
                         })}
                             ${listen(DashboardViewElement.events.unlinkedRequested, () =>
                                 setView("unlinked"),

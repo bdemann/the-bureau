@@ -11,6 +11,7 @@ export const characterDialoguePage = defineBookPage({
             render() {
                 return html`
                     <${CharacterDialogueElement.assign({
+                        activeSkinId: 'bcr',
                         dialogue: {
                             id: '1',
                             character: 'director',
@@ -27,6 +28,7 @@ export const characterDialoguePage = defineBookPage({
             render() {
                 return html`
                     <${CharacterDialogueElement.assign({
+                        activeSkinId: 'bcr',
                         dialogue: {
                             id: '2',
                             character: 'agent',
@@ -43,6 +45,7 @@ export const characterDialoguePage = defineBookPage({
             render() {
                 return html`
                     <${CharacterDialogueElement.assign({
+                        activeSkinId: 'bcr',
                         dialogue: {
                             id: '3',
                             character: 'director',
@@ -59,6 +62,7 @@ export const characterDialoguePage = defineBookPage({
             render() {
                 return html`
                     <${CharacterDialogueElement.assign({
+                        activeSkinId: 'bcr',
                         dialogue: {
                             id: '4',
                             character: 'agent',

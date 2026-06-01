@@ -36,12 +36,14 @@ export const freemasonSkin: Skin = {
             name: "The Craft",
             shortName: "The Craft",
             title: "Fraternal Voice",
+            memoType: "CRAFT COUNSEL",
             role: "agent",
         },
         overseer: {
             name: "The Lodge",
             shortName: "The Lodge",
             title: "Obligations & Standards",
+            memoType: "LODGE MANDATE",
             role: "director",
         },
     },
@@ -91,6 +93,7 @@ export const freemasonSkin: Skin = {
         remediationLow: (n) => `Making amends — ${n} labors remain`,
         remediationMedium: (n) => `Penance work — ${n} labors due`,
         remediationHigh: (n) => `DEGREE REVIEW ×${n}`,
+        criticalSnoozeLabel: "HONOR AT RISK",
     },
 
     types: {

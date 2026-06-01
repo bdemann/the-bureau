@@ -27,12 +27,14 @@ export const bcrSkin: Skin = {
             name: "Agent Whitaker",
             shortName: "Whitaker",
             title: "Field Agent",
+            memoType: "INTERNAL MEMO",
             role: "agent",
         },
         overseer: {
             name: "Director Briggs",
             shortName: "Briggs",
             title: "Director",
+            memoType: "OFFICIAL NOTICE",
             role: "director",
         },
     },
@@ -82,6 +84,7 @@ export const bcrSkin: Skin = {
         remediationLow: (n) => `Recovering — ${n} left`,
         remediationMedium: (n) => `Remediation — ${n} needed`,
         remediationHigh: (n) => `INTEGRITY AUDIT ×${n}`,
+        criticalSnoozeLabel: "UNDER REVIEW",
     },
 
     types: {

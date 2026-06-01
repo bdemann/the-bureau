@@ -1,4 +1,5 @@
 import { css, defineElement, defineElementEvent, html } from "element-vir";
+import { getActiveSkin } from "../skins/active-skin.js";
 import { ViraButton, ViraColorVariant, ViraEmphasis, ViraSize } from "vira";
 import type { ConsequenceTier, Task } from "../data/types.js";
 import {
@@ -100,9 +101,9 @@ export const TaskItemElement = defineElement<{
             opacity: 0.6;
         }
 
-        /* "UNDER REVIEW" diagonal stamp for critical snooze. */
+        /* Diagonal stamp for critical snooze — text set via --snooze-stamp CSS var. */
         .task-card.snooze-critical::after {
-            content: "UNDER REVIEW";
+            content: var(--snooze-stamp, "UNDER REVIEW");
             position: absolute;
             top: 50%;
             right: -10px;
@@ -288,6 +289,7 @@ export const TaskItemElement = defineElement<{
     }),
 
     render({ inputs, state, updateState, dispatch, events }) {
+        const skin = getActiveSkin();
         const { task } = inputs;
         const severity = getSnoozeSeverity(task.snoozeCount);
         const overdue = isTaskOverdue(task);
@@ -345,6 +347,7 @@ export const TaskItemElement = defineElement<{
         return html`
             <div
                 class="${classes}"
+                style="--snooze-stamp: '${skin.streaks.criticalSnoozeLabel}'"
                 @click=${() => dispatch(new events.editRequested(task.id))}
             >
                 <button

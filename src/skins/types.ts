@@ -81,6 +81,8 @@ export interface SkinStreakLabels {
     remediationMedium: (n: number) => string;
     /** remediation badge, high severity   — e.g. "INTEGRITY AUDIT ×N"      */
     remediationHigh: (n: number) => string;
+    /** Diagonal watermark on a task card when snooze count reaches critical level. */
+    criticalSnoozeLabel: string; // "UNDER REVIEW" / "FLAGGED" / "CASE STALLED"
 }
 
 // ── Commitment type names ─────────────────────────────────────────────────────
@@ -198,6 +200,8 @@ export interface SkinCharacter {
     name: string; // "Agent Whitaker"  / "Harry Dresden"
     shortName: string; // "Whitaker"        / "Harry"
     title: string; // "Field Agent"     / "Wizard for Hire"
+    /** Short label shown in the memo header, e.g. "OFFICIAL NOTICE" / "FIELD NOTE" */
+    memoType: string;
     /** 'agent' = empathetic ally; 'director' = demanding overseer */
     role: "agent" | "director";
 }

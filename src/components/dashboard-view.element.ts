@@ -21,6 +21,8 @@ export const DashboardViewElement = defineElement<{
     tasks: ReadonlyArray<Task>;
     /** Count of commitments with no area assigned (all 4 types). */
     unlinkedCount?: number;
+    /** Re-render trigger — changes when the active skin changes. */
+    activeSkinId: string;
 }>()({
     tagName: "dashboard-view",
 
@@ -352,6 +354,7 @@ export const DashboardViewElement = defineElement<{
                                         tasks: tasks.filter(
                                             (t) => t.areaId === area.id,
                                         ),
+                                        activeSkinId: inputs.activeSkinId,
                                     })}
                                         ${listen(
                                             AreaCardElement.events.selected,

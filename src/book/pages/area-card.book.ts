@@ -70,6 +70,7 @@ export const areaCardPage = defineBookPage({
                 return html`
                     <div style="max-width:380px">
                         <${AreaCardElement.assign({
+                            activeSkinId: 'bcr',
                             area: p,
                             tasks: [
                                 makeTask(p.id, { title: "Fix leaking faucet" }),
@@ -95,6 +96,7 @@ export const areaCardPage = defineBookPage({
                 return html`
                     <div style="max-width:380px">
                         <${AreaCardElement.assign({
+                            activeSkinId: 'bcr',
                             area: p,
                             tasks: [
                                 makeTask(p.id, {
@@ -120,6 +122,7 @@ export const areaCardPage = defineBookPage({
                 return html`
                     <div style="max-width:380px">
                         <${AreaCardElement.assign({
+                            activeSkinId: 'bcr',
                             area: p,
                             tasks: [
                                 makeTask(p.id, {
@@ -151,6 +154,7 @@ export const areaCardPage = defineBookPage({
                 return html`
                     <div style="max-width:380px">
                         <${AreaCardElement.assign({
+                            activeSkinId: 'bcr',
                             area: p,
                             tasks: [],
                         })}></${AreaCardElement}>
@@ -165,6 +169,7 @@ export const areaCardPage = defineBookPage({
                 return html`
                     <div style="max-width:380px">
                         <${AreaCardElement.assign({
+                            activeSkinId: 'bcr',
                             area: p,
                             tasks: [
                                 makeTask(p.id, {

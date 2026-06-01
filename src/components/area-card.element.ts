@@ -2,6 +2,7 @@ import { defineElement, defineElementEvent, css, html } from "element-vir";
 import type { Area, Task } from "../data/types.js";
 import { isTaskOverdue, isTaskVisible } from "../data/storage.js";
 import { SNOOZE_CRITICAL } from "../data/types.js";
+import { getActiveSkin } from "../skins/active-skin.js";
 
 // ─────────────────────────────────────────────────────────────────────────────
 // AreaCardElement
@@ -20,6 +21,8 @@ const AREA_COLORS: Record<string, string> = {
 export const AreaCardElement = defineElement<{
     area: Area;
     tasks: Task[];
+    /** Re-render trigger — changes when the active skin changes. */
+    activeSkinId: string;
 }>()({
     tagName: "area-card",
 
@@ -161,6 +164,7 @@ export const AreaCardElement = defineElement<{
     `,
 
     render({ inputs, dispatch, events }) {
+        const skin = getActiveSkin();
         const { area, tasks } = inputs;
 
         const color = AREA_COLORS[area.colorKey] ?? "var(--color-primary)";
@@ -214,7 +218,7 @@ export const AreaCardElement = defineElement<{
                         : html``}
                     ${criticalSnooze.length > 0
                         ? html`<span class="flag flag-critical">
-                              ★ BRIGGS WATCHING
+                              ★ ${skin.characters.overseer.shortName.toUpperCase()} WATCHING
                           </span>`
                         : html``}
                     ${allDone

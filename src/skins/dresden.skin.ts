@@ -48,12 +48,14 @@ export const dresdenSkin: Skin = {
             name: "Harry Dresden",
             shortName: "Harry",
             title: "Wizard, P.I.",
+            memoType: "FIELD NOTE",
             role: "agent",
         },
         overseer: {
             name: "Bob the Skull",
             shortName: "Bob",
             title: "Spirit of Intellect",
+            memoType: "OCCULT ANALYSIS",
             role: "director",
         },
     },
@@ -103,6 +105,7 @@ export const dresdenSkin: Skin = {
         remediationLow: (n) => `Making up for it — ${n} obligations remain`,
         remediationMedium: (n) => `Penance obligations — ${n} due`,
         remediationHigh: (n) => `WHITE COUNCIL REVIEW ×${n}`,
+        criticalSnoozeLabel: "CASE STALLED",
     },
 
     types: {

@@ -1,15 +1,17 @@
 import {defineElement, defineElementEvent, css, html} from 'element-vir';
 import type {DialogueEntry} from '../data/types.js';
+import {getActiveSkin} from '../skins/active-skin.js';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // CharacterDialogueElement
-// Renders a memo-style speech bubble from either Director Briggs or Agent Whitaker.
-// Briggs   = red/double-border, official notice aesthetic.
-// Whitaker = blue/single-border, internal memo aesthetic.
+// Renders a memo-style speech bubble from either the overseer or the ally character.
+// Overseer = red/double-border aesthetic; ally = blue/single-border aesthetic.
 // ─────────────────────────────────────────────────────────────────────────────
 
 export const CharacterDialogueElement = defineElement<{
     dialogue: DialogueEntry;
+    /** Re-render trigger — changes when the active skin changes. */
+    activeSkinId: string;
 }>()({
     tagName: 'character-dialogue',
 
@@ -139,18 +141,18 @@ export const CharacterDialogueElement = defineElement<{
 
     render({inputs, dispatch, events}) {
         const {dialogue} = inputs;
+        const skin = getActiveSkin();
         const isDirector = dialogue.character === 'director';
+        const character = isDirector ? skin.characters.overseer : skin.characters.ally;
 
         return html`
             <div class="memo ${dialogue.character}">
                 <div class="memo-header">
                     <span class="memo-type">
-                        ${isDirector ? 'OFFICIAL NOTICE' : 'INTERNAL MEMO'}
+                        ${character.memoType}
                     </span>
                     <span class="from-label">
-                        ${isDirector
-                            ? 'DIR. R.H. BRIGGS'
-                            : 'AGENT H. WHITAKER'}
+                        ${character.name.toUpperCase()}
                     </span>
                     <button
                         class="dismiss-btn"
@@ -163,9 +165,7 @@ export const CharacterDialogueElement = defineElement<{
                 <div class="memo-body">
                     "${dialogue.message}"
                     <span class="character-name">
-                        — ${isDirector
-                            ? 'Director R. Harlan Briggs'
-                            : 'Agent Henry "Hal" Whitaker'}
+                        — ${character.name}
                     </span>
                 </div>
             </div>

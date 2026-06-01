@@ -25,12 +25,14 @@ export const vanillaSkin: Skin = {
             name: "Your Guide",
             shortName: "Guide",
             title: "Coach",
+            memoType: "GUIDANCE",
             role: "agent",
         },
         overseer: {
             name: "The System",
             shortName: "System",
             title: "Accountability",
+            memoType: "SYSTEM NOTICE",
             role: "director",
         },
     },
@@ -80,6 +82,7 @@ export const vanillaSkin: Skin = {
         remediationLow: (n) => `Recovering — ${n} left`,
         remediationMedium: (n) => `Rebuilding — ${n} needed`,
         remediationHigh: (n) => `COMMITMENT REVIEW ×${n}`,
+        criticalSnoozeLabel: "OVERDUE",
     },
 
     types: {
