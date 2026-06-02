@@ -15,10 +15,54 @@ Neither reflects how the task actually works. You have a *window* — any day in
 
 Flexible windows solve this by separating two concepts:
 
-1. **The suggested date** — when you'd *ideally* do it. The day it first surfaces in your view.
+1. **The suggested date** — when you'd *ideally* do it. The day it first surfaces in your view as something to do today.
 2. **The window deadline** — the last acceptable day. After this, the period is missed.
 
 The space between them is the window. Structure without rigidity.
+
+---
+
+## The Key Question: Hard vs. Flexible
+
+The distinction between Hard and Flexible is often misunderstood. It's not about whether you have a preferred day — flexible windows have preferred days too. The real question is:
+
+> **If I miss my preferred day, is the opportunity gone?**
+
+- **Yes** → Hard. The specific day is the commitment. An external constraint makes that day non-negotiable (the truck comes Thursday, the payment is due the 1st by contract, the appointment slot is taken).
+- **No** → Flexible. You have a preferred day, but doing it a few days later doesn't forfeit anything.
+
+**Example:** You want to replace your air filter on the 1st of every month — it fits your "fresh start" rhythm when your paycheck arrives. But if you do it on the 5th, nothing breaks. The interval is what matters. → Flexible with suggestedDate = 1st.
+
+**Counter-example:** You need to take the trash to the curb on Wednesday night. The truck comes Thursday morning. If you miss Wednesday night, you missed it. → Hard, no lead time.
+
+The practical difference: if you miss the suggested date on a Hard task, the period is over (or the task is immediately overdue and mandatory). If you miss the suggested date on a Flexible task, you still have until the deadline — the app keeps it visible and escalates gradually.
+
+---
+
+## Two Flavors of Flexible
+
+Flexible windows serve two distinct intents, both valid:
+
+### Anchored Flexible
+You have a specific preferred day, but no external consequence if you slip past it.
+
+> "Replace the air filter on the 1st. I like to do it with the new month. But the 8th is fine too."
+
+- suggestedDate = 1st (meaningful anchor)
+- windowDeadline = end of month
+- The suggested date *matters* — it's when you want to do it
+- The window is the forgiveness zone if life intervenes
+
+### Open Flexible
+Any day in the period is equally valid. There's no preferred day — just a period within which it needs to happen.
+
+> "Work out sometime this week. Any day is fine."
+
+- suggestedDate = period start (or any reasonable day — just determines when it surfaces)
+- windowDeadline = end of period
+- The specific suggested date is mostly arbitrary; you just need the period covered
+
+Both use the same `windowType: flexible` in the data model. The difference is in your intent and how you set the suggestedDate. For anchored flexible, choose a suggestedDate that reflects your actual preferred day. For open flexible, the period start is usually fine.
 
 ---
 

@@ -127,23 +127,20 @@ This needs to be verified in code and documented. The behavior here is not well-
 
 **Q: Is a hard-date task with snooze enabled and a custom lead time just a flexible window?**
 
-They sound similar but are genuinely different:
+**Resolved: they are genuinely different. Do not conflate.**
 
-| Scenario | After ideal day passes |
-|----------|----------------------|
-| Hard date | Mandatory → then missed |
-| Flexible window | Still in suggested → works until deadline |
+The test: **"If I miss my preferred day, is the opportunity gone?"**
+- Yes → Hard
+- No → Flexible (with a meaningful suggestedDate if you have a preferred day)
 
-The grace period after the ideal day is the key difference. A hard date has no grace period. A flexible window does.
+Key insight from real-world data audit: users often choose Hard when they have a preferred day (e.g., replace air filter on the 1st of the month) without realizing that Flexible windows also have meaningful suggested dates. The distinction isn't "do I have a preferred day" — it's "does missing that day forfeit the commitment."
 
-**Decision: they are different concepts and should not be conflated.** The test: "If I miss the ideal day, do I have more time?" If yes → flexible. If no → hard.
+After the suggested date:
+- Hard → mandatory → then missed if still undone
+- Flexible → still in suggested → works until deadline
 
-Use cases where hard date is right:
-- Trash to the curb (the truck has a schedule; no grace period)
-- Bill payment with a hard external deadline
-- Scheduled appointment (the time slot is gone if you miss it)
+Two flavors of flexible exist (both use `windowType: flexible`):
+- **Anchored flexible**: meaningful preferred day (air filter on the 1st, budget review at month start, pay tithing early in the month) — set suggestedDate to the preferred day
+- **Open flexible**: any day in the period equally valid (workout this week, work on project this month) — suggestedDate is arbitrary period-start
 
-Use cases where flexible is right:
-- Taking trash from inside to outside (any day this week is fine)
-- Budget review (anytime this month works)
-- Weekly workout (any day this week counts)
+See `flexible-windows.md` for full treatment.
