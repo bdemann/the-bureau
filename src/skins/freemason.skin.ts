@@ -146,6 +146,14 @@ export const freemasonSkin: Skin = {
         shareItemLabel: "Hail a Fellow Craftsman",
         shareItemSub: "Invite a brother to the lodge",
         appearanceLabel: "Regalia",
+
+        dataSectionLabel: "Lodge Records",
+        exportJsonLabel: "Export Backup",
+        exportJsonSub: "Download full backup as JSON",
+        exportCsvLabel: "Export Labor List",
+        exportCsvSub: "Download all labors as CSV",
+        importLabel: "Import Backup",
+        importSub: "Restore from a previous JSON backup",
     },
 
     actions: {

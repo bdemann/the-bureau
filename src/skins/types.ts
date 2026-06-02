@@ -194,6 +194,15 @@ export interface SkinMenu {
 
     /** Section heading above the skin / appearance picker. */
     appearanceLabel: string;
+
+    /** Section heading above the data export / import controls. */
+    dataSectionLabel: string;
+    exportJsonLabel: string;
+    exportJsonSub: string;
+    exportCsvLabel: string;
+    exportCsvSub: string;
+    importLabel: string;
+    importSub: string;
 }
 
 // ── Characters ────────────────────────────────────────────────────────────────

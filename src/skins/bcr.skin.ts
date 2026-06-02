@@ -114,6 +114,14 @@ export const bcrSkin: Skin = {
         shareItemLabel: "Report a Neighbor",
         shareItemSub: "Refer a civic non-compliant to CLEAR",
         appearanceLabel: "Presentation",
+
+        dataSectionLabel: "Bureau Records",
+        exportJsonLabel: "Export Dossier",
+        exportJsonSub: "Download full bureau records as JSON",
+        exportCsvLabel: "Export Field Report",
+        exportCsvSub: "Download all directives as CSV for analysis",
+        importLabel: "Restore Records",
+        importSub: "Restore bureau records from a JSON backup",
     },
 
     pages: {

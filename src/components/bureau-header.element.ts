@@ -29,6 +29,12 @@ export const BureauHeaderElement = defineElement<{
         skinChangeRequested: defineElementEvent<string>(),
         /** Fired for any view navigation from the hamburger menu. */
         viewRequested: defineElementEvent<AppView>(),
+        /** Fired when the user requests a JSON backup download. */
+        exportJsonRequested: defineElementEvent<void>(),
+        /** Fired when the user requests a CSV task-list download. */
+        exportCsvRequested: defineElementEvent<void>(),
+        /** Fired when the user has selected a backup file; payload is the raw file text. */
+        importFileSelected: defineElementEvent<string>(),
     },
 
     state: () => ({
@@ -276,6 +282,14 @@ export const BureauHeaderElement = defineElement<{
             color: rgba(245, 239, 224, 0.4);
             margin-top: 2px;
             font-weight: normal;
+        }
+
+        .menu-item-file {
+            cursor: pointer;
+        }
+
+        .file-input-hidden {
+            display: none;
         }
 
         .menu-copied {
@@ -578,6 +592,50 @@ export const BureauHeaderElement = defineElement<{
                                           `,
                                       )}
                                   </div>
+                              </div>
+
+                              <div class="menu-section">
+                                  <div class="menu-section-label">
+                                      ${skin.menu.dataSectionLabel}
+                                  </div>
+                                  <button
+                                      class="menu-item"
+                                      @click=${() => {
+                                          dispatch(new events.exportCsvRequested());
+                                          closeMenu();
+                                      }}
+                                  >
+                                      ${skin.menu.exportCsvLabel}
+                                      <span class="menu-item-sub">${skin.menu.exportCsvSub}</span>
+                                  </button>
+                                  <button
+                                      class="menu-item"
+                                      @click=${() => {
+                                          dispatch(new events.exportJsonRequested());
+                                          closeMenu();
+                                      }}
+                                  >
+                                      ${skin.menu.exportJsonLabel}
+                                      <span class="menu-item-sub">${skin.menu.exportJsonSub}</span>
+                                  </button>
+                                  <label class="menu-item menu-item-file">
+                                      ${skin.menu.importLabel}
+                                      <span class="menu-item-sub">${skin.menu.importSub}</span>
+                                      <input
+                                          type="file"
+                                          accept=".json"
+                                          class="file-input-hidden"
+                                          @change=${async (e: Event) => {
+                                              const input = e.target as HTMLInputElement;
+                                              const file = input.files?.[0];
+                                              if (!file) return;
+                                              const text = await file.text();
+                                              input.value = '';
+                                              closeMenu();
+                                              dispatch(new events.importFileSelected(text));
+                                          }}
+                                      />
+                                  </label>
                               </div>
                           </div>
                       </div>

@@ -136,6 +136,14 @@ export const defaultSkin: Skin = {
         shareItemSub: "Share the app with someone",
 
         appearanceLabel: "Appearance",
+
+        dataSectionLabel: "Data",
+        exportJsonLabel: "Export Backup",
+        exportJsonSub: "Download full backup as JSON",
+        exportCsvLabel: "Export Task List",
+        exportCsvSub: "Download all tasks & routines as CSV",
+        importLabel: "Import Backup",
+        importSub: "Restore from a previous JSON backup",
     },
 
     pages: {

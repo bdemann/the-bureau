@@ -160,6 +160,14 @@ export const dresdenSkin: Skin = {
         shareItemLabel: "Recommend a Wizard",
         shareItemSub: "Tell a friend about the docket",
         appearanceLabel: "Wardrobe",
+
+        dataSectionLabel: "Data",
+        exportJsonLabel: "Export Backup",
+        exportJsonSub: "Download full backup as JSON",
+        exportCsvLabel: "Export Obligation List",
+        exportCsvSub: "Download all obligations as CSV",
+        importLabel: "Import Backup",
+        importSub: "Restore from a previous JSON backup",
     },
 
     actions: {

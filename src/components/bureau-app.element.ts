@@ -16,6 +16,7 @@ import {
     getTodayString,
     isTaskOverdue,
     loadState,
+    migrateState,
     saveState,
     startOfDay,
 } from "../data/storage.js";
@@ -56,6 +57,14 @@ import { GoalDetailElement } from "./goal-detail.element.js";
 import { GoalsViewElement } from "./goals-view.element.js";
 import { AreaDetailElement } from "./area-detail.element.js";
 import { CommitmentsViewElement } from "./commitments-view.element.js";
+import {
+    buildCsvExport,
+    buildJsonExport,
+    csvFilename,
+    jsonFilename,
+    parseImport,
+    triggerDownload,
+} from "../data/export-import.js";
 
 // ─────────────────────────────────────────────────────────────────────────────
 // BureauAppElement — Root element. Owns all state.
@@ -995,6 +1004,22 @@ export const BureauAppElement = defineElement()({
                     ${listen(BureauHeaderElement.events.viewRequested, (e) =>
                         setView(e.detail),
                     )}
+                    ${listen(BureauHeaderElement.events.exportCsvRequested, () => {
+                        triggerDownload(buildCsvExport(state.app), csvFilename(), 'text/csv');
+                    })}
+                    ${listen(BureauHeaderElement.events.exportJsonRequested, () => {
+                        triggerDownload(buildJsonExport(state.app), jsonFilename(), 'application/json');
+                    })}
+                    ${listen(BureauHeaderElement.events.importFileSelected, (e) => {
+                        const imported = parseImport(e.detail);
+                        if (!imported) {
+                            alert('Import failed: file does not appear to be a valid CLEAR backup.');
+                            return;
+                        }
+                        const migrated = migrateState(imported);
+                        saveState(migrated);
+                        window.location.reload();
+                    })}
                     ${listen(
                         BureauHeaderElement.events.skinChangeRequested,
                         (e) => {
