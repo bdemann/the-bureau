@@ -16,6 +16,9 @@ reference/
 .vscode/
 .idea/
 
+# Personal data exports (local only — never commit)
+data-exports/
+
 # Logs
 npm-debug.log*
 yarn-debug.log*
