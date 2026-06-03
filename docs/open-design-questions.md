@@ -95,7 +95,29 @@ Proposed: T4 daily → suggested. A daily aspirational task (morning stretching,
 
 ---
 
+## Schedule Mode and Window Type on Daily Tasks
+
+**Q: Do window type or schedule mode make any difference for daily cadence tasks?**
+
+**Resolved: No. Both are inert for daily. Hide both selectors when cadence is daily or multiple_per_day.**
+
+**Window type:** For a daily task the cadence period IS the day (midnight to midnight). Whether hard or flexible, both become mandatory immediately via Step 1, both snooze to tomorrow (the next period), and both charge a miss penalty on rollover identically. "Flexible daily" is a contradiction.
+
+**Schedule mode:** For daily cadence, fixed and rolling both produce the same result — tomorrow. Fixed anchors to the next calendar day (tomorrow midnight). Rolling adds 1 day to completion time, which also resolves to tomorrow. No meaningful difference.
+
+**Decision:** Daily tasks are always hard + fixed. Hide both the window type and schedule mode selectors in the task form when cadence is daily or multiple_per_day. Existing data needs no migration — both fields are inert and the task behaves correctly regardless of what they're set to.
+
+**Implementation:** Hide window type AND schedule mode fields in the task creation/edit form when cadence = daily or multiple_per_day.
+
+---
+
 ## Window Type on Daily Tasks
+
+*(Merged into the entry above.)*
+
+---
+
+## Lead Time = Window Start?
 
 **Q: Does hard vs. flexible window type make any difference for daily cadence tasks?**
 

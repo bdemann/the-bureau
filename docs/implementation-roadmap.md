@@ -121,7 +121,7 @@ Tests: TESTING.md
 
 Daily tasks are hard windows by definition — the period is the day, so hard vs. flexible makes no difference anywhere in the system. The selector is confusing and inert for daily cadence.
 
-Hide (or remove) the window type field in the task creation/edit form when cadence is `daily` or `multiple_per_day`. No data migration needed — existing flexible daily tasks behave correctly, the field is just unused.
+Hide (or remove) the window type AND schedule mode fields in the task creation/edit form when cadence is `daily` or `multiple_per_day`. No data migration needed — existing values are inert, tasks behave correctly regardless of what those fields are set to.
 
 ---
 
