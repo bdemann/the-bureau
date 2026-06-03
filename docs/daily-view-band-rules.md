@@ -132,6 +132,23 @@ When the mandatory band becomes empty (all items done for the current time-of-da
 
 ---
 
+## The Mandatory Band Philosophy
+
+**Mandatory should be short, honest, and achievable even on a hard day.**
+
+The mandatory band only works if a person can look at it and say: *"Whatever else happens today, these get done."* That requires the list to be genuinely achievable and every item on it to be genuinely non-negotiable.
+
+An inflated mandatory band — full of things that are merely important rather than truly required — defeats the purpose. If everything is mandatory, nothing is. The value of mandatory comes from its selectivity.
+
+**If you can't do it all today, do your mandatory. Everything else is a bonus.**
+
+This principle governs:
+- How tiers are assigned (T1 should be rare and honest — real consequences, not just "important")
+- How escalation thresholds are set (don't escalate T2/T3 into mandatory too fast)
+- How mandatory is presented in the UI (visually distinct, weighted differently than suggested)
+
+---
+
 ## What the Bands Are NOT
 
 - **Not a single priority queue.** Mandatory is not "most important work." It is "work with real consequences if skipped today."

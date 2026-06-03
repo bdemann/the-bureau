@@ -95,6 +95,55 @@ Proposed: T4 daily → suggested. A daily aspirational task (morning stretching,
 
 ---
 
+## Daily Task Band Placement by Tier
+
+**Q: Should T2 and T3 daily tasks start in mandatory, or in suggested with escalation?**
+
+**Context:** Daily tasks have no window — today is the only day. So the tier question is genuinely: *does missing today matter enough to call it mandatory from the start?*
+
+Tier descriptions answer this directly:
+- T1 "Something bad happens" → mandatory from day one
+- T2 "Things degrade over time" → important, but one miss isn't catastrophic → start in suggested, escalate
+- T3 "Nothing breaks, quality drops" → start in suggested, maybe escalate
+- T4 "Aspirational" → always suggested, never mandatory
+
+**Proposed rules for daily tasks:**
+- T1 → mandatory always
+- T2 → suggested; escalates to mandatory after N skips (threshold TBD)
+- T3 → suggested; open question whether it can reach mandatory (see below)
+- T4 → suggested always
+
+**Open sub-question: can T3 daily tasks reach mandatory via skip escalation?**
+
+Options:
+- A) T3 escalates to mandatory, but at a higher skip count than T2 (T2 faster, T3 slower)
+- B) T3 caps at suggested (never mandatory — quality consequence doesn't rise to must-do)
+
+**Open sub-question: what skip thresholds trigger escalation?**
+
+T2 escalates faster than T3. Specific counts TBD — use real skip data from the task audit to calibrate. A task with skipStreak=12 (Start bedtime routine) should probably be in mandatory. A task with skipStreak=2 probably shouldn't be yet.
+
+**Note:** This logic applies specifically to daily tasks. For weekly/monthly tasks, hard-date and window-deadline rules govern mandatory placement separately.
+
+---
+
+## The Mandatory Band Philosophy
+
+**Mandatory should be short, honest, and achievable even on a hard day.**
+
+The whole purpose of the mandatory band is to surface the things that genuinely MUST happen today — items worth making sacrifices to complete. This only works if the list is actually achievable and the items are genuinely non-negotiable.
+
+If mandatory is 25 items long, it stops meaning anything. A person should be able to look at their mandatory band and say: "Whatever else happens today, these get done." That requires honest tiering and a system that doesn't inflate mandatory with things that are merely important.
+
+**The guiding principle:** if you can't do it all today, do your mandatory. That's what makes the band worth having.
+
+This principle should inform:
+- Tier assignment (don't overtier — T1 should be rare and honest)
+- Band escalation thresholds (don't escalate too fast or mandatory inflates)
+- How mandatory is presented in the UI (prominent, distinct from suggested)
+
+---
+
 ## Schedule Mode and Window Type on Daily Tasks
 
 **Q: Do window type or schedule mode make any difference for daily cadence tasks?**
