@@ -117,7 +117,15 @@ Tests: TESTING.md
 
 ---
 
-### 7. Lead Time UI: Show Default Values
+### 7. Hide Window Type Selector for Daily Tasks
+
+Daily tasks are hard windows by definition — the period is the day, so hard vs. flexible makes no difference anywhere in the system. The selector is confusing and inert for daily cadence.
+
+Hide (or remove) the window type field in the task creation/edit form when cadence is `daily` or `multiple_per_day`. No data migration needed — existing flexible daily tasks behave correctly, the field is just unused.
+
+---
+
+### 8. Lead Time UI: Show Default Values
 
 Pre-fill lead time input with the numeric default (3 for hard-date) instead of leaving it blank. User can see and edit the default without it being a hidden behavior.
 

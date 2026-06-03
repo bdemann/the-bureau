@@ -95,6 +95,26 @@ Proposed: T4 daily → suggested. A daily aspirational task (morning stretching,
 
 ---
 
+## Window Type on Daily Tasks
+
+**Q: Does hard vs. flexible window type make any difference for daily cadence tasks?**
+
+**Resolved: No. Daily tasks are always hard windows. Hide the window type selector for daily cadence.**
+
+For a daily task the cadence period IS the day (midnight to midnight). Whether hard or flexible:
+- Both become mandatory immediately via Step 1 (hard: suggestedDate ≤ today; flexible: windowDeadline ≤ today)
+- Both snooze to tomorrow, which is the next period anyway
+- Both charge a miss penalty on rollover identically
+- The window % radar logic never fires because Step 1 fires first
+
+"Flexible daily" is a contradiction — there is no grace period when the period is the day.
+
+**Decision:** Daily tasks are hard windows by definition. The window type selector should be hidden when cadence is daily (or multiple per day). Existing flexible daily tasks behave correctly — no migration needed; the field is just inert.
+
+**Implementation:** Hide window type field in the task creation/edit form when cadence = daily or multiple_per_day.
+
+---
+
 ## Lead Time = Window Start?
 
 **Q: Are "lead time" and "when the window starts" the same concept?**
