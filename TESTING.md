@@ -403,6 +403,9 @@ Remediation fires whenever a commitment that had a skip streak OR high snooze co
 - [ ] Switching to background and returning after the time slot changes resets the default to the new slot
 - [ ] Active use (app stays open through a slot transition) does NOT collapse open sections
 - [ ] Complete/snooze actions work from daily view
+- [ ] Completing the last mandatory task: score jumps by the docket-cleared bonus (5 pts at N=10) on top of the normal task reward (#39)
+- [ ] Docket-cleared bonus only fires when mandatory band was non-empty before the completion
+- [ ] Days with no mandatory tasks: completing suggested/radar/backlog tasks does NOT trigger the docket bonus
 - [ ] T1 daily routine appears in MANDATORY band; T2/T3/T4 daily routines appear in SUGGESTED band (C2)
 - [ ] T2 daily routine with skipStreak ≥ 5 escalates to MANDATORY band (C2 skip escalation)
 - [ ] T4 task never appears in MANDATORY band even on its due date (C1)
@@ -464,7 +467,7 @@ Remediation fires whenever a commitment that had a skip streak OR high snooze co
 - [ ] After advancing one year with Nth weekday: suggested date is that weekday in the same month next year (#35)
 - [ ] "4th Thursday of November" task: first occurrence is correct Thanksgiving date; advances correctly year-over-year (#35)
 - [ ] "2nd Sunday of May" (Mother's Day): correct date each year (#35)
-- [ ] Yearly Nth weekday with offset -2: "Thanksgiving grocery run" (2 days before 4th Thu Nov) shows Tuesday before Thanksgiving (#36)
+- [ ] Annually Nth weekday with offset -2: "Thanksgiving grocery run" (2 days before 4th Thu Nov) shows Tuesday before Thanksgiving (#36)
 
 ### Monthly ordinal offset (GitHub #36)
 
