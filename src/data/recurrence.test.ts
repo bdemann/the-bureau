@@ -195,6 +195,35 @@ describe('initialiseRecurrence', () => {
         );
     });
 
+    test('monthly ordinalOffset -1: Sunday before 3rd Monday (GitHub #36)', () => {
+        // 3rd Monday of May 2026 = May 18; Sunday before = May 17
+        const may1 = date('2026-05-01');
+        const init = initialiseRecurrence(
+            {windowType: 'flexible', suggestedDate: null},
+            makeRecurrence({cadence: 'monthly', hardDayOfWeek: 1, ordinalWeek: 3, ordinalOffset: -1}),
+            may1,
+        );
+        assert.strictEquals(
+            new Date(init.suggestedDate).toDateString(),
+            date('2026-05-17').toDateString(),
+        );
+    });
+
+    test('monthly ordinalOffset -1: advances to next month correctly', () => {
+        // 3rd Monday of June 2026 = June 15; Sunday before = June 14
+        const may18 = date('2026-05-18'); // after the Sunday (May 17)
+        const t = makeTask({
+            recurrence: makeRecurrence({cadence: 'monthly', hardDayOfWeek: 1, ordinalWeek: 3, ordinalOffset: -1}),
+            suggestedDate: date('2026-05-17').getTime(),
+            currentPeriodStart: date('2026-05-01').getTime(),
+        });
+        const advanced = advanceRecurrence(t, may18);
+        assert.strictEquals(
+            new Date(advanced.suggestedDate!).toDateString(),
+            date('2026-06-14').toDateString(),
+        );
+    });
+
     test('flexible window sets windowDeadline to period end', () => {
         const init = initialiseRecurrence(
             {windowType: 'flexible', suggestedDate: null},
@@ -807,6 +836,28 @@ describe('annually — ordinal weekday anchor (GitHub #35)', () => {
         assert.strictEquals(
             new Date(advanced.suggestedDate!).toDateString(),
             thanksgiving2027.toDateString(),
+        );
+    });
+
+    test('ordinalOffset -2: Tuesday before Thanksgiving (2 days before 4th Thu of Nov)', () => {
+        // Thanksgiving 2026 = Nov 26; Tuesday before = Nov 24
+        const dayAfterThanksgiving = date('2026-11-27');
+        const t = makeTask({
+            recurrence: makeRecurrence({
+                cadence: 'yearly',
+                hardMonthOfYear: 10,
+                ordinalWeek: 4,
+                hardDayOfWeek: 4,
+                ordinalOffset: -2,
+            }),
+            suggestedDate: date('2026-11-24').getTime(), // Tuesday before Thanksgiving 2026
+            currentPeriodStart: date('2026-01-01').getTime(),
+        });
+        const advanced = advanceRecurrence(t, dayAfterThanksgiving);
+        // 2027: Thanksgiving = Nov 25; Tuesday before = Nov 23
+        assert.strictEquals(
+            new Date(advanced.suggestedDate!).toDateString(),
+            date('2027-11-23').toDateString(),
         );
     });
 

@@ -117,8 +117,9 @@ export function getNextSuggestedDate(
         const start = new Date(nextPeriod.start);
         // Ordinal weekday ("3rd Thursday of the month") wins if both fields set.
         if (cfg.ordinalWeek !== undefined && cfg.hardDayOfWeek !== undefined) {
-            return nthWeekdayOfMonth(
+            const anchor = nthWeekdayOfMonth(
                 start.getFullYear(), start.getMonth(), cfg.ordinalWeek, cfg.hardDayOfWeek);
+            return cfg.ordinalOffset ? addDays(anchor, cfg.ordinalOffset) : anchor;
         }
         // Multi-dom: cycle through selected days, wrapping to next month as needed.
         if (cfg.hardDaysOfMonth && cfg.hardDaysOfMonth.length > 1) {
@@ -162,7 +163,8 @@ export function getNextSuggestedDate(
         const start = new Date(nextPeriod.start);
         const month = cfg.hardMonthOfYear ?? ref.getMonth();
         if (cfg.ordinalWeek !== undefined && cfg.hardDayOfWeek !== undefined) {
-            return nthWeekdayOfMonth(start.getFullYear(), month, cfg.ordinalWeek, cfg.hardDayOfWeek);
+            const anchor = nthWeekdayOfMonth(start.getFullYear(), month, cfg.ordinalWeek, cfg.hardDayOfWeek);
+            return cfg.ordinalOffset ? addDays(anchor, cfg.ordinalOffset) : anchor;
         }
         const dom = cfg.hardDayOfMonth ?? ref.getDate();
         const lastDayOfMonth = new Date(start.getFullYear(), month + 1, 0).getDate();
@@ -358,11 +360,12 @@ function deriveInitialSuggested(cfg: RecurrenceConfig, period: Period, today: Da
         // occurrence if it hasn't passed, else next month's.
         if (cfg.ordinalWeek !== undefined && cfg.hardDayOfWeek !== undefined) {
             const todayMs = startOfDay(today).getTime();
-            const thisMonth = nthWeekdayOfMonth(
-                today.getFullYear(), today.getMonth(), cfg.ordinalWeek, cfg.hardDayOfWeek);
+            const applyOffset = (d: Date) => cfg.ordinalOffset ? addDays(d, cfg.ordinalOffset) : d;
+            const thisMonth = applyOffset(nthWeekdayOfMonth(
+                today.getFullYear(), today.getMonth(), cfg.ordinalWeek, cfg.hardDayOfWeek));
             if (thisMonth.getTime() >= todayMs) return thisMonth.getTime();
-            return nthWeekdayOfMonth(
-                today.getFullYear(), today.getMonth() + 1, cfg.ordinalWeek, cfg.hardDayOfWeek).getTime();
+            return applyOffset(nthWeekdayOfMonth(
+                today.getFullYear(), today.getMonth() + 1, cfg.ordinalWeek, cfg.hardDayOfWeek)).getTime();
         }
         if (cfg.hardDaysOfMonth && cfg.hardDaysOfMonth.length > 0) {
             return nextOccurrenceOfSelectedDoms(today, cfg.hardDaysOfMonth).getTime();
@@ -388,9 +391,10 @@ function deriveInitialSuggested(cfg: RecurrenceConfig, period: Period, today: Da
             const todayMs = startOfDay(today).getTime();
             const month = cfg.hardMonthOfYear;
             if (cfg.ordinalWeek !== undefined && cfg.hardDayOfWeek !== undefined) {
-                const thisYear = nthWeekdayOfMonth(today.getFullYear(), month, cfg.ordinalWeek, cfg.hardDayOfWeek);
+                const applyOffset = (d: Date) => cfg.ordinalOffset ? addDays(d, cfg.ordinalOffset) : d;
+                const thisYear = applyOffset(nthWeekdayOfMonth(today.getFullYear(), month, cfg.ordinalWeek, cfg.hardDayOfWeek));
                 if (thisYear.getTime() >= todayMs) return thisYear.getTime();
-                return nthWeekdayOfMonth(today.getFullYear() + 1, month, cfg.ordinalWeek, cfg.hardDayOfWeek).getTime();
+                return applyOffset(nthWeekdayOfMonth(today.getFullYear() + 1, month, cfg.ordinalWeek, cfg.hardDayOfWeek)).getTime();
             }
             const dom = cfg.hardDayOfMonth ?? 1;
             // This year's occurrence in the target month.

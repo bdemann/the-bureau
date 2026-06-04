@@ -27,6 +27,8 @@ export interface CadenceConfig {
     ordinalWeek: 1 | 2 | 3 | 4 | 5 | -1;
     /** Monthly ordinal: which weekday (0 = Sun … 6 = Sat). */
     dayOfWeek: number;
+    /** Days before (<0) or after (>0) the ordinal anchor date. 0 = on the anchor day. */
+    ordinalOffset: number;
     /** Quarterly: which month within the quarter (0 = first, 1 = second, 2 = third). */
     quarterMonth: 0 | 1 | 2;
     /** Yearly: which month (0 = Jan … 11 = Dec). */
@@ -48,6 +50,7 @@ export function defaultCadenceConfig(
         dayOfMonth: today.getDate(),
         ordinalWeek: 1,
         dayOfWeek: today.getDay(),
+        ordinalOffset: 0,
         quarterMonth: 0,
         annualMonth: today.getMonth(),
     };
@@ -72,6 +75,7 @@ export function cadenceConfigFromRecurrence(cfg: RecurrenceConfig): CadenceConfi
         dayOfMonth: cfg.hardDayOfMonth ?? cfg.hardDaysOfMonth?.[0] ?? base.dayOfMonth,
         ordinalWeek: cfg.ordinalWeek ?? 1,
         dayOfWeek: cfg.hardDayOfWeek ?? base.dayOfWeek,
+        ordinalOffset: cfg.ordinalOffset ?? 0,
         quarterMonth: cfg.hardMonthOfQuarter ?? 0,
         annualMonth: cfg.hardMonthOfYear ?? base.annualMonth,
     };
@@ -90,7 +94,11 @@ export function buildRecurrenceAnchors(config: CadenceConfig): Partial<Recurrenc
         }
         case 'monthly': {
             if (config.monthAnchorMode === 'ordinal') {
-                return { hardDayOfWeek: config.dayOfWeek, ordinalWeek: config.ordinalWeek };
+                return {
+                    hardDayOfWeek: config.dayOfWeek,
+                    ordinalWeek: config.ordinalWeek,
+                    ...(config.ordinalOffset !== 0 ? {ordinalOffset: config.ordinalOffset} : {}),
+                };
             }
             const sorted = [...config.daysOfMonth].sort((a, b) => a - b);
             return sorted.length > 1
@@ -109,6 +117,7 @@ export function buildRecurrenceAnchors(config: CadenceConfig): Partial<Recurrenc
                     hardMonthOfYear: config.annualMonth,
                     hardDayOfWeek: config.dayOfWeek,
                     ordinalWeek: config.ordinalWeek,
+                    ...(config.ordinalOffset !== 0 ? {ordinalOffset: config.ordinalOffset} : {}),
                 };
             }
             return {
@@ -189,6 +198,13 @@ function formatSelectedDoms(doms: ReadonlySet<number>): string {
     if (labels.length === 1) return `The ${labels[0]} of each month.`;
     if (labels.length === 2) return `The ${labels[0]} and ${labels[1]} of each month.`;
     return `The ${labels.slice(0, -1).join(', ')}, and ${labels[labels.length - 1]} of each month.`;
+}
+
+function ordinalOffsetLabel(offset: number): string {
+    if (offset === 0) return 'On the anchor day.';
+    const abs = Math.abs(offset);
+    const dir = offset < 0 ? 'before' : 'after';
+    return `${abs} day${abs !== 1 ? 's' : ''} ${dir} the anchor.`;
 }
 
 function quarterMonthSummary(m: 0 | 1 | 2): string {
@@ -457,6 +473,20 @@ export const CadencePickerElement = defineElement<{ config: CadenceConfig }>()({
                             of each month${config.ordinalWeek === 5 ? ' (skips months without a 5th)' : ''}.
                         </div>
                     </div>
+                    <div class="field">
+                        <span class="field-label">Offset (days)</span>
+                        <input
+                            type="number"
+                            min="-365" max="365"
+                            style="width:80px;padding:6px 8px;border:1px solid var(--color-border);border-radius:4px;"
+                            .value=${String(config.ordinalOffset)}
+                            @change=${(e: Event) => {
+                                const n = parseInt((e.target as HTMLInputElement).value, 10);
+                                if (!Number.isNaN(n)) update({ ordinalOffset: n });
+                            }}
+                        />
+                        <div class="anchor-summary">${ordinalOffsetLabel(config.ordinalOffset)}</div>
+                    </div>
                 `}
             ` : html``}
 
@@ -603,6 +633,20 @@ export const CadencePickerElement = defineElement<{ config: CadenceConfig }>()({
                             of ${MONTH_LABELS.find((m) => m.value === config.annualMonth)?.label ?? ''}
                             each year${config.ordinalWeek === 5 ? ' (skips years where that month lacks a 5th)' : ''}.
                         </div>
+                    </div>
+                    <div class="field">
+                        <span class="field-label">Offset (days)</span>
+                        <input
+                            type="number"
+                            min="-365" max="365"
+                            style="width:80px;padding:6px 8px;border:1px solid var(--color-border);border-radius:4px;"
+                            .value=${String(config.ordinalOffset)}
+                            @change=${(e: Event) => {
+                                const n = parseInt((e.target as HTMLInputElement).value, 10);
+                                if (!Number.isNaN(n)) update({ ordinalOffset: n });
+                            }}
+                        />
+                        <div class="anchor-summary">${ordinalOffsetLabel(config.ordinalOffset)}</div>
                     </div>
                 `}
             ` : html``}

@@ -464,6 +464,17 @@ Remediation fires whenever a commitment that had a skip streak OR high snooze co
 - [ ] After advancing one year with Nth weekday: suggested date is that weekday in the same month next year (#35)
 - [ ] "4th Thursday of November" task: first occurrence is correct Thanksgiving date; advances correctly year-over-year (#35)
 - [ ] "2nd Sunday of May" (Mother's Day): correct date each year (#35)
+- [ ] Yearly Nth weekday with offset -2: "Thanksgiving grocery run" (2 days before 4th Thu Nov) shows Tuesday before Thanksgiving (#36)
+
+### Monthly ordinal offset (GitHub #36)
+
+- [ ] Monthly "Nth weekday" mode shows an "Offset (days)" number input below the day-of-week picker
+- [ ] Default offset is 0; summary reads "On the anchor day."
+- [ ] Offset -1: summary reads "1 day before the anchor."
+- [ ] Offset +2: summary reads "2 days after the anchor."
+- [ ] "Sunday before the 3rd Monday" (ordinalWeek:3, dayOfWeek:Mon, offset:-1): correct Sunday each month
+- [ ] Edit dialog re-opens with offset pre-filled
+- [ ] Zero offset omitted from export (no change to existing commitments without offset)
 
 ### Recurring start date
 

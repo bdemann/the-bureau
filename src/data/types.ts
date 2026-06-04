@@ -158,6 +158,16 @@ export interface RecurrenceConfig {
      * counted — equivalent to the day not existing in the schedule.
      */
     skipDays?: number[];
+    /**
+     * Shift applied after computing an ordinal weekday date (monthly/yearly cadences).
+     * Negative = days before the anchor; positive = days after.
+     * 0 or absent = on the anchor day itself.
+     *
+     * Examples:
+     *   ordinalWeek: 3, hardDayOfWeek: 1, ordinalOffset: -1  → Sunday before 3rd Monday
+     *   ordinalWeek: 4, hardDayOfWeek: 4, ordinalOffset: -2  → Tuesday before Thanksgiving
+     */
+    ordinalOffset?: number;
 }
 
 // ── Consequence and band types ───────────────────────────────────────────────
