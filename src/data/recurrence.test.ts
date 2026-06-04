@@ -5,6 +5,7 @@ import {
     getCurrentPeriod,
     initialiseRecurrence,
     isRecurrenceEnded,
+    isSkipDay,
     nextOccurrenceInQuarterlyTarget,
     nextOccurrenceOfSelectedDays,
     nextOccurrenceOfSelectedDoms,
@@ -748,5 +749,108 @@ describe('annually — hardMonthOfYear anchor', () => {
             new Date(advanced.suggestedDate!).toDateString(),
             date('2027-02-28').toDateString(),
         );
+    });
+});
+
+// ── skipDays ─────────────────────────────────────────────────────────────────
+
+describe('isSkipDay', () => {
+    // 2026-05-10 is a Sunday (getDay() = 0)
+    const sunday = date('2026-05-10');
+    const monday = date('2026-05-11');
+
+    test('returns true when today is a skip day (Sunday skipped)', () => {
+        const t = makeTask({recurrence: makeRecurrence({cadence: 'daily', skipDays: [0]})});
+        assert.strictEquals(isSkipDay(t, sunday), true);
+    });
+
+    test('returns false when today is not a skip day', () => {
+        const t = makeTask({recurrence: makeRecurrence({cadence: 'daily', skipDays: [0]})});
+        assert.strictEquals(isSkipDay(t, monday), false);
+    });
+
+    test('returns false when skipDays is empty', () => {
+        const t = makeTask({recurrence: makeRecurrence({cadence: 'daily', skipDays: []})});
+        assert.strictEquals(isSkipDay(t, sunday), false);
+    });
+
+    test('returns false when skipDays is absent', () => {
+        const t = makeTask({recurrence: makeRecurrence({cadence: 'daily'})});
+        assert.strictEquals(isSkipDay(t, sunday), false);
+    });
+
+    test('returns false for non-daily cadences even if day matches', () => {
+        const t = makeTask({recurrence: makeRecurrence({cadence: 'weekly', skipDays: [0]})});
+        assert.strictEquals(isSkipDay(t, sunday), false);
+    });
+});
+
+describe('skipDays — getNextSuggestedDate skips forward', () => {
+    // Sunday = 0; Monday = 1 (2026-05-11)
+    const monday = date('2026-05-11');
+
+    test('next suggested date skips Sunday when Sunday is in skipDays', () => {
+        // Completing on Saturday → next period starts Sunday → should advance to Monday.
+        const saturday = date('2026-05-09');
+        const t = makeTask({
+            recurrence: makeRecurrence({cadence: 'daily', skipDays: [0]}),
+            currentPeriodStart: saturday.getTime(),
+        });
+        const advanced = advanceRecurrence(t, saturday);
+        assert.strictEquals(new Date(advanced.suggestedDate!).getDay(), 1); // Monday
+    });
+
+    test('next suggested date is tomorrow when it is not a skip day', () => {
+        const t = makeTask({
+            recurrence: makeRecurrence({cadence: 'daily', skipDays: [0]}),
+            currentPeriodStart: monday.getTime(),
+        });
+        const advanced = advanceRecurrence(t, monday);
+        assert.strictEquals(new Date(advanced.suggestedDate!).getDay(), 2); // Tuesday
+    });
+
+    test('skips multiple consecutive skip days', () => {
+        // Skip Sat (6) + Sun (0): completing on Friday → next suggested is Monday.
+        const friday = date('2026-05-08');
+        const t = makeTask({
+            recurrence: makeRecurrence({cadence: 'daily', skipDays: [0, 6]}),
+            currentPeriodStart: friday.getTime(),
+        });
+        const advanced = advanceRecurrence(t, friday);
+        assert.strictEquals(new Date(advanced.suggestedDate!).getDay(), 1); // Monday
+    });
+});
+
+describe('skipDays — rolloverIfNeeded does not count miss on skip day', () => {
+    // Sunday = 0 (2026-05-10)
+    const sunday = date('2026-05-10');
+    const monday = date('2026-05-11');
+
+    test('no miss when rolling over from a skip day', () => {
+        const t = makeTask({
+            recurrence: makeRecurrence({cadence: 'daily', skipDays: [0]}),
+            currentPeriodStart: sunday.getTime(), // stale period is Sunday (a skip day)
+            totalMisses: 0,
+            skipStreak: 0,
+            taskCompletionStreak: 3,
+        });
+        const rolled = rolloverIfNeeded(t, monday);
+        assert.strictEquals(rolled.totalMisses, 0); // no miss
+        assert.strictEquals(rolled.skipStreak, 0);  // no streak
+        assert.strictEquals(rolled.taskCompletionStreak, 3); // streak preserved
+    });
+
+    test('miss is counted when rolling over from a non-skip day', () => {
+        const t = makeTask({
+            recurrence: makeRecurrence({cadence: 'daily', skipDays: [0]}),
+            currentPeriodStart: date('2026-05-09').getTime(), // Saturday — not a skip day
+            totalMisses: 0,
+            skipStreak: 0,
+            taskCompletionStreak: 3,
+        });
+        const rolled = rolloverIfNeeded(t, monday);
+        assert.strictEquals(rolled.totalMisses, 1);
+        assert.strictEquals(rolled.skipStreak, 1);
+        assert.strictEquals(rolled.taskCompletionStreak, 0);
     });
 });

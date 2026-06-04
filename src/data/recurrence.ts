@@ -165,8 +165,8 @@ export function getNextSuggestedDate(
         const lastDayOfMonth = new Date(start.getFullYear(), month + 1, 0).getDate();
         return new Date(start.getFullYear(), month, Math.min(dom, lastDayOfMonth));
     }
-    // daily / multiple_per_day (legacy)
-    return new Date(nextPeriod.start);
+    // daily / multiple_per_day — skip forward over any skip days.
+    return skipForwardOverSkipDays(new Date(nextPeriod.start), cfg.skipDays);
 }
 
 // ── Advance to next period ──────────────────────────────────────────────────
@@ -291,6 +291,11 @@ export function rolloverIfNeeded(task: Task, today: Date): Task {
         ? nextOccurrenceInQuarterlyTarget(doms!, today, new Date(todayPeriod.start), cfg.hardMonthOfQuarter!)
         : getNextSuggestedDate(task, today, todayPeriod);
     const nextOccurrencePeriod = getCurrentPeriod(cfg.cadence, nextSuggested);
+
+    // Don't count a miss if the stale period was a skip day.
+    const staleDay = new Date(task.currentPeriodStart!);
+    const wasStaleDayASkipDay = isSkipDay(task, staleDay);
+
     return {
         ...task,
         completionsThisPeriod: 0,
@@ -301,9 +306,9 @@ export function rolloverIfNeeded(task: Task, today: Date): Task {
         suggestedDate: startOfDay(nextSuggested).getTime(),
         windowDeadline: task.windowType === 'flexible' ? nextOccurrencePeriod.end : null,
         windowLengthDays: nextOccurrencePeriod.lengthDays,
-        totalMisses: task.totalMisses + 1,
-        skipStreak: task.skipStreak + 1,
-        taskCompletionStreak: 0,
+        totalMisses: wasStaleDayASkipDay ? task.totalMisses : task.totalMisses + 1,
+        skipStreak: wasStaleDayASkipDay ? task.skipStreak : task.skipStreak + 1,
+        taskCompletionStreak: wasStaleDayASkipDay ? task.taskCompletionStreak : 0,
     };
 }
 
@@ -388,6 +393,10 @@ function deriveInitialSuggested(cfg: RecurrenceConfig, period: Period, today: Da
             const lastDayNext = new Date(today.getFullYear() + 1, month + 1, 0).getDate();
             return new Date(today.getFullYear() + 1, month, Math.min(dom, lastDayNext)).getTime();
         }
+    }
+    // daily / multiple_per_day — start from today, skip over any skip days.
+    if (cfg.cadence === 'daily' || cfg.cadence === 'multiple_per_day') {
+        return skipForwardOverSkipDays(today, cfg.skipDays).getTime();
     }
     return period.start;
 }
@@ -566,6 +575,36 @@ export function nthWeekdayOfMonth(
     const first = new Date(year, month, 1);
     const offset = (dow - first.getDay() + 7) % 7;
     return new Date(year, month, 1 + offset + (ordinal - 1) * 7);
+}
+
+// ── Skip-days helpers ────────────────────────────────────────────────────────
+
+/**
+ * Returns true if the given date falls on a day that this daily task skips.
+ * Only applies to daily / multiple_per_day cadences.
+ */
+export function isSkipDay(task: Task, date: Date): boolean {
+    const skipDays = task.recurrence?.skipDays;
+    if (!skipDays || skipDays.length === 0) return false;
+    const cadence = task.recurrence?.cadence;
+    if (cadence !== 'daily' && cadence !== 'multiple_per_day') return false;
+    return skipDays.includes(date.getDay());
+}
+
+/**
+ * Advance `date` forward until it lands on a day not in `skipDays`.
+ * Returns `date` unchanged if `skipDays` is absent/empty or the date is already valid.
+ * Guards against an infinite loop: if all 7 days are skipped, returns the original date.
+ */
+function skipForwardOverSkipDays(date: Date, skipDays: number[] | undefined): Date {
+    if (!skipDays || skipDays.length === 0 || skipDays.length >= 7) return date;
+    const r = startOfDay(new Date(date));
+    let guard = 0;
+    while (skipDays.includes(r.getDay()) && guard < 7) {
+        r.setDate(r.getDate() + 1);
+        guard++;
+    }
+    return r;
 }
 
 function addCadenceLength(d: Date, cadence: RecurrenceCadence): Date {
