@@ -57,14 +57,95 @@ Before writing code, identify:
 
 Each item gets automated tests (urgency.test.ts, scoring.test.ts, scoring-scenarios.test.ts) and/or TESTING.md manual entries before or alongside the code change. No exceptions.
 
-Implementation order: items 3–12 below, roughly lowest-risk first:
-- Items 8 (hide daily selectors) and 9 (lead time UI) — UI-only, no behavior change, low risk
-- Item 4 (band rule changes: T4, T3 snooze ceiling) — behavior change, medium risk
-- Item 5 (flexible "not today") — behavior change, medium risk
-- Item 3 (scoring fix) — affects score calculation, higher risk; verify with scenarios
-- Item 6 (auto-collapse mandatory) — UI behavior, low risk
-- Item 7 (skipDays for daily tasks) — new feature, medium complexity
-- Items 10–11 (yearly ordinal weekday, ordinal offset) — recurrence engine, medium-high risk
+#### Group A — Pure additions, zero behavior change
+
+**A1. Add constants to `src/data/scoring.ts`**
+```typescript
+const SUGGESTED_BAND_PENALTY_FACTOR = 0.5;
+const SKIP_ESCALATION_THRESHOLD = 5;
+const REMEDIATION_CAP = 5;
+```
+
+**A2. Add `skipEscalationThreshold?: number` to Task type in `src/data/types.ts`**
+Optional field. `undefined` = use `SKIP_ESCALATION_THRESHOLD`. No migration needed.
+
+---
+
+#### Group B — UI only, no behavior change
+
+**B1. Hide window type + schedule mode selectors when cadence is `daily` or `multiple_per_day`**
+File: `src/components/add-task-dialog.element.ts`
+Tests: TESTING.md entry
+
+**B2. Remove `disableSnooze` toggle from task form UI**
+File: `src/components/add-task-dialog.element.ts`
+Keep field in `types.ts` for now (data exists, keep backward compat). Remove field from types + migration in a follow-up after verifying no active tasks use it.
+Tests: TESTING.md entry
+
+---
+
+#### Group C — Band logic changes (affects display, not score)
+
+**C1. T4 never mandatory — fix `step1HardMandatory` in `src/data/urgency.ts`**
+Add early return: if `task.consequenceTier === 4`, return `'unresolved'` from Step 1 so it falls through to Step 2 → `suggested`.
+Affects: daily T4, weekly committed-day T4, hard-date T4 on due date, flexible deadline T4.
+Tests: new cases in `urgency.test.ts`
+
+**C2. T2/T3/T4 daily and daily-like → start in `suggested`, T2 escalates via skipStreak**
+"Daily-like" = daily cadence OR (`weekly` AND `hardDaysOfWeek.length >= 2`).
+- Step 1: only return `mandatory` for T1 daily/daily-like. T2/T3 return `'unresolved'`.
+- Step 2: add path for daily/daily-like tasks returning `'suggested'`.
+- New step before snooze escalation: if T2 daily-like AND `task.skipStreak >= (task.skipEscalationThreshold ?? SKIP_ESCALATION_THRESHOLD)` → `mandatory`.
+Files: `src/data/urgency.ts`
+Tests: new cases in `urgency.test.ts` for T1/T2/T3/T4 daily, T2 at threshold
+
+---
+
+#### Group D — Scoring changes (affects patriot score)
+
+**D1. Remediation rewrite — `src/data/remediation.ts`**
+Three changes (see `scoring-redesign.md` for full spec):
+- `computeRemediationOnComplete`: set remediationCount = min(CAP, max(skip, snooze)) but do NOT reset streaks. Only clear streaks when remediationCount hits 0.
+- `computeRemediationOnSkip`: if in remediation, `skipStreak++` normally, `remediationCount = 0`. Remove the `skipStreak = remediationCount` behavior.
+- `computeRemediationOnSnooze`: same — `snoozeCount++` normally, `remediationCount = 0`.
+Tests: update `remediation.test.ts`
+
+**D2. Backlog/radar completion bonus — `src/components/bureau-app.element.ts`**
+In completion handler: check `getDailyBand(task, today)` before marking complete. If `radar` or `backlog`, multiply reward by 1.5.
+Tests: new scenario in `scoring-scenarios.test.ts`
+
+**D3. Band-aware snooze penalty**
+In snooze handler: check `getDailyBand(task, today)`. If `suggested`, multiply penalty by `SUGGESTED_BAND_PENALTY_FACTOR`.
+File: `src/components/bureau-app.element.ts`
+Tests: new unit test in `scoring.test.ts`
+
+**D4. Band-aware miss penalty — the scoring bug fix**
+In `bootstrap()`: before applying miss penalty, compute what band the task was in for the day it rolled over from. If `suggested` → multiply by `SUGGESTED_BAND_PENALTY_FACTOR`. If `radar` or `backlog` → no penalty.
+File: `src/components/bureau-app.element.ts`
+Tests: new scenario in `scoring-scenarios.test.ts` — "cleared mandatory, ignored suggested → healthy score"
+
+---
+
+#### Group E — New UI features
+
+**E1. Auto-collapse mandatory when cleared**
+When mandatory band becomes empty, auto-collapse and auto-expand suggested.
+File: `src/components/daily-view.element.ts`
+Tests: TESTING.md entry
+
+**E2. "Not Today" action**
+Add button to task-item for tasks in `radar` or `backlog` band only. Hides the card for the day using `snoozedUntil` set to tomorrow midnight — but does NOT increment `snoozeCount`. Zero score impact.
+Files: `src/components/task-item.element.ts`, `src/components/bureau-app.element.ts`
+Tests: TESTING.md entry
+
+---
+
+#### Not in this phase (tracked separately)
+
+- `skipDays` for daily tasks — new feature, significant complexity
+- Yearly ordinal weekday — GitHub #35
+- Ordinal offset — GitHub #36
+- Remove `disableSnooze` from `types.ts` — follow-up after confirming zero active usage
 
 ### Phase 5 — Website Update
 
