@@ -65,13 +65,42 @@ const SUGGESTED_BAND_PENALTY_FACTOR = 0.5;
 /** Skip streak threshold at which a T2 daily/daily-like task escalates from suggested to mandatory. */
 const SKIP_ESCALATION_THRESHOLD = 5;
 
-/** Maximum remediation completions required to exit mandatory band after escalation. */
+/** Maximum remediation completions required to clear a streak, regardless of streak length. */
 const REMEDIATION_CAP = 5;
 ```
 
-`SKIP_ESCALATION_THRESHOLD` and `REMEDIATION_CAP` are intentionally the same value: you avoided for 5 periods to reach mandatory, so you need 5 consecutive completions to earn your way back to suggested. This is symmetric and predictable.
+`SKIP_ESCALATION_THRESHOLD` and `REMEDIATION_CAP` are intentionally the same value: you avoided for 5 periods to reach mandatory, so you need 5 consecutive completions to earn your way back. Symmetric and predictable.
 
 The escalation threshold is also configurable per task via a `skipEscalationThreshold` field (optional; defaults to `SKIP_ESCALATION_THRESHOLD` when absent).
+
+---
+
+## Remediation Model
+
+Remediation tracks how many consecutive completions are needed before a skip/snooze streak is forgiven.
+
+### Key rule: streaks are never reset on remediation entry
+
+The current code resets `skipStreak` and `snoozeCount` to 0 when remediation starts. **This is wrong.** A snoozeCount of 20 that gets reset to 0 after one completion means 2 days of remediation followed by a snooze lands at snoozeCount=3 — not 20 or 18 as expected.
+
+### Correct behavior
+
+| Event | remediationCount | snoozeCount / skipStreak |
+|-------|-----------------|--------------------------|
+| First completion after a streak | `min(REMEDIATION_CAP, max(skip, snooze))` | **unchanged** — stays live |
+| Each completion during remediation | decrements by 1 | unchanged |
+| remediationCount hits 0 | cleared | **cleared to 0** — fully forgiven |
+| Skip or snooze during remediation | cleared (fail) | increments normally |
+
+The streaks remain live throughout remediation. Urgency bands still reflect the real pattern while you're earning your way out. The only reward for completing all 5 is a clean slate.
+
+**Example:** snoozeCount=20, REMEDIATION_CAP=5
+- Complete → remediationCount=5, snoozeCount=20
+- Complete again → remediationCount=4, snoozeCount=20
+- Snooze (fail) → remediationCount=0, snoozeCount=21
+- Back to normal with snoozeCount=21
+
+**Success path:** 5 consecutive completions → remediationCount=0 → snoozeCount=0, skipStreak=0.
 
 ---
 
@@ -127,8 +156,11 @@ Skip always applies the full tier skip penalty regardless of band. No change nee
 ### Backlog/radar completion bonus
 In the completion handler: check band at completion time. If radar or backlog, multiply reward by 1.5.
 
-### Remediation cap
-When setting `remediationCount` after a streak, cap at `REMEDIATION_CAP` (5) instead of using the full streak value.
+### Remediation rewrite (`remediation.ts`)
+Three changes from current behavior:
+1. `computeRemediationOnComplete` — on first completion after a streak, set `remediationCount = min(REMEDIATION_CAP, max(skipStreak, snoozeCount))` but do **not** reset `skipStreak` or `snoozeCount`. Only clear them when `remediationCount` reaches 0.
+2. `computeRemediationOnSkip` — if in remediation, `skipStreak++` normally and `remediationCount = 0`. Do not set `skipStreak = remediationCount`.
+3. `computeRemediationOnSnooze` — same: `snoozeCount++` normally and `remediationCount = 0`. Do not set `snoozeCount = remediationCount`.
 
 ### Remove disableSnooze
 The `disableSnooze` field and its UI toggle should be removed. All cases it was meant to handle are covered by:
