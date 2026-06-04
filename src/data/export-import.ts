@@ -15,7 +15,7 @@ const CSV_HEADERS = [
     'cadence', 'scheduleMode', 'anchorDays',
     'timeOfDay',
     'suggestedDate', 'windowDeadline', 'leadTimeDays',
-    'snoozable', 'snoozeCount', 'skipStreak',
+    'snoozeCount', 'skipStreak',
     'totalMisses', 'totalSnoozes', 'totalSkips',
     'completionStreak', 'currentBand', 'paused', 'notes',
 ] as const;
@@ -41,7 +41,7 @@ function commitmentRow(
             '', '', '', '', '',  // tier, windowType, cadence, scheduleMode, anchorDays
             '',                   // timeOfDay
             fmtDate(c.targetDate), '', '',  // suggestedDate (target), windowDeadline, leadTime
-            '', '', '',           // snoozable, snoozeCount, skipStreak
+            '', '',               // snoozeCount, skipStreak
             '', '', '',           // totalMisses, totalSnoozes, totalSkips
             '', '', '',           // completionStreak, currentBand, paused
             escapeCsv(c.status),  // notes = goal status
@@ -54,7 +54,7 @@ function commitmentRow(
             '', '', '', '', '',
             '',
             '', '', '',
-            '', '', '',
+            '', '',
             '', '', '',
             '', '', '', '',
         ].join(',');
@@ -81,7 +81,6 @@ function commitmentRow(
         fmtDate(t.suggestedDate),
         fmtDate(t.windowDeadline),
         fmtLeadTime(t.leadTimeDays),
-        'yes',
         t.snoozeCount,
         t.skipStreak,
         t.totalMisses,
