@@ -1,7 +1,7 @@
 # Scoring Redesign
 
-> Draft doc. Decisions from the 2026-06-01/02 design session.
-> Describes the bug found and the proposed fix.
+> Draft doc. Decisions from the 2026-06-01/03 design sessions.
+> Describes the bug found and the fully redesigned scoring model.
 
 ---
 
@@ -17,63 +17,78 @@ VISION.md says: *"A successful day means completing everything in the top band, 
 
 ---
 
-## The Fix: Band-Aware Scoring
+## Terminology
 
-### Miss penalty (auto-rollover without completion)
-
-| Band at time of rollover | Current | Proposed |
-|--------------------------|---------|----------|
-| Mandatory | full miss penalty | **same** |
-| Suggested | full miss penalty (bug) | **no penalty** |
-| Radar | full miss penalty (bug) | **no penalty** |
-| Backlog | full miss penalty (bug) | **no penalty** |
-
-**Implementation:** In `bootstrap()` in `bureau-app.element.ts`, before applying a miss penalty, compute what band the task was in for the day it rolled over from. If the band was not mandatory, skip the penalty.
-
-### Skip penalty (explicit user action)
-
-| Band when skipped | Current | Proposed |
-|-------------------|---------|----------|
-| Mandatory | full skip penalty | **same** |
-| Suggested | full skip penalty | **no penalty** (it was optional) |
-| Radar / Backlog | full skip penalty | **no penalty** |
-
-**Implementation:** In the skip handler in `bureau-app.element.ts`, check `getDailyBand(task, today)` before applying the skip penalty.
-
-### Completion reward
-
-| Band when completed | Current | Proposed |
-|--------------------|---------|----------|
-| Mandatory | tier reward | **same** |
-| Suggested | tier reward | **same** |
-| Radar | tier reward | **1.5× tier reward** ("patriot gets ahead" bonus) |
-| Backlog | tier reward | **1.5× tier reward** ("patriot gets ahead" bonus) |
-
-**Rationale:** Completing work ahead of schedule — before it's even in your suggested or radar window — shows proactive follow-through. This should be rewarded more than completing something that was already pressing. The bonus amount (1.5×) is a starting point; may need tuning after testing against real usage.
-
-**Important constraint:** The backlog bonus must remain smaller than the miss penalty for the same tier. Otherwise the incentive to avoid missing mandatory work would be undermined by farming backlog completions.
-
-### Snooze penalty
-
-No change proposed. Snooze still costs points. Snooze is a conscious deferral action regardless of band.
-
-*However:* if the decision on flexible-window snooze (see open questions) resolves to "no snooze on flexible tasks," then flexible task snoozePenalty becomes moot.
+- **Miss** — the task's period ended with no interaction. No complete, snooze, or skip.
+- **Skip** — the user explicitly chose not to complete this period. Advances to the next period.
+- **Snooze** — the user deferred to tomorrow within the same period.
+- **Not Today** — a free UI action (pre-suggestedDate only) that hides the task card for the day with no score consequence.
+- **Complete** — the task was done.
 
 ---
 
-## T4 Scoring (No Change)
+## Action Availability by Band
 
-T4 (aspirational) tasks are already consequence-free in all directions:
-- No miss penalty
-- No skip penalty
-- No snooze penalty
-- No completion reward
+| Band | Complete | Snooze | Skip | Not Today |
+|------|----------|--------|------|-----------|
+| Backlog / Radar (before suggestedDate) | ✓ (bonus) | — | ✓ | ✓ free |
+| Suggested (after suggestedDate) | ✓ | ✓ | ✓ | — gone |
+| Mandatory | ✓ | ✓ | ✓ | — gone |
 
-This is intentional and correct. No change.
+"Not Today" disappears once the task enters suggested or mandatory. The free zone is before the suggestedDate.
 
 ---
 
-## Tier Base Values (Current — No Change to Values)
+## Penalty Table
+
+| Action | Backlog / Radar | Suggested | Mandatory |
+|--------|----------------|-----------|-----------|
+| Miss (rollover, no interaction) | **0** | **50%** | **100%** |
+| Snooze | — (not available) | **50%** | **100%** |
+| Skip | **100%** | **100%** | **100%** |
+| Not Today | **0** | — | — |
+
+**Skip always carries the full penalty regardless of band.** Skip is a period-level decision — forfeiting the whole commitment for this period. It doesn't matter whether you make that decision on day 1 or day 25 of the window; the consequence of not completing the period is the same.
+
+**Miss scales with band** — the penalty reflects where the task was when you didn't show up.
+
+**Snooze scales with band** — deferring a task during its suggested window is less serious than deferring a mandatory task.
+
+---
+
+## Score Constants
+
+```typescript
+/** Multiplier applied to miss and snooze penalties when the task was in suggested band. */
+const SUGGESTED_BAND_PENALTY_FACTOR = 0.5;
+
+/** Skip streak threshold at which a T2 daily/daily-like task escalates from suggested to mandatory. */
+const SKIP_ESCALATION_THRESHOLD = 5;
+
+/** Maximum remediation completions required to exit mandatory band after escalation. */
+const REMEDIATION_CAP = 5;
+```
+
+`SKIP_ESCALATION_THRESHOLD` and `REMEDIATION_CAP` are intentionally the same value: you avoided for 5 periods to reach mandatory, so you need 5 consecutive completions to earn your way back to suggested. This is symmetric and predictable.
+
+The escalation threshold is also configurable per task via a `skipEscalationThreshold` field (optional; defaults to `SKIP_ESCALATION_THRESHOLD` when absent).
+
+---
+
+## Completion Rewards
+
+| Band when completed | Reward |
+|--------------------|--------|
+| Mandatory | tier reward (1×) |
+| Suggested | tier reward (1×) |
+| Radar | 1.5× tier reward ("patriot gets ahead" bonus) |
+| Backlog | 1.5× tier reward ("patriot gets ahead" bonus) |
+
+Completing work before it becomes urgent is rewarded. Completing from radar or backlog earns the early-completion bonus.
+
+---
+
+## Tier Base Values (No Change)
 
 | Tier | Reward | Miss | Skip | Snooze/each |
 |------|--------|------|------|-------------|
@@ -82,41 +97,53 @@ This is intentional and correct. No change.
 | 3 | 0.5 | 7.5 | 3.0 | 1.5 |
 | 4 | 0 | 0 | 0 | 0 |
 
-With the N-scaling multiplier (`max(0.5, 10 / activeTasks)`), these values apply at N=10. The values themselves are not changing — only when and whether they're applied.
+T4 remains consequence-free in all directions. The values above are for mandatory band. Multiply by `SUGGESTED_BAND_PENALTY_FACTOR` for suggested-band miss and snooze.
 
 ---
 
-## Score Ranges (No Change)
+## T4 Scoring (No Change)
 
-| Score | Label |
-|-------|-------|
-| 130+ | Patriot |
-| 100–129 | Loyal Citizen |
-| 70–99 | Citizen |
-| 40–69 | Disengaged |
-| 0–39 | Suspected Communist (rock bottom) |
+T4 (aspirational) tasks are consequence-free in all directions regardless of band. No miss, skip, snooze, or completion reward. This is unchanged.
+
+---
+
+## N-Scaling (No Change)
+
+Formula: `max(0.5, 10 / max(1, activeTasks))`. Applied to all score changes.
+
+---
+
+## Implementation Notes
+
+### Band-aware miss (the bug fix)
+In `bootstrap()` in `bureau-app.element.ts`: before applying a miss penalty, compute what band the task was in for the day it rolled over from. Apply `SUGGESTED_BAND_PENALTY_FACTOR` if suggested, 0 if radar/backlog, full if mandatory.
+
+### Band-aware snooze
+In the snooze handler: check `getDailyBand(task, today)` at snooze time. Apply `SUGGESTED_BAND_PENALTY_FACTOR` if suggested.
+
+### Skip penalty (unchanged logic, unchanged amount)
+Skip always applies the full tier skip penalty regardless of band. No change needed to skip handler beyond keeping it full.
+
+### Backlog/radar completion bonus
+In the completion handler: check band at completion time. If radar or backlog, multiply reward by 1.5.
+
+### Remediation cap
+When setting `remediationCount` after a streak, cap at `REMEDIATION_CAP` (5) instead of using the full streak value.
+
+### Remove disableSnooze
+The `disableSnooze` field and its UI toggle should be removed. All cases it was meant to handle are covered by:
+- `isNextOccurrenceTomorrow` (auto-blocks snooze on hard committed-day tasks)
+- "Not today" replacing snooze for pre-suggestedDate tasks
+- T4 having no snooze consequences anyway
 
 ---
 
 ## Impact on Existing Tests
 
-`scoring-scenarios.test.ts` currently tests whole-day scenarios (all tasks complete, all miss, half/half). After this change:
-
-- "Day of nothing" (all miss) still results in rock bottom IF all tasks were in mandatory band
-- If tasks were in suggested/backlog, "doing nothing" no longer crashes the score
+`scoring-scenarios.test.ts` currently tests whole-day scenarios assuming every miss is a full penalty. After this change:
 - New scenarios needed: "cleared mandatory, ignored suggested → healthy score"
+- New scenarios needed: "skipped suggested task → full skip penalty"
+- New scenarios needed: "snoozed suggested task → 50% snooze penalty"
+- New scenarios needed: "completed from backlog → 1.5× reward"
 
-`scoring.test.ts` tests the pure scoring functions — those don't change.
-
-New tests needed:
-- Band-aware miss: task in mandatory → penalty applied; task in suggested → no penalty
-- Band-aware skip: same
-- Backlog completion bonus: completing from backlog gives 1.5× reward
-
----
-
-## Open Questions
-
-- [ ] Is zero penalty for skipping a suggested item the right call? Or a small penalty (e.g., 25% of normal skip penalty)?
-- [ ] Is 1.5× the right backlog bonus multiplier? Should radar and backlog have different multipliers?
-- [ ] Does the N-scaling (`countActiveTasks`) need to change? Currently counts all non-completed, non-missed, non-paused tasks. Should it only count mandatory + suggested tasks?
+`scoring.test.ts` will need the new constants tested directly.

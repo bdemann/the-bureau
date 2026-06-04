@@ -106,7 +106,26 @@ Bands are computed at render time from task state + today's date. They are never
 
 ---
 
-## Key Decisions Made (2026-06-01/02)
+## Band Placement by Tier — Daily and Daily-Like Tasks
+
+"Daily-like" includes: daily cadence, multiple-per-day cadence, and multi-day weekly tasks (`hardDaysOfWeek.length >= 2`). All follow the same tier rules because each committed day is its own occurrence with no grace period.
+
+| Tier | Starting band | Escalation |
+|------|--------------|------------|
+| T1 | **Mandatory** always | — |
+| T2 | Suggested | → Mandatory after `skipStreak >= SKIP_ESCALATION_THRESHOLD` (default 5, configurable per task) |
+| T3 | Suggested | Stays suggested — never reaches mandatory |
+| T4 | Suggested | Stays suggested — never reaches mandatory |
+
+**Why T3 stays suggested:** T3 is "quality consequence" — nothing breaks, things just degrade. Mandatory should be reserved for things genuinely worth making sacrifices to complete. T3 doesn't meet that bar even when repeatedly deferred.
+
+**Why T2 escalates:** T2 is "soft consequence — things degrade over time." Consistently missing T2 tasks is a real neglect pattern. After 5 consecutive missed periods, it deserves mandatory attention.
+
+**Why the threshold is 5:** Symmetric with `REMEDIATION_CAP = 5`. You avoided for 5 periods to reach mandatory; you need 5 consecutive completions to earn back to suggested.
+
+---
+
+## Key Decisions Made (2026-06-01/03)
 
 ### T4 is always consequence-free and never mandatory
 T4 (aspirational) tasks never reach mandatory band under any circumstance:
