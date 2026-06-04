@@ -17,11 +17,11 @@ export interface CadenceConfig {
     daysOfWeek: ReadonlySet<number>;
     /** Monthly / quarterly anchor type. */
     monthAnchorMode: 'dom' | 'ordinal';
-    /** Yearly anchor type. */
+    /** Annually anchor type. */
     yearAnchorMode: 'dom' | 'ordinal';
     /** Monthly / quarterly: selected day(s) of the month (1–31). */
     daysOfMonth: ReadonlySet<number>;
-    /** Yearly: day of the month (1–31). */
+    /** Annually: day of the month (1–31). */
     dayOfMonth: number;
     /** Monthly ordinal: which occurrence (1st / 2nd / … / Last). */
     ordinalWeek: 1 | 2 | 3 | 4 | 5 | -1;
@@ -31,7 +31,7 @@ export interface CadenceConfig {
     ordinalOffset: number;
     /** Quarterly: which month within the quarter (0 = first, 1 = second, 2 = third). */
     quarterMonth: 0 | 1 | 2;
-    /** Yearly: which month (0 = Jan … 11 = Dec). */
+    /** Annually: which month (0 = Jan … 11 = Dec). */
     annualMonth: number;
 }
 
@@ -67,7 +67,7 @@ export function cadenceConfigFromRecurrence(cfg: RecurrenceConfig): CadenceConfi
         scheduleMode: cfg.scheduleMode,
         daysOfWeek: new Set(rawDaysOfWeek ?? [base.daysOfWeek.values().next().value ?? 1]),
         monthAnchorMode: (cfg.cadence === 'monthly' || cfg.cadence === 'quarterly') && cfg.ordinalWeek !== undefined ? 'ordinal' : 'dom',
-        yearAnchorMode: cfg.cadence === 'yearly' && cfg.ordinalWeek !== undefined ? 'ordinal' : 'dom',
+        yearAnchorMode: cfg.cadence === 'annually' && cfg.ordinalWeek !== undefined ? 'ordinal' : 'dom',
         daysOfMonth: new Set(
             cfg.hardDaysOfMonth
                 ?? (cfg.hardDayOfMonth !== undefined ? [cfg.hardDayOfMonth] : [1]),
@@ -111,7 +111,7 @@ export function buildRecurrenceAnchors(config: CadenceConfig): Partial<Recurrenc
                 ? { hardMonthOfQuarter: config.quarterMonth, hardDaysOfMonth: sorted }
                 : { hardMonthOfQuarter: config.quarterMonth, hardDayOfMonth: sorted[0] ?? 1 };
         }
-        case 'yearly': {
+        case 'annually': {
             if (config.yearAnchorMode === 'ordinal') {
                 return {
                     hardMonthOfYear: config.annualMonth,
@@ -137,7 +137,7 @@ const CADENCE_BUTTONS: ReadonlyArray<{ value: RecurrenceCadence; label: string }
     { value: 'weekly',    label: 'Weekly' },
     { value: 'monthly',   label: 'Monthly' },
     { value: 'quarterly', label: 'Quarterly' },
-    { value: 'yearly',    label: 'Annually' },
+    { value: 'annually',  label: 'Annually' },
 ];
 
 const DAY_LABELS: ReadonlyArray<{ value: number; label: string }> = [
@@ -530,8 +530,8 @@ export const CadencePickerElement = defineElement<{ config: CadenceConfig }>()({
                 </div>
             ` : html``}
 
-            <!-- Yearly: month + anchor type (dom or ordinal) -->
-            ${config.cadence === 'yearly' ? html`
+            <!-- Annually: month + anchor type (dom or ordinal) -->
+            ${config.cadence === 'annually' ? html`
                 <div class="field">
                     <span class="field-label">Month</span>
                     <div class="grid-4">

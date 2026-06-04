@@ -76,7 +76,7 @@ export function migrateState(state: AppState): AppState {
         (state.areas?.length ?? 0) > 0 ? state.areas : (raw.projects ?? []);
 
     if (version >= SCHEMA_VERSION) {
-        // Already at v3 — just normalise task shapes.
+        // Already at v4 — just normalise task shapes.
         return {
             ...state,
             areas,
@@ -87,6 +87,20 @@ export function migrateState(state: AppState): AppState {
                     : c,
             ) as AnyCommitment[],
         };
+    }
+
+    // v3 → v4: rename cadence 'yearly' → 'annually'.
+    if (version === 3) {
+        return migrateState({
+            ...state,
+            schemaVersion: 4,
+            commitments: state.commitments.map((c) => {
+                if ((c.kind !== 'task' && c.kind !== 'routine') || !(c as any).recurrence) return c;
+                const rec = (c as any).recurrence;
+                if (rec.cadence !== 'yearly') return c;
+                return { ...c, recurrence: { ...rec, cadence: 'annually' } };
+            }) as AnyCommitment[],
+        });
     }
 
     // v1 or v2 — old separate arrays need merging.
@@ -164,7 +178,7 @@ const CADENCE_MIGRATIONS: Record<string, string> = {
     multiple_per_week:    'weekly',
     multiple_per_month:   'monthly',
     multiple_per_quarter: 'quarterly',
-    multiple_per_year:    'yearly',
+    multiple_per_year:    'annually',
 };
 
 function normalizeRecurrence(raw: any): any {

@@ -56,7 +56,7 @@ export function getCurrentPeriod(
         return makePeriod(start, end);
     }
 
-    // yearly
+    // annually
     const start = new Date(ref.getFullYear(), 0, 1);
     const end = endOfDay(new Date(ref.getFullYear(), 11, 31));
     return makePeriod(start, end);
@@ -158,7 +158,7 @@ export function getNextSuggestedDate(
         const lastDay = new Date(target.getFullYear(), target.getMonth() + 1, 0).getDate();
         return new Date(target.getFullYear(), target.getMonth(), Math.min(dom, lastDay));
     }
-    if (cfg.cadence === 'yearly') {
+    if (cfg.cadence === 'annually') {
         const ref = task.suggestedDate ? new Date(task.suggestedDate) : new Date(nextPeriod.start);
         const start = new Date(nextPeriod.start);
         const month = cfg.hardMonthOfYear ?? ref.getMonth();
@@ -386,7 +386,7 @@ function deriveInitialSuggested(cfg: RecurrenceConfig, period: Period, today: Da
             ).getTime();
         }
     }
-    if (cfg.cadence === 'yearly') {
+    if (cfg.cadence === 'annually') {
         if (cfg.hardMonthOfYear !== undefined) {
             const todayMs = startOfDay(today).getTime();
             const month = cfg.hardMonthOfYear;
@@ -635,7 +635,7 @@ function addCadenceLength(d: Date, cadence: RecurrenceCadence): Date {
         case 'quarterly':
             r.setMonth(r.getMonth() + 3);
             return r;
-        case 'yearly':
+        case 'annually':
             r.setFullYear(r.getFullYear() + 1);
             return r;
     }

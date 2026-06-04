@@ -37,8 +37,8 @@ describe('getCurrentPeriod', () => {
         assert.strictEquals(new Date(p.end).getMonth(), 5);   // Jun
     });
 
-    test('yearly period spans Jan 1 → Dec 31', () => {
-        const p = getCurrentPeriod('yearly', date('2026-07-04'));
+    test('annually period spans Jan 1 → Dec 31', () => {
+        const p = getCurrentPeriod('annually', date('2026-07-04'));
         assert.strictEquals(new Date(p.start).getMonth(), 0);
         assert.strictEquals(new Date(p.end).getMonth(), 11);
         assert.strictEquals(new Date(p.end).getDate(), 31);
@@ -731,7 +731,7 @@ describe('annually — hardMonthOfYear anchor', () => {
     test('initialiseRecurrence with hardMonthOfYear picks this-year occurrence when in future', () => {
         // Today = May 17; target month = September (8), dom = 1 → Sep 1 2026
         const today = date('2026-05-17');
-        const cfg = makeRecurrence({cadence: 'yearly', hardMonthOfYear: 8, hardDayOfMonth: 1});
+        const cfg = makeRecurrence({cadence: 'annually', hardMonthOfYear: 8, hardDayOfMonth: 1});
         const init = initialiseRecurrence({windowType: 'flexible', suggestedDate: null}, cfg, today);
         assert.strictEquals(
             new Date(init.suggestedDate).toDateString(),
@@ -742,7 +742,7 @@ describe('annually — hardMonthOfYear anchor', () => {
     test('initialiseRecurrence with hardMonthOfYear rolls to next year when this-year date passed', () => {
         // Today = May 17; target month = January (0), dom = 15 → Jan 15 2027
         const today = date('2026-05-17');
-        const cfg = makeRecurrence({cadence: 'yearly', hardMonthOfYear: 0, hardDayOfMonth: 15});
+        const cfg = makeRecurrence({cadence: 'annually', hardMonthOfYear: 0, hardDayOfMonth: 15});
         const init = initialiseRecurrence({windowType: 'flexible', suggestedDate: null}, cfg, today);
         assert.strictEquals(
             new Date(init.suggestedDate).toDateString(),
@@ -754,7 +754,7 @@ describe('annually — hardMonthOfYear anchor', () => {
         const today = date('2026-05-17');
         // Task was due Sep 1 2026 — now advance it
         const t = makeTask({
-            recurrence: makeRecurrence({cadence: 'yearly', hardMonthOfYear: 8, hardDayOfMonth: 1}),
+            recurrence: makeRecurrence({cadence: 'annually', hardMonthOfYear: 8, hardDayOfMonth: 1}),
             suggestedDate: date('2026-09-01').getTime(),
             currentPeriodStart: date('2026-01-01').getTime(),
         });
@@ -765,11 +765,11 @@ describe('annually — hardMonthOfYear anchor', () => {
         );
     });
 
-    test('getNextSuggestedDate for yearly clamps day to month length', () => {
+    test('getNextSuggestedDate for annually clamps day to month length', () => {
         // target: Feb 31 → clamps to Feb 28 (non-leap 2027)
         const today = date('2026-05-17');
         const t = makeTask({
-            recurrence: makeRecurrence({cadence: 'yearly', hardMonthOfYear: 1, hardDayOfMonth: 31}),
+            recurrence: makeRecurrence({cadence: 'annually', hardMonthOfYear: 1, hardDayOfMonth: 31}),
             suggestedDate: date('2026-02-28').getTime(),
             currentPeriodStart: date('2026-01-01').getTime(),
         });
@@ -781,7 +781,7 @@ describe('annually — hardMonthOfYear anchor', () => {
     });
 });
 
-// ── GitHub #35: yearly ordinal weekday ───────────────────────────────────────
+// ── GitHub #35: annually ordinal weekday ─────────────────────────────────────
 
 describe('annually — ordinal weekday anchor (GitHub #35)', () => {
     // Thanksgiving: 4th Thursday of November
@@ -792,7 +792,7 @@ describe('annually — ordinal weekday anchor (GitHub #35)', () => {
         // Today = May 17; target = 4th Thursday of November → Nov 26 2026
         const today = date('2026-05-17');
         const cfg = makeRecurrence({
-            cadence: 'yearly',
+            cadence: 'annually',
             hardMonthOfYear: 10, // November = 10
             ordinalWeek: 4,
             hardDayOfWeek: 4, // Thursday
@@ -808,7 +808,7 @@ describe('annually — ordinal weekday anchor (GitHub #35)', () => {
         // Today = Dec 1 (past Thanksgiving); should return 2027
         const today = date('2026-12-01');
         const cfg = makeRecurrence({
-            cadence: 'yearly',
+            cadence: 'annually',
             hardMonthOfYear: 10,
             ordinalWeek: 4,
             hardDayOfWeek: 4,
@@ -824,7 +824,7 @@ describe('annually — ordinal weekday anchor (GitHub #35)', () => {
         const today = date('2026-11-27'); // day after Thanksgiving 2026
         const t = makeTask({
             recurrence: makeRecurrence({
-                cadence: 'yearly',
+                cadence: 'annually',
                 hardMonthOfYear: 10,
                 ordinalWeek: 4,
                 hardDayOfWeek: 4,
@@ -844,7 +844,7 @@ describe('annually — ordinal weekday anchor (GitHub #35)', () => {
         const dayAfterThanksgiving = date('2026-11-27');
         const t = makeTask({
             recurrence: makeRecurrence({
-                cadence: 'yearly',
+                cadence: 'annually',
                 hardMonthOfYear: 10,
                 ordinalWeek: 4,
                 hardDayOfWeek: 4,
@@ -869,7 +869,7 @@ describe('annually — ordinal weekday anchor (GitHub #35)', () => {
 
         const t = makeTask({
             recurrence: makeRecurrence({
-                cadence: 'yearly',
+                cadence: 'annually',
                 hardMonthOfYear: 4, // May = 4
                 ordinalWeek: 2,
                 hardDayOfWeek: 0, // Sunday

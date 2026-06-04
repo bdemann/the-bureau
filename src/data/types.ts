@@ -18,7 +18,7 @@ export type AppView =
     | "unlinked";
 export type Character = "director" | "agent";
 
-export const SCHEMA_VERSION = 3;
+export const SCHEMA_VERSION = 4;
 
 // ── Goal ─────────────────────────────────────────────────────────────────────
 
@@ -73,7 +73,7 @@ export type RecurrenceCadence =
     | "weekly"
     | "monthly"
     | "quarterly"
-    | "yearly";
+    | "annually";
 
 export type ScheduleMode =
     | "fixed" // next due anchored to calendar position (1st of month, every Wed)
@@ -148,7 +148,7 @@ export interface RecurrenceConfig {
      */
     startDate?: number;
     /**
-     * For yearly cadence: which month (0=Jan … 11=Dec) the task fires in.
+     * For annually cadence: which month (0=Jan … 11=Dec) the task fires in.
      * When absent, falls back to the month of suggestedDate.
      */
     hardMonthOfYear?: number;
@@ -159,7 +159,7 @@ export interface RecurrenceConfig {
      */
     skipDays?: number[];
     /**
-     * Shift applied after computing an ordinal weekday date (monthly/yearly cadences).
+     * Shift applied after computing an ordinal weekday date (monthly/annually cadences).
      * Negative = days before the anchor; positive = days after.
      * 0 or absent = on the anchor day itself.
      *
@@ -417,7 +417,7 @@ export function cadenceLabel(cadence: RecurrenceCadence): string {
             return "Monthly";
         case "quarterly":
             return "Quarterly";
-        case "yearly":
+        case "annually":
             return "Annually";
     }
 }

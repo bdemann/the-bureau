@@ -138,7 +138,7 @@ function fmtAnchor(cfg: RecurrenceConfig | null): string {
             return '';
         }
 
-        case 'yearly': {
+        case 'annually': {
             const mon = cfg.hardMonthOfYear !== undefined ? MON_ABBR[cfg.hardMonthOfYear] : null;
             if (cfg.ordinalWeek !== undefined && cfg.hardDayOfWeek !== undefined) {
                 const ord = ORD_LABEL[cfg.ordinalWeek] ?? String(cfg.ordinalWeek);

@@ -258,7 +258,7 @@ function buildCases(today: Date): CaseGroup[] {
                     }),
                 },
                 {
-                    name: "Tier 4 yearly window, suggested in 7d, deadline +30d",
+                    name: "Tier 4 annually window, suggested in 7d, deadline +30d",
                     note: "tier 4 doesn’t escalate from snooze; baseline only",
                     task: flexWindow({
                         tier: 4,
