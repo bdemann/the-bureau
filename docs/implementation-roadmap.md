@@ -1,6 +1,6 @@
 # Implementation Roadmap
 
-> Session: 2026-06-01/02
+> Sessions: 2026-06-01/02/03
 > Context: Large design-review session. Discovered bugs and vision drift. Planning order of work.
 
 ---
@@ -14,6 +14,63 @@ This session started because of confusion about how lead time, window types, and
 3. Documented flexible windows properly for the first time
 4. Identified that snooze on flexible tasks is probably wrong
 5. Decided we need better task-audit tools before making sweeping band/scoring changes
+
+---
+
+## Current Plan (ordered)
+
+### Phase 0 — Data Quality (unblocks everything)
+
+1. **Fix CSV export** (GitHub #34) — add `hardDaysOfWeek`, `hardDaysOfMonth`, anchor days; include goals and ideas. Must happen before re-export so audit data is complete.
+2. **Re-export** — after fixing the CSV and after finishing the in-app task audit/cleanup.
+3. **Audit new export against current philosophy** — go through every task and verify window type, tier, cadence, lead time, and snoozeability are correctly set. Flag anything that doesn't fit.
+
+### Phase 1 — Answer Open Design Questions
+
+Use the clean export data to answer the remaining questions in `open-design-questions.md`. Key ones:
+
+- Can T3 daily/multi-day-weekly tasks reach mandatory via skip escalation, or are they capped at suggested?
+- What skip thresholds trigger T2 → mandatory and T3 → mandatory (if applicable)?
+- Skip-of-suggested penalty: zero or a small amount?
+- Backlog completion bonus: confirm 1.5× or adjust?
+- Flexible snooze replacement: option A (remove), B (not-today button), or C (no escalation)?
+- `disableSnooze` toggle: keep as user setting, or remove and infer from task type?
+
+### Phase 2 — Harden Philosophy Docs
+
+Once the design questions are answered:
+- Update `docs/daily-view-band-rules.md` with final T2/T3 escalation rules and thresholds
+- Update `docs/scoring-redesign.md` with confirmed bonus/penalty values
+- Resolve all open questions in `docs/open-design-questions.md` (move answers to relevant docs)
+- Update `VISION.md` daily view section with clean final rules
+- Update `CLAUDE.md` if any new doc references are needed
+
+### Phase 3 — Plan + Prune
+
+Before writing code, identify:
+- What to **remove**: fields/features that don't match the philosophy (e.g. `disableSnooze` toggle if inferrable, window type selector for daily tasks, schedule mode selector for daily tasks)
+- What to **change**: urgency rules (T4 never mandatory, T2/T3 daily escalation, T3 snooze ceiling), scoring (band-aware penalties, bonus rewards)
+- What to **add**: "not today" action for flexible tasks, `skipDays` for daily tasks, daily band-rules UI behavior (auto-collapse mandatory)
+- **Order** changes from lowest risk (UI hiding fields) to highest risk (scoring changes) — see numbered implementation items below
+
+### Phase 4 — Implementation (with tests)
+
+Each item gets automated tests (urgency.test.ts, scoring.test.ts, scoring-scenarios.test.ts) and/or TESTING.md manual entries before or alongside the code change. No exceptions.
+
+Implementation order: items 3–12 below, roughly lowest-risk first:
+- Items 8 (hide daily selectors) and 9 (lead time UI) — UI-only, no behavior change, low risk
+- Item 4 (band rule changes: T4, T3 snooze ceiling) — behavior change, medium risk
+- Item 5 (flexible "not today") — behavior change, medium risk
+- Item 3 (scoring fix) — affects score calculation, higher risk; verify with scenarios
+- Item 6 (auto-collapse mandatory) — UI behavior, low risk
+- Item 7 (skipDays for daily tasks) — new feature, medium complexity
+- Items 10–11 (yearly ordinal weekday, ordinal offset) — recurrence engine, medium-high risk
+
+### Phase 5 — Website Update
+
+Transfer hardened docs to website pages:
+- `bureau-site/how-clear-works.html` — rewrite urgency bands section
+- `bureau-site/commitment-field-guide.html` — rewrite band, flexible window, milestone sections; add hard-vs-flexible distinction
 
 ---
 
