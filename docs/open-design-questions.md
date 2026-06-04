@@ -95,6 +95,36 @@ Proposed: T4 daily → suggested. A daily aspirational task (morning stretching,
 
 ---
 
+## Multi-Day Weekly Tasks Should Behave Like Daily Tasks
+
+**Q: Should multi-day weekly tasks (hardDaysOfWeek with 2+ days) follow daily band rules rather than weekly band rules?**
+
+**Context:** A task set to repeat Mon–Sat is functionally a daily task with the Sabbath off. Each committed day is its own occurrence. Snoozing to tomorrow is pointless (tomorrow is a committed day). The weekly cadence label is a scheduling mechanism, not a meaningful signal about how often the task fires.
+
+Compare:
+- **1-day weekly** (date night on Friday, lodge meeting on Tuesday) — genuinely weekly. One occurrence per week. Flexible window logic applies — if Friday slips, you have the weekend.
+- **Multi-day weekly** (dishes Mon–Sat, tidy Mon–Sat) — functionally daily with a rest day. Every committed day is mandatory-or-not on its own merits.
+
+**Proposed rules for multi-day weekly tasks:** same as daily —
+- T1 → mandatory on each committed day
+- T2 → suggested; escalates to mandatory after N skips
+- T3 → suggested; open question whether it reaches mandatory
+- T4 → always suggested
+
+**What's already handled in code:**
+- `isNextOccurrenceTomorrow` already blocks snooze when tomorrow is a committed day — so the snooze behavior is correct.
+
+**What's NOT handled:**
+- Band placement. Multi-day weekly tasks currently get treated like 1-day weekly tasks for urgency purposes. A Mon–Sat T3 task is hard-weekly, so it shows up mandatory on each of those days regardless of tier. Under the new philosophy it should start in suggested and escalate.
+
+**Implementation note:** The threshold between "multi-day weekly = daily-like" and "1-day weekly = genuinely weekly" is `hardDaysOfWeek.length > 1`. Existing code already uses this boundary for snooze logic — band logic should use the same boundary.
+
+**Open sub-questions:**
+- [ ] Same T2/T3 skip thresholds as daily, or different? (Probably same — the behavior is the same.)
+- [ ] Does this extend to multi-DOM monthly tasks (hardDaysOfMonth with 2+ days)? e.g., a task due the 1st and 15th — each occurrence is its own window, similar logic may apply.
+
+---
+
 ## Daily Task Band Placement by Tier
 
 **Q: Should T2 and T3 daily tasks start in mandatory, or in suggested with escalation?**
