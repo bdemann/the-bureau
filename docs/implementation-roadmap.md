@@ -141,7 +141,7 @@ Tests: TESTING.md
 
 ---
 
-### 8. Hide Window Type Selector for Daily Tasks
+### 8. Hide Window Type and Schedule Mode Selectors for Daily Tasks
 
 Daily tasks are hard windows by definition — the period is the day, so hard vs. flexible makes no difference anywhere in the system. The selector is confusing and inert for daily cadence.
 
@@ -149,7 +149,7 @@ Hide (or remove) the window type AND schedule mode fields in the task creation/e
 
 ---
 
-### 8. Lead Time UI: Show Default Values
+### 9. Lead Time UI: Show Default Values
 
 Pre-fill lead time input with the numeric default (3 for hard-date) instead of leaving it blank. User can see and edit the default without it being a hidden behavior.
 
@@ -157,7 +157,46 @@ Files: task creation/edit form
 
 ---
 
-### 8. Vision Docs + Website Update
+### 10. Yearly Cadence: Nth Weekday of a Month (GitHub #35)
+
+**Problem:** Yearly tasks only support `hardMonthOfYear` + `hardDayOfMonth` (e.g. November 15). There is no way to anchor to an ordinal weekday within a month for yearly tasks, even though monthly cadence already supports this.
+
+**Use cases:**
+- Thanksgiving turkey — 4th Thursday of November. Milestone window, ~30 days lead time for planning and sourcing ingredients.
+- Election Day / Voting — first Tuesday of November. Hard window, 14+ days lead time to register and find polling location.
+- Mother's Day — 2nd Sunday of May. Father's Day — 3rd Sunday of June.
+- Labor Day — 1st Monday of September. Memorial Day — last Monday of May.
+
+**What's needed:**
+- `getNextSuggestedDate` for yearly: if `ordinalWeek` + `hardDayOfWeek` + `hardMonthOfYear` are all set, compute via `nthWeekdayOfMonth(year, month, ordinalWeek, hardDayOfWeek)` instead of fixed DOM
+- `deriveInitialSuggested` for yearly: same
+- UI form: expose ordinal weekday picker for yearly tasks (currently only shown for monthly)
+
+**Current workaround:** Set `hardMonthOfYear` + `hardDayOfMonth` to approximately the right date and accept it's off by a few days.
+
+---
+
+### 11. Ordinal Offset Days — "Sunday Before the 3rd Monday" (GitHub #36)
+
+**Problem:** Some tasks are naturally anchored relative to a recurring event, not to a fixed calendar position. "The Sunday before the 3rd Monday" cannot be expressed because the 3rd Sunday can fall *after* the 3rd Monday depending on the month.
+
+**Use cases:**
+- Lodge presentation prep — the Sunday before the 3rd Monday meetup
+- Thanksgiving grocery run — 2 days before the 4th Thursday of November
+- Pre-meeting review — the Friday before the 2nd Tuesday of the month
+
+**Current workaround:** Set due date to the anchor event (e.g. 3rd Monday) with enough lead time to surface the task beforehand. Semantically off ("due on Monday" when it's really "due before Monday") but functionally acceptable.
+
+**Proposed solution:** Add `ordinalOffset?: number` to `RecurrenceConfig`. After computing the ordinal date, shift by this many days (negative = before, positive = after).
+
+- `ordinalWeek: 3, hardDayOfWeek: Monday, ordinalOffset: -1` → Sunday before 3rd Monday
+- `ordinalWeek: 4, hardDayOfWeek: Thursday, ordinalOffset: -2` → Tuesday before Thanksgiving
+
+**Dependency:** Implement after #35 (yearly ordinal weekday), since both touch the same code paths in `getNextSuggestedDate` and `deriveInitialSuggested`.
+
+---
+
+### 12. Vision Docs + Website Update
 
 Once the above is implemented and verified:
 - Update `VISION.md` with the clean band/scoring decisions
