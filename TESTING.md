@@ -179,6 +179,23 @@ Mark each row as you verify in the browser. Reset the localStorage entry
 - [ ] Submit creates commitment; dialog closes; commitment appears in active list
 - [ ] Cancel closes without creating
 
+### Task commitment creation — recurring (daily cadence)
+
+- [ ] Toggle "Recurring task" on, set cadence to Daily → "Timing Type" selector disappears (B1)
+- [ ] Set cadence to Multiple times/day → "Timing Type" selector disappears (B1)
+- [ ] Set cadence back to Weekly → "Timing Type" selector reappears
+- [ ] "Repeat Cycle" (schedule mode) selector is hidden inside cadence picker when cadence is daily (existing behavior, verify still working)
+- [ ] With daily cadence, a "Skip Days" row appears with Sun–Sat toggle buttons (#37)
+- [ ] "Skip Days" row does NOT appear for weekly cadence
+- [ ] Toggling a day button selects/deselects it; multiple days can be selected
+- [ ] Saving a daily task with Sunday skipped → task does not appear in daily view on Sundays
+- [ ] Same task appears normally on Monday (non-skip day)
+- [ ] Completing on Saturday → next suggestedDate is Monday (skipping Sunday)
+- [ ] Completing on Friday with Sat+Sun skipped → next suggestedDate is Monday
+- [ ] Rollover through a Sunday (skip day): no miss counted, skipStreak unchanged
+- [ ] Rollover through a Monday (non-skip day): miss counted normally
+- [ ] Editing an existing daily task with skipDays set: skip day buttons show the correct selection
+
 ### Task commitment creation — recurring (weekly day-of-week, multi-select)
 
 - [ ] Toggle "Recurring task" on
@@ -311,7 +328,6 @@ Mark each row as you verify in the browser. Reset the localStorage entry
 - [ ] Reopening the app after missing tasks decreases the score (auto-skip penalty; auto-skip > skip > snooze)
 - [ ] With fewer active tasks each action has a larger per-task score impact; with more tasks each action has a smaller per-task impact
 - [ ] Hard-date commitment whose date is today: button reads "Cannot snooze" and is disabled
-- [ ] Commitment with "Disable snooze" checked: button reads "Cannot snooze" and is disabled
 - [ ] Mon–Sat routine (hardDaysOfWeek [1–6]) on a weekday (Mon–Fri): button reads "Cannot snooze" (next occurrence is tomorrow)
 - [ ] Same routine on Saturday: snooze IS allowed (Sunday is not a committed day)
 - [ ] At 6 snoozes (any tier), Briggs takes over
@@ -323,8 +339,7 @@ Mark each row as you verify in the browser. Reset the localStorage entry
 - [ ] Same routine: card reappears as mandatory on Tuesday
 - [ ] Skip button works on Mon–Sat routine (advances to Tuesday's occurrence, card hides)
 - [ ] Completing every day Mon–Sat: card is hidden on Sunday (no committed day) and reappears Monday of the following week
-- [ ] "Disable snooze" toggle in the edit form: checked → snooze disabled; unchecked → normal
-- [ ] Daily routine in edit form: "Disable snooze" toggle is shown but grayed/disabled (cannot be changed)
+- [ ] "Disable snooze" toggle is NOT shown in the create/edit form (B2 — removed)
 
 ### Un-snooze
 
@@ -388,6 +403,15 @@ Remediation fires whenever a commitment that had a skip streak OR high snooze co
 - [ ] Switching to background and returning after the time slot changes resets the default to the new slot
 - [ ] Active use (app stays open through a slot transition) does NOT collapse open sections
 - [ ] Complete/snooze actions work from daily view
+- [ ] T1 daily routine appears in MANDATORY band; T2/T3/T4 daily routines appear in SUGGESTED band (C2)
+- [ ] T2 daily routine with skipStreak ≥ 5 escalates to MANDATORY band (C2 skip escalation)
+- [ ] T4 task never appears in MANDATORY band even on its due date (C1)
+- [ ] Completing all mandatory tasks → mandatory band auto-collapses and suggested band auto-expands (E1)
+- [ ] After E1 auto-collapse the user can still manually toggle mandatory open/closed
+- [ ] Radar and backlog task cards show a "Not Today" button (E2)
+- [ ] Mandatory and suggested task cards do NOT show "Not Today" button (E2)
+- [ ] Pressing "Not Today" hides the card for the rest of today — no score change, no snoozeCount increment (E2)
+- [ ] After midnight the "Not Today" card reappears normally (E2)
 - [ ] Snoozing a commitment shows an UNDO toast at the bottom of the screen
 - [ ] Skipping a commitment shows an UNDO toast at the bottom of the screen
 - [ ] Clicking UNDO on the toast reverses the skip/snooze (task returns to its pre-action state, score is restored)

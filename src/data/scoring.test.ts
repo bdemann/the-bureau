@@ -3,6 +3,9 @@ import { describe, test } from "node:test";
 import {
     countActiveTasks,
     missPenalty,
+    REMEDIATION_CAP,
+    SKIP_ESCALATION_THRESHOLD,
+    SUGGESTED_BAND_PENALTY_FACTOR,
     skipPenalty,
     snoozePenalty,
     taskScaleMultiplier,
@@ -158,6 +161,29 @@ describe("taskScaleMultiplier", () => {
     });
     test("floors at 1 task (no divide-by-zero)", () => {
         assert.strictEquals(taskScaleMultiplier(0), taskScaleMultiplier(1));
+    });
+});
+
+describe("band-aware scoring constants (D3)", () => {
+    test("SUGGESTED_BAND_PENALTY_FACTOR is 0.5 (half penalty in suggested band)", () => {
+        assert.strictEquals(SUGGESTED_BAND_PENALTY_FACTOR, 0.5);
+    });
+
+    test("SKIP_ESCALATION_THRESHOLD is 5 (T2 daily becomes mandatory after 5 skips)", () => {
+        assert.strictEquals(SKIP_ESCALATION_THRESHOLD, 5);
+    });
+
+    test("REMEDIATION_CAP is 5 (remediation never requires more than 5 completions)", () => {
+        assert.strictEquals(REMEDIATION_CAP, 5);
+    });
+
+    test("suggested band snooze penalty is half of mandatory (full) penalty", () => {
+        for (const tier of [1, 2, 3] as const) {
+            const full = snoozePenalty(tier);
+            const suggested = full * SUGGESTED_BAND_PENALTY_FACTOR;
+            assert.isBelow(suggested, full);
+            assert.strictEquals(suggested, full / 2);
+        }
     });
 });
 

@@ -162,6 +162,8 @@ export const AddTaskDialogElement = defineElement<{
         // ── Milestone progress cadence ──
         hasProgressCadence: false,
         progressCadenceConfig: defaultCadenceConfig('weekly'),
+        // ── Skip days (daily cadence only) ──
+        skipDays: [] as number[],
     }),
 
     styles: css`
@@ -621,6 +623,7 @@ export const AddTaskDialogElement = defineElement<{
                 progressCadenceConfig: t.progressCadence
                     ? cadenceConfigFromRecurrence({ ...t.progressCadence, scheduleMode: 'fixed', endMode: 'never' })
                     : defaultCadenceConfig('weekly'),
+                skipDays: t.recurrence?.skipDays ?? [],
             });
         }
 
@@ -724,9 +727,8 @@ export const AddTaskDialogElement = defineElement<{
         const isTaskOrRoutine =
             state.kind === "routine" || state.kind === "task";
 
-        // Daily routines cannot be snoozed by nature — the toggle is shown but disabled.
-        const isNaturallyNotSnoozable =
-            state.kind === "routine" &&
+        // Daily and multiple_per_day cadences are always hard windows — the distinction is meaningless.
+        const isDailyLikeCadence =
             state.isRecurring &&
             (state.cadenceConfig.cadence === "daily" || state.cadenceConfig.cadence === "multiple_per_day");
 
@@ -822,6 +824,9 @@ export const AddTaskDialogElement = defineElement<{
                     endAfterDate,
                     startDate,
                     ...buildRecurrenceAnchors(state.cadenceConfig),
+                    ...(isDailyLikeCadence && state.skipDays.length > 0
+                        ? {skipDays: [...state.skipDays].sort((a, b) => a - b)}
+                        : {}),
                 };
                 recurrence = cfg;
                 const init = initialiseRecurrence(
@@ -1299,8 +1304,8 @@ export const AddTaskDialogElement = defineElement<{
                                             </div>
                                         `}
 
-                                  <!-- Window type — relevant for ALL task/routine kinds (recurring or not) -->
-                                  ${isTaskOrRoutine
+                                  <!-- Window type — hidden for daily/multiple_per_day (always hard by nature) -->
+                                  ${isTaskOrRoutine && !isDailyLikeCadence
                                       ? html`
                         <div class="field">
                             <span class="field-label">Timing Type</span>
@@ -1502,48 +1507,6 @@ export const AddTaskDialogElement = defineElement<{
                     `
                                       : html``}
 
-                                  <!-- Disable snooze toggle — tasks/routines only -->
-                                  ${isTaskOrRoutine
-                                      ? html`
-                                            <div class="recurring-row">
-                                                <input
-                                                    id="disable-snooze-toggle"
-                                                    type="checkbox"
-                                                    .checked=${isNaturallyNotSnoozable ||
-                                                    state.disableSnooze}
-                                                    ?disabled=${isNaturallyNotSnoozable}
-                                                    @change=${(e: Event) => {
-                                                        if (
-                                                            !isNaturallyNotSnoozable
-                                                        ) {
-                                                            updateState({
-                                                                disableSnooze: (
-                                                                    e.target as HTMLInputElement
-                                                                ).checked,
-                                                            });
-                                                        }
-                                                    }}
-                                                />
-                                                <label
-                                                    for="disable-snooze-toggle"
-                                                    style=${isNaturallyNotSnoozable
-                                                        ? "opacity:0.5"
-                                                        : ""}
-                                                    >Disable
-                                                    snooze${isNaturallyNotSnoozable
-                                                        ? html`&nbsp;<span
-                                                                  class="tier-help"
-                                                                  style="display:inline;"
-                                                                  >(daily
-                                                                  routines
-                                                                  cannot be
-                                                                  snoozed)</span
-                                                              >`
-                                                        : html``}</label
-                                                >
-                                            </div>
-                                        `
-                                      : html``}
                                   ${state.isRecurring
                                       ? html`
                                           <${CadencePickerElement.assign({
@@ -1553,6 +1516,33 @@ export const AddTaskDialogElement = defineElement<{
                                                   updateState({ cadenceConfig: e.detail }),
                                               )}
                                           ></${CadencePickerElement}>
+
+                                          <!-- Skip days — daily cadence only -->
+                                          ${isDailyLikeCadence ? html`
+                                              <div class="field">
+                                                  <span class="field-label">Skip Days (optional)</span>
+                                                  <div class="seg" style="grid-template-columns: repeat(7, 1fr);">
+                                                      ${(['Sun','Mon','Tue','Wed','Thu','Fri','Sat'] as const).map((label, dow) => {
+                                                          const active = state.skipDays.includes(dow);
+                                                          return html`
+                                                              <${ViraButton.assign({
+                                                                  text: label,
+                                                                  color: ViraColorVariant.Neutral,
+                                                                  buttonEmphasis: active ? ViraEmphasis.Standard : ViraEmphasis.Subtle,
+                                                                  buttonSize: ViraSize.Small,
+                                                              })}
+                                                                  @click=${() => {
+                                                                      const next = active
+                                                                          ? state.skipDays.filter(d => d !== dow)
+                                                                          : [...state.skipDays, dow];
+                                                                      updateState({ skipDays: next });
+                                                                  }}
+                                                              ></${ViraButton}>
+                                                          `;
+                                                      })}
+                                                  </div>
+                                              </div>
+                                          ` : html``}
 
                         <!-- Start date -->
                         <div class="end-condition-section">

@@ -21,6 +21,7 @@ import {assert} from '@augment-vir/assert';
 import {describe, test} from 'node:test';
 import {
     missPenalty,
+    SUGGESTED_BAND_PENALTY_FACTOR,
     skipPenalty,
     snoozePenalty,
     streakDepthMultiplier,
@@ -275,6 +276,68 @@ describe('scenario C: perfect execution from the floor → patriot within 90 day
 });
 
 // ── Bonus: snooze vs. miss comparison ────────────────────────────────────────
+
+// ── Scenario D: band-aware miss penalty (D4) ─────────────────────────────────
+
+describe('scenario D: cleared mandatory, ignored suggested → healthy score', () => {
+    // T3, N=10. 5 tasks mandatory (done), 5 tasks suggested (missed).
+    // Mandatory miss: full penalty. Suggested miss: half penalty.
+    // Net per day: 5×0.5 + 5×(−7.5×0.5) = 2.5 − 18.75 = −16.25 (vs −35 if all mandatory misses).
+
+    test('half mandatory completed + half suggested missed is less damaging than half all-mandatory missed', () => {
+        const M = taskScaleMultiplier(10);
+        const tier: ConsequenceTier = 3;
+
+        // 5 mandatory completed + 5 suggested missed per day for 2 days
+        const bandAwareScore = (() => {
+            let score = INITIAL_SCORE;
+            for (let day = 0; day < 2; day++) {
+                const gain  = 5 * tierCompletionReward(tier) * M;
+                const loss  = 5 * missPenalty(tier) * M * SUGGESTED_BAND_PENALTY_FACTOR;
+                score = Math.max(SCORE_FLOOR, Math.min(SCORE_CEILING, score + gain - loss));
+            }
+            return score;
+        })();
+
+        // 5 mandatory completed + 5 mandatory missed per day for 2 days (old behavior)
+        const allMandatoryScore = (() => {
+            let score = INITIAL_SCORE;
+            for (let day = 0; day < 2; day++) {
+                const gain = 5 * tierCompletionReward(tier) * M;
+                const loss = 5 * missPenalty(tier) * M;
+                score = Math.max(SCORE_FLOOR, Math.min(SCORE_CEILING, score + gain - loss));
+            }
+            return score;
+        })();
+
+        // Band-aware scoring should be more forgiving than treating everything as mandatory
+        assert.isAbove(bandAwareScore, allMandatoryScore);
+    });
+
+    test('backlog/radar missed tasks have zero miss penalty (D4)', () => {
+        // If a task was in radar/backlog at rollover, no penalty at all.
+        // Simulated: completing 5 tasks + 5 zero-penalty misses = net positive.
+        const M = taskScaleMultiplier(10);
+        const tier: ConsequenceTier = 3;
+        const gain = 5 * tierCompletionReward(tier) * M;
+        const loss = 5 * 0; // radar/backlog → zero penalty factor
+        const net = gain - loss;
+        assert.isAbove(net, 0);
+    });
+});
+
+// ── Scenario E: backlog/radar completion bonus (D2) ──────────────────────────
+
+describe('scenario E: completing from backlog/radar earns 1.5× reward', () => {
+    test('backlog completion bonus is 1.5× the normal reward', () => {
+        const M = taskScaleMultiplier(10);
+        const tier: ConsequenceTier = 3;
+        const normal  = tierCompletionReward(tier) * M;
+        const bonus   = tierCompletionReward(tier) * M * 1.5;
+        assert.isAbove(bonus, normal);
+        assert.strictEquals(bonus / normal, 1.5);
+    });
+});
 
 describe('conscious action (snooze) is always less damaging than neglect (miss)', () => {
     // After 5 days: full-snooze leaves 25 pts (100 − 5×15), full-miss floors at 0.

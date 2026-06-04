@@ -1,7 +1,7 @@
 import { css, defineElement, defineElementEvent, html } from "element-vir";
 import { getActiveSkin } from "../skins/active-skin.js";
 import { ViraButton, ViraColorVariant, ViraEmphasis, ViraSize } from "vira";
-import type { ConsequenceTier, Task } from "../data/types.js";
+import type { ConsequenceTier, DailyBand, Task } from "../data/types.js";
 import {
     cadencePeriodWord,
     getSnoozeSeverity,
@@ -30,6 +30,8 @@ export const TaskItemElement = defineElement<{
     showDragHandle?: boolean;
     /** Re-render trigger — changes when the active skin changes. */
     activeSkinId: string;
+    /** Band this task is currently in — used to show "Not Today" on radar/backlog. */
+    band?: DailyBand;
 }>()({
     tagName: "task-item",
 
@@ -38,6 +40,7 @@ export const TaskItemElement = defineElement<{
         snoozed: defineElementEvent<string>(), // task id
         unSnoozed: defineElementEvent<string>(), // task id
         skipped: defineElementEvent<string>(), // task id — recurring only
+        notToday: defineElementEvent<string>(), // task id — radar/backlog only, zero score impact
         progressLogged: defineElementEvent<string>(), // task id — milestone only
         editRequested: defineElementEvent<string>(), // task id
     },
@@ -296,6 +299,7 @@ export const TaskItemElement = defineElement<{
         const currentlySnoozed = isCurrentlySnoozed(task);
         const isMulti = isMultiplePerPeriod(task);
         const tier = task.consequenceTier as ConsequenceTier;
+        const isNotToday = inputs.band === 'radar' || inputs.band === 'backlog';
 
         const classes = [
             "task-card",
@@ -487,6 +491,21 @@ export const TaskItemElement = defineElement<{
                                     @click=${(e: Event) => {
                                         e.stopPropagation();
                                         dispatch(new events.skipped(task.id));
+                                    }}
+                                ></${ViraButton}>
+                            `
+                                                : html``}
+                                            ${isNotToday && !currentlySnoozed
+                                                ? html`
+                                <${ViraButton.assign({
+                                    text: "Not Today",
+                                    color: ViraColorVariant.Neutral,
+                                    buttonEmphasis: ViraEmphasis.Subtle,
+                                    buttonSize: ViraSize.Small,
+                                })}
+                                    @click=${(e: Event) => {
+                                        e.stopPropagation();
+                                        dispatch(new events.notToday(task.id));
                                     }}
                                 ></${ViraButton}>
                             `

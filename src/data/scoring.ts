@@ -23,6 +23,15 @@ import {isCurrentlyPaused} from './storage.js';
 /** Baseline task count. At this count, multiplier = 1 and base values apply as-is. */
 const REFERENCE_TASK_COUNT = 10;
 
+/** Penalty factor applied when the task was in the suggested band (not mandatory). */
+export const SUGGESTED_BAND_PENALTY_FACTOR = 0.5;
+
+/** Default consecutive skips before a T2 daily/daily-like task escalates to mandatory. */
+export const SKIP_ESCALATION_THRESHOLD = 5;
+
+/** Maximum remediation count after a completion resets it from a streak. */
+export const REMEDIATION_CAP = 5;
+
 /**
  * Count of tasks that are actionable (not completed, missed, or paused).
  * This is the N used for score scaling.

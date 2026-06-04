@@ -152,6 +152,12 @@ export interface RecurrenceConfig {
      * When absent, falls back to the month of suggestedDate.
      */
     hardMonthOfYear?: number;
+    /**
+     * Days of the week to skip for daily / multiple_per_day cadences (0=Sun … 6=Sat).
+     * On a skip day the task is hidden, the period does not advance, and no miss is
+     * counted — equivalent to the day not existing in the schedule.
+     */
+    skipDays?: number[];
 }
 
 // ── Consequence and band types ───────────────────────────────────────────────
@@ -312,6 +318,11 @@ export interface Task {
     maxTaskCompletionStreak: number;
     /** Consecutive periods skipped (advanced without completion). */
     skipStreak: number;
+    /**
+     * Consecutive skips before this T2 daily/daily-like task escalates to mandatory.
+     * undefined = use SKIP_ESCALATION_THRESHOLD default.
+     */
+    skipEscalationThreshold?: number;
 
     // ── Remediation ──
     /**

@@ -6,7 +6,8 @@
 
 import type {ConsequenceTier, DailyBand, Task} from './types.js';
 import {daysBetween, isCurrentlyPaused, isCurrentlySnoozed, startOfDay} from './storage.js';
-import {isMultiplePerPeriod} from './recurrence.js';
+import {isMultiplePerPeriod, isSkipDay} from './recurrence.js';
+import {SKIP_ESCALATION_THRESHOLD} from './scoring.js';
 
 // Order from least to most urgent — used for `maxBand`.
 const BAND_RANK: Record<DailyBand, number> = {
@@ -33,12 +34,20 @@ export function getDailyBand(task: Task, today: Date = new Date()): DailyBand {
     if (isCurrentlySnoozed(task))          return 'hidden';
     if (isCurrentlyPaused(task))           return 'hidden';
     if (task.missedAt !== null)            return 'hidden';
+    // Skip day — task is hidden, no miss, no period advance.
+    if (isSkipDay(task, today))            return 'hidden';
     // Not started yet — hide until startDate arrives.
     if (task.recurrence?.startDate !== undefined
         && startOfDay(today).getTime() < task.recurrence.startDate) return 'hidden';
 
     // Step 1 — Hard overdue / due today
     const step1 = step1HardMandatory(task, today);
+
+    // Step 1.5 — T2 daily-like skip escalation (overrides suggested → mandatory)
+    if (step1 === 'unresolved' && task.consequenceTier === 2 && isDailyLike(task)) {
+        const threshold = task.skipEscalationThreshold ?? SKIP_ESCALATION_THRESHOLD;
+        if (task.skipStreak >= threshold) return 'mandatory';
+    }
 
     // Step 2 — Timing band (only if step 1 didn't already pin it MANDATORY)
     const timing = step1 === 'mandatory' ? 'mandatory' : step2Timing(task, today);
@@ -50,8 +59,9 @@ export function getDailyBand(task: Task, today: Date = new Date()): DailyBand {
     // Step 3 — Snooze escalation band
     const snooze = step3Snooze(task);
 
-    // Step 4 — Final = max(timing, snooze)
-    return maxBand(timing, snooze);
+    // Step 4 — Final = max(timing, snooze), capped at 'suggested' for T4.
+    const final = maxBand(timing, snooze);
+    return task.consequenceTier === 4 && final === 'mandatory' ? 'suggested' : final;
 }
 
 // ── Step 0 helpers ──────────────────────────────────────────────────────────
@@ -89,18 +99,43 @@ function isCompletedForPeriod(task: Task, today: Date): boolean {
     return task.completedAt !== null;
 }
 
+// ── Daily-like helper ────────────────────────────────────────────────────────
+
+/**
+ * "Daily-like" = daily/multiple_per_day cadence, OR weekly with 2+ committed days.
+ * These tasks recur so frequently that they are treated differently from
+ * once-a-week commitments: T2/T3/T4 start in suggested rather than mandatory.
+ */
+function isDailyLike(task: Task): boolean {
+    const cadence = task.recurrence?.cadence;
+    if (cadence === 'daily' || cadence === 'multiple_per_day') return true;
+    if (cadence === 'weekly'
+            && task.recurrence?.hardDaysOfWeek !== undefined
+            && task.recurrence.hardDaysOfWeek.length >= 2) return true;
+    return false;
+}
+
 // ── Step 1: hard mandatory cases ────────────────────────────────────────────
 
 function step1HardMandatory(task: Task, today: Date): DailyBand | 'unresolved' {
+    // T4 (Aspirational) is never mandatory regardless of timing.
+    if (task.consequenceTier === 4) return 'unresolved';
+
     const cadence = task.recurrence?.cadence;
+
+    // Daily-like cadences: only T1 is mandatory; T2/T3 fall through to step 2.
     if (cadence === 'daily' || cadence === 'multiple_per_day') {
-        return 'mandatory';
+        return task.consequenceTier === 1 ? 'mandatory' : 'unresolved';
     }
 
     // Weekly task with specific committed days: today being one of those days
-    // means the commitment is due today — mandatory, not merely suggested.
-    if ((cadence === 'weekly')
-            && task.recurrence?.hardDaysOfWeek?.includes(today.getDay())) {
+    // means the commitment is due today.  Daily-like (2+ days/week) → T1 only;
+    // single committed-day weekly → T1 mandatory as before.
+    if (cadence === 'weekly' && task.recurrence?.hardDaysOfWeek?.includes(today.getDay())) {
+        const isMultiDay = (task.recurrence?.hardDaysOfWeek?.length ?? 0) >= 2;
+        if (isMultiDay) {
+            return task.consequenceTier === 1 ? 'mandatory' : 'unresolved';
+        }
         return 'mandatory';
     }
 
@@ -120,6 +155,10 @@ function step1HardMandatory(task: Task, today: Date): DailyBand | 'unresolved' {
 // ── Step 2: timing band ─────────────────────────────────────────────────────
 
 function step2Timing(task: Task, today: Date): DailyBand {
+    // Daily-like tasks (T2/T3/T4) that weren't pinned mandatory in step 1
+    // belong in suggested — they show up every day and should not loom as mandatory.
+    if (isDailyLike(task)) return 'suggested';
+
     if (isMultiplePerPeriod(task)) {
         return step2MultiplePerPeriod(task, today);
     }

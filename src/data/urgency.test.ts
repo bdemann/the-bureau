@@ -53,7 +53,8 @@ describe('getDailyBand — Step 0 (visibility)', () => {
             recurrence: makeRecurrence({cadence: 'daily'}),
             currentPeriodStart: date('2026-05-09').getTime(),
         });
-        assert.strictEquals(getDailyBand(t, date('2026-05-09')), 'mandatory');
+        // T3 daily → suggested (C2); this test verifies task is visible, not tier behavior.
+        assert.strictEquals(getDailyBand(t, date('2026-05-09')), 'suggested');
     });
 
     test('recurring task with future startDate is hidden before that date', () => {
@@ -73,7 +74,8 @@ describe('getDailyBand — Step 0 (visibility)', () => {
             recurrence: makeRecurrence({cadence: 'daily', startDate: past.getTime()}),
             currentPeriodStart: today.getTime(),
         });
-        assert.strictEquals(getDailyBand(t, today), 'mandatory');
+        // T3 daily → suggested (C2); this test verifies task is visible, not tier behavior.
+        assert.strictEquals(getDailyBand(t, today), 'suggested');
     });
 
     test('recurring task whose currentPeriodStart is in the future is hidden', () => {
@@ -118,9 +120,24 @@ describe('getDailyBand — Step 0 (visibility)', () => {
 });
 
 describe('getDailyBand — Step 1 (mandatory)', () => {
-    test('daily cadence is always mandatory', () => {
-        const t = makeTask({recurrence: makeRecurrence({cadence: 'daily'})});
+    test('T1 daily cadence is mandatory', () => {
+        const t = makeTask({consequenceTier: 1, recurrence: makeRecurrence({cadence: 'daily'})});
         assert.strictEquals(getDailyBand(t, date('2026-05-09')), 'mandatory');
+    });
+
+    test('T2 daily cadence is suggested (not mandatory)', () => {
+        const t = makeTask({consequenceTier: 2, recurrence: makeRecurrence({cadence: 'daily'})});
+        assert.strictEquals(getDailyBand(t, date('2026-05-09')), 'suggested');
+    });
+
+    test('T3 daily cadence is suggested (not mandatory)', () => {
+        const t = makeTask({consequenceTier: 3, recurrence: makeRecurrence({cadence: 'daily'})});
+        assert.strictEquals(getDailyBand(t, date('2026-05-09')), 'suggested');
+    });
+
+    test('T4 daily cadence is suggested (never mandatory)', () => {
+        const t = makeTask({consequenceTier: 4, recurrence: makeRecurrence({cadence: 'daily'})});
+        assert.strictEquals(getDailyBand(t, date('2026-05-09')), 'suggested');
     });
 
     test('hard-date task due today is mandatory', () => {
@@ -138,6 +155,83 @@ describe('getDailyBand — Step 1 (mandatory)', () => {
     test('flexible window with deadline today is mandatory', () => {
         const today = date('2026-05-09');
         const t = makeTask({windowType: 'flexible', windowDeadline: today.getTime()});
+        assert.strictEquals(getDailyBand(t, today), 'mandatory');
+    });
+
+    test('T4 hard-date task due today is not mandatory (C1)', () => {
+        const today = date('2026-05-09');
+        const t = makeTask({consequenceTier: 4, windowType: 'hard', suggestedDate: today.getTime()});
+        // T4 never mandatory — falls through to suggested/radar/backlog
+        assert.strictEquals(getDailyBand(t, today) === 'mandatory', false);
+    });
+
+    test('T4 flexible window at deadline is not mandatory (C1)', () => {
+        const today = date('2026-05-09');
+        const t = makeTask({consequenceTier: 4, windowType: 'flexible', windowDeadline: today.getTime()});
+        assert.strictEquals(getDailyBand(t, today) === 'mandatory', false);
+    });
+});
+
+describe('getDailyBand — T2 daily skip escalation (C2)', () => {
+    const today = date('2026-05-09');
+
+    test('T2 daily below threshold stays suggested', () => {
+        const t = makeTask({
+            consequenceTier: 2,
+            recurrence: makeRecurrence({cadence: 'daily'}),
+            skipStreak: 4, // below default threshold of 5
+        });
+        assert.strictEquals(getDailyBand(t, today), 'suggested');
+    });
+
+    test('T2 daily at threshold escalates to mandatory', () => {
+        const t = makeTask({
+            consequenceTier: 2,
+            recurrence: makeRecurrence({cadence: 'daily'}),
+            skipStreak: 5, // at default threshold
+        });
+        assert.strictEquals(getDailyBand(t, today), 'mandatory');
+    });
+
+    test('T2 daily above threshold is mandatory', () => {
+        const t = makeTask({
+            consequenceTier: 2,
+            recurrence: makeRecurrence({cadence: 'daily'}),
+            skipStreak: 10,
+        });
+        assert.strictEquals(getDailyBand(t, today), 'mandatory');
+    });
+
+    test('T3 daily never escalates to mandatory from skipStreak', () => {
+        const t = makeTask({
+            consequenceTier: 3,
+            recurrence: makeRecurrence({cadence: 'daily'}),
+            skipStreak: 100,
+        });
+        assert.strictEquals(getDailyBand(t, today), 'suggested');
+    });
+
+    test('T2 daily with custom skipEscalationThreshold of 3', () => {
+        const t = makeTask({
+            consequenceTier: 2,
+            recurrence: makeRecurrence({cadence: 'daily'}),
+            skipStreak: 3,
+            skipEscalationThreshold: 3,
+        });
+        assert.strictEquals(getDailyBand(t, today), 'mandatory');
+    });
+
+    test('T2 multi-day weekly at threshold escalates to mandatory', () => {
+        const t = makeTask({
+            consequenceTier: 2,
+            windowType: 'flexible',
+            suggestedDate: today.getTime(),
+            windowDeadline: today.getTime() + 6 * DAY_MS,
+            windowLengthDays: 7,
+            recurrence: makeRecurrence({cadence: 'weekly', hardDaysOfWeek: [1, 2, 3, 4, 5]}),
+            currentPeriodStart: today.getTime() - today.getDay() * DAY_MS,
+            skipStreak: 5,
+        });
         assert.strictEquals(getDailyBand(t, today), 'mandatory');
     });
 });
@@ -368,7 +462,7 @@ describe('weekly tasks with hardDaysOfWeek', () => {
     const tuesday = date('2026-05-05');
     const sunday = date('2026-05-03');
 
-    function weeklyTask(daysOfWeek: number[]) {
+    function weeklyTask(daysOfWeek: number[], overrides: Parameters<typeof makeTask>[0] = {}) {
         return makeTask({
             windowType: 'flexible',
             suggestedDate: monday.getTime(),
@@ -376,13 +470,20 @@ describe('weekly tasks with hardDaysOfWeek', () => {
             windowLengthDays: 7,
             recurrence: makeRecurrence({cadence: 'weekly', hardDaysOfWeek: daysOfWeek}),
             currentPeriodStart: sunday.getTime(),
+            ...overrides,
         });
     }
 
-    test('mandatory on a configured day', () => {
-        const t = weeklyTask([1, 2, 3, 4, 5]); // Mon–Fri
+    test('T1 multi-day weekly is mandatory on a configured day', () => {
+        const t = weeklyTask([1, 2, 3, 4, 5], {consequenceTier: 1}); // Mon–Fri, T1
         assert.strictEquals(getDailyBand(t, monday), 'mandatory');
         assert.strictEquals(getDailyBand(t, tuesday), 'mandatory');
+    });
+
+    test('T3 multi-day weekly is suggested on a configured day (C2)', () => {
+        const t = weeklyTask([1, 2, 3, 4, 5]); // Mon–Fri, default T3
+        assert.strictEquals(getDailyBand(t, monday), 'suggested');
+        assert.strictEquals(getDailyBand(t, tuesday), 'suggested');
     });
 
     test('not mandatory on a non-configured day', () => {
@@ -425,8 +526,23 @@ describe('weekly tasks with hardDaysOfWeek', () => {
         assert.strictEquals(getDailyBand(t, monday), 'hidden');
     });
 
-    test('visible again on Tuesday after Monday completion', () => {
+    test('T3 multi-day weekly visible again on Tuesday after Monday completion (suggested)', () => {
         const t = makeTask({
+            windowType: 'flexible',
+            suggestedDate: date('2026-05-05').getTime(), // Tuesday
+            windowDeadline: date('2026-05-09').getTime(),
+            windowLengthDays: 7,
+            recurrence: makeRecurrence({cadence: 'weekly', hardDaysOfWeek: [1, 2, 3, 4, 5, 6]}),
+            currentPeriodStart: sunday.getTime(),
+            completedAt: null,
+        });
+        // T3 daily-like → suggested (C2)
+        assert.strictEquals(getDailyBand(t, tuesday), 'suggested');
+    });
+
+    test('T1 multi-day weekly visible again on Tuesday after Monday completion (mandatory)', () => {
+        const t = makeTask({
+            consequenceTier: 1,
             windowType: 'flexible',
             suggestedDate: date('2026-05-05').getTime(), // Tuesday
             windowDeadline: date('2026-05-09').getTime(),
@@ -524,5 +640,44 @@ describe('maxBand (final = max(timing, snooze))', () => {
         });
         // timing alone = backlog; tier 1 + snooze 5 = mandatory; final = mandatory
         assert.strictEquals(getDailyBand(t, today), 'mandatory');
+    });
+});
+
+describe('getDailyBand — skipDays (GitHub #37)', () => {
+    // 2026-05-10 is a Sunday (getDay() = 0)
+    const sunday = date('2026-05-10');
+    const monday = date('2026-05-11');
+
+    test('daily task on a skip day is hidden', () => {
+        const t = makeTask({
+            recurrence: makeRecurrence({cadence: 'daily', skipDays: [0]}),
+            currentPeriodStart: sunday.getTime(),
+        });
+        assert.strictEquals(getDailyBand(t, sunday), 'hidden');
+    });
+
+    test('daily task on a non-skip day is visible', () => {
+        const t = makeTask({
+            recurrence: makeRecurrence({cadence: 'daily', skipDays: [0]}),
+            currentPeriodStart: monday.getTime(),
+        });
+        assert.strictEquals(getDailyBand(t, monday) !== 'hidden', true);
+    });
+
+    test('T1 daily with skip day is hidden on skip day (not mandatory)', () => {
+        const t = makeTask({
+            consequenceTier: 1,
+            recurrence: makeRecurrence({cadence: 'daily', skipDays: [0]}),
+            currentPeriodStart: sunday.getTime(),
+        });
+        assert.strictEquals(getDailyBand(t, sunday), 'hidden');
+    });
+
+    test('empty skipDays does not hide the task', () => {
+        const t = makeTask({
+            recurrence: makeRecurrence({cadence: 'daily', skipDays: []}),
+            currentPeriodStart: sunday.getTime(),
+        });
+        assert.strictEquals(getDailyBand(t, sunday) !== 'hidden', true);
     });
 });

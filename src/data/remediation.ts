@@ -8,17 +8,19 @@
 // Key rules
 // ─────────
 // 1. On completion when a streak/snooze is present and NOT yet in remediation:
-//    remediationCount = max(skipStreak, snoozeCount).
-//    Also resets skipStreak → 0 and snoozeCount → 0 (the task was done).
+//    remediationCount = min(REMEDIATION_CAP, max(skipStreak, snoozeCount)).
+//    Streaks are preserved — NOT reset until remediation completes.
 //
 // 2. On completion while already in remediation:
 //    remediationCount = max(0, remediationCount - 1).
-//    When it hits 0 the task is fully cleared.
+//    When it hits 0 the task is fully cleared: skipStreak and snoozeCount reset.
 //
 // 3. On skip/snooze while in remediation:
-//    The *new* streak starts at remediationCount (not at 1).
-//    remediationCount is then set to 0 (the streak itself will track things now).
+//    Streak increments normally (+1). remediationCount → 0.
+//    The old punitive behavior (new streak starts at remediationCount) is removed.
 // ─────────────────────────────────────────────────────────────────────────────
+
+import {REMEDIATION_CAP} from './scoring.js';
 
 export interface RemediationOnCompleteResult {
     /** New skipStreak value (0 once a completion is recorded). */
@@ -41,29 +43,28 @@ export function computeRemediationOnComplete(
     snoozeCount: number,
     remediationCount: number,
 ): RemediationOnCompleteResult {
-    const hasStreak = skipStreak > 0 || snoozeCount > 0;
-
     if (remediationCount > 0) {
-        // Already in remediation — make progress.
+        // Already in remediation — make progress. Streaks only clear when done.
+        const newCount = Math.max(0, remediationCount - 1);
         return {
-            skipStreak: 0,
-            snoozeCount: 0,
-            remediationCount: Math.max(0, remediationCount - 1),
+            skipStreak: newCount === 0 ? 0 : skipStreak,
+            snoozeCount: newCount === 0 ? 0 : snoozeCount,
+            remediationCount: newCount,
         };
     }
 
+    const hasStreak = skipStreak > 0 || snoozeCount > 0;
     if (hasStreak) {
-        // First completion after a streak — enter remediation.
-        const newRemediation = Math.max(skipStreak, snoozeCount);
+        // First completion after a streak — enter remediation. Streaks preserved.
         return {
-            skipStreak: 0,
-            snoozeCount: 0,
-            remediationCount: newRemediation,
+            skipStreak,
+            snoozeCount,
+            remediationCount: Math.min(REMEDIATION_CAP, Math.max(skipStreak, snoozeCount)),
         };
     }
 
     // No streak, not in remediation — nothing to do.
-    return {skipStreak, snoozeCount, remediationCount: 0};
+    return {skipStreak: 0, snoozeCount: 0, remediationCount: 0};
 }
 
 export interface RemediationOnSkipResult {
@@ -83,13 +84,6 @@ export function computeRemediationOnSkip(
     currentSkipStreak: number,
     remediationCount: number,
 ): RemediationOnSkipResult {
-    if (remediationCount > 0) {
-        // Start the skip streak from the remediation level (not from 1).
-        return {
-            skipStreak: remediationCount,
-            remediationCount: 0,
-        };
-    }
     return {
         skipStreak: currentSkipStreak + 1,
         remediationCount: 0,
@@ -113,13 +107,6 @@ export function computeRemediationOnSnooze(
     currentSnoozeCount: number,
     remediationCount: number,
 ): RemediationOnSnoozeResult {
-    if (remediationCount > 0) {
-        // Start the snooze count from the remediation level (not from 1).
-        return {
-            snoozeCount: remediationCount,
-            remediationCount: 0,
-        };
-    }
     return {
         snoozeCount: currentSnoozeCount + 1,
         remediationCount: 0,

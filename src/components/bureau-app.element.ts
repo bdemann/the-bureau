@@ -30,13 +30,14 @@ import {
 import {
     countActiveTasks,
     missPenalty,
+    SUGGESTED_BAND_PENALTY_FACTOR,
     skipPenalty,
     snoozePenalty,
     streakDepthMultiplier,
     taskScaleMultiplier,
     tierCompletionReward,
 } from "../data/scoring.js";
-import { isNextOccurrenceTomorrow } from "../data/urgency.js";
+import { getDailyBand, isNextOccurrenceTomorrow } from "../data/urgency.js";
 import {
     computeRemediationOnComplete,
     computeRemediationOnSkip,
@@ -90,11 +91,20 @@ function bootstrap(): AppState {
         const rolled = rolloverIfNeeded(t, today);
 
         // Recurring: period rolled over without completion — charge a miss penalty.
+        // Band-aware: mandatory → full penalty; suggested → half; radar/backlog → none.
         if (rolled.totalMisses > t.totalMisses) {
-            scoreAdjustment -=
-                missPenalty(t.consequenceTier as ConsequenceTier) *
-                (rolled.totalMisses - t.totalMisses) *
-                multiplier;
+            const missDay = new Date(t.suggestedDate ?? todayMidnight - 86_400_000);
+            const bandAtMiss = getDailyBand(t, missDay);
+            let bandFactor = 0; // radar/backlog → no penalty
+            if (bandAtMiss === 'mandatory') bandFactor = 1;
+            else if (bandAtMiss === 'suggested') bandFactor = SUGGESTED_BAND_PENALTY_FACTOR;
+            if (bandFactor > 0) {
+                scoreAdjustment -=
+                    missPenalty(t.consequenceTier as ConsequenceTier) *
+                    (rolled.totalMisses - t.totalMisses) *
+                    multiplier *
+                    bandFactor;
+            }
         }
 
         // One-time hard-date tasks past their date can never be done — mark missed.
@@ -106,8 +116,14 @@ function bootstrap(): AppState {
             rolled.suggestedDate !== null &&
             rolled.suggestedDate < todayMidnight
         ) {
+            // Band-aware: check what band the task was in on its due date.
+            const dueDay = new Date(t.suggestedDate!);
+            const bandAtMiss = getDailyBand(t, dueDay);
+            let bandFactor = 0;
+            if (bandAtMiss === 'mandatory') bandFactor = 1;
+            else if (bandAtMiss === 'suggested') bandFactor = SUGGESTED_BAND_PENALTY_FACTOR;
             scoreAdjustment -=
-                missPenalty(t.consequenceTier as ConsequenceTier) * multiplier;
+                missPenalty(t.consequenceTier as ConsequenceTier) * multiplier * bandFactor;
             return {
                 ...rolled,
                 missedAt: rolled.suggestedDate,
@@ -463,8 +479,10 @@ export const BureauAppElement = defineElement()({
 
             const tier = (target.consequenceTier ?? 3) as ConsequenceTier;
             const active = countActiveTasks(currentTasks);
+            const band = getDailyBand(target, now);
+            const backlogBonus = (band === 'radar' || band === 'backlog') ? 1.5 : 1;
             const reward =
-                tierCompletionReward(tier) * taskScaleMultiplier(active);
+                tierCompletionReward(tier) * taskScaleMultiplier(active) * backlogBonus;
             const prevScore = state.app.patriotScore;
             const newScore = Math.min(200, prevScore + reward);
             const newStreak = state.app.completionStreak + 1;
@@ -527,10 +545,16 @@ export const BureauAppElement = defineElement()({
 
             const tier = task.consequenceTier as ConsequenceTier;
             const active = countActiveTasks(tasksOf(state.app.commitments));
+            const snoozeNow = new Date();
+            const snoozeBandFactor =
+                getDailyBand(task, snoozeNow) === 'suggested'
+                    ? SUGGESTED_BAND_PENALTY_FACTOR
+                    : 1;
             const rawPenalty = Math.min(
                 snoozePenalty(tier) *
                     newSnoozeCount *
-                    streakDepthMultiplier(newSnoozeCount),
+                    streakDepthMultiplier(newSnoozeCount) *
+                    snoozeBandFactor,
                 30,
             );
             // Floor at 1 so a snooze always produces a visible score change,
@@ -570,6 +594,17 @@ export const BureauAppElement = defineElement()({
         function onTaskUnSnoozed(taskId: string): void {
             const commitments = state.app.commitments.map((c) =>
                 c.id === taskId ? { ...c, snoozedUntil: null } : c,
+            ) as AnyCommitment[];
+            commit({ commitments });
+        }
+
+        function onTaskNotToday(taskId: string): void {
+            // Hide for today only — no snoozeCount increment, no score change.
+            const tomorrowMidnight = startOfDay(new Date()).getTime() + 86_400_000;
+            const commitments = state.app.commitments.map((c) =>
+                c.id === taskId && (c.kind === 'task' || c.kind === 'routine')
+                    ? { ...c, snoozedUntil: tomorrowMidnight }
+                    : c,
             ) as AnyCommitment[];
             commit({ commitments });
         }
@@ -1216,6 +1251,9 @@ export const BureauAppElement = defineElement()({
                             ${listen(
                                 DailyViewElement.events.taskUnSnoozed,
                                 (e) => onTaskUnSnoozed(e.detail),
+                            )}
+                            ${listen(DailyViewElement.events.taskNotToday, (e) =>
+                                onTaskNotToday(e.detail),
                             )}
                             ${listen(DailyViewElement.events.taskSkipped, (e) =>
                                 onTaskSkipped(e.detail),

@@ -62,6 +62,7 @@ export const DailyViewElement = defineElement<{
         taskSnoozed: defineElementEvent<string>(),
         taskUnSnoozed: defineElementEvent<string>(),
         taskSkipped: defineElementEvent<string>(),
+        taskNotToday: defineElementEvent<string>(),
         taskProgressLogged: defineElementEvent<string>(),
         taskEditRequested: defineElementEvent<string>(),
         newTaskRequested: defineElementEvent<void>(),
@@ -297,7 +298,12 @@ export const DailyViewElement = defineElement<{
             bands[band].push(task);
         }
 
-        const renderTaskList = (tasks: Task[]) => html`
+        // E1: Auto-collapse mandatory and expand suggested when mandatory becomes empty.
+        if (bands.mandatory.length === 0 && state.expandMandatory) {
+            queueMicrotask(() => updateState({ expandMandatory: false, expandSuggested: true }));
+        }
+
+        const renderTaskList = (tasks: Task[], band?: DailyBand) => html`
             <div class="task-list">
                 ${tasks.map(
                     (t) => html`
@@ -351,6 +357,7 @@ export const DailyViewElement = defineElement<{
                                 : undefined,
                             showDragHandle: true,
                             activeSkinId: inputs.activeSkinId,
+                            band,
                         })}
                             ${listen(TaskItemElement.events.completed, (e) =>
                                 dispatch(new events.taskCompleted(e.detail)),
@@ -363,6 +370,9 @@ export const DailyViewElement = defineElement<{
                             )}
                             ${listen(TaskItemElement.events.skipped, (e) =>
                                 dispatch(new events.taskSkipped(e.detail)),
+                            )}
+                            ${listen(TaskItemElement.events.notToday, (e) =>
+                                dispatch(new events.taskNotToday(e.detail)),
                             )}
                             ${listen(
                                 TaskItemElement.events.progressLogged,
@@ -418,13 +428,13 @@ export const DailyViewElement = defineElement<{
             </div>
         `;
 
-        const renderTasksGrouped = (tasks: Task[]) => {
+        const renderTasksGrouped = (tasks: Task[], band?: DailyBand) => {
             const slotGroups = TIME_OF_DAY_SLOTS.map((slot: TimeOfDay) => ({
                 slot,
                 tasks: tasks.filter((t) => (t.timeOfDay ?? "anytime") === slot),
             })).filter((g) => g.tasks.length > 0);
 
-            if (slotGroups.length <= 1) return renderTaskList(tasks);
+            if (slotGroups.length <= 1) return renderTaskList(tasks, band);
 
             return html`
                 ${slotGroups.map((g) => {
@@ -445,7 +455,7 @@ export const DailyViewElement = defineElement<{
                                     >${isExpanded ? "▾" : "▸"}</span
                                 >
                             </button>
-                            ${isExpanded ? renderTaskList(g.tasks) : html``}
+                            ${isExpanded ? renderTaskList(g.tasks, band) : html``}
                         </div>
                     `;
                 })}
@@ -516,7 +526,7 @@ export const DailyViewElement = defineElement<{
                                     ${opts.emptyMessage}
                                 </div>`
                               : html``
-                          : html`${renderTasksGrouped(tasks)}`}
+                          : html`${renderTasksGrouped(tasks, band)}`}
                 </section>
             `;
         };
