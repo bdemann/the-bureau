@@ -31,24 +31,24 @@ Tasks that MUST be addressed today:
 
 | Trigger | Example |
 |---------|---------|
-| Daily cadence (T1–T3) | Daily medication, morning run, brushing teeth |
-| Weekly cadence with committed day (T1–T3) | Trash to curb (Wednesday), weekly meeting |
-| Hard-date task on/past its due date (all tiers T1–T3) | Bill due today, appointment today |
-| Flexible window deadline has arrived (T1–T3) | Monthly budget review, last day of the month |
-| Snooze escalation (T2/T3 reaching mandatory threshold) | A T2 task snoozed 8+ times |
+| T1 daily/daily-like tasks | Morning prayer, medication, brush teeth |
+| T2 daily/daily-like after skipStreak ≥ 5 | Bedtime routine skipped 5+ nights in a row |
+| Hard-date task on/past its due date (T1–T3) | Bill due today, appointment today |
+| Flexible window deadline has arrived (T1–T3) | Budget review, last day of the month |
+| Snooze escalation reaching mandatory threshold (T1/T2) | A T2 task snoozed 8+ times |
 
-**T4 (aspirational) tasks are NEVER mandatory,** regardless of cadence, deadline, or snooze count. Forcing aspirational work mandatory contradicts the purpose of the tier.
+**T4 (aspirational) tasks are NEVER mandatory** under any circumstance.
 
 ### Suggested
 
-Tasks recommended for today but not compulsory:
+Tasks recommended today — has real but reduced consequences:
 
 | Trigger | Example |
 |---------|---------|
-| Flexible window task whose suggestedDate has arrived (all tiers) | Budget review on the 1st (still has the rest of the month) |
-| T4 tasks at/past their suggestedDate or deadline | Morning stretching, bookbinding project |
-| Daily T4 tasks | Meditation, gratitude journal |
-| Snooze escalation for T2/T3 below mandatory threshold | T3 task snoozed 5–14 times |
+| T2/T3/T4 daily/daily-like tasks | Shave, shower, make bed, practice piano |
+| Flexible window task whose suggestedDate has arrived (all tiers) | Budget review on the 1st (window runs to the 30th) |
+| T4 tasks at/past their suggestedDate or deadline | Bookbinding project, morning stretching |
+| Snooze escalation below mandatory threshold | T2 task snoozed 5–7 times; T3 task snoozed 5–14 times |
 
 ### Radar
 
@@ -95,12 +95,14 @@ Bands are computed at render time from task state + today's date. They are never
 - Flexible window: suggestedDate arrived → suggested; approaching deadline → radar; otherwise → backlog
 - Milestone: deadline-proximity logic → radar/backlog
 
-**Step 3 — Snooze escalation:**
+**Step 3 — Snooze escalation (for hard-date and window tasks, not daily-like):**
 - Overrides timing band upward (never downward)
 - T1: 1 snooze → radar, 3 → suggested, 5 → mandatory
 - T2: 2 snoozes → radar, 5 → suggested, 8 → mandatory
-- T3: 5 snoozes → radar, 15 → suggested, [TBD threshold] → mandatory *(currently broken: T3 caps at suggested, never reaches mandatory — fix needed)*
+- T3: 5 snoozes → radar, 15 → suggested *(caps at suggested — never reaches mandatory)*
 - T4: never escalates beyond backlog
+
+*Note: daily and daily-like tasks use skip escalation (see Band Placement by Tier section), not snooze escalation.*
 
 **Step 4 — Final band = max(timing, snooze escalation)**
 
@@ -141,10 +143,8 @@ T4 (aspirational) tasks never reach mandatory band under any circumstance:
 
 **Correct rule:** All tiers enter suggested when their flexible suggestedDate arrives. They reach mandatory when the windowDeadline arrives (T1–T3) or from snooze escalation.
 
-### T3 snooze escalation must reach mandatory
-T3 (quality consequence) tasks currently max out at suggested (never mandatory via snooze). This is a bug. A quality-consequence task snoozed 15+ times is a real neglect pattern and deserves mandatory status.
-
-T3 threshold for mandatory: TBD (needs to be higher than T2's 8 snoozes, probably 20+).
+### T3 snooze escalation caps at suggested — intentional
+T3 (quality consequence) tasks cap at suggested via snooze escalation and never reach mandatory. This is intentional: "quality consequence" means things degrade but nothing breaks. Mandatory is reserved for tasks genuinely worth making sacrifices to complete; T3 doesn't meet that bar.
 
 ### UI: Auto-collapse mandatory when cleared, expand suggested
 When the mandatory band becomes empty (all items done for the current time-of-day slot), the UI should auto-collapse mandatory and auto-expand suggested. This makes the intended flow clear: mandatory first, then suggested once mandatory is clear.

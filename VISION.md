@@ -222,33 +222,68 @@ The app should also offer a quick "reschedule after completion" prompt — after
 
 **The most important view in the app.** This is a unified cross-area view — all categories, all tasks, organized by what actually needs your attention today.
 
-The key insight: **a successful day means completing everything in the top band**, even if nothing else gets touched.
+The key insight: **a successful day means completing everything in mandatory**, even if nothing else gets touched. Suggested, radar, and backlog not done is not a failure.
 
 ```
 ┌─────────────────────────────────────────────────────┐
-│  TODAY'S MANDATORY                                   │
-│  Daily tasks. Hard-date tasks due today.            │
-│  High-tier tasks that have escalated to critical.   │
-│  These MUST happen today.                           │
+│  MANDATORY                                           │
+│  Must happen today. Real consequences if ignored.   │
+│  If you can't do it all today, do these.            │
 ├─────────────────────────────────────────────────────┤
 │  SUGGESTED FOR TODAY                                 │
-│  Window tasks whose suggested date is today.        │
-│  Recommended but moveable if life intervenes.      │
+│  Recommended today. Has teeth — but not urgent.     │
+│  Miss/snooze here costs 50% of mandatory penalty.  │
 ├─────────────────────────────────────────────────────┤
 │  ON YOUR RADAR                                       │
-│  Window tasks whose deadline is approaching         │
-│  (within ~20–30% of window remaining).             │
-│  Not urgent today, but don't forget.               │
+│  Coming up soon. Awareness only — no pressure yet. │
 ├─────────────────────────────────────────────────────┤
 │  BACKLOG                                             │
-│  Long-horizon tasks. No pressure today.            │
-│  Visible but clearly deprioritized.                │
+│  Not due yet. Complete early for a bonus reward.   │
 └─────────────────────────────────────────────────────┘
 ```
 
-**What goes where is calculated, not manually assigned.** The user sets consequence tier, cadence, and window type. The app determines which band a task belongs in based on those fields + current date + snooze count.
+**What goes where is calculated, not manually assigned.** The user sets consequence tier, cadence, and window type. The app determines which band a task belongs in based on those fields + current date + skip streak.
 
 **The daily view is cross-category.** You don't go to "Husband" to see your date night reminder — it shows up in today's view alongside brushing your teeth and refilling the cat feeder, all competing for honest attention.
+
+### Band placement rules
+
+**Mandatory** — tasks that MUST be addressed today:
+- T1 daily/daily-like tasks (always)
+- T2 daily/daily-like tasks after skipStreak ≥ 5
+- Hard-date tasks on/past their due date (T1–T3)
+- Flexible window tasks at their deadline (T1–T3)
+
+**Suggested** — tasks recommended today with real but reduced stakes:
+- Flexible window tasks once suggestedDate arrives (all tiers)
+- T2/T3/T4 daily tasks (T2 escalates to mandatory after 5 consecutive avoidances)
+- T4 tasks: always suggested, never mandatory
+
+**Radar** — upcoming, awareness only:
+- Hard-date tasks within their lead time window
+- Flexible tasks approaching their deadline (~last 25% of window)
+
+**Backlog** — not due yet, no pressure:
+- Everything else with a future suggested or due date
+
+**T4 is never mandatory** under any circumstance — not from daily cadence, deadline arrival, or skip escalation. Aspirational tasks are tracked without coercion.
+
+### "Not Today" and the pre-suggestedDate zone
+
+Before a flexible task's suggestedDate arrives (while it's in radar/backlog), a "Not Today" action is available. It hides the card for the day with zero score consequence. Non-interaction before the suggestedDate is also free. This is the grace zone — the task is visible for awareness, not action.
+
+Once the suggestedDate arrives and the task enters suggested, "Not Today" disappears. From that point, deferring costs something (50% penalties). Completing from radar/backlog before the suggested window opens earns a 1.5× bonus reward.
+
+### Scoring by band
+
+| Action | Backlog/Radar | Suggested | Mandatory |
+|--------|--------------|-----------|-----------|
+| Miss (no interaction) | 0 | 50% | 100% |
+| Snooze | — | 50% | 100% |
+| Skip | 100% | 100% | 100% |
+| Complete | 1.5× bonus | 1× reward | 1× reward |
+
+**Skip always carries the full penalty** regardless of band — skip is a period-level forfeit decision. T4 has 0 consequence in all directions.
 
 ---
 
@@ -303,18 +338,25 @@ This is post-MVP, but the data model should be designed so it's addable later wi
 
 ### Phase 3 — Refinement
 
+- [x] Import/export data (JSON backup + CSV task audit)
+- [ ] Band-aware scoring (miss/snooze penalties scale by band)
+- [ ] T2 daily/daily-like skip escalation to mandatory (threshold: 5)
+- [ ] T4 never mandatory (all cadences and deadlines)
+- [ ] "Not Today" action (pre-suggestedDate, free)
+- [ ] Daily task form: hide window type + schedule mode selectors
+- [ ] Daily tasks with days off (skipDays field — replaces multi-day weekly workaround)
 - [ ] Per-category health scores
 - [ ] Category-level neglect indicators on dashboard
-- [ ] Agent Whitaker comments on category patterns, not just individual tasks
 - [ ] Task completion history / record
 - [ ] Stats view ("Quarterly Review" — Briggs style)
-- [ ] Import/export data
 
 ### Phase 4 — Nice to Have
 
+- [ ] All-tasks sorting / grouping by tier, window type, cadence, etc.
 - [ ] Guided setup wizard (the brainstorming exercise, in-app)
+- [ ] Yearly recurrence: Nth weekday of a month (GitHub #35)
+- [ ] Ordinal offset days — "Sunday before the 3rd Monday" (GitHub #36)
 - [ ] Filters on daily view
-- [ ] Briggs-style shame scoring for long-term snooze patterns (opt-in)
 - [ ] Sharing / accountability partner features
 
 ---
