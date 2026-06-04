@@ -117,7 +117,31 @@ Tests: TESTING.md
 
 ---
 
-### 7. Hide Window Type Selector for Daily Tasks
+### 7. Days Off for Daily Tasks
+
+**Problem:** There is no way to say "daily except Sunday" or "weekdays only." Users are currently working around this by creating weekly tasks with specific days selected (e.g. Mon–Sat), but that's a hack — those tasks behave like weekly tasks, not daily tasks, and they don't belong in the weekly cadence bucket philosophically.
+
+**Solution:** Add an optional `skipDays` field to the Task type — an array of day-of-week numbers (0=Sun … 6=Sat) that are excluded from the daily recurrence.
+
+**Use cases:**
+- Sabbath observance: skip Sunday (or Saturday)
+- Work-only tasks: skip Saturday and Sunday
+- Tasks that conflict with a weekly commitment: skip Wednesday (young men's activity night)
+- Shift workers: skip whatever days are their "weekend"
+
+**Behavior:**
+- On a skip day: task is hidden, period does not advance, no miss counted — same as paused for the day
+- Rollover: skip days are not counted as misses
+- Next suggestedDate computation: skips over excluded days to the next active day
+- UI: day-of-week toggle in the task form, only visible when cadence is daily
+
+**Migration:** Existing multi-day weekly tasks that are really "daily except X" should be reclassified to daily + skipDays once this feature exists. The current data is a workaround for a missing feature.
+
+**Dependency:** Implement after the daily band-rules fix (T1/T2/T3/T4 daily band placement), since daily tasks are getting a rules overhaul anyway.
+
+---
+
+### 8. Hide Window Type Selector for Daily Tasks
 
 Daily tasks are hard windows by definition — the period is the day, so hard vs. flexible makes no difference anywhere in the system. The selector is confusing and inert for daily cadence.
 

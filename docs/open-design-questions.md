@@ -95,6 +95,25 @@ Proposed: T4 daily → suggested. A daily aspirational task (morning stretching,
 
 ---
 
+## The "Disable Snooze" Toggle — Was It a Mistake?
+
+**Q: Should `disableSnooze` exist as a user-facing setting, or should snoozeability be determined entirely by task type?**
+
+**Context:** The toggle was likely added to handle "this hard task shouldn't be snoozable" cases (trash to the curb — the truck comes Thursday, snoozing is meaningless). But that case is already handled automatically by `isNextOccurrenceTomorrow`. The toggle may have been added out of confusion about what flexible windows were for.
+
+**Review needed:** Go through all hard-window tasks in the export and ask: is there any hard task that *should* be snoozable? Under the revised philosophy:
+- Flexible tasks: no snooze (the window is the flexibility)
+- Daily hard: snooze already blocked automatically
+- Hard weekly on committed day: snooze already blocked automatically
+- Hard one-time tasks: snooze probably makes sense (pushing the date)
+- Hard monthly/quarterly/yearly: snooze probably makes sense
+
+If the only case for `disableSnooze` is "hard task on committed day," that's already handled by the system. The toggle may be redundant and confusing.
+
+**Action:** Re-export after the current audit and review every hard-window task's snoozeability. Decide whether the toggle should be removed, kept as an advanced option, or replaced by system-inferred rules.
+
+---
+
 ## Multi-Day Weekly Tasks Should Behave Like Daily Tasks
 
 **Q: Should multi-day weekly tasks (hardDaysOfWeek with 2+ days) follow daily band rules rather than weekly band rules?**
