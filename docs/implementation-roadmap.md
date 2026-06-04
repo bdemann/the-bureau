@@ -142,7 +142,7 @@ Tests: TESTING.md entry
 
 #### Not in this phase (tracked separately)
 
-- `skipDays` for daily tasks — new feature, significant complexity
+- `skipDays` for daily tasks — new feature, significant complexity (GitHub #37)
 - Yearly ordinal weekday — GitHub #35
 - Ordinal offset — GitHub #36
 - Remove `disableSnooze` from `types.ts` — follow-up after confirming zero active usage
@@ -277,7 +277,7 @@ Tests: TESTING.md
 
 **Migration:** Existing multi-day weekly tasks that are really "daily except X" should be reclassified to daily + skipDays once this feature exists. The current data is a workaround for a missing feature.
 
-**Dependency:** Implement after the daily band-rules fix (T1/T2/T3/T4 daily band placement), since daily tasks are getting a rules overhaul anyway.
+**Dependency:** Implement after the daily band-rules fix (T1/T2/T3/T4 daily band placement), since daily tasks are getting a rules overhaul anyway. See GitHub #37.
 
 ---
 
