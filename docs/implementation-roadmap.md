@@ -161,19 +161,21 @@ Transfer hardened docs to website pages:
 - Band-aware scoring: miss/skip penalties only when the task was in mandatory at rollover time
 - Completing from radar/backlog: 1.5× tier reward bonus
 - T4 is never mandatory (daily cadence, deadline, or snooze)
-- T3 snooze escalation should eventually reach mandatory (threshold TBD)
-- Flexible window snooze is probably wrong; "not today" (hide-for-day, no count) is better
+- T3 snooze escalation caps at suggested permanently — never reaches mandatory
+- Skip is always a full penalty regardless of band — period-level forfeit
+- Flexible window snooze → "not today" (option B): hide for day, zero score impact, no snoozeCount increment
 - Hard date and flexible window are genuinely different concepts (not conflatable)
 - The daily view sections are "two today + two upcoming," not a linear progression
+- Backlog bonus multiplier: 1.5× confirmed
+- T1 daily/daily-like → mandatory. T2 → suggested, escalates to mandatory at skipStreak ≥ 5. T3/T4 → suggested always.
+- Remediation rewrite: streaks preserved during remediation; only cleared on successful completion (see scoring-redesign.md)
 
 **Rejected (proposed then walked back):**
 - T1 flexible tasks → mandatory at suggestedDate (rejected: pay rent example shows this is wrong)
+- T3 snooze escalation should eventually reach mandatory (reversed: T3 caps at suggested)
 
 **Pending (need decisions before implementing):**
-- Skip-of-suggested: zero penalty or small penalty?
-- Backlog bonus multiplier: 1.5× confirmed?
-- T3 mandatory snooze threshold: what count?
-- Flexible task snooze: option A (remove), B (not-today), or C (no escalation)?
+- None — all design questions resolved. See open-design-questions.md.
 
 ---
 
