@@ -220,7 +220,6 @@ function ensureTaskShape(raw: any): Task {
         pausedIndefinitely: raw.pausedIndefinitely ?? false,
         snoozeCount: raw.snoozeCount ?? 0,
         snoozedUntil: raw.snoozedUntil ?? null,
-        disableSnooze: raw.disableSnooze ?? false,
         totalSnoozes: raw.totalSnoozes ?? 0,
         totalSkips: raw.totalSkips ?? 0,
         totalMisses: raw.totalMisses ?? 0,

@@ -337,10 +337,8 @@ export const TaskItemElement = defineElement<{
 
         // Hard-date tasks may not be snoozed past the date.
         // Next-occurrence-tomorrow tasks: snoozed until = next occurrence anyway, pointless.
-        // Manually disabled snooze.
         const canSnooze =
             !isDailyRoutine &&
-            !task.disableSnooze &&
             !(
                 task.windowType === "hard" &&
                 task.suggestedDate !== null &&

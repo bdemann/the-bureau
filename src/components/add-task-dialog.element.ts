@@ -129,9 +129,6 @@ export const AddTaskDialogElement = defineElement<{
         // ── Start date ──
         hasStartDate: false,
         startDate: "", // YYYY-MM-DD
-        // ── Snooze ──
-        /** When true, snoozing is permanently disabled for this directive. */
-        disableSnooze: false,
         // ── Pause ──
         pauseMode: "none" as "none" | "indefinite" | "until_date" | "for_days",
         pauseUntilDate: "", // YYYY-MM-DD
@@ -610,7 +607,6 @@ export const AddTaskDialogElement = defineElement<{
                         : "default",
                 leadTimeCustomDays:
                     typeof t.leadTimeDays === "number" ? t.leadTimeDays : 7,
-                disableSnooze: t.disableSnooze ?? false,
                 linkedGoalId: currentLinkedGoal?.id ?? null,
                 originalLinkedGoalId: currentLinkedGoal?.id ?? null,
                 editGoalId: null,
@@ -691,7 +687,6 @@ export const AddTaskDialogElement = defineElement<{
                 windowType: "hard",
                 leadTimeMode: "default",
                 leadTimeCustomDays: 7,
-                disableSnooze: false,
                 suggestedDate: msToDateString(Date.now()),
                 hasStartDate: false,
                 startDate: "",
@@ -900,7 +895,6 @@ export const AddTaskDialogElement = defineElement<{
                     : null,
                 progressCompletionsThisPeriod: baseTask?.progressCompletionsThisPeriod ?? 0,
                 currentProgressPeriodStart: baseTask?.currentProgressPeriodStart ?? null,
-                disableSnooze: state.disableSnooze || undefined, // omit when false (saves space)
                 suggestedDate,
                 windowDeadline,
                 windowLengthDays,

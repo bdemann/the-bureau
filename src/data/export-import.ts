@@ -81,7 +81,7 @@ function commitmentRow(
         fmtDate(t.suggestedDate),
         fmtDate(t.windowDeadline),
         fmtLeadTime(t.leadTimeDays),
-        t.disableSnooze ? 'disabled' : 'yes',
+        'yes',
         t.snoozeCount,
         t.skipStreak,
         t.totalMisses,

@@ -517,9 +517,6 @@ export const BureauAppElement = defineElement()({
                 return;
             }
 
-            // Manually disabled snooze.
-            if (task.disableSnooze) return;
-
             // Next occurrence is tomorrow — snooze would just bring it back on the
             // same committed day (e.g. Mon–Sat routine on any weekday).
             if (isNextOccurrenceTomorrow(task)) return;

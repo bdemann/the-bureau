@@ -304,17 +304,6 @@ export interface Task {
     // ── Snooze (resets to 0 on completion) ──
     snoozeCount: number;
     snoozedUntil: number | null;
-    /**
-     * When true, snoozing is permanently disabled for this directive regardless
-     * of cadence. Useful for commitments where postponing defeats the purpose
-     * (e.g. "every day I'm religiously able to — Sabbath is already the rest
-     * day, snoozing onto a weekday is cheating").
-     *
-     * Distinct from the auto-blocked cases (daily routines, tasks whose next
-     * occurrence is tomorrow) — those are inferred from the schedule; this is
-     * an explicit user choice.
-     */
-    disableSnooze?: boolean;
 
     // ── Lifetime insight counters ──
     totalSnoozes: number;
