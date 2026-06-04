@@ -3,7 +3,7 @@
 // No I/O except triggerDownload (DOM) and parseImport (JSON.parse).
 // ─────────────────────────────────────────────────────────────────────────────
 
-import type {AppState, Task} from './types.js';
+import type {AnyCommitment, AppState, Goal, Idea, RecurrenceConfig, Task} from './types.js';
 import {getDailyBand} from './urgency.js';
 import {getTodayString} from './storage.js';
 
@@ -12,55 +12,150 @@ import {getTodayString} from './storage.js';
 const CSV_HEADERS = [
     'id', 'kind', 'title', 'area',
     'tier', 'windowType',
-    'cadence', 'scheduleMode',
+    'cadence', 'scheduleMode', 'anchorDays',
     'timeOfDay',
     'suggestedDate', 'windowDeadline', 'leadTimeDays',
     'snoozable', 'snoozeCount', 'skipStreak',
     'totalMisses', 'totalSnoozes', 'totalSkips',
-    'completionStreak', 'currentBand', 'paused',
+    'completionStreak', 'currentBand', 'paused', 'notes',
 ] as const;
 
 export function buildCsvExport(state: AppState): string {
     const areaMap = new Map(state.areas.map(a => [a.id, a.name]));
-    const today = new Date();
+    const today   = new Date();
 
-    const tasks = state.commitments.filter(
-        (c): c is Task => c.kind === 'routine' || c.kind === 'task',
-    );
-
-    const rows = tasks.map(t => {
-        const paused =
-            t.pausedIndefinitely ? 'indefinite'
-            : t.pausedUntil      ? `until ${fmtDate(t.pausedUntil)}`
-            :                      'no';
-
-        return [
-            t.id,
-            t.kind,
-            escapeCsv(t.title),
-            escapeCsv(t.areaId ? (areaMap.get(t.areaId) ?? '') : ''),
-            t.consequenceTier,
-            t.windowType,
-            t.recurrence?.cadence ?? 'one-time',
-            t.recurrence?.scheduleMode ?? '',
-            t.timeOfDay,
-            fmtDate(t.suggestedDate),
-            fmtDate(t.windowDeadline),
-            fmtLeadTime(t.leadTimeDays),
-            t.disableSnooze ? 'disabled' : 'yes',
-            t.snoozeCount,
-            t.skipStreak,
-            t.totalMisses,
-            t.totalSnoozes,
-            t.totalSkips,
-            t.taskCompletionStreak,
-            getDailyBand(t, today),
-            paused,
-        ].join(',');
-    });
-
+    const rows = state.commitments.map(c => commitmentRow(c, areaMap, today));
     return [CSV_HEADERS.join(','), ...rows].join('\n');
 }
+
+function commitmentRow(
+    c: AnyCommitment,
+    areaMap: Map<string, string>,
+    today: Date,
+): string {
+    const area = escapeCsv(c.areaId ? (areaMap.get(c.areaId) ?? '') : '');
+
+    if (c.kind === 'goal') {
+        return [
+            c.id, 'goal', escapeCsv(c.title), area,
+            '', '', '', '', '',  // tier, windowType, cadence, scheduleMode, anchorDays
+            '',                   // timeOfDay
+            fmtDate(c.targetDate), '', '',  // suggestedDate (target), windowDeadline, leadTime
+            '', '', '',           // snoozable, snoozeCount, skipStreak
+            '', '', '',           // totalMisses, totalSnoozes, totalSkips
+            '', '', '',           // completionStreak, currentBand, paused
+            escapeCsv(c.status),  // notes = goal status
+        ].join(',');
+    }
+
+    if (c.kind === 'idea') {
+        return [
+            c.id, 'idea', escapeCsv(c.title), area,
+            '', '', '', '', '',
+            '',
+            '', '', '',
+            '', '', '',
+            '', '', '',
+            '', '', '', '',
+        ].join(',');
+    }
+
+    // task or routine
+    const t = c as Task;
+    const paused =
+        t.pausedIndefinitely ? 'indefinite'
+        : t.pausedUntil      ? `until ${fmtDate(t.pausedUntil)}`
+        :                      'no';
+
+    return [
+        t.id,
+        t.kind,
+        escapeCsv(t.title),
+        area,
+        t.consequenceTier,
+        t.windowType,
+        t.recurrence?.cadence ?? 'one-time',
+        t.recurrence?.scheduleMode ?? '',
+        escapeCsv(fmtAnchor(t.recurrence ?? null)),
+        t.timeOfDay,
+        fmtDate(t.suggestedDate),
+        fmtDate(t.windowDeadline),
+        fmtLeadTime(t.leadTimeDays),
+        t.disableSnooze ? 'disabled' : 'yes',
+        t.snoozeCount,
+        t.skipStreak,
+        t.totalMisses,
+        t.totalSnoozes,
+        t.totalSkips,
+        t.taskCompletionStreak,
+        getDailyBand(t, today),
+        paused,
+        '',  // notes (reserved)
+    ].join(',');
+}
+
+// ── Anchor day formatting ────────────────────────────────────────────────────
+
+const DAY_ABBR  = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'] as const;
+const MON_ABBR  = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+                   'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'] as const;
+const ORD_LABEL: Record<number, string> = {
+    1: '1st', 2: '2nd', 3: '3rd', 4: '4th', 5: '5th', [-1]: 'last',
+};
+
+function fmtAnchor(cfg: RecurrenceConfig | null): string {
+    if (!cfg) return '';
+
+    switch (cfg.cadence) {
+        case 'weekly': {
+            const days = cfg.hardDaysOfWeek
+                ?? (cfg.hardDayOfWeek !== undefined ? [cfg.hardDayOfWeek] : null);
+            return days ? days.map(d => DAY_ABBR[d]).join(',') : '';
+        }
+
+        case 'monthly':
+        case 'quarterly': {
+            // Ordinal weekday ("3rd Mon")
+            if (cfg.ordinalWeek !== undefined && cfg.hardDayOfWeek !== undefined) {
+                const ord = ORD_LABEL[cfg.ordinalWeek] ?? String(cfg.ordinalWeek);
+                const day = DAY_ABBR[cfg.hardDayOfWeek];
+                if (cfg.cadence === 'quarterly' && cfg.hardMonthOfQuarter !== undefined) {
+                    return `m${cfg.hardMonthOfQuarter + 1} ${ord} ${day}`;
+                }
+                return `${ord} ${day}`;
+            }
+            // Multi-day of month ("dom:1,15")
+            if (cfg.hardDaysOfMonth && cfg.hardDaysOfMonth.length > 0) {
+                const prefix = cfg.cadence === 'quarterly' && cfg.hardMonthOfQuarter !== undefined
+                    ? `m${cfg.hardMonthOfQuarter + 1} ` : '';
+                return `${prefix}dom:${cfg.hardDaysOfMonth.join(',')}`;
+            }
+            // Single day of month
+            if (cfg.hardDayOfMonth !== undefined) {
+                const prefix = cfg.cadence === 'quarterly' && cfg.hardMonthOfQuarter !== undefined
+                    ? `m${cfg.hardMonthOfQuarter + 1} ` : '';
+                return `${prefix}dom:${cfg.hardDayOfMonth}`;
+            }
+            return '';
+        }
+
+        case 'yearly': {
+            const mon = cfg.hardMonthOfYear !== undefined ? MON_ABBR[cfg.hardMonthOfYear] : null;
+            if (cfg.ordinalWeek !== undefined && cfg.hardDayOfWeek !== undefined) {
+                const ord = ORD_LABEL[cfg.ordinalWeek] ?? String(cfg.ordinalWeek);
+                const day = DAY_ABBR[cfg.hardDayOfWeek];
+                return mon ? `${mon} ${ord} ${day}` : `${ord} ${day}`;
+            }
+            if (mon && cfg.hardDayOfMonth !== undefined) return `${mon} ${cfg.hardDayOfMonth}`;
+            return mon ?? '';
+        }
+
+        default:
+            return '';
+    }
+}
+
+// ── Helpers ──────────────────────────────────────────────────────────────────
 
 function fmtDate(ms: number | null | undefined): string {
     if (ms == null) return '';
@@ -126,7 +221,7 @@ export function triggerDownload(
 }
 
 export function csvFilename(): string {
-    return `bcr-clear-tasks-${getTodayString()}.csv`;
+    return `bcr-clear-export-${getTodayString()}.csv`;
 }
 
 export function jsonFilename(): string {
