@@ -29,6 +29,7 @@ import {
 } from "../data/recurrence.js";
 import {
     countActiveTasks,
+    DOCKET_CLEARED_BONUS,
     missPenalty,
     SUGGESTED_BAND_PENALTY_FACTOR,
     skipPenalty,
@@ -384,6 +385,9 @@ export const BureauAppElement = defineElement()({
             if (!target) return;
 
             const now = new Date();
+            const mandatoryBefore = currentTasks.filter(
+                (t) => getDailyBand(t, now) === 'mandatory',
+            ).length;
             const tasks = currentTasks.map((t) => {
                 if (t.id !== taskId) return t;
 
@@ -483,8 +487,18 @@ export const BureauAppElement = defineElement()({
             const backlogBonus = (band === 'radar' || band === 'backlog') ? 1.5 : 1;
             const reward =
                 tierCompletionReward(tier) * taskScaleMultiplier(active) * backlogBonus;
+
+            // Docket-cleared bonus: fires when the last mandatory task is completed.
+            const mandatoryAfter = tasks.filter(
+                (t) => getDailyBand(t, now) === 'mandatory',
+            ).length;
+            const docketCleared = mandatoryBefore > 0 && mandatoryAfter === 0;
+            const docketBonus = docketCleared
+                ? DOCKET_CLEARED_BONUS * taskScaleMultiplier(active)
+                : 0;
+
             const prevScore = state.app.patriotScore;
-            const newScore = Math.min(200, prevScore + reward);
+            const newScore = Math.min(200, prevScore + reward + docketBonus);
             const newStreak = state.app.completionStreak + 1;
 
             commit({
@@ -496,7 +510,9 @@ export const BureauAppElement = defineElement()({
             const preferDirector = Math.random() < 0.25;
             triggerDialogue("task_completed", preferDirector);
 
-            if (newStreak > 0 && newStreak % 5 === 0) {
+            if (docketCleared) {
+                setTimeout(() => triggerDialogue("streak"), 400);
+            } else if (newStreak > 0 && newStreak % 5 === 0) {
                 setTimeout(() => triggerDialogue("streak"), 400);
             }
             if (newScore >= 150 && prevScore < 150) {

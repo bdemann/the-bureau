@@ -33,6 +33,12 @@ export const SKIP_ESCALATION_THRESHOLD = 5;
 export const REMEDIATION_CAP = 5;
 
 /**
+ * Bonus awarded (before N-scaling) when the last mandatory task is completed
+ * and the mandatory band empties for the day. Rewards consistent daily execution.
+ */
+export const DOCKET_CLEARED_BONUS = 5;
+
+/**
  * Count of tasks that are actionable (not completed, missed, or paused).
  * This is the N used for score scaling.
  */
