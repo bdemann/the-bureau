@@ -504,6 +504,17 @@
                 commitment anchored to a specific date, a window of time, or a long-horizon project?"
             </p>
 
+            <div class="design-note">
+                <strong>Hard vs. Flexible — The Key Test</strong>
+                Ask: <em>"If I miss my preferred day, is the opportunity gone?"</em> If yes — the
+                trash truck already came, the bill was due yesterday, the appointment slot passed —
+                that's a Hard window. If no — any day this week works just as well — that's a
+                Flexible window with a suggested date. The distinction matters: Hard windows that
+                are really Flexible create urgency signals that don't match reality, which trains
+                you to ignore them. Flexible windows that are really Hard risk treating a deadline
+                as a suggestion.
+            </div>
+
             <div class="setting-block">
                 <div class="setting-header">
                     <span class="setting-name">Hard</span>
@@ -671,6 +682,125 @@
                             language.</em> The commitment tracks your aspiration — without guilt if life
                         intervenes.
                     </div>
+                </div>
+            </div>
+
+            <h2 class="section-heading">Urgency Bands — Where Your Commitment Shows Up Today</h2>
+
+            <p>
+                Every day, CLEAR places each active commitment into one of four urgency bands. The band
+                determines where on the daily view it appears — and how much pressure the system puts on
+                you to act. Band placement is computed automatically from the commitment's tier, window
+                type, cadence, and how close it is to its deadline.
+            </p>
+
+            <div class="setting-block">
+                <div class="setting-header">
+                    <span class="setting-name">Mandatory</span>
+                    <span class="setting-applies">Act today — the commitment is due</span>
+                </div>
+                <div class="setting-body">
+                    <p>
+                        The commitment is due today and cannot wait. Items land here when:
+                    </p>
+                    <ul class="setting-options">
+                        <li>
+                            <span class="opt-label">T1 daily</span>
+                            <span class="opt-body">Tier I daily routines are always Mandatory — they carry
+                            genuine consequences and reset every day.</span>
+                        </li>
+                        <li>
+                            <span class="opt-label">Hard date due</span>
+                            <span class="opt-body">Any tier's hard-date task on or past its due date
+                            (except T4 — see below).</span>
+                        </li>
+                        <li>
+                            <span class="opt-label">Flexible deadline</span>
+                            <span class="opt-body">A flexible window task whose deadline has arrived —
+                            today is the last day.</span>
+                        </li>
+                        <li>
+                            <span class="opt-label">T2 daily escalated</span>
+                            <span class="opt-body">A Tier II daily routine that has been skipped five or
+                            more consecutive times escalates to Mandatory. The threshold is adjustable
+                            per commitment.</span>
+                        </li>
+                        <li>
+                            <span class="opt-label">Single weekly day</span>
+                            <span class="opt-body">A weekly commitment anchored to a specific single day
+                            (e.g., every Wednesday) — that day is the commitment, so today being that
+                            day makes it Mandatory. Multi-day weekly routines follow the daily rules
+                            above.</span>
+                        </li>
+                    </ul>
+                    <p style="margin-top: 12px;">
+                        <strong>T4 exception:</strong> Aspirational (Tier IV) items are never Mandatory,
+                        regardless of timing. They appear at most in Suggested — the system tracks your
+                        aspiration without coercing it.
+                    </p>
+                </div>
+            </div>
+
+            <div class="setting-block">
+                <div class="setting-header">
+                    <span class="setting-name">Suggested</span>
+                    <span class="setting-applies">Recommended for today — your call</span>
+                </div>
+                <div class="setting-body">
+                    <p>
+                        The commitment fits today well but isn't strictly due. Items land here when:
+                    </p>
+                    <ul class="setting-options">
+                        <li>
+                            <span class="opt-label">T2–T4 daily</span>
+                            <span class="opt-body">Daily routines at Tier II, III, or IV start in Suggested.
+                            They appear every day but don't loom as mandatory unless a skip streak
+                            triggers escalation (T2 only).</span>
+                        </li>
+                        <li>
+                            <span class="opt-label">Flexible past preferred</span>
+                            <span class="opt-body">A flexible window task past its suggested date — the
+                            preferred day has passed but the deadline hasn't. The system nudges; the
+                            choice is still yours.</span>
+                        </li>
+                        <li>
+                            <span class="opt-label">Snooze escalation</span>
+                            <span class="opt-body">Any item with enough snooze accumulation can be lifted
+                            toward Suggested by the snooze escalation rules.</span>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="setting-block">
+                <div class="setting-header">
+                    <span class="setting-name">Radar</span>
+                    <span class="setting-applies">Coming up — worth being aware of</span>
+                </div>
+                <div class="setting-body">
+                    <p>
+                        The commitment is approaching but not yet due. It's visible so you can plan ahead,
+                        not because action is needed today. Hard-date tasks within their lead time window
+                        and flexible tasks entering the last quarter of their window appear here.
+                        Completing a Radar item earns a <strong>1.5× bonus</strong> — acting early is
+                        recognized.
+                    </p>
+                </div>
+            </div>
+
+            <div class="setting-block">
+                <div class="setting-header">
+                    <span class="setting-name">Backlog</span>
+                    <span class="setting-applies">On the horizon — no action needed yet</span>
+                </div>
+                <div class="setting-body">
+                    <p>
+                        The commitment is active but has plenty of time remaining. It's in view so
+                        nothing falls off your map, but the system isn't asking anything of you today.
+                        Like Radar items, completing from the Backlog earns a <strong>1.5× bonus</strong>.
+                        You can dismiss a Backlog or Radar card for the day with "Not Today" — no score
+                        impact, just declutter.
+                    </p>
                 </div>
             </div>
 
@@ -941,27 +1071,6 @@
 
             <div class="setting-block">
                 <div class="setting-header">
-                    <span class="setting-name">Disable Snooze</span>
-                    <span class="setting-applies">Best for: routines where the timing is the commitment</span>
-                </div>
-                <div class="setting-body">
-                    <p>
-                        Permanently removes the snooze option for this item. Use this when deferring
-                        to tomorrow defeats the purpose of the commitment — the time <em>is</em> the commitment.
-                    </p>
-                    <p>
-                        <em>Daily medication — if you miss the window, you missed it; snoozed to tomorrow
-                            just means another miss tomorrow.
-                            Morning workout — snoozed to the afternoon probably means it won't happen.
-                            Religious observance with a built-in rest day — the day is fixed; snoozed
-                            onto another day is just avoidance.
-                            Trash day — the truck comes at 7am; there is no "later today."</em>
-                    </p>
-                </div>
-            </div>
-
-            <div class="setting-block">
-                <div class="setting-header">
                     <span class="setting-name">Pause</span>
                     <span class="setting-applies">Temporary suspension — no score or streak impact</span>
                 </div>
@@ -1006,9 +1115,10 @@
 
             <div class="design-note">
                 <strong>Lead Time on Daily Routines</strong>
-                Daily routines are always assigned to the mandatory urgency band — the urgency engine
-                doesn't consult the lead time setting for them. Setting a lead time on a daily routine
-                is inert. The setting is harmless, but has no effect.
+                Daily routines skip the lead time calculation entirely — the urgency engine places them
+                directly by tier and skip streak. Tier I lands in Mandatory; Tier II–IV land in
+                Suggested (Tier II escalates to Mandatory after five consecutive skips). Setting a
+                lead time on a daily routine is inert. The setting is harmless, but has no effect.
             </div>
 
             <div class="design-note">
@@ -1067,8 +1177,8 @@
                         <td class="field-label">Window Type</td>
                         <td>—</td>
                         <td>—</td>
-                        <td>✓ Hard / Flexible / Milestone</td>
-                        <td>✓ Hard / Flexible / Milestone</td>
+                        <td>✓ Hard / Flexible / Milestone (not shown for daily cadence)</td>
+                        <td>✓ Hard / Flexible / Milestone (not shown for daily cadence)</td>
                     </tr>
                     <tr>
                         <td class="field-label">Cadence / Recurrence</td>
@@ -1120,13 +1230,6 @@
                         <td>✓ Common — tasks end</td>
                     </tr>
                     <tr>
-                        <td class="field-label">Disable Snooze</td>
-                        <td>—</td>
-                        <td>—</td>
-                        <td>✓ When timing is the commitment</td>
-                        <td>—</td>
-                    </tr>
-                    <tr>
                         <td class="field-label">Pause</td>
                         <td>—</td>
                         <td>—</td>
@@ -1175,7 +1278,7 @@
                 Bureau of Civic Responsibility &nbsp;·&nbsp; An Agency of the Department of Domestic Civic Affairs<br>
                 This is a parody website. The BCR is a fictional government agency. Any resemblance to
                 real bureaucratic entities is not intentional.<br>
-                Last Reviewed: 2026-05-27 &nbsp;|&nbsp; Document Class: PUBLIC INFORMATION
+                Last Reviewed: 2026-06-04 &nbsp;|&nbsp; Document Class: PUBLIC INFORMATION
             </div>
         </div>
     </footer>
