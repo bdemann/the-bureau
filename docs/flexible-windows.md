@@ -35,6 +35,8 @@ The distinction between Hard and Flexible is often misunderstood. It's not about
 
 **Counter-example:** You need to take the trash to the curb on Wednesday night. The truck comes Thursday morning. If you miss Wednesday night, you missed it. → Hard, no lead time.
 
+**Important:** Hard does not require *external* enforcement. A self-imposed recurring time slot is also hard. "I review ancestry hints on the 3rd Sunday of the month — that's my carved-out time for it; if I miss it I wait until next month" is a hard date. The distinction is whether missing the day means the next occurrence is next period (hard) or whether you still have time in the current period (flexible). External consequences are one reason to use hard, but not the only reason.
+
 The practical difference: if you miss the suggested date on a Hard task, the period is over (or the task is immediately overdue and mandatory). If you miss the suggested date on a Flexible task, you still have until the deadline — the app keeps it visible and escalates gradually.
 
 ---
