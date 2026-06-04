@@ -453,12 +453,17 @@ Remediation fires whenever a commitment that had a skip streak OR high snooze co
 
 ### Annually cadence (commitment dialog)
 
-- [ ] Selecting "Annually" from the cadence dropdown shows Season shortcuts, Month grid, and Day-of-month field
-- [ ] Season shortcuts (Spring/Summer/Fall/Winter) set the month to Mar/Jun/Sep/Dec respectively and highlight the corresponding month button
-- [ ] Month grid (Jan–Dec) allows fine selection; clicking any month updates the anchor summary
-- [ ] Day-of-month input updates the anchor summary (e.g., "Every Sep 1st.")
-- [ ] Saving an annual commitment: edit dialog re-opens with the same month and day pre-filled
-- [ ] After advancing one year (or simulating with devtools): suggested date is the same month/day next year
+- [ ] Selecting "Annually" from the cadence dropdown shows Month grid and Day Anchor toggle
+- [ ] Month grid (Jan–Dec) allows selection; clicking any month updates the anchor summary
+- [ ] Day Anchor toggle: "Day of month" shows day-of-month grid; "Nth weekday" shows ordinal + day-of-week pickers (#35)
+- [ ] Day of month: day-of-month grid updates the anchor summary (e.g., "Every Sep 1st.")
+- [ ] Nth weekday: ordinal picker (1st/2nd/3rd/4th/5th/Last) + day-of-week picker (#35)
+- [ ] Nth weekday: summary reads "The 4th Thursday of Nov each year." (#35)
+- [ ] Saving with Nth weekday: edit dialog re-opens with "Nth weekday" selected and correct ordinal/day-of-week (#35)
+- [ ] After advancing one year with day-of-month: suggested date is the same month/day next year
+- [ ] After advancing one year with Nth weekday: suggested date is that weekday in the same month next year (#35)
+- [ ] "4th Thursday of November" task: first occurrence is correct Thanksgiving date; advances correctly year-over-year (#35)
+- [ ] "2nd Sunday of May" (Mother's Day): correct date each year (#35)
 
 ### Recurring start date
 

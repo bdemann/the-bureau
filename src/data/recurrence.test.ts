@@ -752,6 +752,88 @@ describe('annually — hardMonthOfYear anchor', () => {
     });
 });
 
+// ── GitHub #35: yearly ordinal weekday ───────────────────────────────────────
+
+describe('annually — ordinal weekday anchor (GitHub #35)', () => {
+    // Thanksgiving: 4th Thursday of November
+    const thanksgiving2026 = date('2026-11-26'); // 4th Thu of Nov 2026
+    const thanksgiving2027 = date('2027-11-25'); // 4th Thu of Nov 2027
+
+    test('initialiseRecurrence picks this-year ordinal when in future', () => {
+        // Today = May 17; target = 4th Thursday of November → Nov 26 2026
+        const today = date('2026-05-17');
+        const cfg = makeRecurrence({
+            cadence: 'yearly',
+            hardMonthOfYear: 10, // November = 10
+            ordinalWeek: 4,
+            hardDayOfWeek: 4, // Thursday
+        });
+        const init = initialiseRecurrence({windowType: 'flexible', suggestedDate: null}, cfg, today);
+        assert.strictEquals(
+            new Date(init.suggestedDate).toDateString(),
+            thanksgiving2026.toDateString(),
+        );
+    });
+
+    test('initialiseRecurrence rolls to next year when this-year ordinal has passed', () => {
+        // Today = Dec 1 (past Thanksgiving); should return 2027
+        const today = date('2026-12-01');
+        const cfg = makeRecurrence({
+            cadence: 'yearly',
+            hardMonthOfYear: 10,
+            ordinalWeek: 4,
+            hardDayOfWeek: 4,
+        });
+        const init = initialiseRecurrence({windowType: 'flexible', suggestedDate: null}, cfg, today);
+        assert.strictEquals(
+            new Date(init.suggestedDate).toDateString(),
+            thanksgiving2027.toDateString(),
+        );
+    });
+
+    test('getNextSuggestedDate advances to the next year ordinal occurrence', () => {
+        const today = date('2026-11-27'); // day after Thanksgiving 2026
+        const t = makeTask({
+            recurrence: makeRecurrence({
+                cadence: 'yearly',
+                hardMonthOfYear: 10,
+                ordinalWeek: 4,
+                hardDayOfWeek: 4,
+            }),
+            suggestedDate: thanksgiving2026.getTime(),
+            currentPeriodStart: date('2026-01-01').getTime(),
+        });
+        const advanced = advanceRecurrence(t, today);
+        assert.strictEquals(
+            new Date(advanced.suggestedDate!).toDateString(),
+            thanksgiving2027.toDateString(),
+        );
+    });
+
+    test('getNextSuggestedDate: 2nd Sunday of May (Mother\'s Day) — 2026 and 2027', () => {
+        // Mother's Day 2026 = May 10; 2027 = May 9
+        const mothersDay2026 = date('2026-05-10');
+        const mothersDay2027 = date('2027-05-09');
+        const today = date('2026-05-11'); // day after
+
+        const t = makeTask({
+            recurrence: makeRecurrence({
+                cadence: 'yearly',
+                hardMonthOfYear: 4, // May = 4
+                ordinalWeek: 2,
+                hardDayOfWeek: 0, // Sunday
+            }),
+            suggestedDate: mothersDay2026.getTime(),
+            currentPeriodStart: date('2026-01-01').getTime(),
+        });
+        const advanced = advanceRecurrence(t, today);
+        assert.strictEquals(
+            new Date(advanced.suggestedDate!).toDateString(),
+            mothersDay2027.toDateString(),
+        );
+    });
+});
+
 // ── skipDays ─────────────────────────────────────────────────────────────────
 
 describe('isSkipDay', () => {

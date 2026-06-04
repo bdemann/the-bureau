@@ -161,6 +161,9 @@ export function getNextSuggestedDate(
         const ref = task.suggestedDate ? new Date(task.suggestedDate) : new Date(nextPeriod.start);
         const start = new Date(nextPeriod.start);
         const month = cfg.hardMonthOfYear ?? ref.getMonth();
+        if (cfg.ordinalWeek !== undefined && cfg.hardDayOfWeek !== undefined) {
+            return nthWeekdayOfMonth(start.getFullYear(), month, cfg.ordinalWeek, cfg.hardDayOfWeek);
+        }
         const dom = cfg.hardDayOfMonth ?? ref.getDate();
         const lastDayOfMonth = new Date(start.getFullYear(), month + 1, 0).getDate();
         return new Date(start.getFullYear(), month, Math.min(dom, lastDayOfMonth));
@@ -384,6 +387,11 @@ function deriveInitialSuggested(cfg: RecurrenceConfig, period: Period, today: Da
         if (cfg.hardMonthOfYear !== undefined) {
             const todayMs = startOfDay(today).getTime();
             const month = cfg.hardMonthOfYear;
+            if (cfg.ordinalWeek !== undefined && cfg.hardDayOfWeek !== undefined) {
+                const thisYear = nthWeekdayOfMonth(today.getFullYear(), month, cfg.ordinalWeek, cfg.hardDayOfWeek);
+                if (thisYear.getTime() >= todayMs) return thisYear.getTime();
+                return nthWeekdayOfMonth(today.getFullYear() + 1, month, cfg.ordinalWeek, cfg.hardDayOfWeek).getTime();
+            }
             const dom = cfg.hardDayOfMonth ?? 1;
             // This year's occurrence in the target month.
             const lastDayThis = new Date(today.getFullYear(), month + 1, 0).getDate();

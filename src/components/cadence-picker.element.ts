@@ -17,6 +17,8 @@ export interface CadenceConfig {
     daysOfWeek: ReadonlySet<number>;
     /** Monthly / quarterly anchor type. */
     monthAnchorMode: 'dom' | 'ordinal';
+    /** Yearly anchor type. */
+    yearAnchorMode: 'dom' | 'ordinal';
     /** Monthly / quarterly: selected day(s) of the month (1–31). */
     daysOfMonth: ReadonlySet<number>;
     /** Yearly: day of the month (1–31). */
@@ -41,6 +43,7 @@ export function defaultCadenceConfig(
         scheduleMode: cadence === 'daily' || cadence === 'multiple_per_day' ? 'rolling' : 'fixed',
         daysOfWeek: new Set([today.getDay()]),
         monthAnchorMode: 'dom',
+        yearAnchorMode: 'dom',
         daysOfMonth: new Set([today.getDate()]),
         dayOfMonth: today.getDate(),
         ordinalWeek: 1,
@@ -60,7 +63,8 @@ export function cadenceConfigFromRecurrence(cfg: RecurrenceConfig): CadenceConfi
         cadence: cfg.cadence,
         scheduleMode: cfg.scheduleMode,
         daysOfWeek: new Set(rawDaysOfWeek ?? [base.daysOfWeek.values().next().value ?? 1]),
-        monthAnchorMode: cfg.ordinalWeek !== undefined ? 'ordinal' : 'dom',
+        monthAnchorMode: (cfg.cadence === 'monthly' || cfg.cadence === 'quarterly') && cfg.ordinalWeek !== undefined ? 'ordinal' : 'dom',
+        yearAnchorMode: cfg.cadence === 'yearly' && cfg.ordinalWeek !== undefined ? 'ordinal' : 'dom',
         daysOfMonth: new Set(
             cfg.hardDaysOfMonth
                 ?? (cfg.hardDayOfMonth !== undefined ? [cfg.hardDayOfMonth] : [1]),
@@ -100,6 +104,13 @@ export function buildRecurrenceAnchors(config: CadenceConfig): Partial<Recurrenc
                 : { hardMonthOfQuarter: config.quarterMonth, hardDayOfMonth: sorted[0] ?? 1 };
         }
         case 'yearly': {
+            if (config.yearAnchorMode === 'ordinal') {
+                return {
+                    hardMonthOfYear: config.annualMonth,
+                    hardDayOfWeek: config.dayOfWeek,
+                    ordinalWeek: config.ordinalWeek,
+                };
+            }
             return {
                 hardMonthOfYear: config.annualMonth,
                 hardDayOfMonth: config.dayOfMonth,
@@ -489,7 +500,7 @@ export const CadencePickerElement = defineElement<{ config: CadenceConfig }>()({
                 </div>
             ` : html``}
 
-            <!-- Yearly: month + day -->
+            <!-- Yearly: month + anchor type (dom or ordinal) -->
             ${config.cadence === 'yearly' ? html`
                 <div class="field">
                     <span class="field-label">Month</span>
@@ -509,22 +520,91 @@ export const CadencePickerElement = defineElement<{ config: CadenceConfig }>()({
                     </div>
                 </div>
                 <div class="field">
-                    <span class="field-label">Day of Month</span>
-                    <div class="dom-grid">
-                        ${DOM_RANGE.map((d) => html`
-                            <${ViraButton.assign({
-                                text: String(d),
-                                color: ViraColorVariant.Info,
-                                buttonEmphasis: config.dayOfMonth === d
-                                    ? ViraEmphasis.Standard
-                                    : ViraEmphasis.Subtle,
-                                buttonSize: ViraSize.Small,
-                            })}
-                                @click=${() => update({ dayOfMonth: d })}
-                            ></${ViraButton}>
-                        `)}
+                    <span class="field-label">Day Anchor</span>
+                    <div class="grid-2">
+                        <${ViraButton.assign({
+                            text: 'Day of month',
+                            color: ViraColorVariant.Info,
+                            buttonEmphasis: config.yearAnchorMode === 'dom'
+                                ? ViraEmphasis.Standard
+                                : ViraEmphasis.Subtle,
+                            buttonSize: ViraSize.Small,
+                        })}
+                            @click=${() => update({ yearAnchorMode: 'dom' })}
+                        ></${ViraButton}>
+                        <${ViraButton.assign({
+                            text: 'Nth weekday',
+                            color: ViraColorVariant.Info,
+                            buttonEmphasis: config.yearAnchorMode === 'ordinal'
+                                ? ViraEmphasis.Standard
+                                : ViraEmphasis.Subtle,
+                            buttonSize: ViraSize.Small,
+                        })}
+                            @click=${() => update({ yearAnchorMode: 'ordinal' })}
+                        ></${ViraButton}>
                     </div>
                 </div>
+
+                ${config.yearAnchorMode === 'dom' ? html`
+                    <div class="field">
+                        <span class="field-label">Day of Month</span>
+                        <div class="dom-grid">
+                            ${DOM_RANGE.map((d) => html`
+                                <${ViraButton.assign({
+                                    text: String(d),
+                                    color: ViraColorVariant.Info,
+                                    buttonEmphasis: config.dayOfMonth === d
+                                        ? ViraEmphasis.Standard
+                                        : ViraEmphasis.Subtle,
+                                    buttonSize: ViraSize.Small,
+                                })}
+                                    @click=${() => update({ dayOfMonth: d })}
+                                ></${ViraButton}>
+                            `)}
+                        </div>
+                    </div>
+                ` : html`
+                    <div class="field">
+                        <span class="field-label">Which Occurrence</span>
+                        <div class="grid-6">
+                            ${ORDINAL_VALUES.map((w) => html`
+                                <${ViraButton.assign({
+                                    text: w === -1 ? 'Last' : w === 5 ? '5th*' : ordinalSuffix(w),
+                                    color: ViraColorVariant.Info,
+                                    buttonEmphasis: config.ordinalWeek === w
+                                        ? ViraEmphasis.Standard
+                                        : ViraEmphasis.Subtle,
+                                    buttonSize: ViraSize.Small,
+                                })}
+                                    @click=${() => update({ ordinalWeek: w })}
+                                ></${ViraButton}>
+                            `)}
+                        </div>
+                    </div>
+                    <div class="field">
+                        <span class="field-label">Day of Week</span>
+                        <div class="dow-grid">
+                            ${DAY_LABELS.map((d) => html`
+                                <${ViraButton.assign({
+                                    text: d.label,
+                                    color: ViraColorVariant.Info,
+                                    buttonEmphasis: config.dayOfWeek === d.value
+                                        ? ViraEmphasis.Standard
+                                        : ViraEmphasis.Subtle,
+                                    buttonSize: ViraSize.Small,
+                                })}
+                                    @click=${() => update({ dayOfWeek: d.value })}
+                                ></${ViraButton}>
+                            `)}
+                        </div>
+                        <div class="anchor-summary">
+                            The ${config.ordinalWeek === -1 ? 'last' : ordinalSuffix(config.ordinalWeek)}
+                            ${DAY_LABELS.find((d) => d.value === config.dayOfWeek)?.label ?? ''}
+                            of ${MONTH_LABELS.find((m) => m.value === config.annualMonth)?.label ?? ''}
+                            each year${config.ordinalWeek === 5 ? ' (skips years where that month lacks a 5th)' : ''}.
+                        </div>
+                    </div>
+                `}
             ` : html``}
         `;
     },
