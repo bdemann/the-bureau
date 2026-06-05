@@ -231,6 +231,29 @@ export const DailyViewElement = defineElement<{
             justify-content: flex-end;
         }
 
+        .collapse-all-bar {
+            display: flex;
+            justify-content: flex-end;
+            margin-bottom: 8px;
+        }
+
+        .collapse-all-btn {
+            background: none;
+            border: none;
+            font-family: var(--font-mono);
+            font-size: 0.65rem;
+            letter-spacing: 0.1em;
+            color: var(--color-text-muted);
+            cursor: pointer;
+            padding: 4px 0;
+            -webkit-tap-highlight-color: transparent;
+        }
+        @media (hover: hover) {
+            .collapse-all-btn:hover {
+                color: var(--color-text);
+            }
+        }
+
         .task-drag-wrapper {
             position: relative;
         }
@@ -295,6 +318,16 @@ export const DailyViewElement = defineElement<{
                     ...state.expandedSlots,
                     [band]: { ...bandSlots, [slot]: !bandSlots[slot] },
                 },
+            });
+        }
+
+        function collapseAll(): void {
+            updateState({
+                expandMandatory: false,
+                expandSuggested: false,
+                expandRadar: false,
+                expandBacklog: false,
+                expandedSlots: {mandatory: {}, suggested: {}, radar: {}, backlog: {}},
             });
         }
 
@@ -549,6 +582,12 @@ export const DailyViewElement = defineElement<{
         };
 
         return html`
+            <div class="collapse-all-bar">
+                <button
+                    class="collapse-all-btn"
+                    @click=${collapseAll}
+                >COLLAPSE ALL</button>
+            </div>
             ${renderBand("mandatory", {
                 emptyMessage: skinBand("mandatory").empty,
                 collapsible: true,
