@@ -319,6 +319,15 @@ export interface SkinWizard {
     step3FinishBtn: string;
 }
 
+// ── Task / routine creation form ─────────────────────────────────────────────
+
+export interface SkinTaskForm {
+    deadlineTypeLabel: string;      // "Deadline Type" field label
+    deadlineTypeFlexible: string;   // "Flexible" option label
+    deadlineTypeRigid: string;      // "Rigid" option label
+    milestoneLabel: string;         // checkbox label for milestone toggle
+}
+
 // ── The full skin ─────────────────────────────────────────────────────────────
 
 export interface Skin {
@@ -338,6 +347,7 @@ export interface Skin {
     areaCard: SkinAreaCard;
     commitmentList: SkinCommitmentList;
     areaEdit: SkinAreaEdit;
+    taskForm: SkinTaskForm;
     commitmentRow: SkinCommitmentRow;
     wizard: SkinWizard;
     dialogues: DialogueMap;

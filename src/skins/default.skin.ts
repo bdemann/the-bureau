@@ -236,6 +236,13 @@ export const defaultSkin: Skin = {
         deletePrompt: "PERMANENTLY DELETE THIS AREA AND ALL ITS COMMITMENTS?",
     },
 
+    taskForm: {
+        deadlineTypeLabel: "Deadline Type",
+        deadlineTypeFlexible: "Flexible",
+        deadlineTypeRigid: "Rigid",
+        milestoneLabel: "Milestone (track progress across sessions)",
+    },
+
     commitmentRow: {
         completeTitle: "Mark complete",
         logProgressTitle: "Log progress or complete",

@@ -1603,10 +1603,10 @@ export const AddTaskDialogElement = defineElement<{
                                   ${!isDailyLikeCadence
                                       ? html`
                         <div class="field">
-                            <span class="field-label">Deadline Type</span>
+                            <span class="field-label">${skin.taskForm.deadlineTypeLabel}</span>
                             <div class="seg">
                                 <${ViraButton.assign({
-                                    text: "Flexible",
+                                    text: skin.taskForm.deadlineTypeFlexible,
                                     color: ViraColorVariant.Info,
                                     buttonEmphasis:
                                         state.deadlineType === "flexible"
@@ -1617,7 +1617,7 @@ export const AddTaskDialogElement = defineElement<{
                                     @click=${() => updateState({ deadlineType: "flexible" })}
                                 ></${ViraButton}>
                                 <${ViraButton.assign({
-                                    text: "Rigid",
+                                    text: skin.taskForm.deadlineTypeRigid,
                                     color: ViraColorVariant.Warning,
                                     buttonEmphasis:
                                         state.deadlineType === "rigid"
@@ -1767,7 +1767,7 @@ export const AddTaskDialogElement = defineElement<{
                                     @change=${(e: Event) =>
                                         updateState({ isMilestone: (e.target as HTMLInputElement).checked })}
                                 />
-                                <label for="milestone-toggle">Milestone (track progress across sessions)</label>
+                                <label for="milestone-toggle">${skin.taskForm.milestoneLabel}</label>
                             </div>
                         </div>
                     `
