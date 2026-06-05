@@ -11,7 +11,7 @@ import {
     startOfDay,
 } from "./storage.js";
 import type { AppState, Goal, Idea, Task } from "./types.js";
-import { SCHEMA_VERSION } from "./types.js";
+import { DEFAULT_TIME_SETTINGS, SCHEMA_VERSION, getTimeSlot } from "./types.js";
 import { date, makeGoal, makeIdea, makeRecurrence, makeTask } from "./test-fixtures.js";
 
 const DAY_MS = 86_400_000;
@@ -435,5 +435,53 @@ describe("kind migration", () => {
         const out = migrateState(state);
         const task = out.commitments[0] as Task;
         assert.strictEquals(task!.kind, "routine");
+    });
+});
+
+describe("getTimeSlot", () => {
+    test("default boundaries — morning (5–11)", () => {
+        assert.strictEquals(getTimeSlot(5, DEFAULT_TIME_SETTINGS), "morning");
+        assert.strictEquals(getTimeSlot(11, DEFAULT_TIME_SETTINGS), "morning");
+    });
+
+    test("default boundaries — afternoon (12–16)", () => {
+        assert.strictEquals(getTimeSlot(12, DEFAULT_TIME_SETTINGS), "afternoon");
+        assert.strictEquals(getTimeSlot(16, DEFAULT_TIME_SETTINGS), "afternoon");
+    });
+
+    test("default boundaries — evening (17–20)", () => {
+        assert.strictEquals(getTimeSlot(17, DEFAULT_TIME_SETTINGS), "evening");
+        assert.strictEquals(getTimeSlot(20, DEFAULT_TIME_SETTINGS), "evening");
+    });
+
+    test("default boundaries — bedtime (21–4)", () => {
+        assert.strictEquals(getTimeSlot(21, DEFAULT_TIME_SETTINGS), "bedtime");
+        assert.strictEquals(getTimeSlot(0, DEFAULT_TIME_SETTINGS), "bedtime");
+        assert.strictEquals(getTimeSlot(4, DEFAULT_TIME_SETTINGS), "bedtime");
+    });
+
+    test("custom boundaries override defaults", () => {
+        const custom = { ...DEFAULT_TIME_SETTINGS, morningStart: 7, afternoonStart: 13 };
+        assert.strictEquals(getTimeSlot(6, custom), "bedtime");
+        assert.strictEquals(getTimeSlot(7, custom), "morning");
+        assert.strictEquals(getTimeSlot(12, custom), "morning");
+        assert.strictEquals(getTimeSlot(13, custom), "afternoon");
+    });
+
+    test("boundary hours land in the period that starts at that hour", () => {
+        assert.strictEquals(getTimeSlot(DEFAULT_TIME_SETTINGS.morningStart, DEFAULT_TIME_SETTINGS), "morning");
+        assert.strictEquals(getTimeSlot(DEFAULT_TIME_SETTINGS.afternoonStart, DEFAULT_TIME_SETTINGS), "afternoon");
+        assert.strictEquals(getTimeSlot(DEFAULT_TIME_SETTINGS.eveningStart, DEFAULT_TIME_SETTINGS), "evening");
+        assert.strictEquals(getTimeSlot(DEFAULT_TIME_SETTINGS.bedtimeStart, DEFAULT_TIME_SETTINGS), "bedtime");
+    });
+});
+
+describe("v5→v6 migration adds timeSettings", () => {
+    test("v5 state gets DEFAULT_TIME_SETTINGS", () => {
+        const v5State = { ...DEFAULT_STATE, schemaVersion: 5 } as any;
+        delete v5State.timeSettings;
+        const out = migrateState(v5State as AppState);
+        assert.deepEquals(out.timeSettings, DEFAULT_TIME_SETTINGS);
+        assert.strictEquals(out.schemaVersion, SCHEMA_VERSION);
     });
 });

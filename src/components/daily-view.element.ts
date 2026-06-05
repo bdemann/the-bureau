@@ -7,8 +7,8 @@ import {
 } from "element-vir";
 import { ViraButton, ViraColorVariant, ViraEmphasis, ViraSize } from "vira";
 import {getNowInUserTimezone} from 'date-vir';
-import type { DailyBand, Area, Task, TimeOfDay } from "../data/types.js";
-import { TIME_OF_DAY_SLOTS, timeOfDayLabel } from "../data/types.js";
+import type { DailyBand, Area, Task, TimeOfDay, TimeSettings } from "../data/types.js";
+import { DEFAULT_TIME_SETTINGS, TIME_OF_DAY_SLOTS, getTimeSlot, timeOfDayLabel } from "../data/types.js";
 import { getDailyBand } from "../data/urgency.js";
 import { getActiveSkin } from "../skins/active-skin.js";
 import { TaskItemElement } from "./task-item.element.js";
@@ -23,13 +23,8 @@ const COLLAPSE_THRESHOLD = 5;
 
 // ── Time-of-day slot helpers ─────────────────────────────────────────────────
 
-function getCurrentTimeSlot(): TimeOfDay {
-    const h = getNowInUserTimezone().hour;
-    if (h >= 5 && h < 12) return "morning";
-    if (h >= 12 && h < 17) return "afternoon";
-    if (h >= 17 && h < 21) return "evening";
-    return "bedtime"; // 21:00–04:59
-}
+// Module-level settings reference — updated on every render from inputs.
+let _activeTimeSettings: TimeSettings = DEFAULT_TIME_SETTINGS;
 
 // The visibility-change callback is updated on every render so it always
 // closes over the latest updateState. Only fires when the tab returns from
@@ -41,9 +36,9 @@ let _onSlotChange: ((slot: TimeOfDay) => void) | null = null;
     let slotWhenHidden: TimeOfDay | null = null;
     document.addEventListener("visibilitychange", () => {
         if (document.hidden) {
-            slotWhenHidden = getCurrentTimeSlot();
+            slotWhenHidden = getTimeSlot(getNowInUserTimezone().hour, _activeTimeSettings);
         } else if (slotWhenHidden !== null) {
-            const current = getCurrentTimeSlot();
+            const current = getTimeSlot(getNowInUserTimezone().hour, _activeTimeSettings);
             if (current !== slotWhenHidden) _onSlotChange?.(current);
             slotWhenHidden = null;
         }
@@ -53,6 +48,7 @@ let _onSlotChange: ((slot: TimeOfDay) => void) | null = null;
 export const DailyViewElement = defineElement<{
     tasks: ReadonlyArray<Task>;
     areas: ReadonlyArray<Area>;
+    timeSettings: TimeSettings;
     /** Re-render trigger — changes when the active skin changes. */
     activeSkinId: string;
 }>()({
@@ -71,7 +67,7 @@ export const DailyViewElement = defineElement<{
     },
 
     state: () => {
-        const initialSlot = getCurrentTimeSlot();
+        const initialSlot = getTimeSlot(getNowInUserTimezone().hour, DEFAULT_TIME_SETTINGS);
         const initialBandSlots = { [initialSlot]: true } as Partial<Record<TimeOfDay, boolean>>;
         return {
             expandMandatory: true,
@@ -350,7 +346,8 @@ export const DailyViewElement = defineElement<{
 
     render({ inputs, state, updateState, dispatch, events }) {
         const skin = getActiveSkin();
-        // Keep the callback current every render so it captures the latest updateState.
+        // Keep settings and callback current every render.
+        _activeTimeSettings = inputs.timeSettings;
         _onSlotChange = (newSlot: TimeOfDay) => {
             const slotState = { [newSlot]: true } as Partial<Record<TimeOfDay, boolean>>;
             updateState({

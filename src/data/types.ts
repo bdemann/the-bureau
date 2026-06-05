@@ -19,7 +19,7 @@ export type AppView =
     | "shopping";
 export type Character = "director" | "agent";
 
-export const SCHEMA_VERSION = 5;
+export const SCHEMA_VERSION = 6;
 
 // ── Goal ─────────────────────────────────────────────────────────────────────
 
@@ -223,6 +223,35 @@ export function timeOfDayLabel(t: TimeOfDay): string {
         case "anytime":
             return "Anytime";
     }
+}
+
+export interface TimeSettings {
+    /** Hour (0–23) when the morning period starts. */
+    readonly morningStart: number;
+    /** Hour (0–23) when the afternoon period starts. */
+    readonly afternoonStart: number;
+    /** Hour (0–23) when the evening period starts. */
+    readonly eveningStart: number;
+    /** Hour (0–23) when the bedtime period starts. */
+    readonly bedtimeStart: number;
+    /** Hour (0–23) when the app-day resets. 0 = midnight. */
+    readonly dayResetHour: number;
+}
+
+export const DEFAULT_TIME_SETTINGS: TimeSettings = {
+    morningStart: 5,
+    afternoonStart: 12,
+    eveningStart: 17,
+    bedtimeStart: 21,
+    dayResetHour: 0,
+};
+
+/** Returns the time-of-day slot for hour `h` (0–23) using `settings` boundaries. */
+export function getTimeSlot(h: number, settings: TimeSettings): TimeOfDay {
+    if (h >= settings.morningStart && h < settings.afternoonStart) return "morning";
+    if (h >= settings.afternoonStart && h < settings.eveningStart) return "afternoon";
+    if (h >= settings.eveningStart && h < settings.bedtimeStart) return "evening";
+    return "bedtime";
 }
 
 // ── Task ─────────────────────────────────────────────────────────────────────
@@ -506,4 +535,5 @@ export interface AppState {
     /** ms timestamp of last dismissal; null = never dismissed (show on first load). */
     readonly reportNoticeDismissedAt: number | null;
     readonly shoppingList: ReadonlyArray<ShoppingItem>;
+    readonly timeSettings: TimeSettings;
 }

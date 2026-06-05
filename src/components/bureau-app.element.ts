@@ -14,7 +14,7 @@ import type {
 import {
     daysBetween,
     generateId,
-    getTodayString,
+    getAppDayString,
     isTaskOverdue,
     loadState,
     migrateState,
@@ -137,7 +137,7 @@ function bootstrap(): AppState {
     });
 
     // Detect a new day → push the day-start dialogue and update streak.
-    const todayStr = getTodayString();
+    const todayStr = getAppDayString(loaded.timeSettings.dayResetHour);
     let dialogueQueue = loaded.dialogueQueue;
     let lastActiveDate = loaded.lastActiveDate;
     let completionStreak = loaded.completionStreak;
@@ -506,7 +506,7 @@ export const BureauAppElement = defineElement()({
             const mandatoryAfter = tasks.filter(
                 (t) => getDailyBand(t, now) === 'mandatory',
             ).length;
-            const todayStr = getTodayString();
+            const todayStr = getAppDayString(state.app.timeSettings.dayResetHour);
             const alreadyClearedToday = state.app.docketClearedDate === todayStr;
             const docketCleared =
                 !alreadyClearedToday && mandatoryBefore > 0 && mandatoryAfter === 0;
@@ -1062,6 +1062,7 @@ export const BureauAppElement = defineElement()({
                             : null,
                     areaName: selectedGoal?.title ?? selectedArea?.name ?? null,
                     activeSkinId: state.activeSkinId,
+                    timeSettings: state.app.timeSettings,
                 })}
                     ${listen(BureauHeaderElement.events.insightsRequested, () =>
                         setView("insights"),
@@ -1100,6 +1101,10 @@ export const BureauAppElement = defineElement()({
                             commit({ dialogueQueue: clearedQueue });
                             updateState({ activeSkinId: e.detail });
                         },
+                    )}
+                    ${listen(
+                        BureauHeaderElement.events.timeSettingsChanged,
+                        (e) => commit({ timeSettings: e.detail }),
                     )}
                 ></${BureauHeaderElement}>
 
@@ -1296,6 +1301,7 @@ export const BureauAppElement = defineElement()({
                         <${DailyViewElement.assign({
                             tasks: tasksOf(state.app.commitments),
                             areas: state.app.areas,
+                            timeSettings: state.app.timeSettings,
                             activeSkinId: state.activeSkinId,
                         })}
                             ${listen(

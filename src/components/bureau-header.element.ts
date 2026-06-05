@@ -1,6 +1,7 @@
 import { css, defineElement, defineElementEvent, html } from "element-vir";
 import { getRank, rankColor } from "../data/ranks.js";
-import type { AppView } from "../data/types.js";
+import type { AppView, TimeSettings } from "../data/types.js";
+import { DEFAULT_TIME_SETTINGS } from "../data/types.js";
 import { getActiveSkin, getRankLabel } from "../skins/active-skin.js";
 import { ALL_SKINS } from "../skins/all-skins.js";
 
@@ -19,6 +20,7 @@ export const BureauHeaderElement = defineElement<{
     areaName: string | null;
     /** Id of the currently active skin — drives the skin picker selection state. */
     activeSkinId: string;
+    timeSettings: TimeSettings;
 }>()({
     tagName: "bureau-header",
 
@@ -35,6 +37,8 @@ export const BureauHeaderElement = defineElement<{
         exportCsvRequested: defineElementEvent<void>(),
         /** Fired when the user has selected a backup file; payload is the raw file text. */
         importFileSelected: defineElementEvent<string>(),
+        /** Fired when the user changes any time-of-day period boundary or day-reset hour. */
+        timeSettingsChanged: defineElementEvent<TimeSettings>(),
     },
 
     state: () => ({
@@ -352,6 +356,38 @@ export const BureauHeaderElement = defineElement<{
             border-color: var(--color-warning);
         }
 
+        /* ── Time-settings grid ── */
+        .time-settings-grid {
+            display: grid;
+            grid-template-columns: 1fr auto;
+            gap: 6px 8px;
+            padding: 6px 0 8px;
+            align-items: center;
+        }
+
+        .time-setting-label {
+            font-family: var(--font-mono);
+            font-size: 0.62rem;
+            letter-spacing: 0.08em;
+            color: rgba(245, 239, 224, 0.7);
+        }
+
+        .time-setting-select {
+            background: rgba(245, 239, 224, 0.08);
+            border: 1px solid rgba(245, 239, 224, 0.2);
+            color: var(--color-surface);
+            font-family: var(--font-mono);
+            font-size: 0.62rem;
+            padding: 3px 6px;
+            cursor: pointer;
+            min-width: 72px;
+        }
+
+        .time-setting-select:focus {
+            outline: 1px solid var(--color-warning);
+            border-color: var(--color-warning);
+        }
+
         /* ── Breadcrumb / score bar ── */
         .breadcrumb {
             padding: 0 0 8px;
@@ -396,7 +432,7 @@ export const BureauHeaderElement = defineElement<{
     `,
 
     render({ inputs, state, updateState, dispatch, events }) {
-        const { patriotScore, streak, onBack, areaName, activeSkinId } = inputs;
+        const { patriotScore, streak, onBack, areaName, activeSkinId, timeSettings } = inputs;
         const skin = getActiveSkin();
 
         const rank =
@@ -623,6 +659,38 @@ export const BureauHeaderElement = defineElement<{
                                               </button>
                                           `,
                                       )}
+                                  </div>
+                              </div>
+
+                              <div class="menu-section">
+                                  <div class="menu-section-label">
+                                      SCHEDULE
+                                  </div>
+                                  <div class="time-settings-grid">
+                                      ${(
+                                          [
+                                              ["Morning", "morningStart"],
+                                              ["Afternoon", "afternoonStart"],
+                                              ["Evening", "eveningStart"],
+                                              ["Bedtime", "bedtimeStart"],
+                                              ["Day resets", "dayResetHour"],
+                                          ] as [string, keyof typeof DEFAULT_TIME_SETTINGS][]
+                                      ).map(([label, key]) => html`
+                                          <span class="time-setting-label">${label}</span>
+                                          <select
+                                              class="time-setting-select"
+                                              @change=${(e: Event) => {
+                                                  const val = parseInt((e.target as HTMLSelectElement).value, 10);
+                                                  dispatch(new events.timeSettingsChanged({ ...timeSettings, [key]: val }));
+                                              }}
+                                          >
+                                              ${Array.from({ length: 24 }, (_, h) => html`
+                                                  <option value=${h} ?selected=${timeSettings[key] === h}>
+                                                      ${h === 0 ? "12 AM" : h < 12 ? `${h} AM` : h === 12 ? "12 PM" : `${h - 12} PM`}
+                                                  </option>
+                                              `)}
+                                          </select>
+                                      `)}
                                   </div>
                               </div>
 

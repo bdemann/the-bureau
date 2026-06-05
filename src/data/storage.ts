@@ -17,8 +17,9 @@ import type {
     ItemKind,
     Task,
     TimeOfDay,
+    TimeSettings,
 } from "./types.js";
-import { SCHEMA_VERSION } from "./types.js";
+import { DEFAULT_TIME_SETTINGS, SCHEMA_VERSION } from "./types.js";
 
 const STORAGE_KEY = "bureau_v1";
 
@@ -35,6 +36,7 @@ export const DEFAULT_STATE: AppState = {
     docketClearedDate: "",
     reportNoticeDismissedAt: null,
     shoppingList: [],
+    timeSettings: DEFAULT_TIME_SETTINGS,
 };
 
 // ── Load / save ─────────────────────────────────────────────────────────────
@@ -88,7 +90,7 @@ export function migrateState(state: AppState): AppState {
         (state.areas?.length ?? 0) > 0 ? state.areas : (raw.projects ?? []);
 
     if (version >= SCHEMA_VERSION) {
-        // Already at v5 — just normalise task shapes.
+        // Already at current version — just normalise task shapes.
         return {
             ...state,
             areas,
@@ -99,6 +101,15 @@ export function migrateState(state: AppState): AppState {
                     : c,
             ) as AnyCommitment[],
         };
+    }
+
+    // v5 → v6: add timeSettings with defaults.
+    if (version === 5) {
+        return migrateState({
+            ...state,
+            schemaVersion: 6,
+            timeSettings: DEFAULT_TIME_SETTINGS,
+        });
     }
 
     // v4 → v5: split windowType into deadlineType + isMilestone.
@@ -303,6 +314,19 @@ export function generateId(): string {
 
 export function getTodayString(): string {
     return toSimpleDatePartString(getNowInUserTimezone());
+}
+
+/**
+ * Like getTodayString(), but respects a configurable day-reset hour.
+ * If the current hour is before dayResetHour, we're still in the previous app-day.
+ */
+export function getAppDayString(dayResetHour: number): string {
+    const now = getNowInUserTimezone();
+    if (dayResetHour > 0 && now.hour < dayResetHour) {
+        const yesterday = new Date(toJsDate(now).getTime() - 86_400_000);
+        return toSimpleDatePartString(createFullDateInUserTimezone(yesterday));
+    }
+    return toSimpleDatePartString(now);
 }
 
 /** Start-of-day (local) for a given date. */
