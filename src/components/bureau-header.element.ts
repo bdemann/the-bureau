@@ -366,6 +366,22 @@ export const BureauHeaderElement = defineElement<{
             color: var(--color-warning);
         }
 
+        .breadcrumb-back {
+            background: none;
+            border: none;
+            font: inherit;
+            color: inherit;
+            letter-spacing: inherit;
+            cursor: pointer;
+            padding: 0;
+            opacity: 0.85;
+            -webkit-tap-highlight-color: transparent;
+        }
+        .breadcrumb-back:hover {
+            opacity: 1;
+            text-decoration: underline;
+        }
+
         .score-bar {
             height: 3px;
             background: rgba(255, 255, 255, 0.1);
@@ -473,7 +489,10 @@ export const BureauHeaderElement = defineElement<{
                 ${areaName
                     ? html`
                           <div class="breadcrumb">
-                              ${skin.nav.areasBreadcrumb} &rsaquo;
+                              ${onBack
+                                  ? html`<button class="breadcrumb-back" @click=${onBack}>${skin.nav.areasBreadcrumb}</button>`
+                                  : skin.nav.areasBreadcrumb}
+                              &rsaquo;
                               <span class="area-name"
                                   >${areaName.toUpperCase()}</span
                               >
