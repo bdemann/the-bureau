@@ -16,10 +16,9 @@ import { RemediationIndicatorElement } from "./remediation-indicator.element.js"
 
 // ─────────────────────────────────────────────────────────────────────────────
 // TaskItemElement
-// Phase 2: index-card style row that surfaces consequence tier, suggested or
-// hard date, multi-per-period progress (e.g. 1/3 this week), and snooze info.
-// Visual degradation continues to escalate with snoozeCount.
-// Buttons migrated to Vira; the card "paper" itself stays themed.
+// Index-card style row that surfaces consequence tier, suggested or hard date,
+// multi-per-period progress (e.g. 1/3 this week), and snooze info.
+// Visual degradation escalates with snoozeCount.
 // ─────────────────────────────────────────────────────────────────────────────
 
 export const TaskItemElement = defineElement<{

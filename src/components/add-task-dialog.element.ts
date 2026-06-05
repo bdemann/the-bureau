@@ -53,8 +53,8 @@ import type { CadenceConfig } from "./cadence-picker.element.js";
 
 // ─────────────────────────────────────────────────────────────────────────────
 // AddTaskDialogElement
-// Bottom-sheet form for filing a new task. Phase 2: collects consequence tier,
-// recurrence config (cadence, frequency, schedule mode), window type, and
+// Bottom-sheet form for filing a new task. Collects consequence tier,
+// recurrence config (cadence, frequency, schedule mode), deadline type, and
 // suggested / hard date.
 // ─────────────────────────────────────────────────────────────────────────────
 

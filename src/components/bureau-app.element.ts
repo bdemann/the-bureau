@@ -72,7 +72,7 @@ import {
 // ─────────────────────────────────────────────────────────────────────────────
 // BureauAppElement — Root element. Owns all state.
 // All state changes flow through here. Children communicate via events up.
-// Phase 2: top-level routing is Daily / Area.
+// Top-level routing: Daily view / Area detail / Goals / Ideas / Insights.
 // ─────────────────────────────────────────────────────────────────────────────
 
 function bootstrap(): AppState {

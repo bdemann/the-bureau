@@ -192,7 +192,7 @@ describe("isTaskOverdue", () => {
     });
 });
 
-// A realistic Phase 1 task shape — none of the Phase 2 fields exist yet.
+// A legacy minimal task shape used to test migration from old schema versions.
 function v1Task(
     priority: "low" | "medium" | "high" | "critical",
     dueDate: number | null = null,

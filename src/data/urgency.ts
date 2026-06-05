@@ -1,7 +1,7 @@
 // ─────────────────────────────────────────────────────────────────────────────
 // Urgency engine — pure functions.
 // Decides which daily-band a task belongs to, given today's date.
-// Algorithm follows HANDOFF.md §2B exactly. See that doc for design rationale.
+// See docs/daily-view-band-rules.md for the full decision matrix.
 // ─────────────────────────────────────────────────────────────────────────────
 
 import type {ConsequenceTier, DailyBand, Task} from './types.js';
