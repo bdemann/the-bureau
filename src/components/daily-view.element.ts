@@ -77,6 +77,7 @@ export const DailyViewElement = defineElement<{
             expandSuggested: true,
             expandRadar: false,
             expandBacklog: false,
+            mergedView: false,
             expandedSlots: {
                 mandatory: { ...initialBandSlots },
                 suggested: { ...initialBandSlots },
@@ -231,6 +232,35 @@ export const DailyViewElement = defineElement<{
             justify-content: flex-end;
         }
 
+        .view-controls {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+
+        .merge-toggle-btn {
+            background: none;
+            border: 1px solid currentColor;
+            font-family: var(--font-mono);
+            font-size: 0.6rem;
+            letter-spacing: 0.1em;
+            color: var(--color-text-muted);
+            cursor: pointer;
+            padding: 3px 8px;
+            -webkit-tap-highlight-color: transparent;
+        }
+        .merge-toggle-btn.active {
+            background: var(--color-primary);
+            color: var(--color-surface);
+            border-color: var(--color-primary);
+        }
+        @media (hover: hover) {
+            .merge-toggle-btn:hover {
+                opacity: 0.8;
+            }
+        }
+
         .collapse-all-bar {
             display: flex;
             justify-content: flex-end;
@@ -252,6 +282,27 @@ export const DailyViewElement = defineElement<{
             .collapse-all-btn:hover {
                 color: var(--color-text);
             }
+        }
+
+        .merged-band-header {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 8px;
+            padding: 4px 0;
+            border-bottom: 1px solid var(--color-primary);
+        }
+        .merged-band-title {
+            font-family: var(--font-display);
+            font-size: 1rem;
+            letter-spacing: 0.18em;
+            color: var(--color-primary);
+            flex: 1;
+        }
+        .merged-band-count {
+            font-family: var(--font-mono);
+            font-size: 0.7rem;
+            color: var(--color-text-muted);
         }
 
         .task-drag-wrapper {
@@ -581,28 +632,50 @@ export const DailyViewElement = defineElement<{
             `;
         };
 
+        const mergedTasks = [...bands.mandatory, ...bands.suggested];
+
         return html`
-            <div class="collapse-all-bar">
+            <div class="view-controls">
+                <button
+                    class="merge-toggle-btn ${state.mergedView ? 'active' : ''}"
+                    @click=${() => updateState({ mergedView: !state.mergedView })}
+                    title="Merge mandatory and suggested into one list"
+                >MERGE VIEW</button>
                 <button
                     class="collapse-all-btn"
                     @click=${collapseAll}
                 >COLLAPSE ALL</button>
             </div>
-            ${renderBand("mandatory", {
-                emptyMessage: skinBand("mandatory").empty,
-                collapsible: true,
-                alwaysCollapse: true,
-                expanded: state.expandMandatory,
-                onToggle: () =>
-                    updateState({ expandMandatory: !state.expandMandatory }),
-            })}
-            ${renderBand("suggested", {
-                collapsible: true,
-                alwaysCollapse: true,
-                expanded: state.expandSuggested,
-                onToggle: () =>
-                    updateState({ expandSuggested: !state.expandSuggested }),
-            })}
+
+            ${state.mergedView
+                ? html`
+                    <section class="band">
+                        <div class="merged-band-header">
+                            <div class="merged-band-title">TODAY</div>
+                            <span class="merged-band-count">${mergedTasks.length}</span>
+                        </div>
+                        ${mergedTasks.length === 0
+                            ? html`<div class="band-empty">${skinBand("mandatory").empty}</div>`
+                            : html`${renderTasksGrouped(mergedTasks, 'mandatory')}`}
+                    </section>
+                `
+                : html`
+                    ${renderBand("mandatory", {
+                        emptyMessage: skinBand("mandatory").empty,
+                        collapsible: true,
+                        alwaysCollapse: true,
+                        expanded: state.expandMandatory,
+                        onToggle: () =>
+                            updateState({ expandMandatory: !state.expandMandatory }),
+                    })}
+                    ${renderBand("suggested", {
+                        collapsible: true,
+                        alwaysCollapse: true,
+                        expanded: state.expandSuggested,
+                        onToggle: () =>
+                            updateState({ expandSuggested: !state.expandSuggested }),
+                    })}
+                `}
             ${renderBand("radar", {
                 collapsible: true,
                 alwaysCollapse: true,
