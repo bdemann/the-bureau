@@ -16,6 +16,26 @@ The two characters exist in that tension. Director Briggs reduces everything to 
 
 ---
 
+## Areas and Goals as Vision
+
+**An Area is not a category. It is a domain of your life you are actively stewarding.** It represents who you are committed to *becoming*, not just what you are committed to *doing*.
+
+When you name an Area "Husband," you are not creating a folder for marriage-related tasks. You are making a declaration: *I am a husband, and I intend to show up as one.* The tasks inside that Area are the concrete proof of that declaration.
+
+Goals carry the same weight. A Goal is not a project milestone — it is a long-horizon articulation of the person you are working to become. "Read 12 books this year" is a task target; "be someone who reads deeply" is a goal that gives those reading tasks their meaning.
+
+**The daily view serves the vision. The vision is not just a label for the daily view.**
+
+This framing comes from a principle that *righteous desires* — the things we genuinely want to become — shape us more fundamentally than our behaviors alone. Our choices should be anchored in those desires, not driven purely by urgency or obligation. Elder Dallin H. Oaks' talk *"Desire"* (General Conference) articulates this well for those who want the deeper reasoning.
+
+**Design implications:**
+
+- When describing Areas in the UI, avoid "organizational grouping" or "category" language. Use language that emphasizes identity and stewardship: *Areas of Responsibility.*
+- Goals should be presented as outcomes tied to identity, not just targets to hit.
+- The system should make it easy to see which *areas of life you are becoming* are getting attention and which are being neglected — not just which folders have tasks.
+
+---
+
 ## Life Categories
 
 The task list is organized around **life roles / identities** rather than arbitrary category. Each category represents a facet of who the user is trying to be. Example categories:
