@@ -39,6 +39,13 @@ export function getDailyBand(task: Task, today: Date = new Date()): DailyBand {
     // Not started yet — hide until startDate arrives.
     if (task.recurrence?.startDate !== undefined
         && startOfDay(today).getTime() < task.recurrence.startDate) return 'hidden';
+    // Milestones hide for the rest of today after any progress — applies even
+    // when the deadline has arrived (step 1 mandatory would otherwise skip step 2).
+    if (task.isMilestone && task.lastProgressAt != null) {
+        if (startOfDay(new Date(task.lastProgressAt)).getTime() === startOfDay(today).getTime()) {
+            return 'hidden';
+        }
+    }
 
     // Step 1 — Hard overdue / due today
     const step1 = step1HardMandatory(task, today);

@@ -428,6 +428,18 @@ describe('getDailyBand — Step 2 (milestone)', () => {
         });
         assert.strictEquals(getDailyBand(t, today), 'hidden');
     });
+
+    test('milestone past deadline hides for today after progress (regression #32)', () => {
+        // Deadline has arrived → step1 would pin mandatory, but progress today should
+        // override that and hide the task for the rest of today.
+        const t = makeTask({
+            deadlineType: 'flexible', isMilestone: true,
+            windowDeadline: today.getTime(),
+            progressCadence: null,
+            lastProgressAt: today.getTime(),
+        });
+        assert.strictEquals(getDailyBand(t, today), 'hidden');
+    });
 });
 
 describe('getSnoozeBand', () => {
