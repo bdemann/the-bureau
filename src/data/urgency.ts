@@ -151,9 +151,9 @@ function step1HardMandatory(task: Task, today: Date): DailyBand | 'unresolved' {
         if (daysBetween(today, task.suggestedDate) <= 0) return 'mandatory';
     }
 
-    // Flexible window whose deadline has arrived.
+    // Flexible window whose deadline has arrived — only T1/T2; T3 caps at suggested.
     if (task.deadlineType === 'flexible' && task.windowDeadline !== null) {
-        if (daysBetween(today, task.windowDeadline) <= 0) return 'mandatory';
+        if (task.consequenceTier <= 2 && daysBetween(today, task.windowDeadline) <= 0) return 'mandatory';
     }
 
     return 'unresolved';

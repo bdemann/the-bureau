@@ -34,7 +34,7 @@ Tasks that MUST be addressed today:
 | T1 daily/daily-like tasks | Morning prayer, medication, brush teeth |
 | T2 daily/daily-like after skipStreak ≥ 5 | Bedtime routine skipped 5+ nights in a row |
 | Hard-date task on/past its due date (T1–T3) | Bill due today, appointment today |
-| Flexible window deadline has arrived (T1–T3) | Budget review, last day of the month |
+| Flexible window deadline has arrived (T1–T2) | Budget review, last day of the month |
 | Snooze escalation reaching mandatory threshold (T1/T2) | A T2 task snoozed 8+ times |
 
 **T4 (aspirational) tasks are NEVER mandatory** under any circumstance.
@@ -86,7 +86,7 @@ Bands are computed at render time from task state + today's date. They are never
 - Daily or multiple-per-day cadence + tier ≤ 3 → mandatory
 - Weekly with committed days (hardDaysOfWeek), today is one of those days, tier ≤ 3 → mandatory
 - Hard-date task whose due date has arrived, tier ≤ 3 → mandatory
-- Flexible window whose deadline has arrived, tier ≤ 3 → mandatory
+- Flexible window whose deadline has arrived, tier ≤ 2 → mandatory (T3 caps at suggested)
 
 (T4 skips all Step 1 mandatory assignments — it falls through to Step 2.)
 
@@ -141,7 +141,7 @@ T4 (aspirational) tasks never reach mandatory band under any circumstance:
 
 **Why rejected:** "Pay rent on the 15th" is T1 flexible monthly. If the suggestedDate = 15th, you don't want it blaring mandatory from the 15th to the 30th. The whole point of the flexible window is that any day in the window is acceptable. T1's urgency comes from heavier penalties and faster snooze escalation — not from premature mandatory band placement.
 
-**Correct rule:** All tiers enter suggested when their flexible suggestedDate arrives. They reach mandatory when the windowDeadline arrives (T1–T3) or from snooze escalation.
+**Correct rule:** All tiers enter suggested when their flexible suggestedDate arrives. They reach mandatory when the windowDeadline arrives (T1–T2 only) or from snooze escalation. T3 never reaches mandatory — the deadline arriving escalates it to suggested, not mandatory.
 
 ### T3 snooze escalation caps at suggested — intentional
 T3 (quality consequence) tasks cap at suggested via snooze escalation and never reach mandatory. This is intentional: "quality consequence" means things degrade but nothing breaks. Mandatory is reserved for tasks genuinely worth making sacrifices to complete; T3 doesn't meet that bar.

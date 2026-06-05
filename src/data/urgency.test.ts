@@ -152,9 +152,15 @@ describe('getDailyBand — Step 1 (mandatory)', () => {
         assert.strictEquals(getDailyBand(t, today), 'mandatory');
     });
 
-    test('flexible window with deadline today is mandatory', () => {
+    test('T1 flexible window with deadline today is mandatory', () => {
         const today = date('2026-05-09');
-        const t = makeTask({deadlineType: 'flexible', isMilestone: false, windowDeadline: today.getTime()});
+        const t = makeTask({consequenceTier: 1, deadlineType: 'flexible', isMilestone: false, windowDeadline: today.getTime()});
+        assert.strictEquals(getDailyBand(t, today), 'mandatory');
+    });
+
+    test('T2 flexible window with deadline today is mandatory', () => {
+        const today = date('2026-05-09');
+        const t = makeTask({consequenceTier: 2, deadlineType: 'flexible', isMilestone: false, windowDeadline: today.getTime()});
         assert.strictEquals(getDailyBand(t, today), 'mandatory');
     });
 
@@ -169,6 +175,23 @@ describe('getDailyBand — Step 1 (mandatory)', () => {
         const today = date('2026-05-09');
         const t = makeTask({consequenceTier: 4, deadlineType: 'flexible', isMilestone: false, windowDeadline: today.getTime()});
         assert.strictEquals(getDailyBand(t, today) === 'mandatory', false);
+    });
+
+    test('T3 flexible window at deadline is not mandatory — caps at suggested (GitHub #41)', () => {
+        // T3 = quality consequence. Flexible-window deadline arriving should NOT force mandatory.
+        const today = date('2026-05-09');
+        const windowStart = date('2026-05-01');
+        const t = makeTask({
+            consequenceTier: 3,
+            deadlineType: 'flexible',
+            isMilestone: false,
+            suggestedDate: windowStart.getTime(),
+            windowDeadline: today.getTime(),
+            windowLengthDays: 9,
+        });
+        const band = getDailyBand(t, today);
+        assert.strictEquals(band === 'mandatory', false);
+        assert.strictEquals(band, 'suggested');
     });
 });
 
