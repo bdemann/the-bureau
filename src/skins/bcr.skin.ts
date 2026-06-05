@@ -108,7 +108,7 @@ export const bcrSkin: Skin = {
         allCommitmentsLabel: "All Commitments",
         allCommitmentsSub: "Every task, routine, goal & idea on file",
         insightsSectionLabel: "Intelligence",
-        insightsLabel: "Field Report",
+        insightsLabel: "Insights",
         insightsSub: "Compliance gaps, behavioral patterns, field performance",
         shareSectionLabel: "Community Duty",
         shareItemLabel: "Report a Neighbor",
@@ -147,10 +147,10 @@ export const bcrSkin: Skin = {
         editGoalTitle: "AMEND GOAL",
         editIdeaTitle: "AMEND IDEA",
         submitRoutine: "COMMIT ROUTINE",
-        submitTask: "FILE TASK",
+        submitTask: "ADD TASK",
         submitGoal: "SET GOAL",
         submitIdea: "FILE IDEA",
-        saveRoutine: "SAVE ROUTINE",
+        saveRoutine: "COMMIT TO ROUTINE",
         saveTask: "SAVE TASK",
         saveGoal: "SAVE GOAL",
         saveIdea: "SAVE IDEA",
@@ -204,7 +204,7 @@ export const bcrSkin: Skin = {
             `If you told a friend you were into ${areaName}, what would you need to be doing regularly to feel honest saying that? List one item per line.`,
         step2CommitmentsLabel: "Your Commitments (one per line)",
         step2CommitmentsPlaceholder:
-            "e.g.\nBake bread weekly\nTry a new technique monthly\nShare something I made quarterly",
+            "e.g.\nDo a weekly project\nTry a new technique monthly\nShare something I made quarterly\nCall mother daily",
     },
 
     dialogues: {
