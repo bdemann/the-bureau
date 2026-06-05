@@ -499,11 +499,16 @@ export const BureauAppElement = defineElement()({
             const reward =
                 tierCompletionReward(tier) * taskScaleMultiplier(active) * backlogBonus;
 
-            // Docket-cleared bonus: fires when the last mandatory task is completed.
+            // Docket-cleared bonus: fires once per day when the last mandatory task
+            // is completed. The once-per-day guard prevents it retriggering if a
+            // snoozed task resurfaces later in the same day.
             const mandatoryAfter = tasks.filter(
                 (t) => getDailyBand(t, now) === 'mandatory',
             ).length;
-            const docketCleared = mandatoryBefore > 0 && mandatoryAfter === 0;
+            const todayStr = getTodayString();
+            const alreadyClearedToday = state.app.docketClearedDate === todayStr;
+            const docketCleared =
+                !alreadyClearedToday && mandatoryBefore > 0 && mandatoryAfter === 0;
             const docketBonus = docketCleared
                 ? DOCKET_CLEARED_BONUS * taskScaleMultiplier(active)
                 : 0;
@@ -515,6 +520,7 @@ export const BureauAppElement = defineElement()({
             commit({
                 commitments: rebuildWithTasks(state.app.commitments, tasks),
                 patriotScore: newScore,
+                ...(docketCleared ? {docketClearedDate: todayStr} : {}),
             });
 
             const preferDirector = Math.random() < 0.25;

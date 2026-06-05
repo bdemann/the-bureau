@@ -494,6 +494,8 @@ export interface AppState {
     readonly completionStreak: number;
     readonly dialogueQueue: ReadonlyArray<DialogueEntry>;
     readonly lastActiveDate: string; // YYYY-MM-DD
+    /** YYYY-MM-DD of the last day the docket-cleared bonus fired; "" = never. */
+    readonly docketClearedDate: string;
     /** ms timestamp of last dismissal; null = never dismissed (show on first load). */
     readonly reportNoticeDismissedAt: number | null;
 }

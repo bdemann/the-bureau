@@ -23,6 +23,7 @@ export const DEFAULT_STATE: AppState = {
     completionStreak: 0,
     dialogueQueue: [],
     lastActiveDate: "",
+    docketClearedDate: "",
     reportNoticeDismissedAt: null,
 };
 
