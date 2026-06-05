@@ -150,13 +150,6 @@ export const AddTaskDialogElement = defineElement<{
         // ── Goal/idea edit tracking ──
         editGoalId: null as string | null,
         editIdeaId: null as string | null,
-        /** Linked task IDs on the goal being edited (for dissociation warning). */
-        goalLinkedTaskIds: [] as string[],
-        // ── Kind-switch warning (when editing a goal with linked commitments) ──
-        confirmingKindSwitch: false,
-        pendingKindSwitch: null as FormKind | null,
-        /** True after user confirmed a goal→other-type switch; clears links on save. */
-        willDissociateLinks: false,
         // ── Milestone progress cadence ──
         hasProgressCadence: false,
         progressCadenceConfig: defaultCadenceConfig('daily'),
@@ -619,10 +612,7 @@ export const AddTaskDialogElement = defineElement<{
                 originalLinkedGoalId: currentLinkedGoal?.id ?? null,
                 editGoalId: null,
                 editIdeaId: null,
-                goalLinkedTaskIds: [],
-                confirmingKindSwitch: false,
-                pendingKindSwitch: null,
-                willDissociateLinks: false,
+
                 hasProgressCadence: t.progressCadence != null,
                 progressCadenceConfig: t.progressCadence
                     ? cadenceConfigFromRecurrence({ ...t.progressCadence, scheduleMode: 'fixed', endMode: 'never' })
@@ -645,14 +635,11 @@ export const AddTaskDialogElement = defineElement<{
                     ? msToDateString(editGoal.targetDate)
                     : "",
                 editGoalId: editGoal.id,
-                goalLinkedTaskIds: [], // count computed externally now
+
                 editIdeaId: null,
                 linkedGoalId: null,
                 originalLinkedGoalId: null,
                 ideaLinkedGoalId: null,
-                confirmingKindSwitch: false,
-                pendingKindSwitch: null,
-                willDissociateLinks: false,
             });
         }
 
@@ -669,12 +656,9 @@ export const AddTaskDialogElement = defineElement<{
                 ideaLinkedGoalId: editIdea.goalId,
                 editIdeaId: editIdea.id,
                 editGoalId: null,
-                goalLinkedTaskIds: [],
+
                 linkedGoalId: null,
                 originalLinkedGoalId: null,
-                confirmingKindSwitch: false,
-                pendingKindSwitch: null,
-                willDissociateLinks: false,
             });
         }
 
@@ -710,10 +694,7 @@ export const AddTaskDialogElement = defineElement<{
                 originalLinkedGoalId: null,
                 editGoalId: null,
                 editIdeaId: null,
-                goalLinkedTaskIds: [],
-                confirmingKindSwitch: false,
-                pendingKindSwitch: null,
-                willDissociateLinks: false,
+
                 confirmingDelete: false,
                 currentEditId: null,
                 hasProgressCadence: false,
@@ -735,7 +716,6 @@ export const AddTaskDialogElement = defineElement<{
             (state.cadenceConfig.cadence === "daily" || state.cadenceConfig.cadence === "multiple_per_day");
 
         const canSubmit =
-            !state.confirmingKindSwitch &&
             state.titleValue.trim().length > 0 &&
             // Rigid tasks need a date — unless an anchor implies one.
             (!isTaskOrRoutine ||
@@ -751,33 +731,14 @@ export const AddTaskDialogElement = defineElement<{
         // ── Kind-switch helpers ─────────────────────────────────────────────────
 
         function doKindSwitch(newKind: FormKind): void {
-            const updates: Parameters<typeof updateState>[0] = {
-                kind: newKind,
-                confirmingKindSwitch: false,
-                pendingKindSwitch: null,
-            };
+            const updates: Parameters<typeof updateState>[0] = {kind: newKind};
             // Routines must be recurring; only force it if not already set.
             if (newKind === "routine" && !state.isRecurring) {
                 updates.isRecurring = true;
             }
             updateState(updates);
         }
-
-        function onKindClick(newKind: FormKind): void {
-            // Warn if we're converting a goal that has linked commitments.
-            if (
-                state.kind === "goal" &&
-                state.goalLinkedTaskIds.length > 0 &&
-                newKind !== "goal"
-            ) {
-                updateState({
-                    confirmingKindSwitch: true,
-                    pendingKindSwitch: newKind,
-                });
-                return;
-            }
-            doKindSwitch(newKind);
-        }
+        const onKindClick = doKindSwitch;
 
         // ── Task builder (shared by add + edit task/routine paths) ───────────────
 
@@ -993,10 +954,7 @@ export const AddTaskDialogElement = defineElement<{
                     ideaLinkedGoalId: null,
                     editGoalId: null,
                     editIdeaId: null,
-                    goalLinkedTaskIds: [],
-                    confirmingKindSwitch: false,
-                    pendingKindSwitch: null,
-                    willDissociateLinks: false,
+    
                     confirmingDelete: false,
                 });
             }
@@ -1148,52 +1106,6 @@ export const AddTaskDialogElement = defineElement<{
                             @click=${() => onKindClick("idea")}
                         ></${ViraButton}>
                     </div>
-
-                    <!-- Warning: switching away from a goal that has linked commitments -->
-                    ${
-                        state.confirmingKindSwitch
-                            ? html`
-                                  <div class="kind-switch-warning">
-                                      <p>
-                                          ⚠ This ${skin.types.goal.toLowerCase()} has
-                                          ${state.goalLinkedTaskIds.length}
-                                          linked
-                                          commitment${state.goalLinkedTaskIds
-                                              .length !== 1
-                                              ? "s"
-                                              : ""}.
-                                          Switching type will dissociate them
-                                          from this entry.
-                                      </p>
-                                      <div class="kind-switch-warning-actions">
-                                          <button
-                                              class="kind-switch-proceed"
-                                              @click=${() => {
-                                                  updateState({
-                                                      willDissociateLinks: true,
-                                                  });
-                                                  doKindSwitch(
-                                                      state.pendingKindSwitch!,
-                                                  );
-                                              }}
-                                          >
-                                              PROCEED
-                                          </button>
-                                          <button
-                                              class="kind-switch-cancel"
-                                              @click=${() =>
-                                                  updateState({
-                                                      confirmingKindSwitch: false,
-                                                      pendingKindSwitch: null,
-                                                  })}
-                                          >
-                                              CANCEL
-                                          </button>
-                                      </div>
-                                  </div>
-                              `
-                            : html``
-                    }
 
                     <!-- Title -->
                     <div class="field">
