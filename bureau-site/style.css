@@ -708,4 +708,17 @@ footer {
     .agency-seal { width: 52px; height: 52px; font-size: 1.5rem; }
     .hero h1 { font-size: 1.7rem; }
     .primary-nav a { padding: 10px 12px; font-size: 0.72rem; }
+
+    /* Prevent info-table FAQ rows from overflowing on narrow viewports */
+    .info-table .field-label {
+        white-space: normal;
+        width: auto;
+        display: block;
+        border-bottom: none;
+        padding-bottom: 4px;
+    }
+    .info-table tr { display: block; border-bottom: 1px solid var(--border); }
+    .info-table tr:last-child { border-bottom: none; }
+    .info-table td { display: block; border-bottom: none; padding: 6px 14px; }
+    .info-table td:first-child { padding-bottom: 2px; }
 }
