@@ -17,10 +17,19 @@ describe('computeRemediationOnComplete', () => {
         assert.deepEquals(result, {skipStreak: 0, snoozeCount: 0, remediationCount: 0});
     });
 
-    it('enters remediation from a skip streak — streaks preserved', () => {
+    it('skip streak below 5 clears cleanly without remediation (grace period)', () => {
         const result = computeRemediationOnComplete(3, 0, 0);
-        // skipStreak stays at 3 until remediation clears; remediationCount = min(5, 3) = 3
-        assert.deepEquals(result, {skipStreak: 3, snoozeCount: 0, remediationCount: 3});
+        assert.deepEquals(result, {skipStreak: 0, snoozeCount: 0, remediationCount: 0});
+    });
+
+    it('skip streak at threshold (5) enters remediation — streaks preserved', () => {
+        const result = computeRemediationOnComplete(5, 0, 0);
+        assert.deepEquals(result, {skipStreak: 5, snoozeCount: 0, remediationCount: 5});
+    });
+
+    it('skip streak above threshold enters remediation — streaks preserved', () => {
+        const result = computeRemediationOnComplete(7, 0, 0);
+        assert.deepEquals(result, {skipStreak: 7, snoozeCount: 0, remediationCount: 5});
     });
 
     it('enters remediation from a snooze count — streaks preserved', () => {
@@ -153,12 +162,11 @@ describe('getRemediationSeverity', () => {
 // ─────────────────────────────────────────────────────────────────────────────
 
 describe('remediation lifecycle scenarios', () => {
-    it('full redemption arc: skip × 3, complete × 4, cleared', () => {
+    it('skip × 3 clears cleanly on completion — no remediation (grace period)', () => {
         let skipStreak = 0;
         let snoozeCount = 0;
         let remediationCount = 0;
 
-        // Three skips
         for (let i = 0; i < 3; i++) {
             const r = computeRemediationOnSkip(skipStreak, remediationCount);
             skipStreak = r.skipStreak;
@@ -166,25 +174,44 @@ describe('remediation lifecycle scenarios', () => {
         }
         assert.strictEquals(skipStreak, 3);
 
-        // First completion — enters remediation(3), streaks preserved
+        // First completion under threshold — everything clears, no remediation
+        const r = computeRemediationOnComplete(skipStreak, snoozeCount, remediationCount);
+        assert.strictEquals(r.skipStreak, 0);
+        assert.strictEquals(r.remediationCount, 0);
+    });
+
+    it('full redemption arc: skip × 5, complete × 6, cleared', () => {
+        let skipStreak = 0;
+        let snoozeCount = 0;
+        let remediationCount = 0;
+
+        // Five skips — at the threshold
+        for (let i = 0; i < 5; i++) {
+            const r = computeRemediationOnSkip(skipStreak, remediationCount);
+            skipStreak = r.skipStreak;
+            remediationCount = r.remediationCount;
+        }
+        assert.strictEquals(skipStreak, 5);
+
+        // First completion — enters remediation(5), streaks preserved
         {
             const r = computeRemediationOnComplete(skipStreak, snoozeCount, remediationCount);
             skipStreak = r.skipStreak;
             snoozeCount = r.snoozeCount;
             remediationCount = r.remediationCount;
         }
-        assert.strictEquals(skipStreak, 3);    // preserved
-        assert.strictEquals(remediationCount, 3);
+        assert.strictEquals(skipStreak, 5);    // preserved
+        assert.strictEquals(remediationCount, 5);
 
-        // Three more completions — streaks still preserved until remediationCount hits 0
-        for (let i = 0; i < 2; i++) {
+        // Four more completions — streaks still preserved until remediationCount hits 0
+        for (let i = 0; i < 4; i++) {
             const r = computeRemediationOnComplete(skipStreak, snoozeCount, remediationCount);
             skipStreak = r.skipStreak;
             snoozeCount = r.snoozeCount;
             remediationCount = r.remediationCount;
         }
         assert.strictEquals(remediationCount, 1);
-        assert.strictEquals(skipStreak, 3);    // still preserved
+        assert.strictEquals(skipStreak, 5);    // still preserved
 
         // Final completion — fully cleared
         {
@@ -198,8 +225,8 @@ describe('remediation lifecycle scenarios', () => {
     });
 
     it('relapse mid-remediation: skip increments normally from current streak', () => {
-        // Skip × 4, one completion puts in remediation(4), skipStreak preserved at 4
-        let skipStreak = 4;
+        // Skip × 5, one completion puts in remediation(5), skipStreak preserved at 5
+        let skipStreak = 5;
         let snoozeCount = 0;
         let remediationCount = 0;
 
@@ -207,21 +234,21 @@ describe('remediation lifecycle scenarios', () => {
         skipStreak = first.skipStreak;
         snoozeCount = first.snoozeCount;
         remediationCount = first.remediationCount;
-        assert.strictEquals(remediationCount, 4);
-        assert.strictEquals(skipStreak, 4);    // preserved
+        assert.strictEquals(remediationCount, 5);
+        assert.strictEquals(skipStreak, 5);    // preserved
 
-        // Complete twice more: remediation → 2, skipStreak still 4
+        // Complete twice more: remediation → 3, skipStreak still 5
         for (let i = 0; i < 2; i++) {
             const r = computeRemediationOnComplete(skipStreak, snoozeCount, remediationCount);
             skipStreak = r.skipStreak;
             snoozeCount = r.snoozeCount;
             remediationCount = r.remediationCount;
         }
-        assert.strictEquals(remediationCount, 2);
-        assert.strictEquals(skipStreak, 4);    // still preserved
+        assert.strictEquals(remediationCount, 3);
+        assert.strictEquals(skipStreak, 5);    // still preserved
 
-        // Skip again — increments normally from current skipStreak (4 → 5)
+        // Skip again — increments normally from current skipStreak (5 → 6)
         const relapse = computeRemediationOnSkip(skipStreak, remediationCount);
-        assert.deepEquals(relapse, {skipStreak: 5, remediationCount: 0});
+        assert.deepEquals(relapse, {skipStreak: 6, remediationCount: 0});
     });
 });

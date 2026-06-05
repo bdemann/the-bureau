@@ -20,7 +20,7 @@
 //    The old punitive behavior (new streak starts at remediationCount) is removed.
 // ─────────────────────────────────────────────────────────────────────────────
 
-import {REMEDIATION_CAP} from './scoring.js';
+import {REMEDIATION_CAP, SKIP_ESCALATION_THRESHOLD} from './scoring.js';
 
 export interface RemediationOnCompleteResult {
     /** New skipStreak value (0 once a completion is recorded). */
@@ -53,7 +53,9 @@ export function computeRemediationOnComplete(
         };
     }
 
-    const hasStreak = skipStreak > 0 || snoozeCount > 0;
+    // Grace period: fewer than SKIP_ESCALATION_THRESHOLD skips don't trigger
+    // remediation — completing the task clears the record without penalty.
+    const hasStreak = skipStreak >= SKIP_ESCALATION_THRESHOLD || snoozeCount > 0;
     if (hasStreak) {
         // First completion after a streak — enter remediation. Streaks preserved.
         return {
@@ -63,7 +65,7 @@ export function computeRemediationOnComplete(
         };
     }
 
-    // No streak, not in remediation — nothing to do.
+    // Under the threshold or no streak — reset cleanly, no remediation.
     return {skipStreak: 0, snoozeCount: 0, remediationCount: 0};
 }
 
