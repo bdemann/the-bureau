@@ -1302,10 +1302,10 @@ export const AddTaskDialogElement = defineElement<{
                                   ${isTaskOrRoutine && !isDailyLikeCadence
                                       ? html`
                         <div class="field">
-                            <span class="field-label">Timing Type</span>
+                            <span class="field-label">Deadline Type</span>
                             <div class="seg">
                                 <${ViraButton.assign({
-                                    text: "Flexible window",
+                                    text: "Flexible",
                                     color: ViraColorVariant.Info,
                                     buttonEmphasis:
                                         state.windowType === "flexible"
@@ -1316,7 +1316,7 @@ export const AddTaskDialogElement = defineElement<{
                                     @click=${() => updateState({ windowType: "flexible" })}
                                 ></${ViraButton}>
                                 <${ViraButton.assign({
-                                    text: "Hard date",
+                                    text: "Rigid",
                                     color: ViraColorVariant.Warning,
                                     buttonEmphasis:
                                         state.windowType === "hard"
