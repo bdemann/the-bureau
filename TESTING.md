@@ -44,7 +44,9 @@ Mark each row as you verify in the browser. Reset the localStorage entry
 ### Bottom navigation bar
 
 - [ ] Fixed bottom nav bar is visible on all primary views: Daily, Areas, Ideas, Goals
-- [ ] Bar shows four tabs: Daily · Areas · Ideas · Goals
+- [ ] Bar shows four tabs: Daily · Areas · Ideas · Goals, each with an SVG icon above its label
+- [ ] SVG icons render at consistent size (~22px), filled with current color (amber when active, muted when inactive)
+- [ ] Icons: calendar (Daily), grid (Areas), lightbulb (Ideas), flag (Goals)
 - [ ] Active tab is highlighted in amber with an amber indicator line at its top edge
 - [ ] Tapping Daily tab navigates to the daily view
 - [ ] Tapping Areas tab navigates to the areas of responsibility list
