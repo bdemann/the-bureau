@@ -69,17 +69,24 @@ export const DailyViewElement = defineElement<{
         tasksReordered: defineElementEvent<ReadonlyArray<string>>(), // ordered task ids
     },
 
-    state: () => ({
-        expandMandatory: true,
-        expandSuggested: true,
-        expandRadar: false,
-        expandBacklog: false,
-        expandedSlots: { [getCurrentTimeSlot()]: true } as Partial<
-            Record<TimeOfDay, boolean>
-        >,
-        draggedId: null as string | null,
-        dragOverId: null as string | null,
-    }),
+    state: () => {
+        const initialSlot = getCurrentTimeSlot();
+        const initialBandSlots = { [initialSlot]: true } as Partial<Record<TimeOfDay, boolean>>;
+        return {
+            expandMandatory: true,
+            expandSuggested: true,
+            expandRadar: false,
+            expandBacklog: false,
+            expandedSlots: {
+                mandatory: { ...initialBandSlots },
+                suggested: { ...initialBandSlots },
+                radar: { ...initialBandSlots },
+                backlog: { ...initialBandSlots },
+            } as Partial<Record<DailyBand, Partial<Record<TimeOfDay, boolean>>>>,
+            draggedId: null as string | null,
+            dragOverId: null as string | null,
+        };
+    },
 
     styles: css`
         :host {
@@ -270,14 +277,23 @@ export const DailyViewElement = defineElement<{
         const skin = getActiveSkin();
         // Keep the callback current every render so it captures the latest updateState.
         _onSlotChange = (newSlot: TimeOfDay) => {
-            updateState({ expandedSlots: { [newSlot]: true } });
+            const slotState = { [newSlot]: true } as Partial<Record<TimeOfDay, boolean>>;
+            updateState({
+                expandedSlots: {
+                    mandatory: slotState,
+                    suggested: slotState,
+                    radar: slotState,
+                    backlog: slotState,
+                },
+            });
         };
 
-        function toggleSlot(slot: TimeOfDay): void {
+        function toggleSlot(band: DailyBand, slot: TimeOfDay): void {
+            const bandSlots = state.expandedSlots[band] ?? {};
             updateState({
                 expandedSlots: {
                     ...state.expandedSlots,
-                    [slot]: !state.expandedSlots[slot],
+                    [band]: { ...bandSlots, [slot]: !bandSlots[slot] },
                 },
             });
         }
@@ -438,12 +454,13 @@ export const DailyViewElement = defineElement<{
 
             return html`
                 ${slotGroups.map((g) => {
-                    const isExpanded = !!state.expandedSlots[g.slot];
+                    const bandSlots = band ? (state.expandedSlots[band] ?? {}) : {};
+                    const isExpanded = !!bandSlots[g.slot];
                     return html`
                         <div class="time-group">
                             <button
                                 class="time-group-header"
-                                @click=${() => toggleSlot(g.slot)}
+                                @click=${() => band ? toggleSlot(band, g.slot) : undefined}
                             >
                                 <span class="time-group-label"
                                     >${timeOfDayLabel(g.slot)}</span

@@ -26,7 +26,7 @@ export const CharacterDialogueElement = defineElement<{
         }
 
         .memo {
-            margin: 0 12px 12px;
+            margin: 12px 12px 12px;
             border: 2px solid;
             position: relative;
             animation: memo-in 0.2s ease-out;

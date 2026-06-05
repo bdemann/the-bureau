@@ -12,6 +12,7 @@ import type {
     Task,
 } from "../data/types.js";
 import {
+    daysBetween,
     generateId,
     getTodayString,
     isTaskOverdue,
@@ -134,10 +135,11 @@ function bootstrap(): AppState {
         return rolled;
     });
 
-    // Detect a new day → push the day-start dialogue.
+    // Detect a new day → push the day-start dialogue and update streak.
     const todayStr = getTodayString();
     let dialogueQueue = loaded.dialogueQueue;
     let lastActiveDate = loaded.lastActiveDate;
+    let completionStreak = loaded.completionStreak;
     if (loaded.lastActiveDate !== todayStr) {
         const dayLine = getDialogueFor("day_start", false);
         const dayEntry: DialogueEntry = {
@@ -149,6 +151,14 @@ function bootstrap(): AppState {
         };
         dialogueQueue = [dayEntry, ...loaded.dialogueQueue.slice(0, 9)];
         lastActiveDate = todayStr;
+
+        // Increment streak if consecutive (prev day was yesterday), otherwise reset.
+        if (loaded.lastActiveDate === "") {
+            completionStreak = 1;
+        } else {
+            const gap = daysBetween(new Date(loaded.lastActiveDate), new Date(todayStr));
+            completionStreak = gap === 1 ? loaded.completionStreak + 1 : 1;
+        }
     }
 
     const patriotScore = Math.max(0, loaded.patriotScore + scoreAdjustment);
@@ -156,6 +166,7 @@ function bootstrap(): AppState {
     const next: AppState = {
         ...loaded,
         commitments,
+        completionStreak,
         dialogueQueue,
         lastActiveDate,
         patriotScore,
@@ -499,12 +510,11 @@ export const BureauAppElement = defineElement()({
 
             const prevScore = state.app.patriotScore;
             const newScore = Math.min(200, prevScore + reward + docketBonus);
-            const newStreak = state.app.completionStreak + 1;
+            const currentStreak = state.app.completionStreak;
 
             commit({
                 commitments: rebuildWithTasks(state.app.commitments, tasks),
                 patriotScore: newScore,
-                completionStreak: newStreak,
             });
 
             const preferDirector = Math.random() < 0.25;
@@ -512,7 +522,7 @@ export const BureauAppElement = defineElement()({
 
             if (docketCleared) {
                 setTimeout(() => triggerDialogue("streak"), 400);
-            } else if (newStreak > 0 && newStreak % 5 === 0) {
+            } else if (currentStreak > 0 && currentStreak % 5 === 0) {
                 setTimeout(() => triggerDialogue("streak"), 400);
             }
             if (newScore >= 150 && prevScore < 150) {
