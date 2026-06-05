@@ -135,6 +135,9 @@ export const defaultSkin: Skin = {
         shareItemLabel: "Invite a Friend",
         shareItemSub: "Share the app with someone",
 
+        shoppingListLabel: "Shopping List",
+        shoppingListSub: "Household supplies & errands",
+
         appearanceLabel: "Appearance",
 
         dataSectionLabel: "Data",

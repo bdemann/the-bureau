@@ -197,6 +197,10 @@ export interface SkinMenu {
     /** Section heading above the skin / appearance picker. */
     appearanceLabel: string;
 
+    /** Shopping list menu entry label. */
+    shoppingListLabel: string;
+    shoppingListSub: string;
+
     /** Section heading above the data export / import controls. */
     dataSectionLabel: string;
     exportJsonLabel: string;

@@ -60,6 +60,7 @@ import { GoalDetailElement } from "./goal-detail.element.js";
 import { GoalsViewElement } from "./goals-view.element.js";
 import { AreaDetailElement } from "./area-detail.element.js";
 import { CommitmentsViewElement } from "./commitments-view.element.js";
+import { ShoppingListElement } from "./shopping-list.element.js";
 import {
     buildCsvExport,
     buildJsonExport,
@@ -1245,6 +1246,33 @@ export const BureauAppElement = defineElement()({
                                 onCommitmentsReordered(e.detail),
                             )}
                         ></${IdeasViewElement}>
+                      `
+                            : view === "shopping"
+                              ? html`
+                        <${ShoppingListElement.assign({
+                            items: state.app.shoppingList,
+                        })}
+                            ${listen(ShoppingListElement.events.itemAdded, (e) => {
+                                commit({ shoppingList: [...state.app.shoppingList, e.detail] });
+                            })}
+                            ${listen(ShoppingListElement.events.itemToggled, (e) => {
+                                commit({
+                                    shoppingList: state.app.shoppingList.map((i) =>
+                                        i.id === e.detail ? {...i, checked: !i.checked} : i,
+                                    ),
+                                });
+                            })}
+                            ${listen(ShoppingListElement.events.itemRemoved, (e) => {
+                                commit({
+                                    shoppingList: state.app.shoppingList.filter((i) => i.id !== e.detail),
+                                });
+                            })}
+                            ${listen(ShoppingListElement.events.checkedCleared, () => {
+                                commit({
+                                    shoppingList: state.app.shoppingList.filter((i) => !i.checked),
+                                });
+                            })}
+                        ></${ShoppingListElement}>
                       `
                             : view === "insights"
                               ? html`

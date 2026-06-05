@@ -585,6 +585,19 @@ export const BureauHeaderElement = defineElement<{
                               </div>
 
                               <div class="menu-section">
+                                  <button
+                                      class="menu-item"
+                                      @click=${() => {
+                                          dispatch(new events.viewRequested('shopping'));
+                                          closeMenu();
+                                      }}
+                                  >
+                                      <span class="menu-item-label">${skin.menu.shoppingListLabel}</span>
+                                      <span class="menu-item-sub">${skin.menu.shoppingListSub}</span>
+                                  </button>
+                              </div>
+
+                              <div class="menu-section">
                                   <div class="menu-section-label">
                                       ${skin.menu.appearanceLabel}
                                   </div>

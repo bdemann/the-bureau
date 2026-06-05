@@ -160,6 +160,9 @@ export const dresdenSkin: Skin = {
         shareSectionLabel: "Spread the Word",
         shareItemLabel: "Recommend a Wizard",
         shareItemSub: "Tell a friend about the docket",
+        shoppingListLabel: "Supply Run",
+        shoppingListSub: "Groceries, potions, and sundries",
+
         appearanceLabel: "Wardrobe",
 
         dataSectionLabel: "Data",

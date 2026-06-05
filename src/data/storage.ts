@@ -25,6 +25,7 @@ export const DEFAULT_STATE: AppState = {
     lastActiveDate: "",
     docketClearedDate: "",
     reportNoticeDismissedAt: null,
+    shoppingList: [],
 };
 
 // ── Load / save ─────────────────────────────────────────────────────────────
