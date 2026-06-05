@@ -30,9 +30,10 @@ import type {
     TimeOfDay,
 } from "../data/types.js";
 
+import {createFullDateInUserTimezone, toSimpleDatePartString} from 'date-vir';
+
 function msToDateString(ms: number): string {
-    const d = new Date(ms);
-    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+    return toSimpleDatePartString(createFullDateInUserTimezone(ms));
 }
 import {
     TIME_OF_DAY_SLOTS,

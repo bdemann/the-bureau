@@ -1,4 +1,5 @@
 import { defineElement, css, html } from "element-vir";
+import {calculateRelativeDate, createFullDateInUserTimezone, DateUnit, getStartDate, toJsDate} from 'date-vir';
 import type { DailyBand, RecurrenceCadence, RecurrenceConfig, Task } from "../data/types.js";
 import { getDailyBand } from "../data/urgency.js";
 import { getCurrentPeriod } from "../data/recurrence.js";
@@ -536,15 +537,11 @@ function baseTask(overrides: Partial<Task>): Task {
 // ── Date helpers ────────────────────────────────────────────────────────────
 
 function startOfToday(): Date {
-    const d = new Date();
-    d.setHours(0, 0, 0, 0);
-    return d;
+    return toJsDate(getStartDate(createFullDateInUserTimezone(new Date()), DateUnit.Day));
 }
 
 function addDays(d: Date, n: number): Date {
-    const r = new Date(d);
-    r.setDate(r.getDate() + n);
-    return r;
+    return toJsDate(calculateRelativeDate(createFullDateInUserTimezone(d), {days: n}));
 }
 
 function range(start: number, end: number): number[] {

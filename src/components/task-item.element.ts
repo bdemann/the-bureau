@@ -1,4 +1,5 @@
 import { css, defineElement, defineElementEvent, html } from "element-vir";
+import {createFullDateInUserTimezone, getNowInUserTimezone, toLocaleString} from 'date-vir';
 import { getActiveSkin } from "../skins/active-skin.js";
 import { ViraButton, ViraColorVariant, ViraEmphasis, ViraSize } from "vira";
 import type { ConsequenceTier, DailyBand, Task } from "../data/types.js";
@@ -313,9 +314,10 @@ export const TaskItemElement = defineElement<{
         const dueLabel = formatDueLabel(task, overdue, skin.commitmentRow.dueDatePrefix, skin.commitmentRow.missedDatePrefix);
         const snoozedUntilStr =
             currentlySnoozed && task.snoozedUntil
-                ? new Date(task.snoozedUntil).toLocaleDateString("en-US", {
+                ? toLocaleString(createFullDateInUserTimezone(task.snoozedUntil), {
                       month: "short",
                       day: "numeric",
+                      locale: "en-US",
                   })
                 : null;
 
@@ -578,9 +580,10 @@ function formatDueLabel(task: Task, overdue: boolean, duePfx: string, missedPfx:
     const due = task.suggestedDate ?? task.dueDate;
     if (due === null) return pattern;
 
-    const fmt = new Date(due).toLocaleDateString("en-US", {
+    const fmt = toLocaleString(createFullDateInUserTimezone(due), {
         month: "short",
         day: "numeric",
+        locale: "en-US",
     });
     if (task.deadlineType === "rigid") {
         const base = overdue ? `${missedPfx}${fmt}` : `${duePfx}${fmt}`;
@@ -590,20 +593,25 @@ function formatDueLabel(task: Task, overdue: boolean, duePfx: string, missedPfx:
         return `${pattern} · next ${fmt}`;
     }
     if (task.windowDeadline !== null) {
-        const deadlineDate = new Date(task.windowDeadline);
+        const deadlineFd = createFullDateInUserTimezone(task.windowDeadline);
+        const dueFd = createFullDateInUserTimezone(due);
         const sameDay =
-            deadlineDate.toDateString() === new Date(due).toDateString();
+            deadlineFd.year === dueFd.year && deadlineFd.month === dueFd.month && deadlineFd.day === dueFd.day;
         if (!sameDay) {
-            const deadline = deadlineDate.toLocaleDateString("en-US", {
+            const deadline = toLocaleString(deadlineFd, {
                 month: "short",
                 day: "numeric",
+                locale: "en-US",
             });
             return `Suggested ${fmt} · window ends ${deadline}`;
         }
     }
     // suggestedDate has arrived — switch from "Suggested" to "Due"
     if (due <= Date.now()) {
-        return new Date(due).toDateString() === new Date().toDateString()
+        const dueFd = createFullDateInUserTimezone(due);
+        const nowFd = getNowInUserTimezone();
+        const isToday = dueFd.year === nowFd.year && dueFd.month === nowFd.month && dueFd.day === nowFd.day;
+        return isToday
             ? "Due today"
             : `Overdue · ${fmt}`;
     }

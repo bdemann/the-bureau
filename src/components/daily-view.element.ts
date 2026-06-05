@@ -6,6 +6,7 @@ import {
     listen,
 } from "element-vir";
 import { ViraButton, ViraColorVariant, ViraEmphasis, ViraSize } from "vira";
+import {getNowInUserTimezone} from 'date-vir';
 import type { DailyBand, Area, Task, TimeOfDay } from "../data/types.js";
 import { TIME_OF_DAY_SLOTS, timeOfDayLabel } from "../data/types.js";
 import { getDailyBand } from "../data/urgency.js";
@@ -23,7 +24,7 @@ const COLLAPSE_THRESHOLD = 5;
 // ── Time-of-day slot helpers ─────────────────────────────────────────────────
 
 function getCurrentTimeSlot(): TimeOfDay {
-    const h = new Date().getHours();
+    const h = getNowInUserTimezone().hour;
     if (h >= 5 && h < 12) return "morning";
     if (h >= 12 && h < 17) return "afternoon";
     if (h >= 17 && h < 21) return "evening";

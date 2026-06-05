@@ -1,4 +1,5 @@
 import { css, defineElement, defineElementEvent, html } from "element-vir";
+import {createFullDateInUserTimezone, formatPresets, toLocaleString} from 'date-vir';
 import type { AnyCommitment, Area, Goal, Task } from "../data/types.js";
 import { getActiveSkin } from "../skins/active-skin.js";
 
@@ -178,7 +179,7 @@ export const CommitmentCardElement = defineElement<{
                     ? html`<span class=${"badge goal-status abandoned"}>${skin.types.goalAbandoned}</span>`
                     : html``}
                 ${g.targetDate
-                    ? html`<span class="badge">${new Date(g.targetDate).toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" })}</span>`
+                    ? html`<span class="badge">${toLocaleString(createFullDateInUserTimezone(g.targetDate), formatPresets.DateMed)}</span>`
                     : html``}
             `;
         } else {

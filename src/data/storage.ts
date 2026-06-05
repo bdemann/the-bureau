@@ -1,3 +1,12 @@
+import {
+    DateUnit,
+    createFullDateInUserTimezone,
+    diffDates,
+    getStartDate,
+    getNowInUserTimezone,
+    toJsDate,
+    toSimpleDatePartString,
+} from 'date-vir';
 import type {
     AnyCommitment,
     AppState,
@@ -293,21 +302,19 @@ export function generateId(): string {
 }
 
 export function getTodayString(): string {
-    return new Date().toISOString().slice(0, 10);
+    return toSimpleDatePartString(getNowInUserTimezone());
 }
 
 /** Start-of-day (local) for a given date. */
 export function startOfDay(d: Date): Date {
-    const r = new Date(d);
-    r.setHours(0, 0, 0, 0);
-    return r;
+    return toJsDate(getStartDate(createFullDateInUserTimezone(d), DateUnit.Day));
 }
 
 /** Whole-day difference (b - a), using local midnight boundaries. */
 export function daysBetween(a: Date | number, b: Date | number): number {
-    const ms =
-        startOfDay(new Date(b)).getTime() - startOfDay(new Date(a)).getTime();
-    return Math.round(ms / 86_400_000);
+    const aFd = getStartDate(createFullDateInUserTimezone(new Date(a)), DateUnit.Day);
+    const bFd = getStartDate(createFullDateInUserTimezone(new Date(b)), DateUnit.Day);
+    return diffDates({start: aFd, end: bFd}, {days: true}).days;
 }
 
 export function isCurrentlySnoozed(task: Pick<Task, "snoozedUntil">): boolean {

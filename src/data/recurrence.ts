@@ -4,6 +4,13 @@
 // and resets state at period rollover.
 // ─────────────────────────────────────────────────────────────────────────────
 
+import {
+    DateUnit,
+    calculateRelativeDate,
+    createFullDateInUserTimezone,
+    getEndDate,
+    toJsDate,
+} from 'date-vir';
 import type {RecurrenceCadence, RecurrenceConfig, Task} from './types.js';
 import {isCurrentlyPaused, startOfDay} from './storage.js';
 
@@ -441,15 +448,11 @@ export function isMultiplePerPeriod(task: Task): boolean {
 // ── Internal date helpers ───────────────────────────────────────────────────
 
 function endOfDay(d: Date): Date {
-    const r = new Date(d);
-    r.setHours(23, 59, 59, 999);
-    return r;
+    return toJsDate(getEndDate(createFullDateInUserTimezone(d), DateUnit.Day));
 }
 
 function addDays(d: Date, n: number): Date {
-    const r = new Date(d);
-    r.setDate(r.getDate() + n);
-    return r;
+    return toJsDate(calculateRelativeDate(createFullDateInUserTimezone(d), {days: n}));
 }
 
 /**
@@ -620,23 +623,18 @@ function skipForwardOverSkipDays(date: Date, skipDays: number[] | undefined): Da
 }
 
 function addCadenceLength(d: Date, cadence: RecurrenceCadence): Date {
-    const r = new Date(d);
+    const fd = createFullDateInUserTimezone(d);
     switch (cadence) {
         case 'daily':
         case 'multiple_per_day':
-            r.setDate(r.getDate() + 1);
-            return r;
+            return toJsDate(calculateRelativeDate(fd, {days: 1}));
         case 'weekly':
-            r.setDate(r.getDate() + 7);
-            return r;
+            return toJsDate(calculateRelativeDate(fd, {days: 7}));
         case 'monthly':
-            r.setMonth(r.getMonth() + 1);
-            return r;
+            return toJsDate(calculateRelativeDate(fd, {months: 1}));
         case 'quarterly':
-            r.setMonth(r.getMonth() + 3);
-            return r;
+            return toJsDate(calculateRelativeDate(fd, {months: 3}));
         case 'annually':
-            r.setFullYear(r.getFullYear() + 1);
-            return r;
+            return toJsDate(calculateRelativeDate(fd, {years: 1}));
     }
 }

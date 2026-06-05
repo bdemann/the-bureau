@@ -3,6 +3,7 @@
 // No I/O except triggerDownload (DOM) and parseImport (JSON.parse).
 // ─────────────────────────────────────────────────────────────────────────────
 
+import {createFullDateInUserTimezone, toSimpleDatePartString} from 'date-vir';
 import type {AnyCommitment, AppState, Goal, Idea, RecurrenceConfig, Task} from './types.js';
 import {getDailyBand} from './urgency.js';
 import {getTodayString} from './storage.js';
@@ -159,7 +160,7 @@ function fmtAnchor(cfg: RecurrenceConfig | null): string {
 
 function fmtDate(ms: number | null | undefined): string {
     if (ms == null) return '';
-    return new Date(ms).toISOString().slice(0, 10);
+    return toSimpleDatePartString(createFullDateInUserTimezone(ms));
 }
 
 function fmtLeadTime(lt: number | null | undefined): string {

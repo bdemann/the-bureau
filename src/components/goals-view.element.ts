@@ -1,4 +1,5 @@
 import { css, defineElement, defineElementEvent, html } from "element-vir";
+import {createFullDateInUserTimezone, formatPresets, toLocaleString} from 'date-vir';
 import type { FormKind, Goal, GoalStatus, Area, Task } from "../data/types.js";
 import { getActiveSkin } from "../skins/active-skin.js";
 
@@ -10,11 +11,7 @@ import { getActiveSkin } from "../skins/active-skin.js";
 // ─────────────────────────────────────────────────────────────────────────────
 
 function fmtDate(ms: number): string {
-    return new Date(ms).toLocaleDateString(undefined, {
-        month: "short",
-        day: "numeric",
-        year: "numeric",
-    });
+    return toLocaleString(createFullDateInUserTimezone(ms), formatPresets.DateMed);
 }
 
 function sortByTargetDate(goals: Goal[]): Goal[] {

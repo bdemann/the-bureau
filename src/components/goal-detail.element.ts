@@ -13,16 +13,13 @@ import type {
     Area,
     Task,
 } from "../data/types.js";
+import {createFullDateInUserTimezone, formatPresets, toLocaleString} from 'date-vir';
 import { isCurrentlyPaused, isTaskVisible } from "../data/storage.js";
 import { TaskItemElement } from "./task-item.element.js";
 import { IdeasViewElement } from "./ideas-view.element.js";
 
 function fmtDate(ms: number): string {
-    return new Date(ms).toLocaleDateString(undefined, {
-        month: "short",
-        day: "numeric",
-        year: "numeric",
-    });
+    return toLocaleString(createFullDateInUserTimezone(ms), formatPresets.DateMed);
 }
 
 // ─────────────────────────────────────────────────────────────────────────────

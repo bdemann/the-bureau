@@ -5,6 +5,7 @@ import {
     html,
     listen,
 } from "element-vir";
+import {createFullDateInUserTimezone, getNowInUserTimezone} from 'date-vir';
 import type { Area, Task } from "../data/types.js";
 import { AreaCardElement } from "./area-card.element.js";
 import { AreaWizardDialogElement } from "./area-wizard-dialog.element.js";
@@ -221,9 +222,9 @@ export const DashboardViewElement = defineElement<{
         const pendingCount = allVisible.length;
         const completedToday = tasks.filter((t) => {
             if (!t.completedAt) return false;
-            const d = new Date(t.completedAt);
-            const now = new Date();
-            return d.toDateString() === now.toDateString();
+            const d = createFullDateInUserTimezone(t.completedAt);
+            const now = getNowInUserTimezone();
+            return d.year === now.year && d.month === now.month && d.day === now.day;
         }).length;
 
         return html`
