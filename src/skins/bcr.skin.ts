@@ -183,6 +183,11 @@ export const bcrSkin: Skin = {
 
     areaEdit: {
         ...defaultSkin.areaEdit,
+        createDialogTitle: "NEW AREA OF RESPONSIBILITY",
+        namePlaceholder: "Name this area of responsibility.",
+        briefingOptionalLabel: "Briefing (optional)",
+        briefingPlaceholder: "What does it mean to you to be on top of this area?",
+        createBtn: "CREATE AREA",
         briefingLabel: "Briefing",
         colorLabel: "Designation Color",
         editBtn: "EDIT AREA",

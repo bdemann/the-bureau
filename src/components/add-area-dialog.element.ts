@@ -1,6 +1,7 @@
 import { defineElement, defineElementEvent, css, html } from "element-vir";
 import type { Area, AreaColor } from "../data/types.js";
 import { generateId } from "../data/storage.js";
+import { getActiveSkin } from "../skins/active-skin.js";
 
 // ─────────────────────────────────────────────────────────────────────────────
 // AddAreaDialogElement
@@ -17,6 +18,8 @@ const COLOR_OPTIONS: { key: AreaColor; label: string; swatch: string }[] = [
 
 export const AddAreaDialogElement = defineElement<{
     open: boolean;
+    /** Re-render trigger — changes when the active skin changes. */
+    activeSkinId: string;
 }>()({
     tagName: "add-area-dialog",
 
@@ -201,6 +204,8 @@ export const AddAreaDialogElement = defineElement<{
     render({ inputs, state, updateState, dispatch, events }) {
         if (!inputs.open) return html``;
 
+        const skin = getActiveSkin();
+        const s = skin.areaEdit;
         const canSubmit = state.name.trim().length > 0;
 
         function submit(): void {
@@ -225,14 +230,14 @@ export const AddAreaDialogElement = defineElement<{
                 }}
             >
                 <div class="sheet">
-                    <div class="sheet-title">NEW AREA OF RESPONSIBILITY</div>
+                    <div class="sheet-title">${s.createDialogTitle}</div>
 
                     <div class="field">
-                        <label>Area Name *</label>
+                        <label>${s.nameLabel} *</label>
                         <input
                             type="text"
                             .value=${state.name}
-                            placeholder="Name this area of responsibility."
+                            placeholder=${s.namePlaceholder}
                             @input=${(e: Event) =>
                                 updateState({
                                     name: (e.target as HTMLInputElement).value,
@@ -244,10 +249,10 @@ export const AddAreaDialogElement = defineElement<{
                     </div>
 
                     <div class="field">
-                        <label>Briefing (optional)</label>
+                        <label>${s.briefingOptionalLabel}</label>
                         <textarea
                             .value=${state.description}
-                            placeholder="What is this area about?"
+                            placeholder=${s.briefingPlaceholder}
                             @input=${(e: Event) =>
                                 updateState({
                                     description: (
@@ -258,7 +263,7 @@ export const AddAreaDialogElement = defineElement<{
                     </div>
 
                     <div class="field">
-                        <label>Designation Color</label>
+                        <label>${s.colorLabel}</label>
                         <div class="color-grid">
                             ${COLOR_OPTIONS.map(
                                 (opt) => html`
@@ -295,14 +300,14 @@ export const AddAreaDialogElement = defineElement<{
                             class="btn-cancel"
                             @click=${() => dispatch(new events.cancelled())}
                         >
-                            Cancel
+                            ${s.cancelBtn}
                         </button>
                         <button
                             class="btn-submit"
                             ?disabled=${!canSubmit}
                             @click=${submit}
                         >
-                            CREATE AREA
+                            ${s.createBtn}
                         </button>
                     </div>
                 </div>

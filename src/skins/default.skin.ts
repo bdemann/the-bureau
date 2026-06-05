@@ -220,6 +220,11 @@ export const defaultSkin: Skin = {
     },
 
     areaEdit: {
+        createDialogTitle: "NEW AREA",
+        namePlaceholder: "Name this area.",
+        briefingOptionalLabel: "Briefing (optional)",
+        briefingPlaceholder: "What is this area about?",
+        createBtn: "CREATE AREA",
         nameLabel: "Area Name",
         briefingLabel: "Briefing",
         colorLabel: "Color",

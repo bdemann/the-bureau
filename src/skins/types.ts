@@ -247,6 +247,11 @@ export interface SkinCommitmentList {
 // ── Area edit / management form ───────────────────────────────────────────────
 
 export interface SkinAreaEdit {
+    createDialogTitle: string;
+    namePlaceholder: string;
+    briefingOptionalLabel: string;
+    briefingPlaceholder: string;
+    createBtn: string;
     nameLabel: string;
     briefingLabel: string;
     colorLabel: string;

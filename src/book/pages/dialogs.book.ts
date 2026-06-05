@@ -12,7 +12,7 @@ export const addAreaPage = defineBookPage({
             render() {
                 return html`
                     <div style="position:relative;height:420px;overflow:hidden;transform:scale(1);">
-                        <${AddAreaDialogElement.assign({ open: true })}></${AddAreaDialogElement}>
+                        <${AddAreaDialogElement.assign({ open: true, activeSkinId: "bcr" })}></${AddAreaDialogElement}>
                     </div>
                 `;
             },
