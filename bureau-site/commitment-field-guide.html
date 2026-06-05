@@ -497,51 +497,58 @@
                 done, it's a task — even if it repeats.
             </p>
 
-            <h2 class="section-heading">Window Type — How the Commitment Is Anchored</h2>
+            <h2 class="section-heading">Deadline Type — How the Commitment Is Anchored in Time</h2>
 
             <p>
-                Window type governs how the urgency engine surfaces your item. It answers: "Is this
-                commitment anchored to a specific date, a window of time, or a long-horizon project?"
+                Deadline type answers one question: <em>"Am I committed to a specific day, or to
+                completing this sometime within a period?"</em> This is independent of how serious
+                the commitment is (that's Tier) and independent of how completion is tracked
+                (that's the Milestone toggle).
             </p>
 
             <div class="design-note">
-                <strong>Hard vs. Flexible — The Key Test</strong>
-                Ask: <em>"If I miss my preferred day, is the opportunity gone?"</em> If yes — the
-                trash truck already came, the bill was due yesterday, the appointment slot passed —
-                that's a Hard window. If no — any day this week works just as well — that's a
-                Flexible window with a suggested date. The distinction matters: Hard windows that
-                are really Flexible create urgency signals that don't match reality, which trains
-                you to ignore them. Flexible windows that are really Hard risk treating a deadline
-                as a suggestion.
+                <strong>Rigid vs. Flexible — The Key Test</strong>
+                Ask: <em>"If I miss my preferred day, is the opportunity gone?"</em> If yes —
+                that's Rigid. The day is the commitment. If no — any day in the period works —
+                that's Flexible.
+                <br><br>
+                Rigid does <strong>not</strong> require external enforcement. "I review ancestry
+                hints the 3rd Sunday — that's my carved-out slot; miss it and I wait until next
+                month" is Rigid even though no one else imposed it. The test is whether missing
+                the specific day forfeits the period — not whether someone outside you enforces it.
+                <br><br>
+                The practical difference: after a Rigid task's day passes, the period is over and
+                the task is mandatory then missed. After a Flexible task's suggested date passes,
+                the task is still available — urgency rising, window still open.
             </div>
 
             <div class="setting-block">
                 <div class="setting-header">
-                    <span class="setting-name">Hard</span>
+                    <span class="setting-name">Rigid</span>
                     <span class="setting-applies">Applies to: routines, tasks</span>
                 </div>
                 <div class="setting-body">
                     <p>
                         The commitment is tied to a specific day. Missing that day means the opportunity
-                        is gone — either literally (the trash truck came and went) or by strong external
-                        convention (the bill was due the 1st). Use Hard when the day is the commitment,
-                        not just a target.
+                        is gone for this period — the slot has passed. Use Rigid when the day itself is
+                        the commitment, not just a preferred time within a window.
                     </p>
                     <ul class="setting-options">
                         <li>
-                            <span class="opt-label">Recurring</span>
+                            <span class="opt-label">External deadline</span>
                             <span class="opt-body">
                                 "Take the trash out every Tuesday morning." The truck comes Tuesday — not
-                                Wednesday. <em>Also: weekly team meeting every Wednesday, monthly rent
-                                    on the 1st, daily medication at 8am.</em>
+                                Wednesday. <em>Also: weekly team meeting, monthly rent on the 1st, filing
+                                    taxes by April 15th, RSVP deadline, car registration renewal.</em>
                             </span>
                         </li>
                         <li>
-                            <span class="opt-label">One-time</span>
+                            <span class="opt-label">Self-imposed slot</span>
                             <span class="opt-body">
-                                "File taxes by April 15th." There is a specific deadline imposed from
-                                outside. <em>Also: car registration renewal, RSVP deadline, scheduled
-                                    appointment.</em>
+                                "I review my finances the first Saturday of the month — if I miss that
+                                Saturday, I wait until next month." No one else enforces this, but the
+                                slot structure makes it Rigid. <em>Also: Sunday-only Bible study, the
+                                    3rd Sunday ancestry research window.</em>
                             </span>
                         </li>
                     </ul>
@@ -555,85 +562,107 @@
                 </div>
                 <div class="setting-body">
                     <p>
-                        The commitment has a window — you need to do it sometime between now and a deadline,
-                        but the specific day is up to you. The urgency band rises as the window closes.
-                        Use Flexible when the period matters but the exact day within it doesn't.
+                        The commitment has a window — you need to do it sometime within the period, but
+                        the specific day within it is up to you. The urgency band rises as the window
+                        closes, but a missed suggested date doesn't forfeit the period. Use Flexible when
+                        the period matters but any day in it works.
                     </p>
                     <ul class="setting-options">
                         <li>
-                            <span class="opt-label">Recurring</span>
+                            <span class="opt-label">Anchored flexible</span>
                             <span class="opt-body">
-                                "Exercise three times this week." Any three days work. <em>Also: weekly
-                                    journal entry, monthly budget review, quarterly investment check-in.</em>
+                                Has a preferred day, but slipping a few days isn't a forfeit. "Replace the
+                                air filter on the 1st — but doing it on the 5th is fine." The suggested
+                                date creates a Suggested band target; missing it raises urgency without
+                                closing the window. <em>Also: monthly budget review, quarterly investment
+                                    check-in with a preferred calendar slot.</em>
                             </span>
                         </li>
                         <li>
-                            <span class="opt-label">One-time</span>
+                            <span class="opt-label">Open flexible</span>
                             <span class="opt-body">
-                                "Schedule a dentist appointment sometime this month." No specific day
-                                required — just before the month ends. <em>Also: a home repair you've
-                                    been putting off, a call you need to make this quarter.</em>
+                                Any day in the period is equally valid; proximity to the last completion
+                                doesn't matter. "Attend the temple once this month." "Read Come Follow Me
+                                this week — any day." <em>Also: weekly journal entry, monthly dentist
+                                    scheduling, a home repair that just needs to happen this quarter.</em>
                             </span>
                         </li>
                     </ul>
                 </div>
             </div>
 
+            <h2 class="section-heading">Milestone — Multi-Session Progress Tracking</h2>
+
+            <p>
+                Milestone is a toggle, independent of Deadline Type. Any commitment can be a milestone —
+                a Rigid milestone has a fixed completion date; a Flexible milestone has a window or no
+                deadline at all. The milestone toggle changes <em>how</em> completion is tracked, not
+                when the commitment is due.
+            </p>
+
             <div class="setting-block">
                 <div class="setting-header">
-                    <span class="setting-name">Milestone</span>
-                    <span class="setting-applies">Applies to: tasks (one-time recommended)</span>
+                    <span class="setting-name">Milestone toggle off</span>
+                    <span class="setting-applies">Default — completes in one session</span>
                 </div>
                 <div class="setting-body">
                     <p>
-                        A long-horizon project where progress is incremental and you track sessions of work
-                        until the thing is genuinely done. The ✓ button logs a work session and hides the
-                        item for the rest of that day. "All done" permanently completes it. Use Milestone
-                        when a task is too large to finish in one sitting and you want to track your
-                        progress without the item nagging you every day.
+                        The ✓ button marks the commitment done for the period. One tap, done.
+                        Use this for anything completable in a single sitting.
+                    </p>
+                </div>
+            </div>
+
+            <div class="setting-block">
+                <div class="setting-header">
+                    <span class="setting-name">Milestone toggle on</span>
+                    <span class="setting-applies">Progress across sessions until genuinely done</span>
+                </div>
+                <div class="setting-body">
+                    <p>
+                        The ✓ button logs a work session and hides the item for the rest of that day.
+                        "All done" permanently completes it. Use Milestone when a commitment is too
+                        large to finish in one sitting and you want to track progress without the item
+                        nagging you every day.
                     </p>
                     <ul class="setting-options">
                         <li>
-                            <span class="opt-label">Good fit</span>
+                            <span class="opt-label">Flexible milestone</span>
                             <span class="opt-body">
-                                "Write a novel." "Learn to play guitar." "Paint the bedroom." "Build an
-                                emergency fund to $10,000." "Work through a programming course." Each of
-                                these takes many sessions across weeks or months, and you want to log
-                                effort without marking the whole thing done prematurely.
+                                "Read a book for leisure." No deadline — stays in the backlog until
+                                done. Any progress session is valid regardless of when the last one was.
+                                <em>Also: write a novel, learn guitar, build an emergency fund.</em>
                             </span>
                         </li>
                         <li>
-                            <span class="opt-label">Deadline</span>
+                            <span class="opt-label">Rigid milestone</span>
                             <span class="opt-body">
-                                Optionally set a deadline. Without one, the milestone stays in the backlog
-                                until you're done. With one, it surfaces in the urgency bands as the
-                                deadline approaches — useful for real projects with external stakes.
+                                "Finish this book before book club Thursday." Progress is tracked session
+                                by session, but the completion deadline is fixed — miss Thursday and the
+                                period forfeits. <em>Also: finish a project before a presentation,
+                                    complete a course before enrollment closes.</em>
                             </span>
                         </li>
                         <li>
                             <span class="opt-label">Progress cadence</span>
                             <span class="opt-body">
-                                Milestones have two independent cadences. The outer cadence — set on the
-                                commitment itself — controls how often you want to complete the whole
-                                milestone (e.g. "read a book 6 times a year"). The progress cadence
-                                controls how often you want to make progress on the current instance
-                                (e.g. "work on the current book 3 times a week"). Once you've hit your
-                                weekly progress quota, the milestone hides until the next week begins.
-                                Without a custom progress cadence the default behaviour applies: the
-                                milestone hides for the rest of the day after any progress session and
-                                reappears the next morning.
+                                Milestones have two independent cadences. The outer cadence controls
+                                how often you want to complete the whole milestone (e.g. "read a book
+                                6 times a year"). The progress cadence controls how often you want to
+                                make progress on the current instance (e.g. "work on the current book
+                                3 times a week"). Once you've hit your weekly progress quota, the
+                                milestone hides until the next week begins. Without a custom progress
+                                cadence the default applies: the milestone hides for the rest of the
+                                day after any progress session and reappears the next morning.
                             </span>
                         </li>
                     </ul>
                     <p style="margin-top: 14px; font-size: 0.87rem; color: var(--muted); line-height: 1.65;">
-                        <em>A note on the line between milestones and goals:</em> it's admittedly fuzzy.
-                        A milestone is essentially a goal that lives in the daily view — a long-horizon
-                        outcome you're actively working toward, session by session. The practical
-                        difference is that a goal is context and direction (no score impact, no urgency
-                        band), while a milestone is a commitment with teeth: it shows up in your day,
-                        tracks your sessions, and expects follow-through. If you're just pointing at a
-                        destination, use a goal. If you're also tracking that you're actually moving
-                        toward it, use a milestone.
+                        <em>Milestone vs. Goal:</em> a goal is context and direction — no score impact,
+                        no urgency band. A milestone is a commitment with teeth: it shows up in your day,
+                        tracks your sessions, and expects follow-through. If you're pointing at a
+                        destination, use a goal. If you're also tracking that you're moving toward it,
+                        use a milestone.
                     </p>
                 </div>
             </div>
@@ -688,11 +717,19 @@
             <h2 class="section-heading">Urgency Bands — Where Your Commitment Shows Up Today</h2>
 
             <p>
-                Every day, CLEAR places each active commitment into one of four urgency bands. The band
-                determines where on the daily view it appears — and how much pressure the system puts on
-                you to act. Band placement is computed automatically from the commitment's tier, window
+                Every day, CLEAR places each active commitment into one of four urgency bands. The daily
+                view has two categories: <strong>today's work</strong> (Mandatory + Suggested) and
+                <strong>upcoming work</strong> (Radar + Backlog). A successful day means clearing
+                Mandatory. Band placement is computed automatically from the commitment's tier, deadline
                 type, cadence, and how close it is to its deadline.
             </p>
+
+            <div class="design-note">
+                <strong>Keep Mandatory honest.</strong> Mandatory should stay short — a handful of items,
+                not a list of twenty. If everything is mandatory, nothing is. The band works because it's
+                reserved for things that genuinely cannot wait. When in doubt, a commitment belongs in
+                Suggested until its actual deadline arrives.
+            </div>
 
             <div class="setting-block">
                 <div class="setting-header">
@@ -710,8 +747,8 @@
                             genuine consequences and reset every day.</span>
                         </li>
                         <li>
-                            <span class="opt-label">Hard date due</span>
-                            <span class="opt-body">Any tier's hard-date task on or past its due date
+                            <span class="opt-label">Rigid date due</span>
+                            <span class="opt-body">Any tier's rigid-date task on or past its due date
                             (except T4 — see below).</span>
                         </li>
                         <li>
@@ -780,10 +817,11 @@
                 <div class="setting-body">
                     <p>
                         The commitment is approaching but not yet due. It's visible so you can plan ahead,
-                        not because action is needed today. Hard-date tasks within their lead time window
+                        not because action is needed today. Rigid-date tasks within their lead time window
                         and flexible tasks entering the last quarter of their window appear here.
                         Completing a Radar item earns a <strong>1.5× bonus</strong> — acting early is
-                        recognized.
+                        recognized. Skipping without completing carries <strong>no miss penalty</strong>
+                        while a task stays in Radar.
                     </p>
                 </div>
             </div>
@@ -797,7 +835,8 @@
                     <p>
                         The commitment is active but has plenty of time remaining. It's in view so
                         nothing falls off your map, but the system isn't asking anything of you today.
-                        Like Radar items, completing from the Backlog earns a <strong>1.5× bonus</strong>.
+                        Like Radar items, completing from the Backlog earns a <strong>1.5× bonus</strong>,
+                        and skipping carries <strong>no miss penalty</strong>.
                         You can dismiss a Backlog or Radar card for the day with "Not Today" — no score
                         impact, just declutter.
                     </p>
@@ -964,7 +1003,7 @@
                     <ul class="setting-options">
                         <li><span class="opt-label">Default</span>
                             <span class="opt-body">
-                                Hard-date tasks surface 3 days before due. Flexible tasks use window-percentage
+                                Rigid-date tasks surface 3 days before due. Flexible tasks use window-percentage
                                 logic (appears earlier the closer you are to the deadline). <em>Most items work
                                     well with the default.</em>
                             </span>
@@ -1122,11 +1161,13 @@
             </div>
 
             <div class="design-note">
-                <strong>Hard Window on Flexible Commitments</strong>
-                "Hard" signals external accountability — the trash truck comes Tuesday whether you're
-                ready or not. If the commitment actually works fine on any day this week, the Flexible
-                window type is more accurate. Overtiereing the window type creates urgency signals
-                that don't match reality, which trains you to ignore them.
+                <strong>Rigid vs. Flexible — Choosing Honestly</strong>
+                Rigid means the <em>day</em> is the commitment — missing it forfeits the period. Flexible
+                means the <em>period</em> is the commitment — any day in the window works. Neither choice
+                says anything about how important the commitment is; that's what Tier is for. If you
+                mark a Flexible commitment as Rigid, you'll get urgency signals that don't match reality,
+                which trains you to ignore them. If you mark a Rigid commitment as Flexible, a real
+                deadline gets treated as a suggestion.
             </div>
 
             <div class="design-note">
@@ -1137,7 +1178,7 @@
             </div>
 
             <div class="design-note caution">
-                <strong>Multiple-Per-Period + Milestone Window</strong>
+                <strong>Multiple-Per-Period + Milestone</strong>
                 These two features don't interact as designed. "Multiple per period" tracks how many
                 times you've completed something in a window (e.g., 2 of 3 this week). "Milestone"
                 tracks cumulative progress on a single long-horizon project. Combining them creates
@@ -1174,11 +1215,18 @@
                         <td>✓</td>
                     </tr>
                     <tr>
-                        <td class="field-label">Window Type</td>
+                        <td class="field-label">Deadline Type</td>
                         <td>—</td>
                         <td>—</td>
-                        <td>✓ Hard / Flexible / Milestone (not shown for daily cadence)</td>
-                        <td>✓ Hard / Flexible / Milestone (not shown for daily cadence)</td>
+                        <td>✓ Rigid / Flexible (not shown for daily cadence)</td>
+                        <td>✓ Rigid / Flexible (not shown for daily cadence)</td>
+                    </tr>
+                    <tr>
+                        <td class="field-label">Milestone</td>
+                        <td>—</td>
+                        <td>—</td>
+                        <td>✓ toggle; works with either deadline type</td>
+                        <td>✓ toggle; works with either deadline type</td>
                     </tr>
                     <tr>
                         <td class="field-label">Cadence / Recurrence</td>
@@ -1212,8 +1260,8 @@
                         <td class="field-label">Lead Time</td>
                         <td>—</td>
                         <td>—</td>
-                        <td>✓ Hard &amp; flexible; no effect on daily</td>
-                        <td>✓ Hard &amp; flexible; no effect on daily</td>
+                        <td>✓ Rigid &amp; flexible; no effect on daily</td>
+                        <td>✓ Rigid &amp; flexible; no effect on daily</td>
                     </tr>
                     <tr>
                         <td class="field-label">Start Date</td>
