@@ -2,6 +2,7 @@ import type {
     AnyCommitment,
     AppState,
     ConsequenceTier,
+    DeadlineType,
     Goal,
     Idea,
     ItemKind,
@@ -76,7 +77,7 @@ export function migrateState(state: AppState): AppState {
         (state.areas?.length ?? 0) > 0 ? state.areas : (raw.projects ?? []);
 
     if (version >= SCHEMA_VERSION) {
-        // Already at v4 — just normalise task shapes.
+        // Already at v5 — just normalise task shapes.
         return {
             ...state,
             areas,
@@ -87,6 +88,24 @@ export function migrateState(state: AppState): AppState {
                     : c,
             ) as AnyCommitment[],
         };
+    }
+
+    // v4 → v5: split windowType into deadlineType + isMilestone.
+    if (version === 4) {
+        return migrateState({
+            ...state,
+            schemaVersion: 5,
+            commitments: state.commitments.map((c) => {
+                if (c.kind !== 'task' && c.kind !== 'routine') return c;
+                const raw = c as any;
+                const wt: string = raw.windowType ?? 'flexible';
+                return {
+                    ...raw,
+                    deadlineType: wt === 'hard' ? 'rigid' : 'flexible',
+                    isMilestone: wt === 'milestone',
+                };
+            }) as AnyCommitment[],
+        });
     }
 
     // v3 → v4: rename cadence 'yearly' → 'annually'.
@@ -163,7 +182,7 @@ function migrateTaskV1ToV2(raw: any): Task {
     return ensureTaskShape({
         ...raw,
         consequenceTier: raw.consequenceTier ?? priorityToTier(raw.priority),
-        windowType: raw.windowType ?? "flexible",
+        windowType: raw.windowType ?? "flexible", // kept for ensureTaskShape fallback
         suggestedDate: raw.suggestedDate ?? raw.dueDate ?? null,
         windowDeadline: raw.windowDeadline ?? null,
         windowLengthDays: raw.windowLengthDays ?? null,
@@ -209,7 +228,8 @@ function ensureTaskShape(raw: any): Task {
                 ? "routine"
                 : "task")) as ItemKind,
         consequenceTier: (raw.consequenceTier ?? 3) as ConsequenceTier,
-        windowType: raw.windowType ?? "flexible",
+        deadlineType: (raw.deadlineType ?? (raw.windowType === 'hard' ? 'rigid' : 'flexible')) as DeadlineType,
+        isMilestone: raw.isMilestone ?? (raw.windowType === 'milestone'),
         suggestedDate: raw.suggestedDate ?? null,
         windowDeadline: raw.windowDeadline ?? null,
         windowLengthDays: raw.windowLengthDays ?? null,

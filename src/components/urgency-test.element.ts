@@ -422,7 +422,7 @@ interface HardDateOpts {
 function hardDate(o: HardDateOpts): Task {
     return baseTask({
         consequenceTier: o.tier,
-        windowType: "hard",
+        deadlineType: "rigid", isMilestone: false,
         suggestedDate: addDays(o.today, o.dueOffset).getTime(),
         windowDeadline: null,
         windowLengthDays: null,
@@ -445,7 +445,7 @@ interface FlexWindowOpts {
 function flexWindow(o: FlexWindowOpts): Task {
     return baseTask({
         consequenceTier: o.tier,
-        windowType: "flexible",
+        deadlineType: "flexible", isMilestone: false,
         suggestedDate: addDays(o.today, o.suggestedOffset).getTime(),
         windowDeadline: addDays(o.today, o.deadlineOffset).getTime(),
         windowLengthDays: o.windowLengthDays,
@@ -466,7 +466,7 @@ function recurringTask(o: RecurringOpts): Task {
     const period = getCurrentPeriod(o.cadence, o.today);
     return baseTask({
         consequenceTier: o.tier,
-        windowType: "flexible",
+        deadlineType: "flexible", isMilestone: false,
         suggestedDate: period.start,
         windowDeadline: period.end,
         windowLengthDays: period.lengthDays,
@@ -493,7 +493,7 @@ function multiPerPeriod(o: MultiPerPeriodOpts): Task {
     const period = getCurrentPeriod(o.cadence, o.today);
     return baseTask({
         consequenceTier: o.tier,
-        windowType: "flexible",
+        deadlineType: "flexible", isMilestone: false,
         suggestedDate: period.start,
         windowDeadline: period.end,
         windowLengthDays: period.lengthDays,
@@ -516,7 +516,7 @@ function baseTask(overrides: Partial<Task>): Task {
         description: "",
         consequenceTier: 3,
         kind: "task" as Task["kind"],
-        windowType: "flexible",
+        deadlineType: "flexible", isMilestone: false,
         suggestedDate: null,
         windowDeadline: null,
         windowLengthDays: null,

@@ -388,7 +388,7 @@ export const AreaWizardDialogElement = defineElement<{
                 ...buildRecurrenceAnchors(state.cadenceConfig),
             };
             const init = initializeRecurrence(
-                { windowType: "flexible", suggestedDate: null },
+                { deadlineType: "flexible", suggestedDate: null },
                 cfg,
                 today,
             );
@@ -402,7 +402,8 @@ export const AreaWizardDialogElement = defineElement<{
                 kind: "routine" as ItemKind,
                 timeOfDay: state.currentTimeOfDay,
                 consequenceTier: state.currentTier,
-                windowType: "flexible",
+                deadlineType: "flexible",
+                isMilestone: false,
                 suggestedDate: init.suggestedDate,
                 windowDeadline: init.windowDeadline,
                 windowLengthDays: init.windowLengthDays,

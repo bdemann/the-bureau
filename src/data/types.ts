@@ -18,7 +18,7 @@ export type AppView =
     | "unlinked";
 export type Character = "director" | "agent";
 
-export const SCHEMA_VERSION = 4;
+export const SCHEMA_VERSION = 5;
 
 // ── Goal ─────────────────────────────────────────────────────────────────────
 
@@ -79,10 +79,9 @@ export type ScheduleMode =
     | "fixed" // next due anchored to calendar position (1st of month, every Wed)
     | "rolling"; // next due = completion date + cadence length
 
-export type WindowType =
-    | "hard" // must happen on suggestedDate specifically (trash day)
-    | "flexible" // can happen any day within the window
-    | "milestone"; // long-horizon task; track incremental progress until truly done
+export type DeadlineType =
+    | "rigid"    // must happen on suggestedDate specifically; missing the day forfeits the period
+    | "flexible"; // any day within the window counts; suggestedDate is preferred, not required
 
 /**
  * How often the user intends to make progress on a milestone within a period.
@@ -235,9 +234,12 @@ export interface Task {
     timeOfDay: TimeOfDay;
     kind: ItemKind;
 
-    // ── Consequence and timing type ──
+    // ── Consequence and deadline type ──
     consequenceTier: ConsequenceTier;
-    windowType: WindowType;
+    /** Whether the commitment is tied to a specific day (rigid) or a period (flexible). */
+    deadlineType: DeadlineType;
+    /** True when completion is tracked across multiple sessions rather than a single checkmark. */
+    isMilestone: boolean;
 
     // ── Timing ──
     /** Target / recommended date (ms). For hard-date tasks this IS the day. */
@@ -257,7 +259,7 @@ export interface Task {
     /** Lifetime completion count across all periods (used for after_count end mode). */
     totalCompletions: number;
 
-    // ── Milestone progress (only used when windowType === 'milestone') ──
+    // ── Milestone progress (only used when isMilestone === true) ──
     /** Number of times progress has been logged (lifetime). */
     progressCount: number;
     /**

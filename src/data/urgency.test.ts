@@ -142,32 +142,32 @@ describe('getDailyBand — Step 1 (mandatory)', () => {
 
     test('hard-date task due today is mandatory', () => {
         const today = date('2026-05-09');
-        const t = makeTask({windowType: 'hard', suggestedDate: today.getTime()});
+        const t = makeTask({deadlineType: 'rigid', isMilestone: false, suggestedDate: today.getTime()});
         assert.strictEquals(getDailyBand(t, today), 'mandatory');
     });
 
     test('hard-date task overdue is mandatory', () => {
         const today = date('2026-05-09');
-        const t = makeTask({windowType: 'hard', suggestedDate: today.getTime() - 3 * DAY_MS});
+        const t = makeTask({deadlineType: 'rigid', isMilestone: false, suggestedDate: today.getTime() - 3 * DAY_MS});
         assert.strictEquals(getDailyBand(t, today), 'mandatory');
     });
 
     test('flexible window with deadline today is mandatory', () => {
         const today = date('2026-05-09');
-        const t = makeTask({windowType: 'flexible', windowDeadline: today.getTime()});
+        const t = makeTask({deadlineType: 'flexible', isMilestone: false, windowDeadline: today.getTime()});
         assert.strictEquals(getDailyBand(t, today), 'mandatory');
     });
 
     test('T4 hard-date task due today is not mandatory (C1)', () => {
         const today = date('2026-05-09');
-        const t = makeTask({consequenceTier: 4, windowType: 'hard', suggestedDate: today.getTime()});
+        const t = makeTask({consequenceTier: 4, deadlineType: 'rigid', isMilestone: false, suggestedDate: today.getTime()});
         // T4 never mandatory — falls through to suggested/radar/backlog
         assert.strictEquals(getDailyBand(t, today) === 'mandatory', false);
     });
 
     test('T4 flexible window at deadline is not mandatory (C1)', () => {
         const today = date('2026-05-09');
-        const t = makeTask({consequenceTier: 4, windowType: 'flexible', windowDeadline: today.getTime()});
+        const t = makeTask({consequenceTier: 4, deadlineType: 'flexible', isMilestone: false, windowDeadline: today.getTime()});
         assert.strictEquals(getDailyBand(t, today) === 'mandatory', false);
     });
 });
@@ -224,7 +224,7 @@ describe('getDailyBand — T2 daily skip escalation (C2)', () => {
     test('T2 multi-day weekly at threshold escalates to mandatory', () => {
         const t = makeTask({
             consequenceTier: 2,
-            windowType: 'flexible',
+            deadlineType: 'flexible', isMilestone: false,
             suggestedDate: today.getTime(),
             windowDeadline: today.getTime() + 6 * DAY_MS,
             windowLengthDays: 7,
@@ -240,17 +240,17 @@ describe('getDailyBand — Step 2 (hard-date timing)', () => {
     const today = date('2026-05-09');
 
     test('1 day out → radar', () => {
-        const t = makeTask({windowType: 'hard', suggestedDate: today.getTime() + 1 * DAY_MS});
+        const t = makeTask({deadlineType: 'rigid', isMilestone: false, suggestedDate: today.getTime() + 1 * DAY_MS});
         assert.strictEquals(getDailyBand(t, today), 'radar');
     });
 
     test('3 days out → radar', () => {
-        const t = makeTask({windowType: 'hard', suggestedDate: today.getTime() + 3 * DAY_MS});
+        const t = makeTask({deadlineType: 'rigid', isMilestone: false, suggestedDate: today.getTime() + 3 * DAY_MS});
         assert.strictEquals(getDailyBand(t, today), 'radar');
     });
 
     test('4 days out → backlog', () => {
-        const t = makeTask({windowType: 'hard', suggestedDate: today.getTime() + 4 * DAY_MS});
+        const t = makeTask({deadlineType: 'rigid', isMilestone: false, suggestedDate: today.getTime() + 4 * DAY_MS});
         assert.strictEquals(getDailyBand(t, today), 'backlog');
     });
 });
@@ -259,27 +259,27 @@ describe('getDailyBand — leadTimeDays (hard-date directives)', () => {
     const today = date('2026-05-09');
 
     test('leadTimeDays=5: 5 days out → radar', () => {
-        const t = makeTask({windowType: 'hard', suggestedDate: today.getTime() + 5 * DAY_MS, leadTimeDays: 5});
+        const t = makeTask({deadlineType: 'rigid', isMilestone: false, suggestedDate: today.getTime() + 5 * DAY_MS, leadTimeDays: 5});
         assert.strictEquals(getDailyBand(t, today), 'radar');
     });
 
     test('leadTimeDays=5: 6 days out → backlog', () => {
-        const t = makeTask({windowType: 'hard', suggestedDate: today.getTime() + 6 * DAY_MS, leadTimeDays: 5});
+        const t = makeTask({deadlineType: 'rigid', isMilestone: false, suggestedDate: today.getTime() + 6 * DAY_MS, leadTimeDays: 5});
         assert.strictEquals(getDailyBand(t, today), 'backlog');
     });
 
     test('leadTimeDays=1: 3 days out → backlog (short window)', () => {
-        const t = makeTask({windowType: 'hard', suggestedDate: today.getTime() + 3 * DAY_MS, leadTimeDays: 1});
+        const t = makeTask({deadlineType: 'rigid', isMilestone: false, suggestedDate: today.getTime() + 3 * DAY_MS, leadTimeDays: 1});
         assert.strictEquals(getDailyBand(t, today), 'backlog');
     });
 
     test('leadTimeDays=0: 1 day out → backlog (no radar window)', () => {
-        const t = makeTask({windowType: 'hard', suggestedDate: today.getTime() + 1 * DAY_MS, leadTimeDays: 0});
+        const t = makeTask({deadlineType: 'rigid', isMilestone: false, suggestedDate: today.getTime() + 1 * DAY_MS, leadTimeDays: 0});
         assert.strictEquals(getDailyBand(t, today), 'backlog');
     });
 
     test('leadTimeDays undefined: defaults to 3', () => {
-        const t = makeTask({windowType: 'hard', suggestedDate: today.getTime() + 3 * DAY_MS});
+        const t = makeTask({deadlineType: 'rigid', isMilestone: false, suggestedDate: today.getTime() + 3 * DAY_MS});
         assert.strictEquals(getDailyBand(t, today), 'radar');
     });
 });
@@ -289,7 +289,7 @@ describe('getDailyBand — Step 2 (flexible window)', () => {
 
     test('past suggested date but inside window → suggested', () => {
         const t = makeTask({
-            windowType: 'flexible',
+            deadlineType: 'flexible', isMilestone: false,
             suggestedDate: today.getTime() - 2 * DAY_MS,
             windowDeadline: today.getTime() + 5 * DAY_MS,
             windowLengthDays: 7,
@@ -299,7 +299,7 @@ describe('getDailyBand — Step 2 (flexible window)', () => {
 
     test('window 25% remaining → radar (any tier)', () => {
         const t = makeTask({
-            windowType: 'flexible',
+            deadlineType: 'flexible', isMilestone: false,
             consequenceTier: 4,
             suggestedDate: today.getTime() + 5 * DAY_MS,
             windowDeadline: today.getTime() + 2 * DAY_MS, // 2/10 = 20%
@@ -310,7 +310,7 @@ describe('getDailyBand — Step 2 (flexible window)', () => {
 
     test('window 50% remaining + tier 1/2 → radar', () => {
         const t = makeTask({
-            windowType: 'flexible',
+            deadlineType: 'flexible', isMilestone: false,
             consequenceTier: 2,
             suggestedDate: today.getTime() + 7 * DAY_MS,
             windowDeadline: today.getTime() + 5 * DAY_MS, // 5/10 = 50%
@@ -321,7 +321,7 @@ describe('getDailyBand — Step 2 (flexible window)', () => {
 
     test('window 50% remaining + tier 3 → backlog', () => {
         const t = makeTask({
-            windowType: 'flexible',
+            deadlineType: 'flexible', isMilestone: false,
             consequenceTier: 3,
             suggestedDate: today.getTime() + 7 * DAY_MS,
             windowDeadline: today.getTime() + 5 * DAY_MS,
@@ -366,33 +366,33 @@ describe('getDailyBand — Step 2 (milestone)', () => {
     const today = date('2026-05-09');
 
     test('no deadline → backlog', () => {
-        const t = makeTask({windowType: 'milestone', windowDeadline: null});
+        const t = makeTask({deadlineType: 'flexible', isMilestone: true, windowDeadline: null});
         assert.strictEquals(getDailyBand(t, today), 'backlog');
     });
 
     test('deadline >30 days away → backlog', () => {
-        const t = makeTask({windowType: 'milestone', windowDeadline: today.getTime() + 60 * DAY_MS});
+        const t = makeTask({deadlineType: 'flexible', isMilestone: true, windowDeadline: today.getTime() + 60 * DAY_MS});
         assert.strictEquals(getDailyBand(t, today), 'backlog');
     });
 
     test('deadline ≤30 days away → radar', () => {
-        const t = makeTask({windowType: 'milestone', windowDeadline: today.getTime() + 20 * DAY_MS});
+        const t = makeTask({deadlineType: 'flexible', isMilestone: true, windowDeadline: today.getTime() + 20 * DAY_MS});
         assert.strictEquals(getDailyBand(t, today), 'radar');
     });
 
     test('deadline today → mandatory', () => {
-        const t = makeTask({windowType: 'milestone', windowDeadline: today.getTime()});
+        const t = makeTask({deadlineType: 'flexible', isMilestone: true, windowDeadline: today.getTime()});
         assert.strictEquals(getDailyBand(t, today), 'mandatory');
     });
 
     test('completed milestone is hidden', () => {
-        const t = makeTask({windowType: 'milestone', completedAt: Date.now()});
+        const t = makeTask({deadlineType: 'flexible', isMilestone: true, completedAt: Date.now()});
         assert.strictEquals(getDailyBand(t, today), 'hidden');
     });
 
     test('progress cadence: hides when period quota is met', () => {
         const t = makeTask({
-            windowType: 'milestone',
+            deadlineType: 'flexible', isMilestone: true,
             progressCadence: { cadence: 'weekly', frequencyPerPeriod: 3 },
             progressCompletionsThisPeriod: 3,
         });
@@ -401,7 +401,7 @@ describe('getDailyBand — Step 2 (milestone)', () => {
 
     test('progress cadence: visible when period quota is not yet met', () => {
         const t = makeTask({
-            windowType: 'milestone',
+            deadlineType: 'flexible', isMilestone: true,
             windowDeadline: null,
             progressCadence: { cadence: 'weekly', frequencyPerPeriod: 3 },
             progressCompletionsThisPeriod: 2,
@@ -411,7 +411,7 @@ describe('getDailyBand — Step 2 (milestone)', () => {
 
     test('progress cadence: hides for rest of today even when quota not yet met', () => {
         const t = makeTask({
-            windowType: 'milestone',
+            deadlineType: 'flexible', isMilestone: true,
             progressCadence: { cadence: 'weekly', frequencyPerPeriod: 3 },
             progressCompletionsThisPeriod: 1,
             lastProgressAt: today.getTime(),
@@ -421,7 +421,7 @@ describe('getDailyBand — Step 2 (milestone)', () => {
 
     test('no progress cadence: legacy hide-for-today behaviour still works', () => {
         const t = makeTask({
-            windowType: 'milestone',
+            deadlineType: 'flexible', isMilestone: true,
             windowDeadline: null,
             progressCadence: null,
             lastProgressAt: today.getTime(),
@@ -464,7 +464,7 @@ describe('weekly tasks with hardDaysOfWeek', () => {
 
     function weeklyTask(daysOfWeek: number[], overrides: Parameters<typeof makeTask>[0] = {}) {
         return makeTask({
-            windowType: 'flexible',
+            deadlineType: 'flexible', isMilestone: false,
             suggestedDate: monday.getTime(),
             windowDeadline: date('2026-05-09').getTime(), // Saturday end-of-week
             windowLengthDays: 7,
@@ -494,7 +494,7 @@ describe('weekly tasks with hardDaysOfWeek', () => {
 
     test('weekly task with no hardDaysOfWeek is unaffected', () => {
         const t = makeTask({
-            windowType: 'flexible',
+            deadlineType: 'flexible', isMilestone: false,
             suggestedDate: monday.getTime(),
             windowDeadline: date('2026-05-09').getTime(),
             windowLengthDays: 7,
@@ -514,7 +514,7 @@ describe('weekly tasks with hardDaysOfWeek', () => {
         // Simulate state after advanceRecurrence ran on Monday:
         // currentPeriodStart stays at Sunday, suggestedDate moves to Tuesday.
         const t = makeTask({
-            windowType: 'flexible',
+            deadlineType: 'flexible', isMilestone: false,
             suggestedDate: date('2026-05-05').getTime(), // Tuesday — NEXT occurrence
             windowDeadline: date('2026-05-09').getTime(),
             windowLengthDays: 7,
@@ -528,7 +528,7 @@ describe('weekly tasks with hardDaysOfWeek', () => {
 
     test('T3 multi-day weekly visible again on Tuesday after Monday completion (suggested)', () => {
         const t = makeTask({
-            windowType: 'flexible',
+            deadlineType: 'flexible', isMilestone: false,
             suggestedDate: date('2026-05-05').getTime(), // Tuesday
             windowDeadline: date('2026-05-09').getTime(),
             windowLengthDays: 7,
@@ -543,7 +543,7 @@ describe('weekly tasks with hardDaysOfWeek', () => {
     test('T1 multi-day weekly visible again on Tuesday after Monday completion (mandatory)', () => {
         const t = makeTask({
             consequenceTier: 1,
-            windowType: 'flexible',
+            deadlineType: 'flexible', isMilestone: false,
             suggestedDate: date('2026-05-05').getTime(), // Tuesday
             windowDeadline: date('2026-05-09').getTime(),
             windowLengthDays: 7,
@@ -559,7 +559,7 @@ describe('weekly tasks with hardDaysOfWeek', () => {
         // future should still show — the multi-day fix only applies when length > 1.
         const wednesday = date('2026-05-06');
         const t = makeTask({
-            windowType: 'flexible',
+            deadlineType: 'flexible', isMilestone: false,
             suggestedDate: wednesday.getTime(),
             windowDeadline: date('2026-05-09').getTime(),
             windowLengthDays: 7,
@@ -634,7 +634,7 @@ describe('maxBand (final = max(timing, snooze))', () => {
         const today = date('2026-05-09');
         const t = makeTask({
             consequenceTier: 1,
-            windowType: 'hard',
+            deadlineType: 'rigid', isMilestone: false,
             suggestedDate: today.getTime() + 30 * DAY_MS, // very far out
             snoozeCount: 5,
         });

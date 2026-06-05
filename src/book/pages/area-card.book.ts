@@ -27,7 +27,7 @@ function makeTask(
         timeOfDay: "anytime",
         kind: "task" as ItemKind,
         consequenceTier: 2,
-        windowType: "flexible",
+        deadlineType: "flexible", isMilestone: false,
         suggestedDate: null,
         windowDeadline: null,
         windowLengthDays: null,
@@ -102,7 +102,7 @@ export const areaCardPage = defineBookPage({
                                 makeTask(p.id, {
                                     title: "Pay credit card",
                                     consequenceTier: 1,
-                                    windowType: "hard",
+                                    deadlineType: "rigid", isMilestone: false,
                                     suggestedDate: NOW - DAY * 2,
                                 }),
                                 makeTask(p.id, {

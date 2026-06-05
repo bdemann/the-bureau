@@ -210,7 +210,7 @@ export function advanceRecurrence(task: Task, completedAt: Date): Task {
         completedAt: null,
         currentPeriodStart: nextOccurrencePeriod.start,
         suggestedDate: startOfDay(nextSuggested).getTime(),
-        windowDeadline: task.windowType === 'flexible' ? nextOccurrencePeriod.end : null,
+        windowDeadline: task.deadlineType === 'flexible' ? nextOccurrencePeriod.end : null,
         windowLengthDays: nextOccurrencePeriod.lengthDays,
     };
 }
@@ -225,7 +225,7 @@ export function advanceRecurrence(task: Task, completedAt: Date): Task {
  */
 export function rolloverIfNeeded(task: Task, today: Date): Task {
     // Progress-period rollover for milestones — runs regardless of outer recurrence.
-    if (task.windowType === 'milestone' && task.progressCadence != null && task.currentProgressPeriodStart != null) {
+    if (task.isMilestone && task.progressCadence != null && task.currentProgressPeriodStart != null) {
         const progressPeriod = getCurrentPeriod(task.progressCadence.cadence, today);
         if (task.currentProgressPeriodStart < progressPeriod.start) {
             task = {
@@ -266,7 +266,7 @@ export function rolloverIfNeeded(task: Task, today: Date): Task {
         return {
             ...task,
             currentPeriodStart: todayPeriod.start,
-            windowDeadline: task.windowType === 'flexible' ? todayPeriod.end : task.windowDeadline,
+            windowDeadline: task.deadlineType === 'flexible' ? todayPeriod.end : task.windowDeadline,
             windowLengthDays: todayPeriod.lengthDays,
             suggestedDate: task.suggestedDate ?? todayPeriod.start,
         };
@@ -309,7 +309,7 @@ export function rolloverIfNeeded(task: Task, today: Date): Task {
         completedAt: null,
         currentPeriodStart: nextOccurrencePeriod.start,
         suggestedDate: startOfDay(nextSuggested).getTime(),
-        windowDeadline: task.windowType === 'flexible' ? nextOccurrencePeriod.end : null,
+        windowDeadline: task.deadlineType === 'flexible' ? nextOccurrencePeriod.end : null,
         windowLengthDays: nextOccurrencePeriod.lengthDays,
         totalMisses: wasStaleDayASkipDay ? task.totalMisses : task.totalMisses + 1,
         skipStreak: wasStaleDayASkipDay ? task.skipStreak : task.skipStreak + 1,
@@ -324,7 +324,7 @@ export function rolloverIfNeeded(task: Task, today: Date): Task {
  * task-creation form so a new task lands in a sensible period immediately.
  */
 export function initialiseRecurrence(
-    base: Pick<Task, 'windowType' | 'suggestedDate'>,
+    base: Pick<Task, 'deadlineType' | 'suggestedDate'>,
     recurrence: RecurrenceConfig,
     today: Date,
 ): {
@@ -342,7 +342,7 @@ export function initialiseRecurrence(
     return {
         currentPeriodStart: suggestedPeriod.start,
         suggestedDate: startOfDay(new Date(suggested)).getTime(),
-        windowDeadline: base.windowType === 'flexible' ? suggestedPeriod.end : null,
+        windowDeadline: base.deadlineType === 'flexible' ? suggestedPeriod.end : null,
         windowLengthDays: suggestedPeriod.lengthDays,
     };
 }

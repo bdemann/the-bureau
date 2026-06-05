@@ -113,7 +113,7 @@ function bootstrap(): AppState {
             !rolled.recurrence &&
             rolled.completedAt === null &&
             rolled.missedAt === null &&
-            rolled.windowType === "hard" &&
+            rolled.deadlineType === "rigid" &&
             rolled.suggestedDate !== null &&
             rolled.suggestedDate < todayMidnight
         ) {
@@ -539,7 +539,7 @@ export const BureauAppElement = defineElement()({
 
             // Hard-date tasks: cannot snooze past the date.
             if (
-                task.windowType === "hard" &&
+                task.deadlineType === "rigid" &&
                 task.suggestedDate !== null &&
                 task.suggestedDate <= Date.now()
             ) {
@@ -552,7 +552,7 @@ export const BureauAppElement = defineElement()({
             );
             const newSnoozeCount = snoozeRemediation.snoozeCount;
             let snoozedUntil = Date.now() + 24 * 60 * 60 * 1000;
-            if (task.windowType === "hard" && task.suggestedDate !== null) {
+            if (task.deadlineType === "rigid" && task.suggestedDate !== null) {
                 snoozedUntil = Math.min(snoozedUntil, task.suggestedDate);
             }
 

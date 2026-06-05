@@ -14,7 +14,7 @@ function makeTask(overrides: Partial<Task> & { title: string }): Task {
         timeOfDay: "anytime",
         kind: "task" as ItemKind,
         consequenceTier: 2,
-        windowType: "flexible",
+        deadlineType: "flexible", isMilestone: false,
         suggestedDate: null,
         windowDeadline: null,
         windowLengthDays: null,
@@ -54,7 +54,7 @@ export const taskItemPage = defineBookPage({
                         task: makeTask({
                             title: "File quarterly tax return",
                             consequenceTier: 1,
-                            windowType: "hard",
+                            deadlineType: "rigid", isMilestone: false,
                             suggestedDate: NOW + DAY * 3,
                         }),
                         activeSkinId: "bcr",
@@ -112,7 +112,7 @@ export const taskItemPage = defineBookPage({
                         task: makeTask({
                             title: "Pay electric bill",
                             consequenceTier: 1,
-                            windowType: "hard",
+                            deadlineType: "rigid", isMilestone: false,
                             suggestedDate: NOW - DAY * 2,
                         }),
                         activeSkinId: "bcr",
@@ -316,7 +316,7 @@ export const taskItemPage = defineBookPage({
                         task: makeTask({
                             title: "Renew vehicle registration",
                             consequenceTier: 1,
-                            windowType: "hard",
+                            deadlineType: "rigid", isMilestone: false,
                             suggestedDate: NOW - (NOW % DAY),
                         }),
                         activeSkinId: "bcr",

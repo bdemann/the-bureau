@@ -144,7 +144,7 @@ describe('initialiseRecurrence', () => {
     test('weekly with hardDaysOfWeek lands on next occurrence (not last week\'s)', () => {
         const sat = date('2026-05-09');
         const init = initialiseRecurrence(
-            {windowType: 'flexible', suggestedDate: null},
+            {deadlineType: 'flexible', suggestedDate: null},
             makeRecurrence({cadence: 'weekly', hardDaysOfWeek: [4]}), // Thursday
             sat,
         );
@@ -157,7 +157,7 @@ describe('initialiseRecurrence', () => {
     test('weekly anchored to today picks today, not 7 days from now', () => {
         const sat = date('2026-05-09'); // Saturday
         const init = initialiseRecurrence(
-            {windowType: 'flexible', suggestedDate: null},
+            {deadlineType: 'flexible', suggestedDate: null},
             makeRecurrence({cadence: 'weekly', hardDaysOfWeek: [6]}),
             sat,
         );
@@ -170,7 +170,7 @@ describe('initialiseRecurrence', () => {
     test('monthly Nth-weekday: this month if not yet passed', () => {
         const may1 = date('2026-05-01'); // Friday
         const init = initialiseRecurrence(
-            {windowType: 'flexible', suggestedDate: null},
+            {deadlineType: 'flexible', suggestedDate: null},
             makeRecurrence({cadence: 'monthly', hardDayOfWeek: 4, ordinalWeek: 3}),
             may1,
         );
@@ -184,7 +184,7 @@ describe('initialiseRecurrence', () => {
     test('monthly Nth-weekday: rolls to next month if this month\'s already passed', () => {
         const may22 = date('2026-05-22'); // day after the 3rd Thursday (May 21)
         const init = initialiseRecurrence(
-            {windowType: 'flexible', suggestedDate: null},
+            {deadlineType: 'flexible', suggestedDate: null},
             makeRecurrence({cadence: 'monthly', hardDayOfWeek: 4, ordinalWeek: 3}),
             may22,
         );
@@ -199,7 +199,7 @@ describe('initialiseRecurrence', () => {
         // 3rd Monday of May 2026 = May 18; Sunday before = May 17
         const may1 = date('2026-05-01');
         const init = initialiseRecurrence(
-            {windowType: 'flexible', suggestedDate: null},
+            {deadlineType: 'flexible', suggestedDate: null},
             makeRecurrence({cadence: 'monthly', hardDayOfWeek: 1, ordinalWeek: 3, ordinalOffset: -1}),
             may1,
         );
@@ -226,7 +226,7 @@ describe('initialiseRecurrence', () => {
 
     test('flexible window sets windowDeadline to period end', () => {
         const init = initialiseRecurrence(
-            {windowType: 'flexible', suggestedDate: null},
+            {deadlineType: 'flexible', suggestedDate: null},
             makeRecurrence({cadence: 'weekly'}),
             date('2026-05-13'), // Wednesday
         );
@@ -235,7 +235,7 @@ describe('initialiseRecurrence', () => {
 
     test('hard window has no windowDeadline', () => {
         const init = initialiseRecurrence(
-            {windowType: 'hard', suggestedDate: null},
+            {deadlineType: 'rigid', suggestedDate: null},
             makeRecurrence({cadence: 'weekly', hardDayOfWeek: 4}),
             date('2026-05-09'),
         );
@@ -247,7 +247,7 @@ describe('initialiseRecurrence', () => {
         // windowDeadline must be next Saturday (May 23), not this Saturday (May 16).
         const sat = date('2026-05-16');
         const init = initialiseRecurrence(
-            {windowType: 'flexible', suggestedDate: null},
+            {deadlineType: 'flexible', suggestedDate: null},
             makeRecurrence({cadence: 'weekly', hardDaysOfWeek: [3]}), // Wednesday
             sat,
         );
@@ -566,14 +566,14 @@ describe('monthly multi-dom (hardDaysOfMonth)', () => {
     test('initialiseRecurrence picks today when today is a selected dom', () => {
         const today = date('2026-05-01');
         const cfg = makeRecurrence({cadence: 'monthly', hardDaysOfMonth: [1, 15]});
-        const init = initialiseRecurrence({windowType: 'flexible', suggestedDate: null}, cfg, today);
+        const init = initialiseRecurrence({deadlineType: 'flexible', suggestedDate: null}, cfg, today);
         assert.strictEquals(new Date(init.suggestedDate).toDateString(), today.toDateString());
     });
 
     test('initialiseRecurrence picks next dom later this month', () => {
         const today = date('2026-05-08');
         const cfg = makeRecurrence({cadence: 'monthly', hardDaysOfMonth: [1, 15]});
-        const init = initialiseRecurrence({windowType: 'flexible', suggestedDate: null}, cfg, today);
+        const init = initialiseRecurrence({deadlineType: 'flexible', suggestedDate: null}, cfg, today);
         assert.strictEquals(
             new Date(init.suggestedDate).toDateString(),
             date('2026-05-15').toDateString(),
@@ -663,7 +663,7 @@ describe('quarterly — hardMonthOfQuarter anchor', () => {
         // Today = May 8 (Q2). hardMonthOfQuarter=1 (2nd month=May). dom=15.
         const today = date('2026-05-08');
         const cfg = makeRecurrence({cadence: 'quarterly', hardMonthOfQuarter: 1, hardDayOfMonth: 15});
-        const init = initialiseRecurrence({windowType: 'flexible', suggestedDate: null}, cfg, today);
+        const init = initialiseRecurrence({deadlineType: 'flexible', suggestedDate: null}, cfg, today);
         assert.strictEquals(new Date(init.suggestedDate).toDateString(), date('2026-05-15').toDateString());
     });
 
@@ -671,7 +671,7 @@ describe('quarterly — hardMonthOfQuarter anchor', () => {
         // Today = May 8. doms=[1,15]. Next dom at-or-after May 8 in May = 15.
         const today = date('2026-05-08');
         const cfg = makeRecurrence({cadence: 'quarterly', hardMonthOfQuarter: 1, hardDaysOfMonth: [1, 15]});
-        const init = initialiseRecurrence({windowType: 'flexible', suggestedDate: null}, cfg, today);
+        const init = initialiseRecurrence({deadlineType: 'flexible', suggestedDate: null}, cfg, today);
         assert.strictEquals(new Date(init.suggestedDate).toDateString(), date('2026-05-15').toDateString());
     });
 
@@ -732,7 +732,7 @@ describe('annually — hardMonthOfYear anchor', () => {
         // Today = May 17; target month = September (8), dom = 1 → Sep 1 2026
         const today = date('2026-05-17');
         const cfg = makeRecurrence({cadence: 'annually', hardMonthOfYear: 8, hardDayOfMonth: 1});
-        const init = initialiseRecurrence({windowType: 'flexible', suggestedDate: null}, cfg, today);
+        const init = initialiseRecurrence({deadlineType: 'flexible', suggestedDate: null}, cfg, today);
         assert.strictEquals(
             new Date(init.suggestedDate).toDateString(),
             date('2026-09-01').toDateString(),
@@ -743,7 +743,7 @@ describe('annually — hardMonthOfYear anchor', () => {
         // Today = May 17; target month = January (0), dom = 15 → Jan 15 2027
         const today = date('2026-05-17');
         const cfg = makeRecurrence({cadence: 'annually', hardMonthOfYear: 0, hardDayOfMonth: 15});
-        const init = initialiseRecurrence({windowType: 'flexible', suggestedDate: null}, cfg, today);
+        const init = initialiseRecurrence({deadlineType: 'flexible', suggestedDate: null}, cfg, today);
         assert.strictEquals(
             new Date(init.suggestedDate).toDateString(),
             date('2027-01-15').toDateString(),
@@ -797,7 +797,7 @@ describe('annually — ordinal weekday anchor (GitHub #35)', () => {
             ordinalWeek: 4,
             hardDayOfWeek: 4, // Thursday
         });
-        const init = initialiseRecurrence({windowType: 'flexible', suggestedDate: null}, cfg, today);
+        const init = initialiseRecurrence({deadlineType: 'flexible', suggestedDate: null}, cfg, today);
         assert.strictEquals(
             new Date(init.suggestedDate).toDateString(),
             thanksgiving2026.toDateString(),
@@ -813,7 +813,7 @@ describe('annually — ordinal weekday anchor (GitHub #35)', () => {
             ordinalWeek: 4,
             hardDayOfWeek: 4,
         });
-        const init = initialiseRecurrence({windowType: 'flexible', suggestedDate: null}, cfg, today);
+        const init = initialiseRecurrence({deadlineType: 'flexible', suggestedDate: null}, cfg, today);
         assert.strictEquals(
             new Date(init.suggestedDate).toDateString(),
             thanksgiving2027.toDateString(),

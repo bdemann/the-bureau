@@ -11,7 +11,7 @@ import {getTodayString} from './storage.js';
 
 const CSV_HEADERS = [
     'id', 'kind', 'title', 'area',
-    'tier', 'windowType',
+    'tier', 'deadlineType', 'isMilestone',
     'cadence', 'scheduleMode', 'anchorDays',
     'timeOfDay',
     'suggestedDate', 'windowDeadline', 'leadTimeDays',
@@ -38,7 +38,7 @@ function commitmentRow(
     if (c.kind === 'goal') {
         return [
             c.id, 'goal', escapeCsv(c.title), area,
-            '', '', '', '', '',  // tier, windowType, cadence, scheduleMode, anchorDays
+            '', '', '', '', '', '',  // tier, deadlineType, isMilestone, cadence, scheduleMode, anchorDays
             '',                   // timeOfDay
             fmtDate(c.targetDate), '', '',  // suggestedDate (target), windowDeadline, leadTime
             '', '',               // snoozeCount, skipStreak
@@ -51,7 +51,7 @@ function commitmentRow(
     if (c.kind === 'idea') {
         return [
             c.id, 'idea', escapeCsv(c.title), area,
-            '', '', '', '', '',
+            '', '', '', '', '', '',
             '',
             '', '', '',
             '', '',
@@ -73,7 +73,8 @@ function commitmentRow(
         escapeCsv(t.title),
         area,
         t.consequenceTier,
-        t.windowType,
+        t.deadlineType,
+        t.isMilestone,
         t.recurrence?.cadence ?? 'one-time',
         t.recurrence?.scheduleMode ?? '',
         escapeCsv(fmtAnchor(t.recurrence ?? null)),

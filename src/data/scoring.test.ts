@@ -24,7 +24,7 @@ function makeTask(overrides: Partial<Task> = {}): Task {
         timeOfDay: "anytime",
         kind: "task",
         consequenceTier: 3,
-        windowType: "flexible",
+        deadlineType: "flexible", isMilestone: false,
         suggestedDate: null,
         windowDeadline: null,
         windowLengthDays: null,

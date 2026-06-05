@@ -219,7 +219,7 @@ function legacyTask(recurrence: unknown = null): unknown {
         title: "Test",
         description: "",
         consequenceTier: 3,
-        windowType: "flexible",
+        deadlineType: "flexible", isMilestone: false,
         snoozeCount: 0,
         snoozedUntil: null,
         completedAt: null,

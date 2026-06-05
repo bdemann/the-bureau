@@ -327,7 +327,7 @@ export const TaskItemElement = defineElement<{
             ? `${task.completionsThisPeriod} / ${task.recurrence!.frequencyPerPeriod} this ${cadenceWord}`
             : null;
 
-        const isMilestone = task.windowType === "milestone";
+        const isMilestone = task.isMilestone;
 
         // Daily routines can't be snoozed — skip is the right action for them.
         const isDailyRoutine =
@@ -340,7 +340,7 @@ export const TaskItemElement = defineElement<{
         const canSnooze =
             !isDailyRoutine &&
             !(
-                task.windowType === "hard" &&
+                task.deadlineType === "rigid" &&
                 task.suggestedDate !== null &&
                 task.suggestedDate <= Date.now()
             ) &&
@@ -583,7 +583,7 @@ function formatDueLabel(task: Task, overdue: boolean, duePfx: string, missedPfx:
         month: "short",
         day: "numeric",
     });
-    if (task.windowType === "hard") {
+    if (task.deadlineType === "rigid") {
         const base = overdue ? `${missedPfx}${fmt}` : `${duePfx}${fmt}`;
         return pattern ? `${pattern} · next ${fmt}` : base;
     }

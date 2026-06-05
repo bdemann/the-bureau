@@ -140,12 +140,12 @@ function step1HardMandatory(task: Task, today: Date): DailyBand | 'unresolved' {
     }
 
     // Hard-date task whose date has arrived.
-    if (task.windowType === 'hard' && task.suggestedDate !== null) {
+    if (task.deadlineType === 'rigid' && task.suggestedDate !== null) {
         if (daysBetween(today, task.suggestedDate) <= 0) return 'mandatory';
     }
 
     // Flexible window whose deadline has arrived.
-    if (task.windowType === 'flexible' && task.windowDeadline !== null) {
+    if (task.deadlineType === 'flexible' && task.windowDeadline !== null) {
         if (daysBetween(today, task.windowDeadline) <= 0) return 'mandatory';
     }
 
@@ -162,10 +162,10 @@ function step2Timing(task: Task, today: Date): DailyBand {
     if (isMultiplePerPeriod(task)) {
         return step2MultiplePerPeriod(task, today);
     }
-    if (task.windowType === 'hard') {
+    if (task.deadlineType === 'rigid') {
         return step2HardDate(task, today);
     }
-    if (task.windowType === 'milestone') {
+    if (task.isMilestone) {
         return step2Milestone(task, today);
     }
     return step2FlexibleWindow(task, today);

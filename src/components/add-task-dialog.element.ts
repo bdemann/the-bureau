@@ -22,12 +22,12 @@ import type {
     Idea,
     ItemKind,
     Area,
+    DeadlineType,
     MilestoneProgressCadence,
     RecurrenceConfig,
     RecurrenceEndMode,
     Task,
     TimeOfDay,
-    WindowType,
 } from "../data/types.js";
 
 function msToDateString(ms: number): string {
@@ -109,10 +109,11 @@ export const AddTaskDialogElement = defineElement<{
         timeOfDay: "anytime" as TimeOfDay,
         isRecurring: false,
         cadenceConfig: defaultCadenceConfig('weekly'),
-        windowType: "hard" as WindowType,
+        deadlineType: "rigid" as DeadlineType,
+        isMilestone: false,
         /**
          * Lead time selector state.
-         * 'default' = system default (hard-date: 3 days radar; flexible: window %).
+         * 'default' = system default (rigid: 3 days radar; flexible: window %).
          * 'none'    = hidden until mandatory/due (leadTimeDays = null).
          * 'custom'  = user-specified number of days (leadTimeDays = number).
          */
@@ -573,7 +574,8 @@ export const AddTaskDialogElement = defineElement<{
                 consequenceTier: t.consequenceTier,
                 isRecurring: cfg !== null,
                 cadenceConfig: cfg ? cadenceConfigFromRecurrence(cfg) : defaultCadenceConfig('weekly'),
-                windowType: t.windowType,
+                deadlineType: t.deadlineType,
+                isMilestone: t.isMilestone,
                 suggestedDate: t.suggestedDate
                     ? msToDateString(t.suggestedDate)
                     : "",
@@ -684,7 +686,8 @@ export const AddTaskDialogElement = defineElement<{
                 cadenceConfig: defaultCadenceConfig(
                     inputs.defaultKind === "routine" ? "daily" : "weekly",
                 ),
-                windowType: "hard",
+                deadlineType: "rigid",
+                isMilestone: false,
                 leadTimeMode: "default",
                 leadTimeCustomDays: 7,
                 suggestedDate: msToDateString(Date.now()),
@@ -730,9 +733,10 @@ export const AddTaskDialogElement = defineElement<{
         const canSubmit =
             !state.confirmingKindSwitch &&
             state.titleValue.trim().length > 0 &&
-            // Hard-date tasks need a date — unless an anchor implies one.
+            // Rigid tasks need a date — unless an anchor implies one.
             (!isTaskOrRoutine ||
-                state.windowType !== "hard" ||
+                state.deadlineType !== "rigid" ||
+                state.isMilestone ||
                 usesAnchor ||
                 state.suggestedDate.length > 0) &&
             // Weekly anchor requires at least one day selected.
@@ -826,7 +830,7 @@ export const AddTaskDialogElement = defineElement<{
                 recurrence = cfg;
                 const init = initialiseRecurrence(
                     {
-                        windowType: state.windowType,
+                        deadlineType: state.deadlineType,
                         suggestedDate: usesAnchor ? null : suggestedMs,
                     },
                     cfg,
@@ -882,7 +886,8 @@ export const AddTaskDialogElement = defineElement<{
                 description: state.description.trim(),
                 timeOfDay: state.timeOfDay,
                 consequenceTier: state.consequenceTier,
-                windowType: state.windowType,
+                deadlineType: state.deadlineType,
+                isMilestone: state.isMilestone,
                 leadTimeDays:
                     state.leadTimeMode === "none"
                         ? null
@@ -890,7 +895,7 @@ export const AddTaskDialogElement = defineElement<{
                           ? state.leadTimeCustomDays
                           : undefined,
                 lastProgressAt: baseTask?.lastProgressAt ?? null,
-                progressCadence: (state.windowType === 'milestone' && state.hasProgressCadence)
+                progressCadence: (state.isMilestone && state.hasProgressCadence)
                     ? { cadence: state.progressCadenceConfig.cadence, frequencyPerPeriod: 1 } as MilestoneProgressCadence
                     : null,
                 progressCompletionsThisPeriod: baseTask?.progressCompletionsThisPeriod ?? 0,
@@ -962,7 +967,8 @@ export const AddTaskDialogElement = defineElement<{
                     timeOfDay: "anytime",
                     isRecurring: false,
                     cadenceConfig: defaultCadenceConfig('weekly'),
-                    windowType: "hard",
+                    deadlineType: "rigid",
+                    isMilestone: false,
                     leadTimeMode: "default",
                     leadTimeCustomDays: 7,
                     suggestedDate: msToDateString(Date.now()),
@@ -1298,7 +1304,7 @@ export const AddTaskDialogElement = defineElement<{
                                             </div>
                                         `}
 
-                                  <!-- Window type — hidden for daily/multiple_per_day (always hard by nature) -->
+                                  <!-- Deadline type — hidden for daily/multiple_per_day (always rigid by nature) -->
                                   ${isTaskOrRoutine && !isDailyLikeCadence
                                       ? html`
                         <div class="field">
@@ -1308,42 +1314,43 @@ export const AddTaskDialogElement = defineElement<{
                                     text: "Flexible",
                                     color: ViraColorVariant.Info,
                                     buttonEmphasis:
-                                        state.windowType === "flexible"
+                                        state.deadlineType === "flexible"
                                             ? ViraEmphasis.Standard
                                             : ViraEmphasis.Subtle,
                                     buttonSize: ViraSize.Small,
                                 })}
-                                    @click=${() => updateState({ windowType: "flexible" })}
+                                    @click=${() => updateState({ deadlineType: "flexible" })}
                                 ></${ViraButton}>
                                 <${ViraButton.assign({
                                     text: "Rigid",
                                     color: ViraColorVariant.Warning,
                                     buttonEmphasis:
-                                        state.windowType === "hard"
+                                        state.deadlineType === "rigid"
                                             ? ViraEmphasis.Standard
                                             : ViraEmphasis.Subtle,
                                     buttonSize: ViraSize.Small,
                                 })}
-                                    @click=${() => updateState({ windowType: "hard" })}
+                                    @click=${() => updateState({ deadlineType: "rigid" })}
                                 ></${ViraButton}>
-                                <${ViraButton.assign({
-                                    text: "Milestone",
-                                    color: ViraColorVariant.Neutral,
-                                    buttonEmphasis:
-                                        state.windowType === "milestone"
-                                            ? ViraEmphasis.Standard
-                                            : ViraEmphasis.Subtle,
-                                    buttonSize: ViraSize.Small,
-                                })}
-                                    @click=${() => updateState({ windowType: "milestone" })}
-                                ></${ViraButton}>
+                            </div>
+                        </div>
+                        <div class="field">
+                            <div class="toggle-row">
+                                <input
+                                    type="checkbox"
+                                    id="milestone-toggle"
+                                    .checked=${state.isMilestone}
+                                    @change=${(e: Event) =>
+                                        updateState({ isMilestone: (e.target as HTMLInputElement).checked })}
+                                />
+                                <label for="milestone-toggle">Milestone (track progress across sessions)</label>
                             </div>
                         </div>
                     `
                                       : html``}
 
-                                  <!-- Progress cadence — only for milestone window type -->
-                                  ${state.windowType === "milestone" && isTaskOrRoutine
+                                  <!-- Progress cadence — only for milestones -->
+                                  ${state.isMilestone && isTaskOrRoutine
                                       ? html`
                                             <div class="field">
                                                 <span class="field-label">Progress Cadence</span>
@@ -1385,14 +1392,14 @@ export const AddTaskDialogElement = defineElement<{
                                   <!-- Date fields — only for one-time (non-recurring) tasks -->
                                   ${!state.isRecurring && isTaskOrRoutine
                                       ? html`
-                                            ${state.windowType !== "milestone"
+                                            ${!state.isMilestone
                                                 ? html`
                                                       <div class="field">
                                                           <span
                                                               class="field-label"
                                                           >
-                                                              ${state.windowType ===
-                                                              "hard"
+                                                              ${state.deadlineType ===
+                                                              "rigid"
                                                                   ? "Date *"
                                                                   : "Suggested Date (optional)"}
                                                           </span>
