@@ -118,7 +118,7 @@ export const AddTaskDialogElement = defineElement<{
          * 'custom'  = user-specified number of days (leadTimeDays = number).
          */
         leadTimeMode: "default" as "default" | "none" | "custom",
-        leadTimeCustomDays: 7,
+        leadTimeCustomDays: 3,
         suggestedDate: msToDateString(Date.now()), // YYYY-MM-DD
         /** ID of the task currently being edited; null means add mode. */
         currentEditId: null as string | null,
@@ -608,7 +608,13 @@ export const AddTaskDialogElement = defineElement<{
                             : "custom"
                         : "default",
                 leadTimeCustomDays:
-                    typeof t.leadTimeDays === "number" ? t.leadTimeDays : 7,
+                    typeof t.leadTimeDays === "number"
+                        ? t.leadTimeDays
+                        : t.isMilestone
+                          ? 30
+                          : t.deadlineType === "rigid"
+                            ? 3
+                            : 7,
                 linkedGoalId: currentLinkedGoal?.id ?? null,
                 originalLinkedGoalId: currentLinkedGoal?.id ?? null,
                 editGoalId: null,
@@ -687,7 +693,7 @@ export const AddTaskDialogElement = defineElement<{
                 deadlineType: "rigid",
                 isMilestone: false,
                 leadTimeMode: "default",
-                leadTimeCustomDays: 7,
+                leadTimeCustomDays: 3,
                 suggestedDate: msToDateString(Date.now()),
                 hasStartDate: false,
                 startDate: "",
@@ -968,7 +974,7 @@ export const AddTaskDialogElement = defineElement<{
                     deadlineType: "rigid",
                     isMilestone: false,
                     leadTimeMode: "default",
-                    leadTimeCustomDays: 7,
+                    leadTimeCustomDays: 3,
                     suggestedDate: msToDateString(Date.now()),
                     currentEditId: null,
                     selectedAreaId: null,
@@ -1706,7 +1712,11 @@ export const AddTaskDialogElement = defineElement<{
                                         ? "Hidden until due — only appears the day it's needed."
                                         : state.leadTimeMode === "custom"
                                           ? `Shows up ${state.leadTimeCustomDays} day${state.leadTimeCustomDays !== 1 ? "s" : ""} before due.`
-                                          : "Uses standard urgency-band timing."
+                                          : state.isMilestone
+                                            ? "Appears in radar 30 days before deadline (default)."
+                                            : state.deadlineType === "rigid"
+                                              ? "Appears in radar 3 days before due date (default)."
+                                              : "Visibility scales with window % remaining (default)."
                                 }
                             </div>
                         </div>
