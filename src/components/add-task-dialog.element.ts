@@ -108,7 +108,7 @@ export const AddTaskDialogElement = defineElement<{
         consequenceTier: 3 as ConsequenceTier,
         timeOfDay: "anytime" as TimeOfDay,
         isRecurring: false,
-        cadenceConfig: defaultCadenceConfig('weekly'),
+        cadenceConfig: defaultCadenceConfig('daily'),
         deadlineType: "rigid" as DeadlineType,
         isMilestone: false,
         /**
@@ -159,7 +159,7 @@ export const AddTaskDialogElement = defineElement<{
         willDissociateLinks: false,
         // ── Milestone progress cadence ──
         hasProgressCadence: false,
-        progressCadenceConfig: defaultCadenceConfig('weekly'),
+        progressCadenceConfig: defaultCadenceConfig('daily'),
         // ── Skip days (daily cadence only) ──
         skipDays: [] as number[],
     }),
@@ -573,7 +573,7 @@ export const AddTaskDialogElement = defineElement<{
                 timeOfDay: t.timeOfDay ?? "anytime",
                 consequenceTier: t.consequenceTier,
                 isRecurring: cfg !== null,
-                cadenceConfig: cfg ? cadenceConfigFromRecurrence(cfg) : defaultCadenceConfig('weekly'),
+                cadenceConfig: cfg ? cadenceConfigFromRecurrence(cfg) : defaultCadenceConfig('daily'),
                 deadlineType: t.deadlineType,
                 isMilestone: t.isMilestone,
                 suggestedDate: t.suggestedDate
@@ -620,7 +620,7 @@ export const AddTaskDialogElement = defineElement<{
                 hasProgressCadence: t.progressCadence != null,
                 progressCadenceConfig: t.progressCadence
                     ? cadenceConfigFromRecurrence({ ...t.progressCadence, scheduleMode: 'fixed', endMode: 'never' })
-                    : defaultCadenceConfig('weekly'),
+                    : defaultCadenceConfig('daily'),
                 skipDays: t.recurrence?.skipDays ?? [],
             });
         }
@@ -683,9 +683,7 @@ export const AddTaskDialogElement = defineElement<{
                 consequenceTier: 3,
                 timeOfDay: "anytime",
                 isRecurring: inputs.defaultKind === "routine",
-                cadenceConfig: defaultCadenceConfig(
-                    inputs.defaultKind === "routine" ? "daily" : "weekly",
-                ),
+                cadenceConfig: defaultCadenceConfig('daily'),
                 deadlineType: "rigid",
                 isMilestone: false,
                 leadTimeMode: "default",
@@ -713,7 +711,7 @@ export const AddTaskDialogElement = defineElement<{
                 confirmingDelete: false,
                 currentEditId: null,
                 hasProgressCadence: false,
-                progressCadenceConfig: defaultCadenceConfig('weekly'),
+                progressCadenceConfig: defaultCadenceConfig('daily'),
             });
         }
 
@@ -966,7 +964,7 @@ export const AddTaskDialogElement = defineElement<{
                     consequenceTier: 3,
                     timeOfDay: "anytime",
                     isRecurring: false,
-                    cadenceConfig: defaultCadenceConfig('weekly'),
+                    cadenceConfig: defaultCadenceConfig('daily'),
                     deadlineType: "rigid",
                     isMilestone: false,
                     leadTimeMode: "default",
@@ -1304,210 +1302,6 @@ export const AddTaskDialogElement = defineElement<{
                                             </div>
                                         `}
 
-                                  <!-- Deadline type — hidden for daily/multiple_per_day (always rigid by nature) -->
-                                  ${isTaskOrRoutine && !isDailyLikeCadence
-                                      ? html`
-                        <div class="field">
-                            <span class="field-label">Deadline Type</span>
-                            <div class="seg">
-                                <${ViraButton.assign({
-                                    text: "Flexible",
-                                    color: ViraColorVariant.Info,
-                                    buttonEmphasis:
-                                        state.deadlineType === "flexible"
-                                            ? ViraEmphasis.Standard
-                                            : ViraEmphasis.Subtle,
-                                    buttonSize: ViraSize.Small,
-                                })}
-                                    @click=${() => updateState({ deadlineType: "flexible" })}
-                                ></${ViraButton}>
-                                <${ViraButton.assign({
-                                    text: "Rigid",
-                                    color: ViraColorVariant.Warning,
-                                    buttonEmphasis:
-                                        state.deadlineType === "rigid"
-                                            ? ViraEmphasis.Standard
-                                            : ViraEmphasis.Subtle,
-                                    buttonSize: ViraSize.Small,
-                                })}
-                                    @click=${() => updateState({ deadlineType: "rigid" })}
-                                ></${ViraButton}>
-                            </div>
-                        </div>
-                        <div class="field">
-                            <div class="toggle-row">
-                                <input
-                                    type="checkbox"
-                                    id="milestone-toggle"
-                                    .checked=${state.isMilestone}
-                                    @change=${(e: Event) =>
-                                        updateState({ isMilestone: (e.target as HTMLInputElement).checked })}
-                                />
-                                <label for="milestone-toggle">Milestone (track progress across sessions)</label>
-                            </div>
-                        </div>
-                    `
-                                      : html``}
-
-                                  <!-- Progress cadence — only for milestones -->
-                                  ${state.isMilestone && isTaskOrRoutine
-                                      ? html`
-                                            <div class="field">
-                                                <span class="field-label">Progress Cadence</span>
-                                                <div class="seg" style="grid-template-columns: repeat(2, 1fr);">
-                                                    <${ViraButton.assign({
-                                                        text: "Once per day",
-                                                        color: ViraColorVariant.Info,
-                                                        buttonEmphasis: !state.hasProgressCadence
-                                                            ? ViraEmphasis.Standard
-                                                            : ViraEmphasis.Subtle,
-                                                        buttonSize: ViraSize.Small,
-                                                    })}
-                                                        @click=${() => updateState({ hasProgressCadence: false })}
-                                                    ></${ViraButton}>
-                                                    <${ViraButton.assign({
-                                                        text: "Custom",
-                                                        color: ViraColorVariant.Neutral,
-                                                        buttonEmphasis: state.hasProgressCadence
-                                                            ? ViraEmphasis.Standard
-                                                            : ViraEmphasis.Subtle,
-                                                        buttonSize: ViraSize.Small,
-                                                    })}
-                                                        @click=${() => updateState({ hasProgressCadence: true })}
-                                                    ></${ViraButton}>
-                                                </div>
-                                                ${state.hasProgressCadence ? html`
-                                                    <${CadencePickerElement.assign({
-                                                        config: state.progressCadenceConfig,
-                                                    })}
-                                                        ${listen(CadencePickerElement.events.cadenceChange, (e) =>
-                                                            updateState({ progressCadenceConfig: e.detail }),
-                                                        )}
-                                                    ></${CadencePickerElement}>
-                                                ` : html``}
-                                            </div>
-                                        `
-                                      : html``}
-
-                                  <!-- Date fields — only for one-time (non-recurring) tasks -->
-                                  ${!state.isRecurring && isTaskOrRoutine
-                                      ? html`
-                                            ${!state.isMilestone
-                                                ? html`
-                                                      <div class="field">
-                                                          <span
-                                                              class="field-label"
-                                                          >
-                                                              ${state.deadlineType ===
-                                                              "rigid"
-                                                                  ? "Date *"
-                                                                  : "Suggested Date (optional)"}
-                                                          </span>
-                                                          <input
-                                                              type="date"
-                                                              .value=${state.suggestedDate}
-                                                              @input=${(
-                                                                  e: Event,
-                                                              ) =>
-                                                                  updateState({
-                                                                      suggestedDate:
-                                                                          (
-                                                                              e.target as HTMLInputElement
-                                                                          )
-                                                                              .value,
-                                                                  })}
-                                                          />
-                                                      </div>
-                                                  `
-                                                : html``}
-                                        `
-                                      : html``}
-
-                                  <!-- Lead time — applies to all task types -->
-                                  ${isTaskOrRoutine
-                                      ? html`
-                        <div class="field">
-                            <span class="field-label">Lead Time</span>
-                            <div class="seg" style="grid-template-columns: repeat(3, 1fr);">
-                                <${ViraButton.assign({
-                                    text: "Default",
-                                    color: ViraColorVariant.Info,
-                                    buttonEmphasis:
-                                        state.leadTimeMode === "default"
-                                            ? ViraEmphasis.Standard
-                                            : ViraEmphasis.Subtle,
-                                    buttonSize: ViraSize.Small,
-                                })}
-                                    @click=${() => updateState({ leadTimeMode: "default" })}
-                                ></${ViraButton}>
-                                <${ViraButton.assign({
-                                    text: "None",
-                                    color: ViraColorVariant.Neutral,
-                                    buttonEmphasis:
-                                        state.leadTimeMode === "none"
-                                            ? ViraEmphasis.Standard
-                                            : ViraEmphasis.Subtle,
-                                    buttonSize: ViraSize.Small,
-                                })}
-                                    @click=${() => updateState({ leadTimeMode: "none" })}
-                                ></${ViraButton}>
-                                <${ViraButton.assign({
-                                    text: "Custom",
-                                    color: ViraColorVariant.Info,
-                                    buttonEmphasis:
-                                        state.leadTimeMode === "custom"
-                                            ? ViraEmphasis.Standard
-                                            : ViraEmphasis.Subtle,
-                                    buttonSize: ViraSize.Small,
-                                })}
-                                    @click=${() => updateState({ leadTimeMode: "custom" })}
-                                ></${ViraButton}>
-                            </div>
-                            <div class="tier-help">
-                                ${
-                                    state.leadTimeMode === "none"
-                                        ? "Hidden until due — only appears the day it's needed."
-                                        : state.leadTimeMode === "custom"
-                                          ? `Shows up ${state.leadTimeCustomDays} day${state.leadTimeCustomDays !== 1 ? "s" : ""} before due.`
-                                          : "Uses standard urgency-band timing."
-                                }
-                            </div>
-                        </div>
-                        ${
-                            state.leadTimeMode === "custom"
-                                ? html`
-                        <div class="field">
-                            <span class="field-label">Days before due</span>
-                            <span class="dom-input">
-                                <${ViraInput.assign({
-                                    value: String(state.leadTimeCustomDays),
-                                    type: ViraInputType.Number,
-                                    placeholder: "7",
-                                })}
-                                    ${listen(
-                                        ViraInput.events.valueChange,
-                                        (e) => {
-                                            const n = parseInt(e.detail, 10);
-                                            if (
-                                                !Number.isNaN(n) &&
-                                                n >= 0 &&
-                                                n <= 365
-                                            ) {
-                                                updateState({
-                                                    leadTimeCustomDays: n,
-                                                });
-                                            }
-                                        },
-                                    )}
-                                ></${ViraInput}>
-                            </span>
-                        </div>
-                        `
-                                : html``
-                        }
-                    `
-                                      : html``}
-
                                   ${state.isRecurring
                                       ? html`
                                           <${CadencePickerElement.assign({
@@ -1798,8 +1592,218 @@ export const AddTaskDialogElement = defineElement<{
                         }
                                       `
                                       : html``}
-                                      `
+
+                                  <!-- Deadline type — hidden for daily/multiple_per_day -->
+                                  ${!isDailyLikeCadence
+                                      ? html`
+                        <div class="field">
+                            <span class="field-label">Deadline Type</span>
+                            <div class="seg">
+                                <${ViraButton.assign({
+                                    text: "Flexible",
+                                    color: ViraColorVariant.Info,
+                                    buttonEmphasis:
+                                        state.deadlineType === "flexible"
+                                            ? ViraEmphasis.Standard
+                                            : ViraEmphasis.Subtle,
+                                    buttonSize: ViraSize.Small,
+                                })}
+                                    @click=${() => updateState({ deadlineType: "flexible" })}
+                                ></${ViraButton}>
+                                <${ViraButton.assign({
+                                    text: "Rigid",
+                                    color: ViraColorVariant.Warning,
+                                    buttonEmphasis:
+                                        state.deadlineType === "rigid"
+                                            ? ViraEmphasis.Standard
+                                            : ViraEmphasis.Subtle,
+                                    buttonSize: ViraSize.Small,
+                                })}
+                                    @click=${() => updateState({ deadlineType: "rigid" })}
+                                ></${ViraButton}>
+                            </div>
+                        </div>
+                    `
                                       : html``}
+
+                                  <!-- Date fields — only for one-time (non-recurring) tasks -->
+                                  ${!state.isRecurring
+                                      ? html`
+                                            ${!state.isMilestone
+                                                ? html`
+                                                      <div class="field">
+                                                          <span
+                                                              class="field-label"
+                                                          >
+                                                              ${state.deadlineType ===
+                                                              "rigid"
+                                                                  ? "Date *"
+                                                                  : "Suggested Date (optional)"}
+                                                          </span>
+                                                          <input
+                                                              type="date"
+                                                              .value=${state.suggestedDate}
+                                                              @input=${(
+                                                                  e: Event,
+                                                              ) =>
+                                                                  updateState({
+                                                                      suggestedDate:
+                                                                          (
+                                                                              e.target as HTMLInputElement
+                                                                          )
+                                                                              .value,
+                                                                  })}
+                                                          />
+                                                      </div>
+                                                  `
+                                                : html``}
+                                        `
+                                      : html``}
+
+                                  <!-- Lead time — hidden for daily/multiple_per_day -->
+                                  ${!isDailyLikeCadence
+                                      ? html`
+                        <div class="field">
+                            <span class="field-label">Lead Time</span>
+                            <div class="seg" style="grid-template-columns: repeat(3, 1fr);">
+                                <${ViraButton.assign({
+                                    text: "Default",
+                                    color: ViraColorVariant.Info,
+                                    buttonEmphasis:
+                                        state.leadTimeMode === "default"
+                                            ? ViraEmphasis.Standard
+                                            : ViraEmphasis.Subtle,
+                                    buttonSize: ViraSize.Small,
+                                })}
+                                    @click=${() => updateState({ leadTimeMode: "default" })}
+                                ></${ViraButton}>
+                                <${ViraButton.assign({
+                                    text: "None",
+                                    color: ViraColorVariant.Neutral,
+                                    buttonEmphasis:
+                                        state.leadTimeMode === "none"
+                                            ? ViraEmphasis.Standard
+                                            : ViraEmphasis.Subtle,
+                                    buttonSize: ViraSize.Small,
+                                })}
+                                    @click=${() => updateState({ leadTimeMode: "none" })}
+                                ></${ViraButton}>
+                                <${ViraButton.assign({
+                                    text: "Custom",
+                                    color: ViraColorVariant.Info,
+                                    buttonEmphasis:
+                                        state.leadTimeMode === "custom"
+                                            ? ViraEmphasis.Standard
+                                            : ViraEmphasis.Subtle,
+                                    buttonSize: ViraSize.Small,
+                                })}
+                                    @click=${() => updateState({ leadTimeMode: "custom" })}
+                                ></${ViraButton}>
+                            </div>
+                            <div class="tier-help">
+                                ${
+                                    state.leadTimeMode === "none"
+                                        ? "Hidden until due — only appears the day it's needed."
+                                        : state.leadTimeMode === "custom"
+                                          ? `Shows up ${state.leadTimeCustomDays} day${state.leadTimeCustomDays !== 1 ? "s" : ""} before due.`
+                                          : "Uses standard urgency-band timing."
+                                }
+                            </div>
+                        </div>
+                        ${
+                            state.leadTimeMode === "custom"
+                                ? html`
+                        <div class="field">
+                            <span class="field-label">Days before due</span>
+                            <span class="dom-input">
+                                <${ViraInput.assign({
+                                    value: String(state.leadTimeCustomDays),
+                                    type: ViraInputType.Number,
+                                    placeholder: "7",
+                                })}
+                                    ${listen(
+                                        ViraInput.events.valueChange,
+                                        (e) => {
+                                            const n = parseInt(e.detail, 10);
+                                            if (
+                                                !Number.isNaN(n) &&
+                                                n >= 0 &&
+                                                n <= 365
+                                            ) {
+                                                updateState({
+                                                    leadTimeCustomDays: n,
+                                                });
+                                            }
+                                        },
+                                    )}
+                                ></${ViraInput}>
+                            </span>
+                        </div>
+                        `
+                                : html``
+                        }
+                    `
+                                      : html``}
+
+                                  <!-- Milestone — hidden for daily/multiple_per_day -->
+                                  ${!isDailyLikeCadence
+                                      ? html`
+                        <div class="field">
+                            <div class="toggle-row">
+                                <input
+                                    type="checkbox"
+                                    id="milestone-toggle"
+                                    .checked=${state.isMilestone}
+                                    @change=${(e: Event) =>
+                                        updateState({ isMilestone: (e.target as HTMLInputElement).checked })}
+                                />
+                                <label for="milestone-toggle">Milestone (track progress across sessions)</label>
+                            </div>
+                        </div>
+                    `
+                                      : html``}
+
+                                  <!-- Progress cadence — only for milestones -->
+                                  ${state.isMilestone && !isDailyLikeCadence
+                                      ? html`
+                                            <div class="field">
+                                                <span class="field-label">Progress Cadence</span>
+                                                <div class="seg" style="grid-template-columns: repeat(2, 1fr);">
+                                                    <${ViraButton.assign({
+                                                        text: "Once per day",
+                                                        color: ViraColorVariant.Info,
+                                                        buttonEmphasis: !state.hasProgressCadence
+                                                            ? ViraEmphasis.Standard
+                                                            : ViraEmphasis.Subtle,
+                                                        buttonSize: ViraSize.Small,
+                                                    })}
+                                                        @click=${() => updateState({ hasProgressCadence: false })}
+                                                    ></${ViraButton}>
+                                                    <${ViraButton.assign({
+                                                        text: "Custom",
+                                                        color: ViraColorVariant.Neutral,
+                                                        buttonEmphasis: state.hasProgressCadence
+                                                            ? ViraEmphasis.Standard
+                                                            : ViraEmphasis.Subtle,
+                                                        buttonSize: ViraSize.Small,
+                                                    })}
+                                                        @click=${() => updateState({ hasProgressCadence: true })}
+                                                    ></${ViraButton}>
+                                                </div>
+                                                ${state.hasProgressCadence ? html`
+                                                    <${CadencePickerElement.assign({
+                                                        config: state.progressCadenceConfig,
+                                                    })}
+                                                        ${listen(CadencePickerElement.events.cadenceChange, (e) =>
+                                                            updateState({ progressCadenceConfig: e.detail }),
+                                                        )}
+                                                    ></${CadencePickerElement}>
+                                                ` : html``}
+                                            </div>
+                                        `
+                                      : html``}
+                              `
+                            : html``}
 
                     <!-- Goal: optional target date -->
                     ${
