@@ -134,6 +134,8 @@ export const bcrSkin: Skin = {
         insightsTitle: "Insights",
         insightsSubtitle:
             "Behavioral patterns, compliance gaps, and field performance.",
+        scoreDisclaimer:
+            "The score can be fun to see go up and we still may deport you if it goes too low, but don't forget the real prize and goal is becoming a better patriot. Your patriotism is not a game; it's serious.",
     },
 
     actions: {

@@ -53,6 +53,16 @@ export const InsightsViewElement = defineElement<{
             margin-bottom: 24px;
         }
 
+        .score-disclaimer {
+            font-family: var(--font-accent);
+            font-size: 0.78rem;
+            color: var(--color-text-muted);
+            border-left: 2px solid var(--color-primary);
+            padding: 8px 10px;
+            margin-bottom: 24px;
+            line-height: 1.5;
+        }
+
         .section {
             margin-bottom: 28px;
         }
@@ -428,6 +438,10 @@ export const InsightsViewElement = defineElement<{
         return html`
             <div class="page-title">${skin.pages.insightsTitle}</div>
             <div class="page-subtitle">${skin.pages.insightsSubtitle}</div>
+
+            ${skin.pages.scoreDisclaimer
+                ? html`<div class="score-disclaimer">${skin.pages.scoreDisclaimer}</div>`
+                : html``}
 
             <!-- Missed commitments -->
             <section class="section">

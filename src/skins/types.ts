@@ -157,6 +157,8 @@ export interface SkinPages {
 
     insightsTitle: string;
     insightsSubtitle: string;
+    /** Optional note shown below the insights header. Empty string = hidden. */
+    scoreDisclaimer: string;
 }
 
 // ── Score & app identity ──────────────────────────────────────────────────────

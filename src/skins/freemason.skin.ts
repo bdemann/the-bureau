@@ -128,6 +128,7 @@ export const freemasonSkin: Skin = {
 
         insightsTitle: "The Working Tools",
         insightsSubtitle: "A Mason keeps an accurate account of his labor.",
+        scoreDisclaimer: "",
     },
 
     menu: {

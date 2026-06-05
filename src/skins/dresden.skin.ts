@@ -142,6 +142,7 @@ export const dresdenSkin: Skin = {
 
         insightsTitle: "Harry's Notes",
         insightsSubtitle: "A wizard who keeps no records repeats his mistakes.",
+        scoreDisclaimer: "",
     },
 
     menu: {

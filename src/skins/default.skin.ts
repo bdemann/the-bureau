@@ -156,6 +156,7 @@ export const defaultSkin: Skin = {
 
         insightsTitle: "Insights",
         insightsSubtitle: "Patterns, gaps, and performance over time.",
+        scoreDisclaimer: "",
     },
 
     actions: {
