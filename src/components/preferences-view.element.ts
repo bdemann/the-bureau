@@ -6,12 +6,14 @@ import { DEFAULT_TIME_SETTINGS, type TimeSettings } from "../data/types.js";
 export const PreferencesViewElement = defineElement<{
     activeSkinId: string;
     timeSettings: TimeSettings;
+    darkMode: boolean;
 }>()({
     tagName: "preferences-view",
 
     events: {
         skinChangeRequested: defineElementEvent<string>(),
         timeSettingsChanged: defineElementEvent<TimeSettings>(),
+        darkModeChanged: defineElementEvent<boolean>(),
     },
 
     styles: css`
@@ -100,6 +102,66 @@ export const PreferencesViewElement = defineElement<{
             border-color: var(--color-warning);
         }
 
+        /* ── Dark mode toggle ── */
+        .dark-mode-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 6px 0;
+        }
+
+        .dark-mode-label {
+            font-family: var(--font-mono);
+            font-size: 0.75rem;
+            letter-spacing: 0.1em;
+            color: var(--color-text-muted);
+        }
+
+        .toggle {
+            position: relative;
+            width: 40px;
+            height: 22px;
+            flex-shrink: 0;
+        }
+
+        .toggle input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+            position: absolute;
+        }
+
+        .toggle-track {
+            position: absolute;
+            inset: 0;
+            border-radius: 11px;
+            background: rgba(0, 0, 0, 0.15);
+            border: 1px solid rgba(0, 0, 0, 0.2);
+            cursor: pointer;
+            transition: background 0.2s, border-color 0.2s;
+        }
+
+        .toggle input:checked + .toggle-track {
+            background: var(--color-primary);
+            border-color: var(--color-primary);
+        }
+
+        .toggle-track::after {
+            content: '';
+            position: absolute;
+            top: 2px;
+            left: 2px;
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            background: white;
+            transition: transform 0.2s;
+        }
+
+        .toggle input:checked + .toggle-track::after {
+            transform: translateX(18px);
+        }
+
         /* ── Time-settings grid ── */
         .time-settings-grid {
             display: grid;
@@ -133,7 +195,7 @@ export const PreferencesViewElement = defineElement<{
     `,
 
     render({ inputs, dispatch, events }) {
-        const { activeSkinId, timeSettings } = inputs;
+        const { activeSkinId, timeSettings, darkMode } = inputs;
         const skin = getActiveSkin();
 
         return html`
@@ -142,6 +204,24 @@ export const PreferencesViewElement = defineElement<{
 
             <div class="section">
                 <div class="section-label">${skin.menu.appearanceLabel}</div>
+
+                <div class="dark-mode-row">
+                    <span class="dark-mode-label">Dark mode</span>
+                    <label class="toggle">
+                        <input
+                            type="checkbox"
+                            ?checked=${darkMode}
+                            @change=${(e: Event) =>
+                                dispatch(
+                                    new events.darkModeChanged(
+                                        (e.target as HTMLInputElement).checked,
+                                    ),
+                                )}
+                        />
+                        <span class="toggle-track"></span>
+                    </label>
+                </div>
+
                 <div class="skin-picker">
                     ${ALL_SKINS.map(
                         (s) => html`

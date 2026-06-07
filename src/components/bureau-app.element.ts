@@ -48,6 +48,7 @@ import {
 import { getDialogueFor } from "../data/dialogues.js";
 import { setActiveSkin } from "../skins/active-skin.js";
 import { getSkinById, loadSkinId, saveSkinId } from "../skins/all-skins.js";
+import { applyDarkMode, loadDarkMode, saveDarkMode } from "../dark-mode.js";
 import { AddTaskDialogElement } from "./add-task-dialog.element.js";
 import { BureauBottomNavElement } from "./bureau-bottom-nav.element.js";
 import { BureauHeaderElement } from "./bureau-header.element.js";
@@ -271,10 +272,13 @@ export const BureauAppElement = defineElement()({
 
     state: () => {
         const savedSkinId = loadSkinId();
+        const savedDarkMode = loadDarkMode();
         setActiveSkin(getSkinById(savedSkinId));
+        applyDarkMode(savedDarkMode);
         return {
             app: bootstrap(),
             activeSkinId: savedSkinId,
+            darkMode: savedDarkMode,
             editingTask: null as Task | null,
             editingGoal: null as Goal | null,
             editingIdea: null as Idea | null,
@@ -1264,12 +1268,14 @@ export const BureauAppElement = defineElement()({
                         <${PreferencesViewElement.assign({
                             activeSkinId: state.activeSkinId,
                             timeSettings: state.app.timeSettings,
+                            darkMode: state.darkMode,
                         })}
                             ${listen(
                                 PreferencesViewElement.events.skinChangeRequested,
                                 (e) => {
                                     const newSkin = getSkinById(e.detail);
                                     setActiveSkin(newSkin);
+                                    applyDarkMode(state.darkMode);
                                     saveSkinId(e.detail);
                                     const clearedQueue = state.app.dialogueQueue.map(
                                         (d) => d.dismissed ? d : { ...d, dismissed: true },
@@ -1281,6 +1287,14 @@ export const BureauAppElement = defineElement()({
                             ${listen(
                                 PreferencesViewElement.events.timeSettingsChanged,
                                 (e) => commit({ timeSettings: e.detail }),
+                            )}
+                            ${listen(
+                                PreferencesViewElement.events.darkModeChanged,
+                                (e) => {
+                                    applyDarkMode(e.detail);
+                                    saveDarkMode(e.detail);
+                                    updateState({ darkMode: e.detail });
+                                },
                             )}
                         ></${PreferencesViewElement}>
                       `
