@@ -1,7 +1,6 @@
 import { html } from "element-vir";
 import { defineBookPage } from "element-book";
 import { BureauHeaderElement } from "../../components/bureau-header.element.js";
-import { DEFAULT_TIME_SETTINGS } from "../../data/types.js";
 
 export const headerPage = defineBookPage({
     parent: undefined,
@@ -17,7 +16,6 @@ export const headerPage = defineBookPage({
                         onBack: null,
                         areaName: null,
                         activeSkinId: "bcr",
-                        timeSettings: DEFAULT_TIME_SETTINGS,
                     })}></${BureauHeaderElement}>
                 `;
             },
@@ -32,7 +30,6 @@ export const headerPage = defineBookPage({
                         onBack: null,
                         areaName: null,
                         activeSkinId: "bcr",
-                        timeSettings: DEFAULT_TIME_SETTINGS,
                     })}></${BureauHeaderElement}>
                 `;
             },
@@ -47,7 +44,6 @@ export const headerPage = defineBookPage({
                         onBack: null,
                         areaName: null,
                         activeSkinId: "bcr",
-                        timeSettings: DEFAULT_TIME_SETTINGS,
                     })}></${BureauHeaderElement}>
                 `;
             },
@@ -62,7 +58,6 @@ export const headerPage = defineBookPage({
                         onBack: null,
                         areaName: null,
                         activeSkinId: "bcr",
-                        timeSettings: DEFAULT_TIME_SETTINGS,
                     })}></${BureauHeaderElement}>
                 `;
             },
@@ -77,7 +72,6 @@ export const headerPage = defineBookPage({
                         onBack: null,
                         areaName: null,
                         activeSkinId: "bcr",
-                        timeSettings: DEFAULT_TIME_SETTINGS,
                     })}></${BureauHeaderElement}>
                 `;
             },
@@ -92,7 +86,6 @@ export const headerPage = defineBookPage({
                         onBack: () => {},
                         areaName: "Homeowner",
                         activeSkinId: "bcr",
-                        timeSettings: DEFAULT_TIME_SETTINGS,
                     })}></${BureauHeaderElement}>
                 `;
             },

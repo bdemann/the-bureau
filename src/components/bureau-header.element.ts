@@ -1,9 +1,7 @@
 import { css, defineElement, defineElementEvent, html } from "element-vir";
 import { getRank, rankColor } from "../data/ranks.js";
-import type { AppView, TimeSettings } from "../data/types.js";
-import { DEFAULT_TIME_SETTINGS } from "../data/types.js";
+import type { AppView } from "../data/types.js";
 import { getActiveSkin, getRankLabel } from "../skins/active-skin.js";
-import { ALL_SKINS } from "../skins/all-skins.js";
 
 // ─────────────────────────────────────────────────────────────────────────────
 // BureauHeaderElement
@@ -18,17 +16,14 @@ export const BureauHeaderElement = defineElement<{
     streak: number;
     onBack: (() => void) | null;
     areaName: string | null;
-    /** Id of the currently active skin — drives the skin picker selection state. */
+    /** Id of the currently active skin — triggers re-render when skin changes. */
     activeSkinId: string;
-    timeSettings: TimeSettings;
 }>()({
     tagName: "bureau-header",
 
     events: {
         /** Fired when the user taps Insights in the hamburger menu. */
         insightsRequested: defineElementEvent<void>(),
-        /** Fired when the user selects a different skin from the picker. */
-        skinChangeRequested: defineElementEvent<string>(),
         /** Fired for any view navigation from the hamburger menu. */
         viewRequested: defineElementEvent<AppView>(),
         /** Fired when the user requests a JSON backup download. */
@@ -37,8 +32,6 @@ export const BureauHeaderElement = defineElement<{
         exportCsvRequested: defineElementEvent<void>(),
         /** Fired when the user has selected a backup file; payload is the raw file text. */
         importFileSelected: defineElementEvent<string>(),
-        /** Fired when the user changes any time-of-day period boundary or day-reset hour. */
-        timeSettingsChanged: defineElementEvent<TimeSettings>(),
     },
 
     state: () => ({
@@ -304,90 +297,6 @@ export const BureauHeaderElement = defineElement<{
             letter-spacing: 0.08em;
         }
 
-        /* ── Skin picker ── */
-        .skin-picker {
-            display: flex;
-            flex-direction: column;
-            gap: 4px;
-            padding: 4px 0 8px;
-        }
-
-        .skin-btn {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            width: 100%;
-            background: none;
-            border: 1px solid rgba(245, 239, 224, 0.15);
-            color: rgba(245, 239, 224, 0.7);
-            font-family: var(--font-mono);
-            font-size: 0.75rem;
-            letter-spacing: 0.1em;
-            text-align: left;
-            padding: 9px 12px;
-            cursor: pointer;
-            transition:
-                border-color 0.15s,
-                color 0.15s,
-                background 0.15s;
-        }
-
-        .skin-btn:hover {
-            border-color: rgba(245, 239, 224, 0.4);
-            color: var(--color-surface);
-        }
-
-        .skin-btn.active {
-            border-color: var(--color-warning);
-            color: var(--color-surface);
-            background: rgba(245, 239, 224, 0.06);
-        }
-
-        .skin-dot {
-            width: 8px;
-            height: 8px;
-            border-radius: 50%;
-            border: 1.5px solid currentColor;
-            flex-shrink: 0;
-        }
-
-        .skin-btn.active .skin-dot {
-            background: var(--color-warning);
-            border-color: var(--color-warning);
-        }
-
-        /* ── Time-settings grid ── */
-        .time-settings-grid {
-            display: grid;
-            grid-template-columns: 1fr auto;
-            gap: 6px 8px;
-            padding: 6px 0 8px;
-            align-items: center;
-        }
-
-        .time-setting-label {
-            font-family: var(--font-mono);
-            font-size: 0.62rem;
-            letter-spacing: 0.08em;
-            color: rgba(245, 239, 224, 0.7);
-        }
-
-        .time-setting-select {
-            background: rgba(245, 239, 224, 0.08);
-            border: 1px solid rgba(245, 239, 224, 0.2);
-            color: var(--color-surface);
-            font-family: var(--font-mono);
-            font-size: 0.62rem;
-            padding: 3px 6px;
-            cursor: pointer;
-            min-width: 72px;
-        }
-
-        .time-setting-select:focus {
-            outline: 1px solid var(--color-warning);
-            border-color: var(--color-warning);
-        }
-
         /* ── Breadcrumb / score bar ── */
         .breadcrumb {
             padding: 0 0 8px;
@@ -432,7 +341,7 @@ export const BureauHeaderElement = defineElement<{
     `,
 
     render({ inputs, state, updateState, dispatch, events }) {
-        const { patriotScore, streak, onBack, areaName, activeSkinId, timeSettings } = inputs;
+        const { patriotScore, streak, onBack, areaName } = inputs;
         const skin = getActiveSkin();
 
         const rank =
@@ -634,64 +543,16 @@ export const BureauHeaderElement = defineElement<{
                               </div>
 
                               <div class="menu-section">
-                                  <div class="menu-section-label">
-                                      ${skin.menu.appearanceLabel}
-                                  </div>
-                                  <div class="skin-picker">
-                                      ${ALL_SKINS.map(
-                                          (s) => html`
-                                              <button
-                                                  class=${"skin-btn" +
-                                                  (s.id === activeSkinId
-                                                      ? " active"
-                                                      : "")}
-                                                  @click=${() => {
-                                                      dispatch(
-                                                          new events.skinChangeRequested(
-                                                              s.id,
-                                                          ),
-                                                      );
-                                                      closeMenu();
-                                                  }}
-                                              >
-                                                  <span class="skin-dot"></span>
-                                                  ${s.displayName}
-                                              </button>
-                                          `,
-                                      )}
-                                  </div>
-                              </div>
-
-                              <div class="menu-section">
-                                  <div class="menu-section-label">
-                                      SCHEDULE
-                                  </div>
-                                  <div class="time-settings-grid">
-                                      ${(
-                                          [
-                                              ["Morning", "morningStart"],
-                                              ["Afternoon", "afternoonStart"],
-                                              ["Evening", "eveningStart"],
-                                              ["Bedtime", "bedtimeStart"],
-                                              ["Day resets", "dayResetHour"],
-                                          ] as [string, keyof typeof DEFAULT_TIME_SETTINGS][]
-                                      ).map(([label, key]) => html`
-                                          <span class="time-setting-label">${label}</span>
-                                          <select
-                                              class="time-setting-select"
-                                              @change=${(e: Event) => {
-                                                  const val = parseInt((e.target as HTMLSelectElement).value, 10);
-                                                  dispatch(new events.timeSettingsChanged({ ...timeSettings, [key]: val }));
-                                              }}
-                                          >
-                                              ${Array.from({ length: 24 }, (_, h) => html`
-                                                  <option value=${h} ?selected=${timeSettings[key] === h}>
-                                                      ${h === 0 ? "12 AM" : h < 12 ? `${h} AM` : h === 12 ? "12 PM" : `${h - 12} PM`}
-                                                  </option>
-                                              `)}
-                                          </select>
-                                      `)}
-                                  </div>
+                                  <button
+                                      class="menu-item"
+                                      @click=${() => {
+                                          dispatch(new events.viewRequested('preferences'));
+                                          closeMenu();
+                                      }}
+                                  >
+                                      <span class="menu-item-label">${skin.menu.appearanceLabel}</span>
+                                      <span class="menu-item-sub">Appearance · Schedule</span>
+                                  </button>
                               </div>
 
                               <div class="menu-section">

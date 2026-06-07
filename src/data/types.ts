@@ -16,7 +16,8 @@ export type AppView =
     | "all-routines"
     | "all-commitments"
     | "unlinked"
-    | "shopping";
+    | "shopping"
+    | "preferences";
 export type Character = "director" | "agent";
 
 export const SCHEMA_VERSION = 6;

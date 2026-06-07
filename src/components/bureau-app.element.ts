@@ -61,6 +61,7 @@ import { GoalsViewElement } from "./goals-view.element.js";
 import { AreaDetailElement } from "./area-detail.element.js";
 import { CommitmentsViewElement } from "./commitments-view.element.js";
 import { ShoppingListElement } from "./shopping-list.element.js";
+import { PreferencesViewElement } from "./preferences-view.element.js";
 import {
     buildCsvExport,
     buildJsonExport,
@@ -1062,7 +1063,6 @@ export const BureauAppElement = defineElement()({
                             : null,
                     areaName: selectedGoal?.title ?? selectedArea?.name ?? null,
                     activeSkinId: state.activeSkinId,
-                    timeSettings: state.app.timeSettings,
                 })}
                     ${listen(BureauHeaderElement.events.insightsRequested, () =>
                         setView("insights"),
@@ -1086,26 +1086,6 @@ export const BureauAppElement = defineElement()({
                         saveState(migrated);
                         window.location.reload();
                     })}
-                    ${listen(
-                        BureauHeaderElement.events.skinChangeRequested,
-                        (e) => {
-                            const newSkin = getSkinById(e.detail);
-                            setActiveSkin(newSkin);
-                            saveSkinId(e.detail);
-                            // Clear any un-dismissed dialogues — their text was resolved
-                            // against the old skin and would show the wrong vocabulary.
-                            const clearedQueue = state.app.dialogueQueue.map(
-                                (d) =>
-                                    d.dismissed ? d : { ...d, dismissed: true },
-                            );
-                            commit({ dialogueQueue: clearedQueue });
-                            updateState({ activeSkinId: e.detail });
-                        },
-                    )}
-                    ${listen(
-                        BureauHeaderElement.events.timeSettingsChanged,
-                        (e) => commit({ timeSettings: e.detail }),
-                    )}
                 ></${BureauHeaderElement}>
 
                 ${
@@ -1278,6 +1258,31 @@ export const BureauAppElement = defineElement()({
                                 });
                             })}
                         ></${ShoppingListElement}>
+                      `
+                            : view === "preferences"
+                              ? html`
+                        <${PreferencesViewElement.assign({
+                            activeSkinId: state.activeSkinId,
+                            timeSettings: state.app.timeSettings,
+                        })}
+                            ${listen(
+                                PreferencesViewElement.events.skinChangeRequested,
+                                (e) => {
+                                    const newSkin = getSkinById(e.detail);
+                                    setActiveSkin(newSkin);
+                                    saveSkinId(e.detail);
+                                    const clearedQueue = state.app.dialogueQueue.map(
+                                        (d) => d.dismissed ? d : { ...d, dismissed: true },
+                                    );
+                                    commit({ dialogueQueue: clearedQueue });
+                                    updateState({ activeSkinId: e.detail });
+                                },
+                            )}
+                            ${listen(
+                                PreferencesViewElement.events.timeSettingsChanged,
+                                (e) => commit({ timeSettings: e.detail }),
+                            )}
+                        ></${PreferencesViewElement}>
                       `
                             : view === "insights"
                               ? html`
