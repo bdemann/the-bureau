@@ -5,10 +5,8 @@
 // ─────────────────────────────────────────────────────────────────────────────
 
 import {
-    DateUnit,
     calculateRelativeDate,
     createFullDateInUserTimezone,
-    getEndDate,
     toJsDate,
 } from 'date-vir';
 import type {RecurrenceCadence, RecurrenceConfig, Task} from './types.js';
@@ -448,11 +446,15 @@ export function isMultiplePerPeriod(task: Task): boolean {
 // ── Internal date helpers ───────────────────────────────────────────────────
 
 function endOfDay(d: Date): Date {
-    return toJsDate(getEndDate(createFullDateInUserTimezone(d), DateUnit.Day));
+    const copy = new Date(d);
+    copy.setHours(23, 59, 59, 999);
+    return copy;
 }
 
 function addDays(d: Date, n: number): Date {
-    return toJsDate(calculateRelativeDate(createFullDateInUserTimezone(d), {days: n}));
+    const copy = new Date(d);
+    copy.setDate(copy.getDate() + n);
+    return copy;
 }
 
 /**

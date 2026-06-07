@@ -1,8 +1,5 @@
 import {
-    DateUnit,
     createFullDateInUserTimezone,
-    diffDates,
-    getStartDate,
     getNowInUserTimezone,
     toJsDate,
     toSimpleDatePartString,
@@ -329,16 +326,19 @@ export function getAppDayString(dayResetHour: number): string {
     return toSimpleDatePartString(now);
 }
 
-/** Start-of-day (local) for a given date. */
+/** Start-of-day (local midnight) for a given date. */
 export function startOfDay(d: Date): Date {
-    return toJsDate(getStartDate(createFullDateInUserTimezone(d), DateUnit.Day));
+    const copy = new Date(d);
+    copy.setHours(0, 0, 0, 0);
+    return copy;
 }
 
-/** Whole-day difference (b - a), using local midnight boundaries. */
+/** Whole-day difference (b − a), using local midnight boundaries. */
 export function daysBetween(a: Date | number, b: Date | number): number {
-    const aFd = getStartDate(createFullDateInUserTimezone(new Date(a)), DateUnit.Day);
-    const bFd = getStartDate(createFullDateInUserTimezone(new Date(b)), DateUnit.Day);
-    return diffDates({start: aFd, end: bFd}, {days: true}).days;
+    const dayA = startOfDay(new Date(a)).getTime();
+    const dayB = startOfDay(new Date(b)).getTime();
+    // Math.round handles the ±1 h DST edge cases where a "day" is 23 or 25 hours.
+    return Math.round((dayB - dayA) / 86_400_000);
 }
 
 export function isCurrentlySnoozed(task: Pick<Task, "snoozedUntil">): boolean {

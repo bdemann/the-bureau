@@ -11,7 +11,7 @@
     "test": "tsx --test 'src/data/*.test.ts'"
   },
   "dependencies": {
-    "date-vir": "^8.4.0",
+    "date-vir": "npm:@bdemann/date-vir@^8.4.1",
     "element-book": "^26.17.3",
     "element-vir": "^26.0.0",
     "lucide-static": "^0.460.0",
