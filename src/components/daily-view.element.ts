@@ -21,26 +21,74 @@ import { TaskItemElement } from "./task-item.element.js";
 
 const COLLAPSE_THRESHOLD = 5;
 
+// ── View preference persistence ──────────────────────────────────────────────
+
+const VIEW_PREFS_KEY = 'bureau-daily-view-prefs';
+const ONE_HOUR_MS = 3_600_000;
+
+type ExpandedSlots = Partial<Record<DailyBand, Partial<Record<TimeOfDay, boolean>>>>;
+
+interface ViewPrefs {
+    mergedView: boolean;
+    expandMandatory: boolean;
+    expandSuggested: boolean;
+    expandRadar: boolean;
+    expandBacklog: boolean;
+    expandedSlots: ExpandedSlots;
+    lastActiveMs: number;
+}
+
+const DEFAULT_VIEW_PREFS: Omit<ViewPrefs, 'expandedSlots' | 'lastActiveMs'> = {
+    mergedView: false,
+    expandMandatory: true,
+    expandSuggested: true,
+    expandRadar: false,
+    expandBacklog: false,
+};
+
+function loadViewPrefs(): ViewPrefs {
+    try {
+        const raw = localStorage.getItem(VIEW_PREFS_KEY);
+        if (!raw) return { ...DEFAULT_VIEW_PREFS, expandedSlots: {}, lastActiveMs: 0 };
+        return { ...DEFAULT_VIEW_PREFS, expandedSlots: {}, lastActiveMs: 0, ...JSON.parse(raw) };
+    } catch {
+        return { ...DEFAULT_VIEW_PREFS, expandedSlots: {}, lastActiveMs: 0 };
+    }
+}
+
+function saveViewPrefs(prefs: ViewPrefs): void {
+    try {
+        localStorage.setItem(VIEW_PREFS_KEY, JSON.stringify(prefs));
+    } catch {
+        // Storage unavailable — ignore.
+    }
+}
+
+// Latest pref snapshot — updated every render so the visibilitychange handler
+// (which runs outside the render cycle) always saves fresh values.
+let _latestPrefs: ViewPrefs = { ...DEFAULT_VIEW_PREFS, expandedSlots: {}, lastActiveMs: 0 };
+
 // ── Time-of-day slot helpers ─────────────────────────────────────────────────
 
 // Module-level settings reference — updated on every render from inputs.
 let _activeTimeSettings: TimeSettings = DEFAULT_TIME_SETTINGS;
 
-// The visibility-change callback is updated on every render so it always
-// closes over the latest updateState. Only fires when the tab returns from
-// background AND the time slot has changed since it was hidden — that's the
-// "came back later" signal. Active use never hides the page, so it never fires.
+// Fires when the app returns from background after >= 1 hour away.
+// Updated every render so it closes over the latest updateState.
 let _onSlotChange: ((slot: TimeOfDay) => void) | null = null;
 
 {
-    let slotWhenHidden: TimeOfDay | null = null;
+    let timeWhenHidden: number | null = null;
     document.addEventListener("visibilitychange", () => {
         if (document.hidden) {
-            slotWhenHidden = getTimeSlot(getNowInUserTimezone().hour, _activeTimeSettings);
-        } else if (slotWhenHidden !== null) {
-            const current = getTimeSlot(getNowInUserTimezone().hour, _activeTimeSettings);
-            if (current !== slotWhenHidden) _onSlotChange?.(current);
-            slotWhenHidden = null;
+            timeWhenHidden = Date.now();
+        } else if (timeWhenHidden !== null) {
+            const elapsed = Date.now() - timeWhenHidden;
+            timeWhenHidden = null;
+            if (elapsed >= ONE_HOUR_MS) {
+                const current = getTimeSlot(getNowInUserTimezone().hour, _activeTimeSettings);
+                _onSlotChange?.(current);
+            }
         }
     });
 }
@@ -67,20 +115,24 @@ export const DailyViewElement = defineElement<{
     },
 
     state: () => {
-        const initialSlot = getTimeSlot(getNowInUserTimezone().hour, DEFAULT_TIME_SETTINGS);
-        const initialBandSlots = { [initialSlot]: true } as Partial<Record<TimeOfDay, boolean>>;
+        const prefs = loadViewPrefs();
+        const elapsed = Date.now() - prefs.lastActiveMs;
+        // Reset to current time slot on fresh opens (no saved time) or after >= 1 hour away.
+        // Otherwise restore whatever the user last had open.
+        const expandedSlots: ExpandedSlots = (prefs.lastActiveMs === 0 || elapsed >= ONE_HOUR_MS)
+            ? (() => {
+                const slot = getTimeSlot(getNowInUserTimezone().hour, DEFAULT_TIME_SETTINGS);
+                const s = { [slot]: true } as Partial<Record<TimeOfDay, boolean>>;
+                return { mandatory: s, suggested: s, radar: s, backlog: s };
+            })()
+            : prefs.expandedSlots;
         return {
-            expandMandatory: true,
-            expandSuggested: true,
-            expandRadar: false,
-            expandBacklog: false,
-            mergedView: false,
-            expandedSlots: {
-                mandatory: { ...initialBandSlots },
-                suggested: { ...initialBandSlots },
-                radar: { ...initialBandSlots },
-                backlog: { ...initialBandSlots },
-            } as Partial<Record<DailyBand, Partial<Record<TimeOfDay, boolean>>>>,
+            mergedView: prefs.mergedView,
+            expandMandatory: prefs.expandMandatory,
+            expandSuggested: prefs.expandSuggested,
+            expandRadar: prefs.expandRadar,
+            expandBacklog: prefs.expandBacklog,
+            expandedSlots,
             draggedId: null as string | null,
             dragOverId: null as string | null,
         };
@@ -346,37 +398,53 @@ export const DailyViewElement = defineElement<{
 
     render({ inputs, state, updateState, dispatch, events }) {
         const skin = getActiveSkin();
-        // Keep settings and callback current every render.
+
+        // Keep module-level refs current every render.
         _activeTimeSettings = inputs.timeSettings;
+        _latestPrefs = {
+            mergedView: state.mergedView,
+            expandMandatory: state.expandMandatory,
+            expandSuggested: state.expandSuggested,
+            expandRadar: state.expandRadar,
+            expandBacklog: state.expandBacklog,
+            expandedSlots: state.expandedSlots,
+            lastActiveMs: Date.now(),
+        };
+
         _onSlotChange = (newSlot: TimeOfDay) => {
             const slotState = { [newSlot]: true } as Partial<Record<TimeOfDay, boolean>>;
-            updateState({
-                expandedSlots: {
-                    mandatory: slotState,
-                    suggested: slotState,
-                    radar: slotState,
-                    backlog: slotState,
-                },
-            });
+            const newExpandedSlots: ExpandedSlots = {
+                mandatory: slotState,
+                suggested: slotState,
+                radar: slotState,
+                backlog: slotState,
+            };
+            updateState({ expandedSlots: newExpandedSlots });
+            saveViewPrefs({ ..._latestPrefs, expandedSlots: newExpandedSlots, lastActiveMs: Date.now() });
         };
+
+        function updatePrefs(update: Partial<Omit<ViewPrefs, 'lastActiveMs'>>): void {
+            updateState(update);
+            saveViewPrefs({ ..._latestPrefs, ...update, lastActiveMs: Date.now() });
+            _latestPrefs = { ..._latestPrefs, ...update, lastActiveMs: Date.now() };
+        }
 
         function toggleSlot(band: DailyBand, slot: TimeOfDay): void {
             const bandSlots = state.expandedSlots[band] ?? {};
-            updateState({
-                expandedSlots: {
-                    ...state.expandedSlots,
-                    [band]: { ...bandSlots, [slot]: !bandSlots[slot] },
-                },
-            });
+            const newExpandedSlots: ExpandedSlots = {
+                ...state.expandedSlots,
+                [band]: { ...bandSlots, [slot]: !bandSlots[slot] },
+            };
+            updatePrefs({ expandedSlots: newExpandedSlots });
         }
 
         function collapseAll(): void {
-            updateState({
+            updatePrefs({
                 expandMandatory: false,
                 expandSuggested: false,
                 expandRadar: false,
                 expandBacklog: false,
-                expandedSlots: {mandatory: {}, suggested: {}, radar: {}, backlog: {}},
+                expandedSlots: { mandatory: {}, suggested: {}, radar: {}, backlog: {} },
             });
         }
 
@@ -398,7 +466,7 @@ export const DailyViewElement = defineElement<{
 
         // E1: Auto-collapse mandatory and expand suggested when mandatory becomes empty.
         if (bands.mandatory.length === 0 && state.expandMandatory) {
-            queueMicrotask(() => updateState({ expandMandatory: false, expandSuggested: true }));
+            queueMicrotask(() => updatePrefs({ expandMandatory: false, expandSuggested: true }));
         }
 
         const renderTaskList = (tasks: Task[], band?: DailyBand) => html`
@@ -636,7 +704,7 @@ export const DailyViewElement = defineElement<{
             <div class="view-controls">
                 <button
                     class="merge-toggle-btn ${state.mergedView ? 'active' : ''}"
-                    @click=${() => updateState({ mergedView: !state.mergedView })}
+                    @click=${() => updatePrefs({ mergedView: !state.mergedView })}
                     title="Merge mandatory and suggested into one list"
                 >MERGE VIEW</button>
                 <button
@@ -664,14 +732,14 @@ export const DailyViewElement = defineElement<{
                         alwaysCollapse: true,
                         expanded: state.expandMandatory,
                         onToggle: () =>
-                            updateState({ expandMandatory: !state.expandMandatory }),
+                            updatePrefs({ expandMandatory: !state.expandMandatory }),
                     })}
                     ${renderBand("suggested", {
                         collapsible: true,
                         alwaysCollapse: true,
                         expanded: state.expandSuggested,
                         onToggle: () =>
-                            updateState({ expandSuggested: !state.expandSuggested }),
+                            updatePrefs({ expandSuggested: !state.expandSuggested }),
                     })}
                 `}
             ${renderBand("radar", {
@@ -679,14 +747,14 @@ export const DailyViewElement = defineElement<{
                 alwaysCollapse: true,
                 expanded: state.expandRadar,
                 onToggle: () =>
-                    updateState({ expandRadar: !state.expandRadar }),
+                    updatePrefs({ expandRadar: !state.expandRadar }),
             })}
             ${renderBand("backlog", {
                 collapsible: true,
                 alwaysCollapse: true,
                 expanded: state.expandBacklog,
                 onToggle: () =>
-                    updateState({ expandBacklog: !state.expandBacklog }),
+                    updatePrefs({ expandBacklog: !state.expandBacklog }),
             })}
 
             <button
