@@ -22,41 +22,39 @@ describe('computeRemediationOnComplete', () => {
         assert.deepEquals(result, {skipStreak: 0, snoozeCount: 0, remediationCount: 0});
     });
 
-    it('skip streak at threshold (5) enters remediation — streaks preserved', () => {
+    it('skip streak at threshold (5) enters remediation — skipStreak preserved', () => {
         const result = computeRemediationOnComplete(5, 0, 0);
         assert.deepEquals(result, {skipStreak: 5, snoozeCount: 0, remediationCount: 5});
     });
 
-    it('skip streak above threshold enters remediation — streaks preserved', () => {
-        const result = computeRemediationOnComplete(7, 0, 0);
-        assert.deepEquals(result, {skipStreak: 7, snoozeCount: 0, remediationCount: 5});
+    it('skip streak above threshold enters remediation — capped at REMEDIATION_CAP', () => {
+        const result = computeRemediationOnComplete(8, 0, 0);
+        assert.deepEquals(result, {skipStreak: 8, snoozeCount: 0, remediationCount: 5});
     });
 
-    it('enters remediation from a snooze count — streaks preserved', () => {
-        const result = computeRemediationOnComplete(0, 5, 0);
-        // snoozeCount stays at 5 until remediation clears; remediationCount = min(5, 5) = 5
-        assert.deepEquals(result, {skipStreak: 0, snoozeCount: 5, remediationCount: 5});
+    it('snooze count alone does not trigger remediation', () => {
+        const result = computeRemediationOnComplete(0, 8, 0);
+        assert.deepEquals(result, {skipStreak: 0, snoozeCount: 0, remediationCount: 0});
     });
 
-    it('caps remediationCount at REMEDIATION_CAP (5)', () => {
-        const result = computeRemediationOnComplete(2, 8, 0);
-        // max(2, 8) = 8; capped at 5; snoozeCount preserved
-        assert.deepEquals(result, {skipStreak: 2, snoozeCount: 8, remediationCount: 5});
+    it('snooze count does not affect remediation target — only skipStreak counts', () => {
+        const result = computeRemediationOnComplete(5, 8, 0);
+        assert.deepEquals(result, {skipStreak: 5, snoozeCount: 0, remediationCount: 5});
     });
 
-    it('uses the larger of skipStreak and snoozeCount as remediation target', () => {
-        const result = computeRemediationOnComplete(4, 2, 0);
-        assert.deepEquals(result, {skipStreak: 4, snoozeCount: 2, remediationCount: 4});
-    });
-
-    it('decrements remediationCount by 1 when already in remediation — streaks preserved', () => {
+    it('decrements remediationCount by 1 when already in remediation — skipStreak preserved', () => {
         const result = computeRemediationOnComplete(3, 0, 4);
         assert.deepEquals(result, {skipStreak: 3, snoozeCount: 0, remediationCount: 3});
     });
 
-    it('clears streaks when last remediation completion completes', () => {
+    it('clears skipStreak when last remediation completion completes', () => {
         const result = computeRemediationOnComplete(3, 0, 1);
         assert.deepEquals(result, {skipStreak: 0, snoozeCount: 0, remediationCount: 0});
+    });
+
+    it('snoozeCount always resets on completion even while in remediation', () => {
+        const result = computeRemediationOnComplete(3, 6, 4);
+        assert.deepEquals(result, {skipStreak: 3, snoozeCount: 0, remediationCount: 3});
     });
 
     it('does not go below 0 if remediationCount is already 0', () => {
@@ -65,9 +63,8 @@ describe('computeRemediationOnComplete', () => {
     });
 
     it('prioritises remediation path when remediationCount > 0 — streaks preserved until done', () => {
-        // remediationCount > 0 takes priority; streaks preserved until newCount === 0
         const result = computeRemediationOnComplete(3, 2, 5);
-        assert.deepEquals(result, {skipStreak: 3, snoozeCount: 2, remediationCount: 4});
+        assert.deepEquals(result, {skipStreak: 3, snoozeCount: 0, remediationCount: 4});
     });
 });
 
@@ -102,24 +99,14 @@ describe('computeRemediationOnSkip', () => {
 // ─────────────────────────────────────────────────────────────────────────────
 
 describe('computeRemediationOnSnooze', () => {
-    it('increments snooze count normally when not in remediation', () => {
-        const result = computeRemediationOnSnooze(0, 0);
-        assert.deepEquals(result, {snoozeCount: 1, remediationCount: 0});
+    it('increments snooze count from zero', () => {
+        const result = computeRemediationOnSnooze(0);
+        assert.deepEquals(result, {snoozeCount: 1});
     });
 
-    it('continues a snooze count normally when not in remediation', () => {
-        const result = computeRemediationOnSnooze(2, 0);
-        assert.deepEquals(result, {snoozeCount: 3, remediationCount: 0});
-    });
-
-    it('increments count normally even when in remediation (no punitive start)', () => {
-        const result = computeRemediationOnSnooze(0, 3);
-        assert.deepEquals(result, {snoozeCount: 1, remediationCount: 0});
-    });
-
-    it('clears remediationCount on snooze regardless', () => {
-        const result = computeRemediationOnSnooze(4, 5);
-        assert.deepEquals(result, {snoozeCount: 5, remediationCount: 0});
+    it('continues incrementing snooze count', () => {
+        const result = computeRemediationOnSnooze(2);
+        assert.deepEquals(result, {snoozeCount: 3});
     });
 });
 
@@ -174,7 +161,6 @@ describe('remediation lifecycle scenarios', () => {
         }
         assert.strictEquals(skipStreak, 3);
 
-        // First completion under threshold — everything clears, no remediation
         const r = computeRemediationOnComplete(skipStreak, snoozeCount, remediationCount);
         assert.strictEquals(r.skipStreak, 0);
         assert.strictEquals(r.remediationCount, 0);
@@ -185,7 +171,6 @@ describe('remediation lifecycle scenarios', () => {
         let snoozeCount = 0;
         let remediationCount = 0;
 
-        // Five skips — at the threshold
         for (let i = 0; i < 5; i++) {
             const r = computeRemediationOnSkip(skipStreak, remediationCount);
             skipStreak = r.skipStreak;
@@ -193,17 +178,17 @@ describe('remediation lifecycle scenarios', () => {
         }
         assert.strictEquals(skipStreak, 5);
 
-        // First completion — enters remediation(5), streaks preserved
+        // First completion — enters remediation(5), skipStreak preserved
         {
             const r = computeRemediationOnComplete(skipStreak, snoozeCount, remediationCount);
             skipStreak = r.skipStreak;
             snoozeCount = r.snoozeCount;
             remediationCount = r.remediationCount;
         }
-        assert.strictEquals(skipStreak, 5);    // preserved
+        assert.strictEquals(skipStreak, 5);
         assert.strictEquals(remediationCount, 5);
 
-        // Four more completions — streaks still preserved until remediationCount hits 0
+        // Four more completions — skipStreak still preserved until remediationCount hits 0
         for (let i = 0; i < 4; i++) {
             const r = computeRemediationOnComplete(skipStreak, snoozeCount, remediationCount);
             skipStreak = r.skipStreak;
@@ -211,7 +196,7 @@ describe('remediation lifecycle scenarios', () => {
             remediationCount = r.remediationCount;
         }
         assert.strictEquals(remediationCount, 1);
-        assert.strictEquals(skipStreak, 5);    // still preserved
+        assert.strictEquals(skipStreak, 5);
 
         // Final completion — fully cleared
         {
@@ -221,11 +206,10 @@ describe('remediation lifecycle scenarios', () => {
             remediationCount = r.remediationCount;
         }
         assert.strictEquals(remediationCount, 0);
-        assert.strictEquals(skipStreak, 0);    // cleared on final completion
+        assert.strictEquals(skipStreak, 0);
     });
 
     it('relapse mid-remediation: skip increments normally from current streak', () => {
-        // Skip × 5, one completion puts in remediation(5), skipStreak preserved at 5
         let skipStreak = 5;
         let snoozeCount = 0;
         let remediationCount = 0;
@@ -235,9 +219,8 @@ describe('remediation lifecycle scenarios', () => {
         snoozeCount = first.snoozeCount;
         remediationCount = first.remediationCount;
         assert.strictEquals(remediationCount, 5);
-        assert.strictEquals(skipStreak, 5);    // preserved
+        assert.strictEquals(skipStreak, 5);
 
-        // Complete twice more: remediation → 3, skipStreak still 5
         for (let i = 0; i < 2; i++) {
             const r = computeRemediationOnComplete(skipStreak, snoozeCount, remediationCount);
             skipStreak = r.skipStreak;
@@ -245,10 +228,28 @@ describe('remediation lifecycle scenarios', () => {
             remediationCount = r.remediationCount;
         }
         assert.strictEquals(remediationCount, 3);
-        assert.strictEquals(skipStreak, 5);    // still preserved
+        assert.strictEquals(skipStreak, 5);
 
-        // Skip again — increments normally from current skipStreak (5 → 6)
         const relapse = computeRemediationOnSkip(skipStreak, remediationCount);
         assert.deepEquals(relapse, {skipStreak: 6, remediationCount: 0});
+    });
+
+    it('snoozed tasks do not interact with remediation progress', () => {
+        let skipStreak = 5;
+        let snoozeCount = 0;
+        let remediationCount = 0;
+
+        const entry = computeRemediationOnComplete(skipStreak, snoozeCount, remediationCount);
+        skipStreak = entry.skipStreak;
+        remediationCount = entry.remediationCount;
+        assert.strictEquals(remediationCount, 5);
+
+        // Snooze several times — remediationCount is unaffected
+        for (let i = 0; i < 3; i++) {
+            const r = computeRemediationOnSnooze(snoozeCount);
+            snoozeCount = r.snoozeCount;
+        }
+        assert.strictEquals(snoozeCount, 3);
+        assert.strictEquals(remediationCount, 5);
     });
 });

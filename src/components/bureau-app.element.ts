@@ -569,10 +569,7 @@ export const BureauAppElement = defineElement()({
                 return;
             }
 
-            const snoozeRemediation = computeRemediationOnSnooze(
-                task.snoozeCount,
-                task.remediationCount,
-            );
+            const snoozeRemediation = computeRemediationOnSnooze(task.snoozeCount);
             const newSnoozeCount = snoozeRemediation.snoozeCount;
             let snoozedUntil = Date.now() + 24 * 60 * 60 * 1000;
             if (task.deadlineType === "rigid" && task.suggestedDate !== null) {
@@ -609,7 +606,7 @@ export const BureauAppElement = defineElement()({
                           snoozeCount: newSnoozeCount,
                           snoozedUntil,
                           totalSnoozes: (c as Task).totalSnoozes + 1,
-                          remediationCount: snoozeRemediation.remediationCount,
+                          remediationCount: task.remediationCount,
                       }
                     : c,
             ) as AnyCommitment[];
