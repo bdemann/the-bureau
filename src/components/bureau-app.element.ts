@@ -1094,7 +1094,7 @@ export const BureauAppElement = defineElement()({
                 ></${BureauHeaderElement}>
 
                 ${
-                    currentDialogue
+                    currentDialogue && view !== "preferences" && view !== "shopping"
                         ? html`
                         <${CharacterDialogueElement.assign({ dialogue: currentDialogue, activeSkinId: state.activeSkinId })}
                             ${listen(CharacterDialogueElement.events.dismissed, onDismissDialogue)}
