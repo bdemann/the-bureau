@@ -66,7 +66,7 @@ export const BureauBottomNavElement = defineElement<{
         nav {
             max-width: 640px;
             margin: 0 auto;
-            background: var(--color-primary);
+            background: var(--color-chrome);
             border-top: 2px solid rgba(184, 134, 11, 0.5);
             display: flex;
             align-items: stretch;

@@ -58,6 +58,8 @@ const SKIN_CSS_VAR_NAMES: ReadonlyArray<string> = [
     '--font-display',
     '--font-mono',
     '--font-accent',
+    '--color-chrome',
+    '--color-chrome-text',
     '--color-surface-tint',
     '--color-border-subtle',
     '--color-border',

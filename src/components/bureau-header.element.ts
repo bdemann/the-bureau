@@ -44,8 +44,8 @@ export const BureauHeaderElement = defineElement<{
         }
 
         header {
-            background: var(--color-primary);
-            color: var(--color-surface);
+            background: var(--color-chrome);
+            color: var(--color-chrome-text);
             padding: 0 16px;
             padding-top: env(safe-area-inset-top, 0px);
             position: relative;
@@ -78,7 +78,7 @@ export const BureauHeaderElement = defineElement<{
         .back-btn {
             background: none;
             border: 1px solid rgba(245, 239, 224, 0.4);
-            color: var(--color-surface);
+            color: var(--color-chrome-text);
             font-family: var(--font-display);
             font-size: 0.75rem;
             letter-spacing: 0.1em;
@@ -103,7 +103,7 @@ export const BureauHeaderElement = defineElement<{
             font-family: var(--font-display);
             font-size: 1.5rem;
             letter-spacing: 0.2em;
-            color: var(--color-surface);
+            color: var(--color-chrome-text);
             line-height: 1;
             flex: 1;
             text-align: center;
@@ -127,7 +127,7 @@ export const BureauHeaderElement = defineElement<{
             font-family: var(--font-display);
             font-size: 1.3rem;
             line-height: 1;
-            color: var(--score-color, var(--color-surface));
+            color: var(--score-color, var(--color-chrome-text));
         }
 
         .score-label {
@@ -159,7 +159,7 @@ export const BureauHeaderElement = defineElement<{
             display: block;
             width: 20px;
             height: 2px;
-            background: var(--color-surface);
+            background: var(--color-chrome-text);
             transition: background 0.15s;
         }
 
@@ -191,7 +191,7 @@ export const BureauHeaderElement = defineElement<{
             right: 0;
             bottom: 0;
             width: 260px;
-            background: var(--color-primary);
+            background: var(--color-chrome);
             border-left: 2px solid var(--color-warning);
             display: flex;
             flex-direction: column;
@@ -235,7 +235,7 @@ export const BureauHeaderElement = defineElement<{
         }
 
         .menu-close:hover {
-            color: var(--color-surface);
+            color: var(--color-chrome-text);
         }
 
         .menu-section {
@@ -257,7 +257,7 @@ export const BureauHeaderElement = defineElement<{
             background: none;
             border: none;
             border-bottom: 1px solid rgba(245, 239, 224, 0.08);
-            color: var(--color-surface);
+            color: var(--color-chrome-text);
             font-family: var(--font-display);
             font-size: 1.05rem;
             letter-spacing: 0.2em;

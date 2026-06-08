@@ -19,10 +19,15 @@ const DARK_MODE_CSS_VARS: Record<string, string> = {
     '--color-text-muted':    '#8A8076',
     '--color-text-faint':    '#524C46',
 
-    // Primary — muted steel blue (BCR navy desaturated+lightened, reads on warm dark)
-    '--color-primary':       '#7698B8',
-    '--color-primary-hover': '#93B2CC',
-    '--color-primary-rgb':   '118, 152, 184',
+    // Primary — warm tan/amber; works as text and button bg on warm dark surfaces.
+    // Complements the document-in-lamplight palette; not cold blue.
+    '--color-primary':       '#A08060',
+    '--color-primary-hover': '#B89C78',
+    '--color-primary-rgb':   '160, 128, 96',
+
+    // Chrome — header/nav bar; stays deep navy so the header reads as dark chrome,
+    // not as a bright accent bar.
+    '--color-chrome':        '#0F1520',
 
     // Semantic — vivid enough to pop on dark backgrounds
     '--color-danger':        '#D84055',
