@@ -1395,11 +1395,11 @@ export const BureauAppElement = defineElement()({
                                   : view === "all-tasks"
                                     ? html`
                         <${CommitmentsViewElement.assign({
-                            commitments: tasksOf(state.app.commitments),
+                            commitments: tasksOf(state.app.commitments).filter(t => t.kind === "task"),
                             areas: state.app.areas,
                             goals: goalsOf(state.app.commitments),
                             pageTitle: "ALL TASKS",
-                            subtitle: "Every task and routine across all areas, in array order.",
+                            subtitle: "Every task across all areas, in array order.",
                             showTimeOfDayToggle: true,
                             addLabel: "NEW TASK",
                             activeSkinId: state.activeSkinId,
