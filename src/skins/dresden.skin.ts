@@ -163,6 +163,7 @@ export const dresdenSkin: Skin = {
         shoppingListLabel: "Supply Run",
         shoppingListSub: "Groceries, potions, and sundries",
 
+        preferencesLabel: "Preferences",
         appearanceLabel: "Wardrobe",
 
         dataSectionLabel: "Data",

@@ -550,8 +550,8 @@ export const BureauHeaderElement = defineElement<{
                                           closeMenu();
                                       }}
                                   >
-                                      <span class="menu-item-label">${skin.menu.appearanceLabel}</span>
-                                      <span class="menu-item-sub">Appearance · Schedule</span>
+                                      <span class="menu-item-label">${skin.menu.preferencesLabel}</span>
+                                      <span class="menu-item-sub">${skin.menu.appearanceLabel} · Schedule</span>
                                   </button>
                               </div>
 

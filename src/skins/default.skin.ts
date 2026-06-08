@@ -138,6 +138,7 @@ export const defaultSkin: Skin = {
         shoppingListLabel: "Shopping List",
         shoppingListSub: "Household supplies & errands",
 
+        preferencesLabel: "Preferences",
         appearanceLabel: "Appearance",
 
         dataSectionLabel: "Data",

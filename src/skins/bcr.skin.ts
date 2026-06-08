@@ -116,7 +116,8 @@ export const bcrSkin: Skin = {
         shoppingListLabel: "Shopping List",
         shoppingListSub: "Household needs · Patriot preparedness",
 
-        appearanceLabel: "Preferences",
+        preferencesLabel: "Preferences",
+        appearanceLabel: "Appearance",
 
         dataSectionLabel: "Your Data",
         exportJsonLabel: "Export Your Records",

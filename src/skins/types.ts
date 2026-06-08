@@ -194,6 +194,8 @@ export interface SkinMenu {
     shareItemLabel: string;
     shareItemSub: string;
 
+    /** Hamburger menu item label for the preferences screen. */
+    preferencesLabel: string;
     /** Section heading above the skin / appearance picker. */
     appearanceLabel: string;
 

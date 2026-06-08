@@ -149,6 +149,7 @@ export const freemasonSkin: Skin = {
         shoppingListLabel: "Provision List",
         shoppingListSub: "Lodge supplies & household needs",
 
+        preferencesLabel: "Preferences",
         appearanceLabel: "Regalia",
 
         dataSectionLabel: "Lodge Records",
