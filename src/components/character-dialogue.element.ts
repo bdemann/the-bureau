@@ -118,11 +118,11 @@ export const CharacterDialogueElement = defineElement<{
         }
 
         .memo.director .memo-body {
-            color: #3A0000;
+            color: var(--color-text);
         }
 
         .memo.agent .memo-body {
-            color: #0A1A30;
+            color: var(--color-text);
         }
 
         .character-name {
