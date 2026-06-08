@@ -107,24 +107,24 @@ export const bcrSkin: Skin = {
         allRoutinesSub: "Every recurring routine across all areas",
         allCommitmentsLabel: "All Commitments",
         allCommitmentsSub: "Every task, routine, goal & idea on file",
-        insightsSectionLabel: "Intelligence",
+        insightsSectionLabel: "Performance",
         insightsLabel: "Insights",
-        insightsSub: "Compliance gaps, behavioral patterns, field performance",
+        insightsSub: "Compliance gaps, behavioral patterns, and your record",
         shareSectionLabel: "Community Duty",
         shareItemLabel: "Report a Neighbor",
         shareItemSub: "Refer a civic non-compliant to CLEAR",
-        shoppingListLabel: "Supply Manifest",
-        shoppingListSub: "Household stockpile · Patriot preparedness",
+        shoppingListLabel: "Shopping List",
+        shoppingListSub: "Household needs · Patriot preparedness",
 
-        appearanceLabel: "Presentation",
+        appearanceLabel: "Preferences",
 
-        dataSectionLabel: "Bureau Records",
-        exportJsonLabel: "Export Dossier",
-        exportJsonSub: "Download full bureau records as JSON",
-        exportCsvLabel: "Export Field Report",
-        exportCsvSub: "Download all directives as CSV for analysis",
+        dataSectionLabel: "Your Data",
+        exportJsonLabel: "Export Your Records",
+        exportJsonSub: "Download all your data as JSON",
+        exportCsvLabel: "Export Spreadsheet",
+        exportCsvSub: "Download all commitments as CSV",
         importLabel: "Restore Records",
-        importSub: "Restore bureau records from a JSON backup",
+        importSub: "Restore your data from a JSON backup",
     },
 
     pages: {
@@ -194,12 +194,12 @@ export const bcrSkin: Skin = {
         briefingPlaceholder: "What does it mean to you to be on top of this area?",
         createBtn: "CREATE AREA",
         briefingLabel: "Briefing",
-        colorLabel: "Designation Color",
+        colorLabel: "Color",
         editBtn: "EDIT AREA",
-        deleteBtn: "DECOMMISSION AREA",
-        deleteConfirmBtn: "DECOMMISSION",
+        deleteBtn: "DELETE AREA",
+        deleteConfirmBtn: "DELETE",
         deletePrompt:
-            "PERMANENTLY DECOMMISSION THIS AREA AND ALL ITS COMMITMENTS?",
+            "PERMANENTLY DELETE THIS AREA AND ALL ITS COMMITMENTS?",
     },
 
     wizard: {
@@ -208,7 +208,7 @@ export const bcrSkin: Skin = {
         step1BriefingLabel: "Briefing (optional)",
         step1BriefingPlaceholder:
             "What does it mean to you to be on top of this area?",
-        step1ColorLabel: "Designation Color",
+        step1ColorLabel: "Color",
         step2Title: "IDENTIFY YOUR COMMITMENTS",
         step2Prompt: (areaName) =>
             `If you told a friend you were into ${areaName}, what would you need to be doing regularly to feel honest saying that? List one item per line.`,
