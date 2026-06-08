@@ -645,6 +645,8 @@ export const DailyViewElement = defineElement<{
                 alwaysCollapse?: boolean;
                 expanded?: boolean;
                 onToggle?: () => void;
+                /** When false, skip time-of-day grouping and show a flat list. Default true. */
+                groupByTime?: boolean;
             },
         ) => {
             const tasks = bands[band];
@@ -693,7 +695,9 @@ export const DailyViewElement = defineElement<{
                                     ${opts.emptyMessage}
                                 </div>`
                               : html``
-                          : html`${renderTasksGrouped(tasks, band)}`}
+                          : (opts?.groupByTime === false
+                              ? html`${renderTaskList(tasks, band)}`
+                              : html`${renderTasksGrouped(tasks, band)}`)}
                 </section>
             `;
         };
@@ -748,6 +752,7 @@ export const DailyViewElement = defineElement<{
                 expanded: state.expandRadar,
                 onToggle: () =>
                     updatePrefs({ expandRadar: !state.expandRadar }),
+                groupByTime: false,
             })}
             ${renderBand("backlog", {
                 collapsible: true,
@@ -755,6 +760,7 @@ export const DailyViewElement = defineElement<{
                 expanded: state.expandBacklog,
                 onToggle: () =>
                     updatePrefs({ expandBacklog: !state.expandBacklog }),
+                groupByTime: false,
             })}
 
             <button
