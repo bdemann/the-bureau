@@ -23,7 +23,7 @@ export default defineConfig({
                 name: 'BCR Clear',
                 short_name: 'BCR Clear',
                 description: 'Clear your daily docket. Bureau of Civic Responsibility.',
-                theme_color: '#C41E3A',
+                theme_color: '#000000',
                 background_color: '#F5EFE0',
                 display: 'standalone',
                 orientation: 'portrait',
