@@ -364,4 +364,13 @@ export interface Skin {
      * Applied after the base stylesheet so they win without !important.
      */
     cssVars?: Record<string, string>;
+
+    /**
+     * Optional CSS custom-property overrides applied on top of cssVars when
+     * dark mode is active. Use this to give the skin its own dark palette —
+     * accent colors, primary, chrome — while the shared dark canvas
+     * (surfaces, text, borders) is handled globally by dark-mode.ts.
+     * Leave undefined to inherit the global dark defaults for all vars.
+     */
+    darkCssVars?: Record<string, string>;
 }

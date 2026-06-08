@@ -532,4 +532,14 @@ export const bcrSkin: Skin = {
     },
 
     cssVars: undefined,
+
+    darkCssVars: {
+        '--color-warning':      '#C8A020',
+        '--color-danger':       '#D84055',
+        '--color-danger-dark':  '#B02035',
+        '--color-danger-rgb':   '216, 64, 85',
+        '--color-success':      '#3A9442',
+        '--color-success-dark': '#287030',
+        '--color-snooze':       '#D47820',
+    },
 };

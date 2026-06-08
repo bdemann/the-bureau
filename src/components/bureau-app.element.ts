@@ -273,8 +273,9 @@ export const BureauAppElement = defineElement()({
     state: () => {
         const savedSkinId = loadSkinId();
         const savedDarkMode = loadDarkMode();
-        setActiveSkin(getSkinById(savedSkinId));
-        applyDarkMode(savedDarkMode);
+        const savedSkin = getSkinById(savedSkinId);
+        setActiveSkin(savedSkin);
+        applyDarkMode(savedDarkMode, savedSkin);
         return {
             app: bootstrap(),
             activeSkinId: savedSkinId,
@@ -1275,7 +1276,7 @@ export const BureauAppElement = defineElement()({
                                 (e) => {
                                     const newSkin = getSkinById(e.detail);
                                     setActiveSkin(newSkin);
-                                    applyDarkMode(state.darkMode);
+                                    applyDarkMode(state.darkMode, newSkin);
                                     saveSkinId(e.detail);
                                     const clearedQueue = state.app.dialogueQueue.map(
                                         (d) => d.dismissed ? d : { ...d, dismissed: true },
@@ -1291,7 +1292,7 @@ export const BureauAppElement = defineElement()({
                             ${listen(
                                 PreferencesViewElement.events.darkModeChanged,
                                 (e) => {
-                                    applyDarkMode(e.detail);
+                                    applyDarkMode(e.detail, getSkinById(state.activeSkinId));
                                     saveDarkMode(e.detail);
                                     updateState({ darkMode: e.detail });
                                 },

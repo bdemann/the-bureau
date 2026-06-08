@@ -1,4 +1,10 @@
+import type {Skin} from './skins/types.js';
+
 const DARK_MODE_KEY = 'bureau-dark-mode';
+
+// Tracks which skin-specific dark vars were applied so they can be cleaned up
+// when dark mode is toggled off or the skin changes.
+let _appliedSkinDarkVarNames: string[] = [];
 
 // Dark-mode overrides applied on top of whatever skin is active.
 //
@@ -7,7 +13,11 @@ const DARK_MODE_KEY = 'bureau-dark-mode';
 // and VS Code Dark+'s layered neutral darks with desaturated-but-readable accents.
 // Never pure black, never pure white — warm temperature throughout.
 //
-// Primary becomes steel blue: maintains BCR's navy authority, readable on warm dark.
+// IMPORTANT: only the canvas (surfaces, text, chrome, borders) is overridden here.
+// Accent/semantic colors (warning, danger, success, snooze) are intentionally left
+// to the active skin so each skin stays visually distinct in dark mode.
+// Primary is overridden because all skins use near-black primaries that would be
+// invisible as text on dark surfaces.
 const DARK_MODE_CSS_VARS: Record<string, string> = {
     // Surfaces — warm dark browns (like aged paper in dim light)
     '--color-surface':       '#1E1B17',
@@ -19,26 +29,17 @@ const DARK_MODE_CSS_VARS: Record<string, string> = {
     '--color-text-muted':    '#8A8076',
     '--color-text-faint':    '#524C46',
 
-    // Primary — warm tan/amber; works as text and button bg on warm dark surfaces.
-    // Complements the document-in-lamplight palette; not cold blue.
+    // Primary — warm tan/amber; all skins use near-black primaries that are
+    // invisible on dark surfaces, so we lift it to a readable warm tone.
     '--color-primary':       '#A08060',
     '--color-primary-hover': '#B89C78',
     '--color-primary-rgb':   '160, 128, 96',
 
-    // Chrome — header/nav bar; use the same warm tan as primary so the whole UI
-    // stays in the warm palette. Text flips to dark to stay readable on tan.
+    // Chrome — header/nav bar matches primary so the whole UI stays warm.
+    // Text flips to dark to stay readable on tan.
     '--color-chrome':            '#A08060',
     '--color-chrome-text':       '#1E1B17',
     '--color-chrome-text-rgb':   '30, 27, 23',
-
-    // Semantic — vivid enough to pop on dark backgrounds
-    '--color-danger':        '#D84055',
-    '--color-danger-dark':   '#B02035',
-    '--color-danger-rgb':    '216, 64, 85',
-    '--color-warning':       '#C8A020',
-    '--color-success':       '#3A9442',
-    '--color-success-dark':  '#287030',
-    '--color-snooze':        '#D47820',
 
     // Borders & tints — switch to white-channel so they're visible on dark backgrounds
     '--color-surface-tint':  'rgba(255, 255, 255, 0.05)',
@@ -64,15 +65,30 @@ export function saveDarkMode(enabled: boolean): void {
 }
 
 /** Apply or remove dark-mode CSS var overrides on :root. Call after setActiveSkin. */
-export function applyDarkMode(enabled: boolean): void {
+export function applyDarkMode(enabled: boolean, skin?: Skin): void {
     const root = document.documentElement;
     if (enabled) {
         for (const [name, value] of Object.entries(DARK_MODE_CSS_VARS)) {
             root.style.setProperty(name, value);
         }
+        // Remove any previously applied skin dark vars before applying new ones.
+        for (const name of _appliedSkinDarkVarNames) {
+            root.style.removeProperty(name);
+        }
+        _appliedSkinDarkVarNames = [];
+        if (skin?.darkCssVars) {
+            for (const [name, value] of Object.entries(skin.darkCssVars)) {
+                root.style.setProperty(name, value);
+                _appliedSkinDarkVarNames.push(name);
+            }
+        }
     } else {
         for (const name of Object.keys(DARK_MODE_CSS_VARS)) {
             root.style.removeProperty(name);
         }
+        for (const name of _appliedSkinDarkVarNames) {
+            root.style.removeProperty(name);
+        }
+        _appliedSkinDarkVarNames = [];
     }
 }
