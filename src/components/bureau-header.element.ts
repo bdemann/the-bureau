@@ -77,7 +77,7 @@ export const BureauHeaderElement = defineElement<{
 
         .back-btn {
             background: none;
-            border: 1px solid rgba(245, 239, 224, 0.4);
+            border: 1px solid rgba(var(--color-chrome-text-rgb), 0.4);
             color: var(--color-chrome-text);
             font-family: var(--font-display);
             font-size: 0.75rem;
@@ -95,8 +95,8 @@ export const BureauHeaderElement = defineElement<{
         }
 
         .back-btn:hover {
-            background: rgba(245, 239, 224, 0.1);
-            border-color: rgba(245, 239, 224, 0.8);
+            background: rgba(var(--color-chrome-text-rgb), 0.1);
+            border-color: rgba(var(--color-chrome-text-rgb), 0.8);
         }
 
         .wordmark {
@@ -133,7 +133,7 @@ export const BureauHeaderElement = defineElement<{
         .score-label {
             font-size: 0.5rem;
             letter-spacing: 0.15em;
-            color: rgba(245, 239, 224, 0.5);
+            color: rgba(var(--color-chrome-text-rgb), 0.5);
             text-transform: uppercase;
             display: block;
         }
@@ -226,7 +226,7 @@ export const BureauHeaderElement = defineElement<{
         .menu-close {
             background: none;
             border: none;
-            color: rgba(245, 239, 224, 0.6);
+            color: rgba(var(--color-chrome-text-rgb), 0.6);
             font-size: 1.3rem;
             line-height: 1;
             cursor: pointer;
@@ -246,7 +246,7 @@ export const BureauHeaderElement = defineElement<{
             font-family: var(--font-mono);
             font-size: 0.58rem;
             letter-spacing: 0.2em;
-            color: rgba(245, 239, 224, 0.35);
+            color: rgba(var(--color-chrome-text-rgb), 0.35);
             text-transform: uppercase;
             margin-bottom: 2px;
         }
@@ -256,7 +256,7 @@ export const BureauHeaderElement = defineElement<{
             width: 100%;
             background: none;
             border: none;
-            border-bottom: 1px solid rgba(245, 239, 224, 0.08);
+            border-bottom: 1px solid rgba(var(--color-chrome-text-rgb), 0.08);
             color: var(--color-chrome-text);
             font-family: var(--font-display);
             font-size: 1.05rem;
@@ -276,7 +276,7 @@ export const BureauHeaderElement = defineElement<{
             font-family: var(--font-mono);
             font-size: 0.58rem;
             letter-spacing: 0.1em;
-            color: rgba(245, 239, 224, 0.4);
+            color: rgba(var(--color-chrome-text-rgb), 0.4);
             margin-top: 2px;
             font-weight: normal;
         }
@@ -302,7 +302,7 @@ export const BureauHeaderElement = defineElement<{
             padding: 0 0 8px;
             font-size: 0.7rem;
             letter-spacing: 0.1em;
-            color: rgba(245, 239, 224, 0.55);
+            color: rgba(var(--color-chrome-text-rgb), 0.55);
             font-family: var(--font-mono);
             position: relative;
         }

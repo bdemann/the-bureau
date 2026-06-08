@@ -94,14 +94,14 @@ export const BureauBottomNavElement = defineElement<{
             background: none;
             border: none;
             cursor: pointer;
-            color: rgba(245, 239, 224, 0.42);
+            color: rgba(var(--color-chrome-text-rgb), 0.42);
             transition: color 0.15s;
             position: relative;
             -webkit-tap-highlight-color: transparent;
         }
 
         .tab:hover {
-            color: rgba(245, 239, 224, 0.75);
+            color: rgba(var(--color-chrome-text-rgb), 0.75);
         }
 
         .tab.active {

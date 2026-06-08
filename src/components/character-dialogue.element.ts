@@ -40,14 +40,14 @@ export const CharacterDialogueElement = defineElement<{
         /* ── Director Briggs: red, double border ── */
         .memo.director {
             border-color: var(--color-danger-dark);
-            background: #FFF8F8;
+            background: var(--color-card);
             outline: 2px solid var(--color-danger-dark);
             outline-offset: 3px;
         }
 
         .memo.director .memo-header {
             background: var(--color-danger-dark);
-            color: var(--color-surface);
+            color: var(--color-chrome-text);
         }
 
         .memo.director .from-label {
@@ -57,12 +57,12 @@ export const CharacterDialogueElement = defineElement<{
         /* ── Agent Whitaker: navy, single border ── */
         .memo.agent {
             border-color: var(--color-primary);
-            background: #F5F8FF;
+            background: var(--color-card);
         }
 
         .memo.agent .memo-header {
             background: var(--color-primary);
-            color: var(--color-surface);
+            color: var(--color-chrome-text);
         }
 
         .memo.agent .from-label {

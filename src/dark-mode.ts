@@ -25,9 +25,11 @@ const DARK_MODE_CSS_VARS: Record<string, string> = {
     '--color-primary-hover': '#B89C78',
     '--color-primary-rgb':   '160, 128, 96',
 
-    // Chrome — header/nav bar; stays deep navy so the header reads as dark chrome,
-    // not as a bright accent bar.
-    '--color-chrome':        '#0F1520',
+    // Chrome — header/nav bar; use the same warm tan as primary so the whole UI
+    // stays in the warm palette. Text flips to dark to stay readable on tan.
+    '--color-chrome':            '#A08060',
+    '--color-chrome-text':       '#1E1B17',
+    '--color-chrome-text-rgb':   '30, 27, 23',
 
     // Semantic — vivid enough to pop on dark backgrounds
     '--color-danger':        '#D84055',
