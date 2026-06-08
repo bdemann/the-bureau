@@ -99,7 +99,7 @@ export const AreaDetailElement = defineElement<{
             letter-spacing: 0.2em;
             color: var(--color-text-muted);
             padding: 16px 2px 6px;
-            border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+            border-bottom: 1px solid var(--color-border-subtle);
             margin-bottom: 2px;
         }
 
@@ -139,7 +139,7 @@ export const AreaDetailElement = defineElement<{
             background: var(--color-primary);
             color: var(--color-surface);
             border: none;
-            border-top: 1px solid rgba(0, 0, 0, 0.18);
+            border-top: 1px solid var(--color-border);
             font-family: var(--font-display);
             font-size: 0.9rem;
             letter-spacing: 0.2em;
@@ -215,7 +215,7 @@ export const AreaDetailElement = defineElement<{
 
         .delete-zone {
             margin-top: 32px;
-            border-top: 1px solid rgba(0, 0, 0, 0.1);
+            border-top: 1px solid var(--color-border-subtle);
             padding-top: 16px;
         }
 
@@ -283,7 +283,7 @@ export const AreaDetailElement = defineElement<{
             cursor: pointer;
         }
         .confirm-no:hover {
-            background: rgba(0, 0, 0, 0.05);
+            background: var(--color-surface-tint);
         }
 
         .zone-actions {
@@ -331,7 +331,7 @@ export const AreaDetailElement = defineElement<{
             font-family: var(--font-accent);
             font-size: 0.9rem;
             background: var(--color-card);
-            border: 1px solid rgba(0, 0, 0, 0.2);
+            border: 1px solid var(--color-border);
             padding: 8px 10px;
             color: var(--color-text);
             box-sizing: border-box;

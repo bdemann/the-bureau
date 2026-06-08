@@ -72,7 +72,7 @@ export const GoalDetailElement = defineElement<{
 
         .goal-header {
             background: var(--color-card);
-            border: 1px solid rgba(0, 0, 0, 0.12);
+            border: 1px solid var(--color-border-subtle);
             border-left: 4px solid var(--color-primary);
             padding: 14px 16px;
             margin-bottom: 16px;
@@ -142,7 +142,7 @@ export const GoalDetailElement = defineElement<{
             font-size: 0.62rem;
             letter-spacing: 0.08em;
             padding: 2px 6px;
-            border: 1px solid rgba(0, 0, 0, 0.15);
+            border: 1px solid var(--color-border);
             color: var(--color-text-muted);
         }
 
@@ -174,7 +174,7 @@ export const GoalDetailElement = defineElement<{
             color: var(--color-text-muted);
         }
         .action-abandon:hover {
-            background: rgba(0, 0, 0, 0.05);
+            background: var(--color-surface-tint);
         }
         .action-reactivate {
             background: transparent;
@@ -186,11 +186,11 @@ export const GoalDetailElement = defineElement<{
         }
         .action-edit {
             background: transparent;
-            border: 1px solid rgba(0, 0, 0, 0.2);
+            border: 1px solid var(--color-border);
             color: var(--color-primary);
         }
         .action-edit:hover {
-            background: rgba(0, 0, 0, 0.05);
+            background: var(--color-surface-tint);
         }
         .action-link {
             background: transparent;
@@ -219,11 +219,11 @@ export const GoalDetailElement = defineElement<{
         }
         .btn-ghost {
             background: transparent;
-            border: 1px solid rgba(0, 0, 0, 0.2);
+            border: 1px solid var(--color-border);
             color: var(--color-primary);
         }
         .btn-ghost:hover {
-            background: rgba(0, 0, 0, 0.05);
+            background: var(--color-surface-tint);
         }
         .btn-danger {
             background: var(--color-danger);
@@ -239,7 +239,7 @@ export const GoalDetailElement = defineElement<{
             letter-spacing: 0.2em;
             color: var(--color-text-muted);
             padding: 16px 2px 6px;
-            border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+            border-bottom: 1px solid var(--color-border-subtle);
             margin-bottom: 2px;
         }
 
@@ -387,7 +387,7 @@ export const GoalDetailElement = defineElement<{
             justify-content: space-between;
             align-items: center;
             padding: 12px 16px 8px;
-            border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+            border-bottom: 1px solid var(--color-border-subtle);
             flex-shrink: 0;
         }
 
@@ -414,12 +414,12 @@ export const GoalDetailElement = defineElement<{
         .picker-search {
             padding: 10px 16px;
             flex-shrink: 0;
-            border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+            border-bottom: 1px solid var(--color-surface-tint);
         }
 
         .picker-search input {
             width: 100%;
-            border: 1px solid rgba(0, 0, 0, 0.18);
+            border: 1px solid var(--color-border);
             background: #fff;
             padding: 8px 10px;
             font-family: var(--font-mono);
@@ -439,7 +439,7 @@ export const GoalDetailElement = defineElement<{
             flex-direction: column;
             padding: 10px 16px;
             cursor: pointer;
-            border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+            border-bottom: 1px solid var(--color-surface-tint);
             transition: background 0.1s;
         }
         .picker-item:hover {
@@ -465,7 +465,7 @@ export const GoalDetailElement = defineElement<{
             letter-spacing: 0.08em;
             text-transform: uppercase;
             padding: 1px 5px;
-            border: 1px solid rgba(0, 0, 0, 0.15);
+            border: 1px solid var(--color-border);
             color: var(--color-text-muted);
         }
 
@@ -484,7 +484,7 @@ export const GoalDetailElement = defineElement<{
 
         .delete-zone {
             margin-top: 32px;
-            border-top: 1px solid rgba(0, 0, 0, 0.1);
+            border-top: 1px solid var(--color-border-subtle);
             padding-top: 16px;
         }
 
@@ -549,7 +549,7 @@ export const GoalDetailElement = defineElement<{
             cursor: pointer;
         }
         .confirm-no:hover {
-            background: rgba(0, 0, 0, 0.05);
+            background: var(--color-surface-tint);
         }
     `,
 

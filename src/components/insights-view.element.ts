@@ -68,7 +68,7 @@ export const InsightsViewElement = defineElement<{
             display: flex;
             align-items: baseline;
             gap: 8px;
-            border-bottom: 1px solid rgba(0, 0, 0, 0.15);
+            border-bottom: 1px solid var(--color-border);
             padding-bottom: 4px;
             margin-bottom: 10px;
         }
@@ -98,7 +98,7 @@ export const InsightsViewElement = defineElement<{
             text-align: center;
             padding: 14px;
             background: rgba(255, 253, 247, 0.6);
-            border: 1px dashed rgba(0, 0, 0, 0.12);
+            border: 1px dashed var(--color-border-subtle);
         }
 
         .insight-row {
@@ -106,7 +106,7 @@ export const InsightsViewElement = defineElement<{
             align-items: flex-start;
             gap: 10px;
             padding: 8px 6px;
-            border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+            border-bottom: 1px solid var(--color-surface-tint);
         }
 
         .insight-row:last-child {
@@ -186,7 +186,7 @@ export const InsightsViewElement = defineElement<{
             color: var(--color-text-muted);
             letter-spacing: 0.08em;
             padding: 4px 6px;
-            border-bottom: 1px solid rgba(0, 0, 0, 0.15);
+            border-bottom: 1px solid var(--color-border);
         }
 
         .ops-table th:first-child {
@@ -199,7 +199,7 @@ export const InsightsViewElement = defineElement<{
 
         .ops-table td {
             padding: 6px 6px;
-            border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+            border-bottom: 1px solid var(--color-surface-tint);
             color: var(--color-primary);
         }
 
@@ -228,7 +228,7 @@ export const InsightsViewElement = defineElement<{
             align-items: center;
             gap: 8px;
             padding: 6px;
-            border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+            border-bottom: 1px solid var(--color-surface-tint);
         }
         .streak-row:last-child {
             border-bottom: none;
@@ -272,7 +272,7 @@ export const InsightsViewElement = defineElement<{
         }
 
         .btn-dismiss {
-            background: rgba(0, 0, 0, 0.08);
+            background: var(--color-surface-tint);
             color: var(--color-text-muted);
         }
 

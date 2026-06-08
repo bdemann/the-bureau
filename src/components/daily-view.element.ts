@@ -104,7 +104,7 @@ export const DailyViewElement = defineElement<{
             margin-bottom: 8px;
             padding: 4px 0;
             min-height: 44px;
-            border-bottom: 1px solid rgba(0, 0, 0, 0.15);
+            border-bottom: 1px solid var(--color-border);
         }
         .band-header.mandatory {
             border-bottom-color: var(--color-danger);
@@ -116,7 +116,7 @@ export const DailyViewElement = defineElement<{
             border-bottom-color: var(--color-warning);
         }
         .band-header.backlog {
-            border-bottom-color: rgba(0, 0, 0, 0.2);
+            border-bottom-color: var(--color-border);
         }
 
         .band-header.collapsible {
@@ -168,7 +168,7 @@ export const DailyViewElement = defineElement<{
             color: var(--color-text-muted);
             padding: 14px 8px;
             background: rgba(255, 253, 247, 0.6);
-            border: 1px dashed rgba(0, 0, 0, 0.15);
+            border: 1px dashed var(--color-border);
             text-align: center;
         }
 
@@ -188,7 +188,7 @@ export const DailyViewElement = defineElement<{
             width: 100%;
             background: none;
             border: none;
-            border-bottom: 1px dotted rgba(0, 0, 0, 0.18);
+            border-bottom: 1px dotted var(--color-border);
             padding: 8px 0 4px;
             margin-bottom: 6px;
             min-height: 44px;

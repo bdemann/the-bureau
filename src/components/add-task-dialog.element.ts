@@ -219,7 +219,7 @@ export const AddTaskDialogElement = defineElement<{
             font-size: 1.1rem;
             letter-spacing: 0.2em;
             color: var(--color-primary);
-            border-bottom: 1px solid rgba(0, 0, 0, 0.15);
+            border-bottom: 1px solid var(--color-border);
             padding-bottom: 8px;
             margin-bottom: 16px;
         }
@@ -247,7 +247,7 @@ export const AddTaskDialogElement = defineElement<{
         input[type="date"] {
             width: 100%;
             background: var(--color-input-bg);
-            border: 1px solid rgba(0, 0, 0, 0.25);
+            border: 1px solid var(--color-border-strong);
             padding: 8px 10px;
             font-family: var(--font-mono);
             font-size: 0.9rem;
@@ -394,7 +394,7 @@ export const AddTaskDialogElement = defineElement<{
         }
 
         .end-condition-section {
-            border-top: 1px dashed rgba(0, 0, 0, 0.15);
+            border-top: 1px dashed var(--color-border);
             padding-top: 12px;
             margin-top: 4px;
         }
@@ -414,7 +414,7 @@ export const AddTaskDialogElement = defineElement<{
             font-family: var(--font-accent);
             font-size: 0.9rem;
             background: var(--color-card);
-            border: 1px solid rgba(0, 0, 0, 0.2);
+            border: 1px solid var(--color-border);
             padding: 8px 10px;
             color: var(--color-text);
             appearance: none;
@@ -489,7 +489,7 @@ export const AddTaskDialogElement = defineElement<{
             cursor: pointer;
         }
         .delete-confirm-no:hover {
-            background: rgba(0, 0, 0, 0.05);
+            background: var(--color-surface-tint);
         }
 
         .kind-switch-warning {

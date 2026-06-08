@@ -51,7 +51,7 @@ export const UrgencyTestElement = defineElement()({
             display: inline-block;
             width: 14px;
             height: 14px;
-            border: 1px solid rgba(0, 0, 0, 0.2);
+            border: 1px solid var(--color-border);
         }
         table {
             border-collapse: collapse;
@@ -60,7 +60,7 @@ export const UrgencyTestElement = defineElement()({
         }
         th,
         td {
-            border: 1px solid rgba(0, 0, 0, 0.1);
+            border: 1px solid var(--color-border-subtle);
             padding: 4px 6px;
             text-align: center;
             min-width: 22px;

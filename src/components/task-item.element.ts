@@ -53,7 +53,7 @@ export const TaskItemElement = defineElement<{
         .task-card {
             background: var(--color-card);
             border-left: 4px solid var(--color-text);
-            border-bottom: 1px solid rgba(0, 0, 0, 0.12);
+            border-bottom: 1px solid var(--color-border-subtle);
             padding: 12px 14px;
             position: relative;
             transition: border-color 0.2s;

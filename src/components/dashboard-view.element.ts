@@ -98,7 +98,7 @@ export const DashboardViewElement = defineElement<{
             content: "";
             flex: 1;
             height: 1px;
-            background: rgba(0, 0, 0, 0.12);
+            background: var(--color-border-subtle);
         }
 
         .area-grid {

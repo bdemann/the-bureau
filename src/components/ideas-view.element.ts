@@ -84,11 +84,11 @@ export const IdeasViewElement = defineElement<{
         }
         .btn-ghost {
             background: transparent;
-            border: 1px solid rgba(0, 0, 0, 0.2);
+            border: 1px solid var(--color-border);
             color: var(--color-primary);
         }
         .btn-ghost:hover {
-            background: rgba(0, 0, 0, 0.05);
+            background: var(--color-surface-tint);
         }
         .btn-danger {
             background: var(--color-danger);
@@ -105,7 +105,7 @@ export const IdeasViewElement = defineElement<{
             letter-spacing: 0.15em;
             padding: 10px;
             background: transparent;
-            border: 1.5px dashed rgba(0, 0, 0, 0.25);
+            border: 1.5px dashed var(--color-border-strong);
             color: var(--color-text-muted);
             cursor: pointer;
             margin-bottom: 20px;
@@ -126,7 +126,7 @@ export const IdeasViewElement = defineElement<{
 
         .idea-card {
             background: var(--color-card);
-            border: 1px solid rgba(0, 0, 0, 0.1);
+            border: 1px solid var(--color-border-subtle);
             border-left: 3px solid var(--color-warning);
             padding: 12px 14px;
             margin-bottom: 12px;
@@ -169,7 +169,7 @@ export const IdeasViewElement = defineElement<{
             letter-spacing: 0.08em;
             text-transform: uppercase;
             padding: 2px 6px;
-            border: 1px solid rgba(0, 0, 0, 0.15);
+            border: 1px solid var(--color-border);
             color: var(--color-text-muted);
         }
 
@@ -203,11 +203,11 @@ export const IdeasViewElement = defineElement<{
         }
         .action-edit {
             background: transparent;
-            border: 1px solid rgba(0, 0, 0, 0.2);
+            border: 1px solid var(--color-border);
             color: var(--color-primary);
         }
         .action-edit:hover {
-            background: rgba(0, 0, 0, 0.05);
+            background: var(--color-surface-tint);
         }
         .action-delete {
             background: transparent;

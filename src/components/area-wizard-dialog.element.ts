@@ -147,7 +147,7 @@ export const AreaWizardDialogElement = defineElement<{
             font-size: 1.1rem;
             letter-spacing: 0.2em;
             color: var(--color-primary);
-            border-bottom: 1px solid rgba(0, 0, 0, 0.15);
+            border-bottom: 1px solid var(--color-border);
             padding-bottom: 8px;
             margin-bottom: 14px;
         }
@@ -185,8 +185,8 @@ export const AreaWizardDialogElement = defineElement<{
         textarea {
             width: 100%;
             background: var(--color-input-bg);
-            border: 1px solid rgba(0, 0, 0, 0.25);
-            border-bottom: 2px solid rgba(0, 0, 0, 0.3);
+            border: 1px solid var(--color-border-strong);
+            border-bottom: 2px solid var(--color-border-strong);
             padding: 8px 10px;
             font-family: var(--font-mono);
             font-size: 0.9rem;

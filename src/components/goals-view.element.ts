@@ -78,7 +78,7 @@ export const GoalsViewElement = defineElement<{
             font-size: 0.85rem;
             letter-spacing: 0.2em;
             color: var(--color-text-muted);
-            border-bottom: 1px solid rgba(0, 0, 0, 0.12);
+            border-bottom: 1px solid var(--color-border-subtle);
             padding-bottom: 4px;
             margin-bottom: 10px;
             margin-top: 24px;
@@ -91,7 +91,7 @@ export const GoalsViewElement = defineElement<{
             letter-spacing: 0.15em;
             padding: 10px;
             background: transparent;
-            border: 1.5px dashed rgba(0, 0, 0, 0.25);
+            border: 1.5px dashed var(--color-border-strong);
             color: var(--color-text-muted);
             cursor: pointer;
             margin-bottom: 20px;
@@ -113,7 +113,7 @@ export const GoalsViewElement = defineElement<{
         /* ── Goal card ── */
         .goal-card {
             background: var(--color-card);
-            border: 1px solid rgba(0, 0, 0, 0.12);
+            border: 1px solid var(--color-border-subtle);
             border-left: 4px solid var(--color-primary);
             padding: 12px 14px;
             margin-bottom: 10px;
@@ -211,7 +211,7 @@ export const GoalsViewElement = defineElement<{
             letter-spacing: 0.08em;
             text-transform: uppercase;
             padding: 1px 5px;
-            border: 1px solid rgba(0, 0, 0, 0.15);
+            border: 1px solid var(--color-border);
             color: var(--color-text-muted);
         }
 
@@ -299,7 +299,7 @@ export const GoalsViewElement = defineElement<{
             color: var(--color-text-muted);
         }
         .action-abandon:hover {
-            background: rgba(0, 0, 0, 0.05);
+            background: var(--color-surface-tint);
         }
         .action-reactivate {
             background: transparent;

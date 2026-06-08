@@ -84,7 +84,7 @@ export const CommitmentsViewElement = defineElement<{
 
         .toggle-btn {
             background: none;
-            border: 1px solid rgba(0, 0, 0, 0.2);
+            border: 1px solid var(--color-border);
             color: var(--color-text-muted);
             font-family: var(--font-mono);
             font-size: 0.62rem;
@@ -109,7 +109,7 @@ export const CommitmentsViewElement = defineElement<{
             letter-spacing: 0.2em;
             color: var(--color-text-muted);
             padding: 14px 0 6px;
-            border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+            border-bottom: 1px solid var(--color-surface-tint);
             margin-bottom: 4px;
         }
 
@@ -156,7 +156,7 @@ export const CommitmentsViewElement = defineElement<{
             letter-spacing: 0.15em;
             padding: 10px;
             background: transparent;
-            border: 1.5px dashed rgba(0, 0, 0, 0.25);
+            border: 1.5px dashed var(--color-border-strong);
             color: var(--color-text-muted);
             cursor: pointer;
             margin-bottom: 16px;

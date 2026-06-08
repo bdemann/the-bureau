@@ -64,7 +64,7 @@ export const PreferencesViewElement = defineElement<{
             gap: 10px;
             width: 100%;
             background: none;
-            border: 1px solid rgba(0, 0, 0, 0.15);
+            border: 1px solid var(--color-border);
             color: var(--color-text-muted);
             font-family: var(--font-mono);
             font-size: 0.75rem;
@@ -135,8 +135,8 @@ export const PreferencesViewElement = defineElement<{
             position: absolute;
             inset: 0;
             border-radius: 11px;
-            background: rgba(0, 0, 0, 0.15);
-            border: 1px solid rgba(0, 0, 0, 0.2);
+            background: var(--color-border);
+            border: 1px solid var(--color-border);
             cursor: pointer;
             transition: background 0.2s, border-color 0.2s;
         }
@@ -179,7 +179,7 @@ export const PreferencesViewElement = defineElement<{
 
         .time-setting-select {
             background: transparent;
-            border: 1px solid rgba(0, 0, 0, 0.2);
+            border: 1px solid var(--color-border);
             color: var(--color-primary);
             font-family: var(--font-mono);
             font-size: 0.65rem;

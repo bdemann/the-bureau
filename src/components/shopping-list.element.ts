@@ -78,7 +78,7 @@ export const ShoppingListElement = defineElement<{
             align-items: center;
             gap: 10px;
             padding: 10px 8px;
-            border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+            border-bottom: 1px solid var(--color-surface-tint);
             cursor: pointer;
             -webkit-tap-highlight-color: transparent;
         }
@@ -137,7 +137,7 @@ export const ShoppingListElement = defineElement<{
             color: var(--color-text-muted);
             text-align: center;
             padding: 24px 8px;
-            border: 1px dashed rgba(0, 0, 0, 0.15);
+            border: 1px dashed var(--color-border);
         }
 
         .clear-row {

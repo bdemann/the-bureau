@@ -1,24 +1,43 @@
 const DARK_MODE_KEY = 'bureau-dark-mode';
 
 // Dark-mode overrides applied on top of whatever skin is active.
-// Colors are tuned to preserve the cold-war bureaucratic feel on dark backgrounds.
+//
+// Palette philosophy: "classified document by lamplight."
+// Inspired by benjamindemann.com's warm dark theme (#2e2b26 bg, #ccae99 text)
+// and VS Code Dark+'s layered neutral darks with desaturated-but-readable accents.
+// Never pure black, never pure white — warm temperature throughout.
+//
+// Primary becomes steel blue: maintains BCR's navy authority, readable on warm dark.
 const DARK_MODE_CSS_VARS: Record<string, string> = {
-    '--color-primary':       '#8BAACC',
-    '--color-primary-hover': '#A8C4E0',
-    '--color-primary-rgb':   '139, 170, 204',
-    '--color-surface':       '#131A24',
-    '--color-card':          '#1C2636',
-    '--color-input-bg':      '#212F42',
-    '--color-text':          '#E4DDD0',
-    '--color-text-muted':    '#9A968E',
-    '--color-text-faint':    '#5E5B56',
-    '--color-danger':        '#E0445A',
-    '--color-danger-dark':   '#C41E3A',
-    '--color-danger-rgb':    '224, 68, 90',
-    '--color-warning':       '#C89A14',
-    '--color-success':       '#3E9142',
-    '--color-success-dark':  '#2E7D32',
-    '--color-snooze':        '#E8821A',
+    // Surfaces — warm dark browns (like aged paper in dim light)
+    '--color-surface':       '#1E1B17',
+    '--color-card':          '#28241F',
+    '--color-input-bg':      '#302C26',
+
+    // Text — warm cream, NOT cold gray or pure white
+    '--color-text':          '#D4CABC',
+    '--color-text-muted':    '#8A8076',
+    '--color-text-faint':    '#524C46',
+
+    // Primary — muted steel blue (BCR navy desaturated+lightened, reads on warm dark)
+    '--color-primary':       '#7698B8',
+    '--color-primary-hover': '#93B2CC',
+    '--color-primary-rgb':   '118, 152, 184',
+
+    // Semantic — vivid enough to pop on dark backgrounds
+    '--color-danger':        '#D84055',
+    '--color-danger-dark':   '#B02035',
+    '--color-danger-rgb':    '216, 64, 85',
+    '--color-warning':       '#C8A020',
+    '--color-success':       '#3A9442',
+    '--color-success-dark':  '#287030',
+    '--color-snooze':        '#D47820',
+
+    // Borders & tints — switch to white-channel so they're visible on dark backgrounds
+    '--color-surface-tint':  'rgba(255, 255, 255, 0.05)',
+    '--color-border-subtle': 'rgba(255, 255, 255, 0.09)',
+    '--color-border':        'rgba(255, 255, 255, 0.13)',
+    '--color-border-strong': 'rgba(255, 255, 255, 0.20)',
 };
 
 export function loadDarkMode(): boolean {

@@ -33,7 +33,7 @@ export const CommitmentCardElement = defineElement<{
             align-items: center;
             gap: 10px;
             background: var(--color-card);
-            border: 1px solid rgba(0, 0, 0, 0.1);
+            border: 1px solid var(--color-border-subtle);
             border-left: 4px solid var(--kind-color, var(--color-text-faint));
             padding: 10px 12px;
             cursor: pointer;
@@ -75,7 +75,7 @@ export const CommitmentCardElement = defineElement<{
             letter-spacing: 0.1em;
             text-transform: uppercase;
             padding: 1px 5px;
-            border: 1px solid rgba(0, 0, 0, 0.15);
+            border: 1px solid var(--color-border);
             color: var(--color-text-muted);
             white-space: nowrap;
         }
