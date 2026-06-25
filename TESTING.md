@@ -634,6 +634,15 @@ Remediation fires whenever a commitment that had a skip streak OR high snooze co
 - [ ] Monthly multi-dom task (e.g. 1st + 15th): completing on the 1st hides the task until the 15th (regression: issue #3)
 - [ ] Quarterly multi-dom task: same hide-until-next-dom behavior (regression: issue #3)
 
+### Preferences — hide score
+
+- [ ] Preferences view shows a SCORE section with a "Hide score" toggle and a flavor note beneath it (BCR skin: text mentions reporting to BCR officials / becoming a true patriot)
+- [ ] Toggle "Hide score" on → header score number, rank/streak label, and progress bar all disappear; wordmark stays centered and layout is not broken
+- [ ] Toggle "Hide score" off → score number, rank/streak label, and progress bar reappear with the current score
+- [ ] Complete or skip a commitment while score is hidden, then toggle off → header score reflects the change (confirms score is still tracked while hidden)
+- [ ] Reload the page with "Hide score" on → header score stays hidden (DevTools → Local Storage key `bureau-hide-score` is `true`)
+- [ ] Switch skins with the toggle on → the SCORE section label and flavor note follow the active skin; score stays hidden
+
 ### Persistence
 
 - [ ] Hard refresh: state survives

@@ -49,6 +49,7 @@ import { getDialogueFor } from "../data/dialogues.js";
 import { setActiveSkin } from "../skins/active-skin.js";
 import { getSkinById, loadSkinId, saveSkinId } from "../skins/all-skins.js";
 import { applyDarkMode, loadDarkMode, saveDarkMode } from "../dark-mode.js";
+import { loadHideScore, saveHideScore } from "../score-visibility.js";
 import { AddTaskDialogElement } from "./add-task-dialog.element.js";
 import { BureauBottomNavElement } from "./bureau-bottom-nav.element.js";
 import { BureauHeaderElement } from "./bureau-header.element.js";
@@ -280,6 +281,7 @@ export const BureauAppElement = defineElement()({
             app: bootstrap(),
             activeSkinId: savedSkinId,
             darkMode: savedDarkMode,
+            hideScore: loadHideScore(),
             editingTask: null as Task | null,
             editingGoal: null as Goal | null,
             editingIdea: null as Idea | null,
@@ -1059,6 +1061,7 @@ export const BureauAppElement = defineElement()({
                 <${BureauHeaderElement.assign({
                     patriotScore,
                     streak: completionStreak,
+                    hideScore: state.hideScore,
                     onBack:
                         view === "area" || state.selectedGoalId !== null
                             ? onBack
@@ -1267,6 +1270,7 @@ export const BureauAppElement = defineElement()({
                             activeSkinId: state.activeSkinId,
                             timeSettings: state.app.timeSettings,
                             darkMode: state.darkMode,
+                            hideScore: state.hideScore,
                         })}
                             ${listen(
                                 PreferencesViewElement.events.skinChangeRequested,
@@ -1292,6 +1296,13 @@ export const BureauAppElement = defineElement()({
                                     applyDarkMode(e.detail, getSkinById(state.activeSkinId));
                                     saveDarkMode(e.detail);
                                     updateState({ darkMode: e.detail });
+                                },
+                            )}
+                            ${listen(
+                                PreferencesViewElement.events.hideScoreChanged,
+                                (e) => {
+                                    saveHideScore(e.detail);
+                                    updateState({ hideScore: e.detail });
                                 },
                             )}
                         ></${PreferencesViewElement}>

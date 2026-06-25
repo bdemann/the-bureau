@@ -152,6 +152,11 @@ export const freemasonSkin: Skin = {
         preferencesLabel: "Preferences",
         appearanceLabel: "Regalia",
 
+        scoreSectionLabel: "SCORE",
+        hideScoreLabel: "Hide score",
+        hideScoreNote:
+            "Your standing is still recorded in the lodge ledger — this merely veils it from your eyes.",
+
         dataSectionLabel: "Lodge Records",
         exportJsonLabel: "Export Backup",
         exportJsonSub: "Download full backup as JSON",

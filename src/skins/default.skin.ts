@@ -141,6 +141,11 @@ export const defaultSkin: Skin = {
         preferencesLabel: "Preferences",
         appearanceLabel: "Appearance",
 
+        scoreSectionLabel: "SCORE",
+        hideScoreLabel: "Hide score",
+        hideScoreNote:
+            "Your score is still tracked in the background — this only hides it from view.",
+
         dataSectionLabel: "Data",
         exportJsonLabel: "Export Backup",
         exportJsonSub: "Download full backup as JSON",

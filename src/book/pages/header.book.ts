@@ -15,6 +15,7 @@ export const headerPage = defineBookPage({
                         streak: 21,
                         onBack: null,
                         areaName: null,
+                        hideScore: false,
                         activeSkinId: "bcr",
                     })}></${BureauHeaderElement}>
                 `;
@@ -29,6 +30,7 @@ export const headerPage = defineBookPage({
                         streak: 3,
                         onBack: null,
                         areaName: null,
+                        hideScore: false,
                         activeSkinId: "bcr",
                     })}></${BureauHeaderElement}>
                 `;
@@ -43,6 +45,7 @@ export const headerPage = defineBookPage({
                         streak: 0,
                         onBack: null,
                         areaName: null,
+                        hideScore: false,
                         activeSkinId: "bcr",
                     })}></${BureauHeaderElement}>
                 `;
@@ -57,6 +60,7 @@ export const headerPage = defineBookPage({
                         streak: 1,
                         onBack: null,
                         areaName: null,
+                        hideScore: false,
                         activeSkinId: "bcr",
                     })}></${BureauHeaderElement}>
                 `;
@@ -71,6 +75,7 @@ export const headerPage = defineBookPage({
                         streak: 0,
                         onBack: null,
                         areaName: null,
+                        hideScore: false,
                         activeSkinId: "bcr",
                     })}></${BureauHeaderElement}>
                 `;
@@ -85,6 +90,7 @@ export const headerPage = defineBookPage({
                         streak: 5,
                         onBack: () => {},
                         areaName: "Homeowner",
+                        hideScore: false,
                         activeSkinId: "bcr",
                     })}></${BureauHeaderElement}>
                 `;

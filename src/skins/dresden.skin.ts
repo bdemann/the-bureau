@@ -166,6 +166,11 @@ export const dresdenSkin: Skin = {
         preferencesLabel: "Preferences",
         appearanceLabel: "Wardrobe",
 
+        scoreSectionLabel: "SCORE",
+        hideScoreLabel: "Hide score",
+        hideScoreNote:
+            "The tally keeps itself whether you watch it or not — this just keeps it out of sight.",
+
         dataSectionLabel: "Data",
         exportJsonLabel: "Export Backup",
         exportJsonSub: "Download full backup as JSON",

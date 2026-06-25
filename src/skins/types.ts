@@ -199,6 +199,13 @@ export interface SkinMenu {
     /** Section heading above the skin / appearance picker. */
     appearanceLabel: string;
 
+    /** Section heading above the hide-score toggle in preferences. */
+    scoreSectionLabel: string;
+    /** Label for the cosmetic hide-score toggle. */
+    hideScoreLabel: string;
+    /** Flavor note shown beneath the hide-score toggle. Empty string = hidden. */
+    hideScoreNote: string;
+
     /** Shopping list menu entry label. */
     shoppingListLabel: string;
     shoppingListSub: string;

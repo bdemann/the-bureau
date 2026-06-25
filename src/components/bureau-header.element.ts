@@ -14,6 +14,8 @@ const CLEAR_URL = "https://clear.bureauofcivicresponsibility.org";
 export const BureauHeaderElement = defineElement<{
     patriotScore: number;
     streak: number;
+    /** Cosmetic: hide the score number, rank/streak label, and progress bar. */
+    hideScore: boolean;
     onBack: (() => void) | null;
     areaName: string | null;
     /** Id of the currently active skin — triggers re-render when skin changes. */
@@ -341,7 +343,7 @@ export const BureauHeaderElement = defineElement<{
     `,
 
     render({ inputs, state, updateState, dispatch, events }) {
-        const { patriotScore, streak, onBack, areaName } = inputs;
+        const { patriotScore, streak, hideScore, onBack, areaName } = inputs;
         const skin = getActiveSkin();
 
         const rank =
@@ -407,18 +409,25 @@ export const BureauHeaderElement = defineElement<{
                         <span class="sub">${skin.identity.appTagline}</span>
                     </div>
 
-                    <div class="score-block" title="${skin.identity.scoreName}">
-                        <span class="score-number"
-                            >${Math.round(patriotScore)}</span
-                        >
-                        <span class="score-label">
-                            ${streak > 0
-                                ? `🔥 ${streak}d · `
-                                : `${streak}d · `}${getRankLabel(
-                                rank,
-                            ).toUpperCase()}
-                        </span>
-                    </div>
+                    ${hideScore
+                        ? html``
+                        : html`
+                              <div
+                                  class="score-block"
+                                  title="${skin.identity.scoreName}"
+                              >
+                                  <span class="score-number"
+                                      >${Math.round(patriotScore)}</span
+                                  >
+                                  <span class="score-label">
+                                      ${streak > 0
+                                          ? `🔥 ${streak}d · `
+                                          : `${streak}d · `}${getRankLabel(
+                                          rank,
+                                      ).toUpperCase()}
+                                  </span>
+                              </div>
+                          `}
 
                     <button
                         class="hamburger-btn"
@@ -445,12 +454,16 @@ export const BureauHeaderElement = defineElement<{
                       `
                     : html``}
 
-                <div class="score-bar">
-                    <div
-                        class="score-bar-fill"
-                        style="width:${barWidth}%"
-                    ></div>
-                </div>
+                ${hideScore
+                    ? html``
+                    : html`
+                          <div class="score-bar">
+                              <div
+                                  class="score-bar-fill"
+                                  style="width:${barWidth}%"
+                              ></div>
+                          </div>
+                      `}
             </header>
 
             ${state.menuOpen

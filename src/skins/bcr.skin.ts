@@ -119,6 +119,11 @@ export const bcrSkin: Skin = {
         preferencesLabel: "Preferences",
         appearanceLabel: "Appearance",
 
+        scoreSectionLabel: "SCORE",
+        hideScoreLabel: "Hide score",
+        hideScoreNote:
+            "Your score will still be calculated and reported to BCR officials; hiding it changes nothing in your file. It simply frees you to focus on becoming a true patriot, without the gamified nature of a number ticking up and down to distract you. Patriotism was never a game.",
+
         dataSectionLabel: "Your Data",
         exportJsonLabel: "Export Your Records",
         exportJsonSub: "Download all your data as JSON",

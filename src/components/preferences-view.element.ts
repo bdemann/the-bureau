@@ -7,6 +7,7 @@ export const PreferencesViewElement = defineElement<{
     activeSkinId: string;
     timeSettings: TimeSettings;
     darkMode: boolean;
+    hideScore: boolean;
 }>()({
     tagName: "preferences-view",
 
@@ -14,6 +15,7 @@ export const PreferencesViewElement = defineElement<{
         skinChangeRequested: defineElementEvent<string>(),
         timeSettingsChanged: defineElementEvent<TimeSettings>(),
         darkModeChanged: defineElementEvent<boolean>(),
+        hideScoreChanged: defineElementEvent<boolean>(),
     },
 
     styles: css`
@@ -162,6 +164,15 @@ export const PreferencesViewElement = defineElement<{
             transform: translateX(18px);
         }
 
+        .setting-note {
+            font-family: var(--font-mono);
+            font-size: 0.62rem;
+            line-height: 1.5;
+            letter-spacing: 0.03em;
+            color: var(--color-text-muted);
+            margin-top: 8px;
+        }
+
         /* ── Time-settings grid ── */
         .time-settings-grid {
             display: grid;
@@ -195,7 +206,7 @@ export const PreferencesViewElement = defineElement<{
     `,
 
     render({ inputs, dispatch, events }) {
-        const { activeSkinId, timeSettings, darkMode } = inputs;
+        const { activeSkinId, timeSettings, darkMode, hideScore } = inputs;
         const skin = getActiveSkin();
 
         return html`
@@ -239,6 +250,31 @@ export const PreferencesViewElement = defineElement<{
                         `,
                     )}
                 </div>
+            </div>
+
+            <div class="section">
+                <div class="section-label">${skin.menu.scoreSectionLabel}</div>
+
+                <div class="dark-mode-row">
+                    <span class="dark-mode-label">${skin.menu.hideScoreLabel}</span>
+                    <label class="toggle">
+                        <input
+                            type="checkbox"
+                            ?checked=${hideScore}
+                            @change=${(e: Event) =>
+                                dispatch(
+                                    new events.hideScoreChanged(
+                                        (e.target as HTMLInputElement).checked,
+                                    ),
+                                )}
+                        />
+                        <span class="toggle-track"></span>
+                    </label>
+                </div>
+
+                ${skin.menu.hideScoreNote
+                    ? html`<p class="setting-note">${skin.menu.hideScoreNote}</p>`
+                    : html``}
             </div>
 
             <div class="section">
