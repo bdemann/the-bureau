@@ -51,6 +51,10 @@ E2E (Playwright, `e2e/`):
   listing, assigning, reassigning), the full commitment-termination flow,
   and pausing (all 3 modes, edit-mode-only + recurring-only gating, PAUSED
   section in area-detail).
+- `lead-time.spec.ts` — the Default/None/Custom lead-time picker (successor
+  to the old "Radar lead days" number field): per-mode/per-kind help text
+  (rigid/flexible/milestone/none/custom, singular vs plural day wording),
+  hidden for daily-like cadences, and edit-mode round-trip.
 
 Converting the rest of the manual checklist below into Playwright specs
 (section by section, highest-churn areas first) is in progress — sections
@@ -457,15 +461,24 @@ in `urgency.test.ts` and `e2e/cadence-picker.spec.ts`'s round-trip tests.
 - [ ] Recurring commitment rolled over at startup (period elapsed without completion): totalMisses incremented
 - [ ] skipStreak resets to 0 on commitment completion; taskCompletionStreak resets to 0 on skip
 
-### Radar lead days (per-commitment)
+### Lead Time (per-commitment; formerly "Radar lead days")
 
-- [ ] Hard-date commitment add/edit form shows a "Radar lead (days)" number field (default 3)
-- [ ] Field is absent for flexible-window and milestone commitments
-- [ ] Setting lead to 5: commitment appears in RADAR band 5 days before its date
-- [ ] Setting lead to 1: commitment stays in BACKLOG until 1 day before its date
-- [ ] Setting lead to 0: commitment never appears in RADAR (goes directly BACKLOG → MANDATORY)
-- [ ] Edit dialog re-opens with the saved lead value pre-filled
-- [ ] Existing commitments without a saved radarLeadDays behave as if set to 3 (no regression)
+Converted to `e2e/lead-time.spec.ts`. **This whole section was stale** — the
+plain "Radar lead (days)" number field it described no longer exists.
+Current UI: a Default/None/Custom picker (`state.leadTimeMode`), hidden for
+daily-like cadences same as Milestone and Deadline Type. Help text differs
+by mode/kind: "Appears in radar 3 days before due date (default)" (rigid),
+"Visibility scales with window % remaining (default)" (flexible), "Appears
+in radar 30 days before deadline (default)" (milestone — **not absent as
+the old doc claimed**), "Hidden until due..." (None), "Shows up N day(s)
+before due" (Custom, singular/plural wording). Custom mode's day count and
+edit-mode round-trip are covered.
+
+Still manual / not yet automated: the actual band-placement behavior driven
+by the lead value (appears in Radar N days out, 0 skips Radar entirely) —
+that's `urgency.ts` band logic and would need either new `urgency.test.ts`
+cases or clock-based e2e; "no saved value behaves as if set to 3" (default
+back-compat for existing data).
 
 ### Goals
 
