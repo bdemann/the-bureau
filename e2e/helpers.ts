@@ -66,3 +66,29 @@ export async function addTaskLinkedToGoal(page: Page, goalTitle: string, taskTit
     await page.getByText("ADD TASK", { exact: true }).click();
     await expect(page.getByText(taskTitle, { exact: true })).toBeVisible();
 }
+
+/**
+ * Scopes interactions to the <cadence-picker> element specifically — several
+ * of its own button labels ("Daily") collide with unrelated UI (the bottom
+ * nav's Daily tab) when queried page-wide.
+ */
+export function cadencePicker(page: Page) {
+    return page.locator("cadence-picker");
+}
+
+/**
+ * From the Daily view, opens the named commitment's card regardless of which
+ * band it landed in or which bands start expanded/collapsed — expands bands
+ * one at a time (checking after each) rather than assuming a fixed default,
+ * since that default isn't reliably content-independent in practice.
+ */
+export async function openCommitmentFromDailyView(page: Page, title: string): Promise<void> {
+    await page.getByText("Daily", { exact: true }).click();
+    const item = page.getByText(title, { exact: true });
+    for (const band of ["TODAY'S MANDATORY", "SUGGESTED FOR TODAY", "ON YOUR RADAR", "BACKLOG"]) {
+        if (await item.isVisible().catch(() => false)) break;
+        await page.getByText(band, { exact: false }).click();
+        await page.waitForTimeout(150);
+    }
+    await item.click();
+}

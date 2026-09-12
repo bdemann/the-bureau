@@ -37,6 +37,16 @@ E2E (Playwright, `e2e/`):
   behavior, task→goal cross-type conversion, and the goal dissociation-warning
   flow (warning text, Save disabled while pending, Cancel reverts, Proceed
   completes the switch and actually dissociates the linked commitment).
+- `cadence-picker.spec.ts` — one-time task defaults/validation; per-cadence
+  field wiring and anchor-summary text for Daily (skip days), Weekly,
+  Monthly (day-of-month and Nth-weekday, including the ordinal offset field),
+  Quarterly, and Annually; milestone progress-cadence toggle; recurring
+  start-date and end-condition gating (both live behind "Recurring
+  commitment," end-condition additionally hidden for Routine kind); and
+  edit-mode round-trip pre-fill for each cadence. Deliberately out of scope:
+  the underlying date *math* (already covered by `recurrence.test.ts`) and
+  clock-dependent rollover behavior (advancing a day/week/etc. and reloading)
+  — a good candidate for Playwright's `page.clock` API in a future pass.
 
 Converting the rest of the manual checklist below into Playwright specs
 (section by section, highest-churn areas first) is in progress — sections
@@ -179,84 +189,30 @@ end-to-end.
 - [ ] Submit creates commitment; dialog closes; commitment appears in active list
 - [ ] Cancel closes without creating
 
-### Task commitment creation — recurring (daily cadence)
+### Task commitment creation — recurring cadences (daily/weekly/monthly/quarterly/annually), milestone progress cadence
 
-- [ ] Toggle "Recurring task" on, set cadence to Daily → "Timing Type" selector disappears (B1)
-- [ ] Set cadence to Multiple times/day → "Timing Type" selector disappears (B1)
-- [ ] Set cadence back to Weekly → "Timing Type" selector reappears
-- [ ] "Repeat Cycle" (schedule mode) selector is hidden inside cadence picker when cadence is daily (existing behavior, verify still working)
-- [ ] With daily cadence, a "Skip Days" row appears with Sun–Sat toggle buttons (#37)
-- [ ] "Skip Days" row does NOT appear for weekly cadence
-- [ ] Toggling a day button selects/deselects it; multiple days can be selected
-- [ ] Saving a daily task with Sunday skipped → task does not appear in daily view on Sundays
-- [ ] Same task appears normally on Monday (non-skip day)
-- [ ] Completing on Saturday → next suggestedDate is Monday (skipping Sunday)
-- [ ] Completing on Friday with Sat+Sun skipped → next suggestedDate is Monday
-- [ ] Rollover through a Sunday (skip day): no miss counted, skipStreak unchanged
-- [ ] Rollover through a Monday (non-skip day): miss counted normally
-- [ ] Editing an existing daily task with skipDays set: skip day buttons show the correct selection
+Field wiring, anchor-summary text, and edit-mode round-trip pre-fill are
+converted to `e2e/cadence-picker.spec.ts` (see Automated coverage above).
+Still manual / not yet automated (all date-math-over-time, needs either the
+existing data-layer coverage or a future `page.clock`-based e2e pass):
 
-### Task commitment creation — recurring (weekly day-of-week, multi-select)
+- Skip-day rollover behavior (Sunday skip → no miss, Monday → miss counted) —
+  covered at the data layer already (`urgency.test.ts` — "skipDays (GitHub #37)").
+- Next-occurrence date math for weekly/monthly/quarterly/annually (which date
+  is next, month-end edge cases, 5th-weekday skip) — covered at the data
+  layer already (`recurrence.test.ts`).
+- Milestone progress-cadence operational behavior: hides after logging
+  progress, reappears next period, blocks double-logging same day, frequency
+  input range validation (2–99).
+- "Card shows `Day N of each month · next {date}`" style card-label text —
+  not asserted by the new spec; worth adding if that label changes often.
 
-- [ ] Toggle "Recurring task" on
-- [ ] Cadence: Weekly
-- [ ] Day-of-week picker appears (Sun–Sat); date picker hidden
-- [ ] Multiple days can be toggled on/off independently
-- [ ] Default is today's day of the week (single day selected)
-- [ ] Anchor summary updates with readable description:
-    - 5 weekdays → "Every weekday (Mon–Fri)."
-    - 6 days without Sun → "Every day except Sunday."
-    - 6 days without Sat → "Every day except Saturday."
-    - 7 days → "Every day."
-    - Custom → "Mon, Wed, Fri." style list
-- [ ] FILE TASK disabled when no days selected
-- [ ] **Single day selected, today matches**: first occurrence = today
-- [ ] **Single day selected, today doesn't match**: first occurrence = next occurrence
-- [ ] **Multi-day, complete on Wed (Mon/Wed/Fri)**: next occurrence = Fri (same week)
-- [ ] **Multi-day, complete on Fri (Mon/Wed/Fri)**: next occurrence = Mon (next week)
-- [ ] **Weekly commitment with hardDaysOfWeek**: shows in MANDATORY on each configured day (not Suggested)
-- [ ] Existing commitment with multi-day schedule pre-fills correctly in edit dialog
-
-### Task commitment creation — recurring (monthly, day-of-month)
-
-- [ ] Cadence: Monthly → "Anchor" toggle appears
-- [ ] Day-of-month input accepts 1–31; rejects out-of-range
-- [ ] Anchor summary shows "The Nth of each month"
-- [ ] Submit creates commitment; first occurrence is this month's that-day if it
-      hasn't passed, else next month's
-- [ ] Card label `Day N of each month · next {date}`
-
-### Task commitment creation — recurring (monthly, Nth weekday)
-
-- [ ] Switch to "Nth weekday" mode
-- [ ] Ordinal (1st/2nd/3rd/4th/5th (when it occurs)/Last) and day-of-week pickers appear
-- [ ] Anchor summary shows "The 3rd Thursday of each month"
-- [ ] **This month's Nth-dow already passed**: first occurrence = next month's
-- [ ] **Not yet passed**: first occurrence = this month's
-- [ ] **Last weekday**: works in both 4-Thursday and 5-Thursday months
-- [ ] **5th weekday**: skips months that don't have a 5th occurrence (e.g., 5th Sunday skips Sep and Oct 2026, lands Nov 29)
-- [ ] Card label `3rd Thursday of each month · next {date}`
-
-### Milestone commitment — progress cadence
-
-- [ ] Create a milestone commitment → "Progress Cadence" field appears below window type
-- [ ] Default is "Once per day" (no custom cadence)
-- [ ] Switching to "Custom" reveals a frequency number input and cadence dropdown
-- [ ] Frequency input accepts 2–99; rejects values below 2
-- [ ] Submit with "Once per day" → milestone hides after logging progress once today; reappears tomorrow
-- [ ] Submit with custom cadence (e.g. 3× / week) → milestone hides after logging progress 3 times that week; reappears next week
-- [ ] After hitting the weekly quota the milestone does not reappear until the next progress period starts
-- [ ] Logging progress on the same day twice is blocked (still hides for rest of today even when quota not yet met)
-- [ ] Edit an existing milestone with a progress cadence → cadence and frequency pre-populate correctly
-- [ ] Changing window type away from Milestone → progress cadence section disappears
-
-### Task commitment creation — multiple-per-period
-
-- [ ] Cadence: Multiple per week (or per-day/month/quarter/year)
-- [ ] "Times per period" input appears; accepts 2–99
-- [ ] Date picker still visible (multi-per uses dates, not anchors)
-- [ ] Submit creates commitment with `frequencyPerPeriod`
-- [ ] Card shows `0 / 3 this week` progress chip
+The old "Task commitment creation — multiple-per-period" checklist section
+(a "Times per period" input, "Multiple per week" cadence) was removed: that
+UI doesn't exist in the current dialog — `frequencyPerPeriod` is hardcoded
+to 1 at creation time. Treated as intentionally deprecated (like the
+`multiple_per_day` cadence, explicitly commented "legacy" in `types.ts`),
+not a regression to fix.
 
 ### Commitment completion
 
@@ -432,72 +388,45 @@ Remediation fires whenever a commitment that had a skip streak OR high snooze co
 - [ ] Paused commitments appear in a PAUSED section in their area's area detail
 - [ ] Clicking the task card for a paused commitment opens edit mode where pause can be removed
 
-### Monthly multi-day scheduling
+### Monthly/quarterly/annually anchors, ordinal offset, start date, end conditions
 
-- [ ] Monthly cadence → "Day of month" mode shows a 7-column grid of buttons 1–31 (not a number input)
-- [ ] Buttons toggle on/off; at least one must stay selected (can't deselect the last one)
-- [ ] Anchor summary reads "The 1st of each month." for one day, "The 1st and 15th of each month." for two
-- [ ] Completing on the 1st when [1,15] are selected advances the commitment to the 15th of the same month
-- [ ] Completing on the 15th advances to the 1st of the next month
-- [ ] Edit dialog re-opens with all previously selected days highlighted
-- [ ] Area wizard monthly: same multi-select grid behaviour
+Field wiring, anchor-summary text (see the exact abbreviated-day-name wording
+note below), and edit-mode round-trip pre-fill are covered by
+`e2e/cadence-picker.spec.ts`. Two things worth knowing:
 
-### Quarterly cadence with month-of-quarter anchor
+- Day-of-week abbreviations in anchor summaries are 3-letter ("Thu", not
+  "Thursday") — this doc previously said "Thursday" full-name, which never
+  matched the actual UI.
+- The Quarterly anchor is rendered as **two separate** summary lines (a
+  month-group summary like "Feb · May · Aug · Nov" and a days-of-month
+  summary like "The 15th of each month.") — not the single combined sentence
+  ("The 15th of the 2nd month of each quarter.") this doc previously implied.
 
-- [ ] Quarterly cadence → "Month of Quarter" picker shows three buttons: "1st Month", "2nd Month", "3rd Month"
-- [ ] Selecting "2nd Month" updates the anchor summary (e.g., "The 15th of the 2nd month of each quarter.")
-- [ ] Day-of-month grid (1–31 toggle buttons) appears below the month-of-quarter picker
-- [ ] Multiple days can be selected; at least one must remain selected
-- [ ] Anchor summary reflects multiple selected days (e.g., "The 1st and 15th of the 2nd month of each quarter.")
-- [ ] Completing on the 1st when [1,15] selected in 2nd month advances to the 15th of that same quarter's 2nd month
-- [ ] Completing on the 15th (last dom in period) advances to the 1st of the 2nd month of the next quarter
-- [ ] Edit dialog re-opens with the correct month-of-quarter button highlighted and all selected days toggled on
-- [ ] Area wizard quarterly: same month-of-quarter picker and multi-dom grid behavior
+Still manual / not yet automated:
+- Area wizard's monthly/quarterly pickers (only the main commitment dialog's
+  pickers are covered so far — the area wizard reuses the same
+  `cadence-picker` component, so this is likely fine, but hasn't been
+  explicitly asserted).
+- Annually **day-of-month** mode's own anchor-summary text (only Annually's
+  **Nth-weekday** mode is asserted; the plain "Every Sep 1st."-style summary
+  for day-of-month mode is not).
+- All next-occurrence/period-advance date math (completing on the 1st
+  advances to the 15th, year-over-year Thanksgiving/Mother's-Day dates, zero
+  offset omitted from export, etc.) — covered at the data layer already
+  (`recurrence.test.ts`).
+- A commitment with a future start date not appearing in the daily view /
+  not accruing misses, and end-condition retirement after N completions or
+  past a date — all clock-dependent; would need `page.clock` to assert in
+  e2e. The create-time field wiring is covered; this rollover/retirement
+  *behavior* is not.
 
-### Annually cadence (commitment dialog)
-
-- [ ] Selecting "Annually" from the cadence dropdown shows Month grid and Day Anchor toggle
-- [ ] Month grid (Jan–Dec) allows selection; clicking any month updates the anchor summary
-- [ ] Day Anchor toggle: "Day of month" shows day-of-month grid; "Nth weekday" shows ordinal + day-of-week pickers (#35)
-- [ ] Day of month: day-of-month grid updates the anchor summary (e.g., "Every Sep 1st.")
-- [ ] Nth weekday: ordinal picker (1st/2nd/3rd/4th/5th/Last) + day-of-week picker (#35)
-- [ ] Nth weekday: summary reads "The 4th Thursday of Nov each year." (#35)
-- [ ] Saving with Nth weekday: edit dialog re-opens with "Nth weekday" selected and correct ordinal/day-of-week (#35)
-- [ ] After advancing one year with day-of-month: suggested date is the same month/day next year
-- [ ] After advancing one year with Nth weekday: suggested date is that weekday in the same month next year (#35)
-- [ ] "4th Thursday of November" task: first occurrence is correct Thanksgiving date; advances correctly year-over-year (#35)
-- [ ] "2nd Sunday of May" (Mother's Day): correct date each year (#35)
-- [ ] Annually Nth weekday with offset -2: "Thanksgiving grocery run" (2 days before 4th Thu Nov) shows Tuesday before Thanksgiving (#36)
-
-### Monthly ordinal offset (GitHub #36)
-
-- [ ] Monthly "Nth weekday" mode shows an "Offset (days)" number input below the day-of-week picker
-- [ ] Default offset is 0; summary reads "On the anchor day."
-- [ ] Offset -1: summary reads "1 day before the anchor."
-- [ ] Offset +2: summary reads "2 days after the anchor."
-- [ ] "Sunday before the 3rd Monday" (ordinalWeek:3, dayOfWeek:Mon, offset:-1): correct Sunday each month
-- [ ] Edit dialog re-opens with offset pre-filled
-- [ ] Zero offset omitted from export (no change to existing commitments without offset)
-
-### Recurring start date
-
-- [ ] "Has a start date" checkbox appears in the recurring section (for both routines and tasks)
-- [ ] Checking it reveals a date picker labeled "Start Date"
-- [ ] A commitment with a future start date does NOT appear in the daily view
-- [ ] A commitment with a future start date does NOT accrue misses during rollover
-- [ ] Once the start date arrives the commitment appears normally
-- [ ] Edit dialog pre-fills start date checkbox + date if one is set
-
-### Recurring end conditions
-
-- [ ] "Has an end condition" checkbox is hidden for routines (they never end)
-- [ ] Checkbox appears inside the recurring section for task-kind commitments
-- [ ] Checking it reveals "N completions" / "A date" toggle
-- [ ] "N completions" shows a number input; "A date" shows a date picker
-- [ ] After N completions: commitment disappears permanently (no more periods)
-- [ ] After date: completing on the end date permanently closes the commitment
-- [ ] After date: commitment is retired on next app load after end date passes (even if not completed)
-- [ ] Edit dialog pre-fills end condition from an existing commitment with one set
+**Bug found and fixed during this conversion:** a freshly-created (never
+completed) monthly/quarterly commitment whose first occurrence lands beyond
+the current calendar period — e.g. created after this month's/quarter's
+anchor day already passed — was being permanently hidden from every daily
+band, mistaken for "already completed for this period." Root cause and fix
+in `urgency.ts`'s `isCompletedForPeriod` (see git history); regression tests
+in `urgency.test.ts` and `e2e/cadence-picker.spec.ts`'s round-trip tests.
 
 ### Recurrence rollover
 

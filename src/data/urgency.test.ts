@@ -78,22 +78,42 @@ describe('getDailyBand — Step 0 (visibility)', () => {
         assert.strictEquals(getDailyBand(t, today), 'suggested');
     });
 
-    test('recurring task whose currentPeriodStart is in the future is hidden', () => {
+    test('recurring task whose currentPeriodStart is in the future is hidden after a genuine completion', () => {
         // advanceRecurrence sets completedAt=null and currentPeriodStart to next period.
-        // The task should be hidden even though completedAt is null.
+        // The task should be hidden even though completedAt is null — but only because
+        // it was actually completed (taskCompletionStreak > 0 is the signal for that).
         const today = date('2026-05-09');
         const tomorrow = date('2026-05-10');
         const t = makeTask({
             recurrence: makeRecurrence({cadence: 'daily'}),
             completedAt: null,
             currentPeriodStart: tomorrow.getTime(),
+            taskCompletionStreak: 1,
         });
         assert.strictEquals(getDailyBand(t, today), 'hidden');
     });
 
+    test('brand-new recurring task whose first occurrence is in a future period is NOT hidden', () => {
+        // Regression: a never-completed monthly/quarterly/etc. task can legitimately get
+        // a future currentPeriodStart from initialiseRecurrence (e.g. created after this
+        // period's anchor day already passed) or from rolloverIfNeeded after a miss/skip
+        // (not a completion). Neither case should be mistaken for "already done."
+        const today = date('2026-05-09');
+        const future = date('2026-06-01');
+        const t = makeTask({
+            recurrence: makeRecurrence({cadence: 'monthly', hardDayOfMonth: 1}),
+            completedAt: null,
+            currentPeriodStart: future.getTime(),
+            suggestedDate: future.getTime(),
+            taskCompletionStreak: 0,
+        });
+        assert.notStrictEquals(getDailyBand(t, today), 'hidden');
+    });
+
     test('monthly multi-dom: hidden after completing the 1st when next occurrence is the 15th (same month)', () => {
         // Bug #3 regression: after advanceRecurrence on the 1st, currentPeriodStart stays at
-        // the month start (≤ today). The task must be hidden based on suggestedDate > today.
+        // the month start (≤ today). The task must be hidden based on suggestedDate > today —
+        // but again only when that occurrence was actually completed.
         const today = date('2026-05-01');
         const fifteenth = date('2026-05-15');
         const t = makeTask({
@@ -101,8 +121,22 @@ describe('getDailyBand — Step 0 (visibility)', () => {
             completedAt: null,
             currentPeriodStart: date('2026-05-01').getTime(), // same month's start ≤ today
             suggestedDate: fifteenth.getTime(),               // next occurrence is the 15th
+            taskCompletionStreak: 1,
         });
         assert.strictEquals(getDailyBand(t, today), 'hidden');
+    });
+
+    test('monthly multi-dom: brand-new task waiting for the 15th (never completed) is NOT hidden', () => {
+        const today = date('2026-05-01');
+        const fifteenth = date('2026-05-15');
+        const t = makeTask({
+            recurrence: makeRecurrence({cadence: 'monthly', hardDaysOfMonth: [1, 15]}),
+            completedAt: null,
+            currentPeriodStart: date('2026-05-01').getTime(),
+            suggestedDate: fifteenth.getTime(),
+            taskCompletionStreak: 0,
+        });
+        assert.notStrictEquals(getDailyBand(t, today), 'hidden');
     });
 
     test('quarterly multi-dom: hidden after completing first dom when next occurrence is in same quarter', () => {
@@ -114,8 +148,26 @@ describe('getDailyBand — Step 0 (visibility)', () => {
             completedAt: null,
             currentPeriodStart: date('2026-04-01').getTime(),
             suggestedDate: fifteenth.getTime(),
+            taskCompletionStreak: 1,
         });
         assert.strictEquals(getDailyBand(t, today), 'hidden');
+    });
+
+    test('quarterly: brand-new task created after this quarter\'s anchor day passed is NOT hidden', () => {
+        // Reproduces the real bug: create a quarterly task today whose target day-of-month
+        // has already passed this period, so its first occurrence — and therefore
+        // currentPeriodStart — lands in a future quarter. It must stay visible (in
+        // whatever band its distance warrants), not vanish as if already done.
+        const today = date('2026-09-12');
+        const nextOccurrence = date('2026-11-12');
+        const t = makeTask({
+            recurrence: makeRecurrence({cadence: 'quarterly', hardMonthOfQuarter: 1, hardDaysOfMonth: [12]}),
+            completedAt: null,
+            currentPeriodStart: date('2026-10-01').getTime(), // start of the quarter containing Nov 12
+            suggestedDate: nextOccurrence.getTime(),
+            taskCompletionStreak: 0,
+        });
+        assert.notStrictEquals(getDailyBand(t, today), 'hidden');
     });
 });
 
@@ -556,9 +608,26 @@ describe('weekly tasks with hardDaysOfWeek', () => {
             recurrence: makeRecurrence({cadence: 'weekly', hardDaysOfWeek: [1, 2, 3, 4, 5, 6]}),
             currentPeriodStart: sunday.getTime(), // still this week's Sunday
             completedAt: null, // advanceRecurrence resets this to null
+            taskCompletionStreak: 1, // set alongside advanceRecurrence on genuine completion
         });
         // Monday is in hardDaysOfWeek, but today's occurrence was already done.
         assert.strictEquals(getDailyBand(t, monday), 'hidden');
+    });
+
+    test('brand-new multi-day weekly task waiting for its next selected day (never completed) is NOT hidden', () => {
+        // Same shape as above but never actually completed — e.g. created on a day
+        // between selected days. Must stay visible, not be mistaken for "already done."
+        const t = makeTask({
+            deadlineType: 'flexible', isMilestone: false,
+            suggestedDate: date('2026-05-05').getTime(), // Tuesday
+            windowDeadline: date('2026-05-09').getTime(),
+            windowLengthDays: 7,
+            recurrence: makeRecurrence({cadence: 'weekly', hardDaysOfWeek: [1, 2, 3, 4, 5, 6]}),
+            currentPeriodStart: sunday.getTime(),
+            completedAt: null,
+            taskCompletionStreak: 0,
+        });
+        assert.notStrictEquals(getDailyBand(t, monday), 'hidden');
     });
 
     test('T3 multi-day weekly visible again on Tuesday after Monday completion (suggested)', () => {

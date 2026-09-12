@@ -80,8 +80,20 @@ function isCompletedForPeriod(task: Task, today: Date): boolean {
     }
     if (task.recurrence && task.currentPeriodStart !== null) {
         const todayMs = startOfDay(today).getTime();
+        // A future currentPeriodStart/suggestedDate is ambiguous on its own: it
+        // means either (a) the task was just completed and advanceRecurrence
+        // moved it into the next period, or (b) this is a brand-new task (or one
+        // that just rolled over from a miss/skip) whose *first* eligible
+        // occurrence naturally lands beyond today — e.g. a monthly task created
+        // after this month's anchor day already passed. Only (a) should hide the
+        // task; (b) hasn't happened yet and must stay visible (radar/backlog)
+        // until its date arrives. taskCompletionStreak is incremented as part of
+        // the same completion that calls advanceRecurrence, and is explicitly
+        // reset to 0 on every miss/skip rollover — so `> 0` reliably means "the
+        // most recent period transition was a genuine completion."
+        const justCompleted = task.taskCompletionStreak > 0;
         // Standard: period has been advanced past today → done for this period.
-        if (task.currentPeriodStart > todayMs) return true;
+        if (task.currentPeriodStart > todayMs) return justCompleted;
         // Multi-day weekly tasks: each selected day is its own occurrence.
         // advanceRecurrence sets suggestedDate to the NEXT occurrence day but
         // keeps currentPeriodStart at the current week's Sunday, so the standard
@@ -99,7 +111,7 @@ function isCompletedForPeriod(task: Task, today: Date): boolean {
         if (isMultiOccurrenceWithinPeriod
                 && task.suggestedDate !== null
                 && task.suggestedDate > todayMs) {
-            return true;
+            return justCompleted;
         }
         return false;
     }
