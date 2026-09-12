@@ -82,6 +82,8 @@ E2E (Playwright, `e2e/`):
   the "✓ CLEARED" all-clear flag rules, area-detail (empty state, cleared-
   tasks toggle, EDIT/DELETE AREA), and the wizard's step 2/3 multi-routine
   brainstorm-to-configuration loop.
+- `bug-regressions.spec.ts` — skip fires no dialogue change; the streak=0
+  header text.
 
 Converting the rest of the manual checklist below into Playwright specs
 (section by section, highest-churn areas first) is in progress — sections
@@ -433,10 +435,12 @@ in `urgency.test.ts` and `e2e/cadence-picker.spec.ts`'s round-trip tests.
 
 ### Recurrence rollover
 
-- [ ] Daily routine: complete it, advance device clock 1 day, reload — back, fresh
-- [ ] Weekly fixed (anchored Thursday): complete it, next-week reload — suggestedDate is next Thursday
-- [ ] Weekly rolling: complete on a different day — next due = completion + 7 days
-- [ ] Multi-per-week: complete 1× this week, advance week — completionsThisPeriod resets to 0
+All genuinely covered already at the data layer (`recurrence.test.ts` —
+period boundaries, fixed vs rolling advance, rollover semantics). Exercising
+these specific scenarios through the UI would need real days to pass or
+Playwright's `page.clock` API — not attempted in this conversion pass;
+worth a dedicated future pass if UI-level rollover regressions ever turn
+up that the data-layer tests don't catch.
 
 ### Insights
 
@@ -527,17 +531,31 @@ path is exercised here) — all cosmetic/low-risk for the upcoming redesign.
 
 ### Bug regressions
 
-- [ ] Skip action (recurring commitment) fires NO Whitaker/Briggs dialogue (regression: NEW-2)
-- [ ] Menu → "Report a Neighbor": menu closes immediately; share sheet appears (or link is copied) (regression: NEW-3)
-- [ ] Patriot score header shows streak when streak is 0 — e.g. "0d · SUSPECTED COMMUNIST" (regression: Bug #8)
-- [ ] Daily view: expand BACKLOG band → previously-expanded time-of-day slots within other bands stay expanded (regression: NEW-4)
-- [ ] Area detail: Goals section header reads "GOALS" (or skin's goalPlural), not "OBJECTIVES" (regression: issue #7)
-- [ ] Area detail: Ideas section header reads "IDEAS" (or skin's ideaPlural), not "INTELLIGENCE" (regression: issue #7)
-- [ ] BCR skin: editing a goal shows "AMEND GOAL" / "SAVE GOAL", not "AMEND OBJECTIVE" (regression: issue #8)
-- [ ] BCR skin: delete goal shows "DELETE GOAL" / "PERMANENTLY DELETE THIS GOAL?" (regression: issue #8)
-- [ ] Linked goal selector stays visible in the commitment dialog even when the selected area has no goals (regression: issue #28)
-- [ ] Monthly multi-dom task (e.g. 1st + 15th): completing on the 1st hides the task until the 15th (regression: issue #3)
-- [ ] Quarterly multi-dom task: same hide-until-next-dom behavior (regression: issue #3)
+Most of these are now covered as side effects of other specs; two were
+added directly to `e2e/bug-regressions.spec.ts`. Status per item:
+
+- [x] Skip fires no dialogue — `bug-regressions.spec.ts` (compares the memo
+  quote before/after; must be unchanged)
+- [ ] Menu → "Report a Neighbor" share sheet — still manual (native share/
+  clipboard behavior isn't something Playwright observes directly)
+- [x] Streak=0 header text — `bug-regressions.spec.ts` (patched via
+  localStorage; a fresh session actually starts at streak=1, not 0)
+- [ ] BACKLOG expand preserving other bands' time-of-day slot state — still
+  manual (same time-of-day-slot territory flagged manual under Daily view)
+- [x] Area-detail Ideas section reads "IDEAS" not "INTELLIGENCE" —
+  `goals-ideas.spec.ts`
+- [x] BCR skin goal edit reads "AMEND GOAL" / "SAVE GOAL" — `type-switcher.spec.ts` / `goals-ideas.spec.ts`
+- [ ] Area-detail Goals section header text and BCR delete-goal confirm
+  text ("DELETE GOAL" / "PERMANENTLY DELETE THIS GOAL?") specifically via
+  the *unified dialog's* delete flow (as opposed to goal-detail's own
+  separate "DELETE OBJECTIVE" flow, which intentionally uses generic
+  bureaucratic terminology regardless of skin — confirmed not a bug, just
+  a different, deliberate label for that specific admin action) — not
+  explicitly asserted with its own test
+- [x] Linked goal picker visible with no goals for the selected area —
+  `type-switcher.spec.ts`
+- [x] Monthly/quarterly multi-dom hide-until-next-dom — covered at the data
+  layer in `recurrence.test.ts` (this is date-math, not UI)
 
 ### Preferences — hide score
 
