@@ -47,6 +47,10 @@ E2E (Playwright, `e2e/`):
   the underlying date *math* (already covered by `recurrence.test.ts`) and
   clock-dependent rollover behavior (advancing a day/week/etc. and reloading)
   — a good candidate for Playwright's `page.clock` API in a future pass.
+- `commitment-fields.spec.ts` — Area of Responsibility assignment (default,
+  listing, assigning, reassigning), the full commitment-termination flow,
+  and pausing (all 3 modes, edit-mode-only + recurring-only gating, PAUSED
+  section in area-detail).
 
 Converting the rest of the manual checklist below into Playwright specs
 (section by section, highest-churn areas first) is in progress — sections
@@ -245,33 +249,20 @@ not a regression to fix.
 - [ ] A drop zone at the bottom of the list allows moving an area to the last position
 - [ ] Reorder persists after navigating away and back (saved to state)
 
-### Filing commitments from the daily view
+### Filing commitments from the daily view / Area of Responsibility assignment / Commitment termination
 
-- [ ] `+ MAKE COMMITMENT` button visible at the bottom of the daily view
-- [ ] Clicking it opens the dialog with "No area" pre-selected in the Area of Responsibility dropdown
-- [ ] Commitment can be submitted with "No area" selected — appears in daily view with no area name tag
-- [ ] Area dropdown lists all existing areas; selecting one assigns the commitment to that area
-- [ ] After creation, commitment appears in the correct area-detail if an area was selected
+Converted to `e2e/commitment-fields.spec.ts`: "No area" default when filed
+from Daily, submitting with no area, the area dropdown listing/assigning/
+reassigning areas, and the full termination flow (absent in add mode,
+present in edit mode, confirm/cancel, actually deletes).
 
-### Area of Responsibility assignment on commitments
-
-- [ ] Area of Responsibility dropdown is the last field in the commitment dialog
-- [ ] When opened via `+ FILE NEW COMMITMENT` in a area, that area is pre-selected in the dropdown
-- [ ] User can change the pre-selected area before submitting
-- [ ] When editing an existing commitment, the current area is pre-selected in the dropdown
-- [ ] Changing the area on an existing commitment and saving moves it to the new area
-- [ ] "No area" option always present; selecting it saves the commitment with no area assignment
-- [ ] Commitments with no area do not appear in any area-detail view
-- [ ] Commitments with no area do appear in the daily view (with no area name tag above the title)
-
-### Commitment termination
-
-- [ ] In edit mode (click any commitment card), "TERMINATE COMMITMENT" button appears at the bottom of the dialog
-- [ ] Clicking TERMINATE COMMITMENT shows inline confirmation: "PERMANENTLY TERMINATE THIS COMMITMENT?" with TERMINATE and CANCEL buttons
-- [ ] CANCEL in confirmation returns to the edit form without deleting
-- [ ] Confirming TERMINATE removes the commitment and closes the dialog
-- [ ] Terminated commitment no longer appears in area-detail or daily view
-- [ ] TERMINATE COMMITMENT button is NOT present when creating a new commitment (add mode)
+Still manual / not yet automated:
+- Area pre-selection when opened via an area's own "+ MAKE NEW COMMITMENT"
+  button (only the Daily-view "no area default" path is covered).
+- "Commitments with no area do not appear in any area-detail view" and
+  "terminated commitment no longer appears in area-detail" specifically
+  (covered more loosely as "disappears from search by title" globally, not
+  asserted against an area-detail view directly).
 
 ### Snooze
 
@@ -379,14 +370,23 @@ Remediation fires whenever a commitment that had a skip streak OR high snooze co
 
 ### Pausing commitments
 
-- [ ] Edit any commitment → "Pause Commitment" row with 4 options: No / Indefinitely / Until date / For N days
-- [ ] No: commitment is visible and operates normally
-- [ ] Indefinitely: commitment disappears from daily view with no score impact
-- [ ] Until date: hides until the selected date, then reappears automatically
-- [ ] For N days: hides for N days from today
-- [ ] Paused commitments do NOT accrue misses during rollover
-- [ ] Paused commitments appear in a PAUSED section in their area's area detail
-- [ ] Clicking the task card for a paused commitment opens edit mode where pause can be removed
+Converted to `e2e/commitment-fields.spec.ts`: the row appears in edit mode
+and disappears in add mode, each of the 3 pause modes (Indefinitely/Until
+date/For N days) hides the commitment, and it shows up in its area's PAUSED
+section.
+
+**Correction to this doc:** "Edit any commitment" was wrong — Pause
+Commitment only renders for **recurring** commitments (it's nested inside
+`state.isRecurring` in `add-task-dialog.element.ts`); a one-time task has no
+Pause row at all, in add or edit mode.
+
+Still manual / not yet automated: score-impact assertion is spot-checked
+only for Indefinitely (not Until-date/For-N-days); "Until date reappears
+automatically" and "does not accrue misses during rollover" are clock-
+dependent; "clicking the task card for a paused commitment opens edit mode
+where pause can be removed" isn't separately asserted (implied by the fact
+every pause test above reopens the dialog to set the pause, but removing an
+existing pause isn't explicitly tested).
 
 ### Monthly/quarterly/annually anchors, ordinal offset, start date, end conditions
 
