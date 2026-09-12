@@ -63,6 +63,10 @@ E2E (Playwright, `e2e/`):
   auto-collapse quirk documented below), empty states, area name tags,
   "Not Today", band-placement wiring for C1/C2 rules, and the
   docket-cleared bonus.
+- `goals-ideas.spec.ts` — Goals status transitions, per-area filtering/
+  linking, goal-detail commitment linking/unlinking, area decommission
+  cascade; Ideas creation/deletion (both delete paths), idea→task
+  conversion, and promotion to a commitment.
 
 Converting the rest of the manual checklist below into Playwright specs
 (section by section, highest-churn areas first) is in progress — sections
@@ -462,85 +466,48 @@ that's `urgency.ts` band logic and would need either new `urgency.test.ts`
 cases or clock-based e2e; "no saved value behaves as if set to 3" (default
 back-compat for existing data).
 
-### Goals
+### Goals / Ideas
 
-**Global view (Goals nav item)**
+Converted to `e2e/goals-ideas.spec.ts` (13 tests). Commitment-dialog field
+wiring for Goal/Idea kind is already covered by `type-switcher.spec.ts` /
+`cadence-picker.spec.ts` — this spec covers the views' own behavior: status
+transitions (ACTIVE/ACHIEVED/ABANDONED), per-area filtering and auto-linking,
+LINK/unlink COMMITMENT, EDIT/DELETE OBJECTIVE, decommissioning an area
+cascading to its goals, idea deletion, idea→task conversion, and
+PROMOTE TO COMMITMENT.
 
-- [ ] Bottom nav → Goals tab navigates to the goals view
-- [ ] Page shows "GOALS" title and subtitle with "CLICK A GOAL TO MANAGE COMMITMENTS" hint
-- [ ] Empty state shows "No objectives on file. Make one above to begin."
-- [ ] "+ MAKE GOAL" button opens the unified commitment sheet pre-set to Goal mode
-- [ ] Goal cards are listed under ACTIVE / ACHIEVED / ABANDONED section headers (counts shown; empty sections hidden)
-- [ ] All goals across all areas are listed, sorted by target date (soonest first, no-date goals last) within each section
-- [ ] Goal cards show: title, description snippet (2-line clamp), target date, area badge (⊙ Area), linked commitment chips (read-only)
-- [ ] Target date in the past shows "OVERDUE" in red for active goals
-- [ ] MARK ACHIEVED and ABANDON action buttons on active cards (clicking does NOT navigate to detail)
-- [ ] REACTIVATE action button on achieved/abandoned cards
-- [ ] Clicking the body of a goal card (not an action button) navigates to the goal-detail view
+**Corrections to this doc, found while writing the spec:**
+- The "Global view" Ideas description of an inline add-form (Title/Notes/
+  Linked Area/Linked Objective fields directly in the ideas view) is stale —
+  "+ MAKE IDEA" opens the same unified commitment dialog used everywhere
+  else, already covered elsewhere. Its "FILE INTELLIGENCE" button name is
+  also stale (see the type-switcher doc note above).
+- "AREA detail page shows an INTELLIGENCE section" is stale — it renders
+  `skin.types.ideaPlural.toUpperCase()`, which is "IDEAS" for every current
+  skin. This mirrors the already-noted Goals-section fix under
+  "Bug regressions" (issue #7); this section just hadn't been updated to
+  match.
+- Area-detail's delete button/confirmation is "DELETE AREA" /
+  "PERMANENTLY DELETE THIS AREA AND ALL ITS COMMITMENTS?" / "DELETE" — not
+  "DECOMMISSION AREA" / "DECOMMISSION" as previously documented.
+- Ideas have **two separate delete paths**: the idea card's own inline
+  DELETE button (→ "Permanently delete this intelligence?" / CONFIRM /
+  CANCEL — what this doc originally described) and, separately, opening the
+  card into the unified edit dialog and using *its* generic "DELETE IDEA"
+  flow (→ "PERMANENTLY DELETE THIS IDEA?" / DELETE / CANCEL, same pattern as
+  commitment termination). Both work; they weren't previously distinguished.
+- LINK COMMITMENT only renders on goal-detail when there's at least one
+  unlinked commitment available to link — not unconditionally.
+- PROMOTE TO COMMITMENT appears to inherit whichever kind (Task/Routine/
+  Goal/Idea) was last active in the dialog rather than always resetting to
+  Task — a minor pre-existing quirk, not filed as an issue, worth knowing
+  if the redesign touches dialog-open state handling.
 
-**Per-area view (area detail page)**
-
-- [ ] Area detail page shows a "GOALS" section (label matches the active skin's goal term)
-- [ ] Only goals linked to that area appear; other areas' goals are not shown
-- [ ] "+ MAKE GOAL" button in the per-area view opens the commitment sheet pre-set to Goal mode
-- [ ] Goals filed from area detail are automatically linked to that area
-- [ ] Clicking a goal card in the per-area view navigates to the goal-detail view
-
-**Goal-detail view**
-
-- [ ] Header breadcrumb shows the goal title; back button returns to the previous view
-- [ ] Title, description, target date, status badge, and area badge are shown
-- [ ] EDIT button opens the unified bottom-sheet dialog pre-filled with current title, description, target date, and area — in GOAL type mode
-- [ ] The type switcher is visible; all four types are available; the dialog opens on GOAL
-- [ ] Target date in the goal edit form is pre-filled from the saved value
-- [ ] Saving the dialog updates the goal and closes the sheet
-- [ ] LINK COMMITMENT button opens a bottom-sheet picker with a search bar
-- [ ] Picker lists all commitments not already linked to the goal; search filters by title
-- [ ] Tapping a commitment in the picker links it to the goal and closes the sheet
-- [ ] "+ MAKE NEW COMMITMENT" button opens the add-commitment sheet with the goal's area pre-selected; created commitment is auto-linked to the goal
-- [ ] Cancelling the commitment sheet leaves the goal's linked commitments unchanged
-- [ ] Active, Paused, Snoozed, and Completed task sections appear for linked commitments
-- [ ] Each linked commitment shows "⊗ unlink from objective" below its card; clicking unlinks it (commitment itself is not deleted)
-- [ ] Completed linked commitments are shown in a collapsible "COMPLETED" section (Show/Hide toggle)
-- [ ] ABANDON OBJECTIVE (active goals only) and DELETE OBJECTIVE buttons appear in the delete zone at the bottom
-- [ ] ABANDON OBJECTIVE moves the goal to the ABANDONED section; navigating back shows it there
-- [ ] DELETE OBJECTIVE shows inline confirmation; confirming deletes the goal and returns to the previous view
-- [ ] Decommissioning an area also deletes all goals linked to that area
-
-### Ideas
-
-**Global view (Ideas nav item)**
-
-- [ ] Bottom nav → Ideas tab navigates to the ideas view
-- [ ] Page shows "IDEAS" title and subtitle
-- [ ] Empty state shows "No intelligence on file. Observations go here."
-- [ ] "FILE INTELLIGENCE" dashed button appears when no add-form is open
-- [ ] Clicking "FILE INTELLIGENCE" shows the add form with Title, Notes, Linked Area, and (when an area is selected) a Linked Objective dropdown
-- [ ] Linked Area dropdown lists all areas; default is "— None —"
-- [ ] Selecting an area causes the "Linked Objective" dropdown to appear, listing active goals for that area
-- [ ] Submitting with a blank title does nothing (form stays open)
-- [ ] Submitting with a title closes the form and the idea card appears immediately
-- [ ] Idea cards show title, notes (if any), linked area badge (if set), and linked objective badge (if set)
-- [ ] Ideas are listed newest-first
-- [ ] Clicking anywhere on an idea card (except the action buttons) opens the unified bottom-sheet dialog pre-filled with the idea's data, in IDEA type mode
-- [ ] EDIT button on a card also opens the unified dialog (same behavior as clicking the card body)
-- [ ] The type switcher is visible in the edit dialog; switching to TASK/ROUTINE/GOAL converts the idea
-- [ ] Saving the dialog with IDEA type updates the idea in place; dialog closes
-- [ ] DELETE button shows a "Permanently delete?" confirmation row with CONFIRM and CANCEL buttons
-- [ ] CONFIRM deletes the idea; CANCEL dismisses the confirmation without deleting
-- [ ] PROMOTE TO COMMITMENT opens the Add Commitment sheet with the idea's title and notes pre-filled
-- [ ] If the idea had a linked area, the commitment dialog's area selector is pre-selected to that area
-- [ ] If the idea had a linked objective, promoting it auto-links the created commitment to that objective
-- [ ] Submitting the promoted commitment deletes the idea from the ideas list
-- [ ] Cancelling the commitment sheet leaves the idea intact
-
-**Per-area view (area detail page)**
-
-- [ ] AREA detail page shows an "INTELLIGENCE" section below the Objectives section
-- [ ] Only ideas linked to that area appear in the per-area intelligence section
-- [ ] "MAKE IDEA" button in the embedded view pre-fills the area; no area selector is shown
-- [ ] If the area has active objectives, the Linked Objective dropdown appears in the add form
-- [ ] Ideas added from the per-area view are visible in the global Ideas view
+Still manual / not yet automated: 2-line description clamp, target-date
+sort order, "OVERDUE" styling, linked-commitment-chip rendering on goal
+cards, idea-card metadata badges, and the Linked Area/Objective dropdown
+options specifically from the per-area idea-filing path (only the global
+path is exercised here) — all cosmetic/low-risk for the upcoming redesign.
 
 ### Bug regressions
 
