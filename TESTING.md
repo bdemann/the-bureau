@@ -67,6 +67,10 @@ E2E (Playwright, `e2e/`):
   linking, goal-detail commitment linking/unlinking, area decommission
   cascade; Ideas creation/deletion (both delete paths), idea→task
   conversion, and promotion to a commitment.
+- `insights.spec.ts` — navigation, all empty states, missed-commitment
+  Revive/Dismiss (and the recurring-miss count-only variant), and the
+  activity sections (snoozed/skipped/completed/streaks/per-area overview)
+  reflecting stored task counts.
 
 Converting the rest of the manual checklist below into Playwright specs
 (section by section, highest-churn areas first) is in progress — sections
@@ -427,25 +431,28 @@ in `urgency.test.ts` and `e2e/cadence-picker.spec.ts`'s round-trip tests.
 
 ### Insights
 
-- [ ] Hamburger → Insights navigates to the insights view; bottom nav has no active tab while on this view
-- [ ] Page shows "Insights" title and subtitle
-- [ ] MISSED COMMITMENTS section shows commitments whose one-time hard-date has passed (missedAt set); empty state shows "No missed commitments on record"
-- [ ] Missed one-time hard-date commitments no longer appear in daily or area-detail views
-- [ ] Each missed one-time commitment row shows REVIVE and DISMISS buttons
-- [ ] REVIVE: commitment returns to active; if its suggestedDate was in the past it is reset to today; commitment reappears in daily mandatory band
-- [ ] DISMISS: commitment is permanently deleted and no longer appears anywhere
-- [ ] Recurring commitments with missed periods (totalMisses > 0 but missedAt = null) show the miss count only — no REVIVE/DISMISS buttons
-- [ ] Recurring commitments that rolled over without completion appear in MISSED COMMITMENTS with miss count
-- [ ] MOST SNOOZED section shows commitments with totalSnoozes > 0, sorted by count desc
-- [ ] Snoozing a commitment increments its totalSnoozes (verify by checking insights after snooze)
-- [ ] MOST SKIPPED section shows commitments with totalSkips > 0, sorted by count desc
-- [ ] Skipping a recurring commitment increments its totalSkips (visible in insights)
-- [ ] TOP COMPLETIONS section shows commitments sorted by totalCompletions desc
-- [ ] Completing a commitment increments totalCompletions (visible in insights)
-- [ ] BEST STREAKS section appears when any task has maxTaskCompletionStreak > 1
-- [ ] RESPONSIBILITIES OVERVIEW table appears when areas exist; shows miss/snooze/skip/done counts per area
-- [ ] Recurring commitment rolled over at startup (period elapsed without completion): totalMisses incremented
-- [ ] skipStreak resets to 0 on commitment completion; taskCompletionStreak resets to 0 on skip
+Converted to `e2e/insights.spec.ts` (8 tests): hamburger navigation, all four
+empty states, a missed one-time commitment's Revive (restores it, reappears
+in Daily) and Dismiss (permanently deletes it), recurring-miss rows showing
+count-only with no action buttons, activity sections (snoozed/skipped/
+completed/streaks) reflecting stored counts, and RESPONSIBILITIES OVERVIEW
+appearing once an area exists. missedAt/totalMisses/totalSnoozes/etc. are
+patched directly via `patchCommitmentByTitle` rather than simulated through
+real rollover, same technique as `commitment-lifecycle.spec.ts`.
+
+**Correction to this doc:** the buttons are "Revive" / "Dismiss" (title
+case) — this doc's ALL-CAPS "REVIVE" / "DISMISS" doesn't match any actual
+button text (though they render visually uppercase via CSS
+`text-transform`, so this was easy to miss just by looking).
+
+Still manual / not yet automated: "bottom nav has no active tab" (a cosmetic
+nav-state check); sort order within MOST SNOOZED/SKIPPED/TOP COMPLETIONS;
+"Revive resets a past suggestedDate to today" specifically (only "it
+reappears in Daily" is checked, not the exact date logic); the actual
+rollover-at-startup path that produces these counts organically (covered
+at the data layer already, in `recurrence.test.ts`); skipStreak/
+taskCompletionStreak reset-on-opposite-action, which is really `urgency.ts`/
+`bureau-app.element.ts` logic better suited to a unit test than this view.
 
 ### Lead Time (per-commitment; formerly "Radar lead days")
 
