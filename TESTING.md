@@ -1,26 +1,40 @@
 # Testing — BCR Clear
 
-Two layers:
+Three layers:
 
-1. **Automated** — pure data-layer tests via `node:test` + `@augment-vir/assert`.
+1. **Automated (data)** — pure data-layer tests via `node:test` + `@augment-vir/assert`.
    Run: `npm test` (no browser, no DOM).
-2. **Manual** — UI/UX flows that need a real browser. Use the checklist below.
+2. **Automated (e2e)** — real-browser tests via Playwright. Run: `npm run test:e2e`
+   (spins up the Vite dev server itself). Covers rendering/layout concerns that
+   can't be expressed as pure functions — currently: horizontal-overflow
+   regressions in the make/amend commitment dialog and area wizard at mobile
+   viewport width (see `e2e/dialog-overflow.spec.ts`, `e2e/helpers.ts`).
+3. **Manual** — UI/UX flows that still need a human in a real browser. Use the
+   checklist below.
 
 When you find a bug during manual testing, the goal is to add a regression
-test for it in the automated layer where possible, then fix.
+test for it in one of the automated layers where possible, then fix.
 
 ---
 
 ## Automated coverage (current)
 
+Data layer:
 - `recurrence.ts` — period boundaries, day-of-week / Nth-weekday math, fixed
   vs rolling advance, rollover semantics.
 - `urgency.ts` — every band-decision path including snooze escalation.
 - `storage.ts` — date helpers, visibility/overdue, Phase 1 → Phase 2 migration.
 - `dialogues.ts` — trigger coverage, character preference, defensive fallback.
 
-Not (yet) covered: element rendering, event flows. Those are manual until/unless
-we add a browser test runner.
+E2E (Playwright, `e2e/`):
+- `dialog-overflow.spec.ts` — asserts no element's box extends past the mobile
+  viewport in every make/amend-commitment mode (Routine/Task/Goal/Idea),
+  every recurrence cadence, flexible deadline, milestone toggle, the amend
+  flow, and both area-wizard steps that have their own layout. Add a new case
+  here whenever a new dialog field/section/grid is introduced.
+
+Not yet covered: general event-flow/interaction testing beyond overflow
+checks — most of that is still manual below.
 
 ---
 

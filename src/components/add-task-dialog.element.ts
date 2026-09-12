@@ -280,7 +280,7 @@ export const AddTaskDialogElement = defineElement<{
 
         .tier-grid {
             display: grid;
-            grid-template-columns: repeat(4, 1fr);
+            grid-template-columns: repeat(4, minmax(0, 1fr));
             gap: 6px;
         }
 
@@ -309,7 +309,7 @@ export const AddTaskDialogElement = defineElement<{
 
         .seg {
             display: grid;
-            grid-template-columns: repeat(2, 1fr);
+            grid-template-columns: repeat(2, minmax(0, 1fr));
             gap: 6px;
         }
         .seg ${ViraButton} {
@@ -354,7 +354,7 @@ export const AddTaskDialogElement = defineElement<{
         /* Ordinal-week segmented picker (1st..4th, Last) */
         .ord-grid {
             display: grid;
-            grid-template-columns: repeat(5, 1fr);
+            grid-template-columns: repeat(5, minmax(0, 1fr));
             gap: 4px;
         }
         .ord-grid ${ViraButton} {
@@ -364,7 +364,7 @@ export const AddTaskDialogElement = defineElement<{
         /* Month-of-year picker (Jan..Dec) */
         .month-grid {
             display: grid;
-            grid-template-columns: repeat(4, 1fr);
+            grid-template-columns: repeat(4, minmax(0, 1fr));
             gap: 4px;
         }
         .month-grid ${ViraButton} {
@@ -374,7 +374,7 @@ export const AddTaskDialogElement = defineElement<{
         /* Multi-day-of-month picker (1–31) */
         .dom-multi-grid {
             display: grid;
-            grid-template-columns: repeat(7, 1fr);
+            grid-template-columns: repeat(7, minmax(0, 1fr));
             gap: 3px;
         }
         .dom-multi-grid ${ViraButton} {
@@ -1235,7 +1235,7 @@ export const AddTaskDialogElement = defineElement<{
                                           ${isDailyLikeCadence ? html`
                                               <div class="field">
                                                   <span class="field-label">Skip Days (optional)</span>
-                                                  <div class="seg" style="grid-template-columns: repeat(7, 1fr);">
+                                                  <div class="seg" style="grid-template-columns: repeat(7, minmax(0, 1fr));">
                                                       ${(['Sun','Mon','Tue','Wed','Thu','Fri','Sat'] as const).map((label, dow) => {
                                                           const active = state.skipDays.includes(dow);
                                                           return html`
@@ -1308,7 +1308,7 @@ export const AddTaskDialogElement = defineElement<{
                                               >
                                               <div
                                                   class="seg"
-                                                  style="grid-template-columns: repeat(4, 1fr);"
+                                                  style="grid-template-columns: repeat(4, minmax(0, 1fr));"
                                               >
                                                   ${(
                                                       [
@@ -1584,7 +1584,7 @@ export const AddTaskDialogElement = defineElement<{
                                       ? html`
                         <div class="field">
                             <span class="field-label">Lead Time</span>
-                            <div class="seg" style="grid-template-columns: repeat(3, 1fr);">
+                            <div class="seg" style="grid-template-columns: repeat(3, minmax(0, 1fr));">
                                 <${ViraButton.assign({
                                     text: "Default",
                                     color: ViraColorVariant.Info,
@@ -1691,7 +1691,7 @@ export const AddTaskDialogElement = defineElement<{
                                       ? html`
                                             <div class="field">
                                                 <span class="field-label">Progress Cadence</span>
-                                                <div class="seg" style="grid-template-columns: repeat(2, 1fr);">
+                                                <div class="seg" style="grid-template-columns: repeat(2, minmax(0, 1fr));">
                                                     <${ViraButton.assign({
                                                         text: "Once per day",
                                                         color: ViraColorVariant.Info,

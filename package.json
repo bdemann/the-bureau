@@ -8,7 +8,8 @@
     "book": "vite --open /book/",
     "build": "tsc && vite build",
     "preview": "vite preview",
-    "test": "tsx --test 'src/data/*.test.ts'"
+    "test": "tsx --test 'src/data/*.test.ts'",
+    "test:e2e": "playwright test"
   },
   "dependencies": {
     "date-vir": "npm:@bdemann/date-vir@^8.4.1",
@@ -20,6 +21,7 @@
   },
   "devDependencies": {
     "@augment-vir/assert": "^31.69.0",
+    "@playwright/test": "^1.63.0",
     "@types/node": "^20.0.0",
     "tsx": "^4.21.0",
     "typescript": "^5.4.0",

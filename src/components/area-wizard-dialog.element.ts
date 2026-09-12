@@ -258,7 +258,7 @@ export const AreaWizardDialogElement = defineElement<{
         /* Tier grid */
         .tier-grid {
             display: grid;
-            grid-template-columns: repeat(4, 1fr);
+            grid-template-columns: repeat(4, minmax(0, 1fr));
             gap: 6px;
         }
         .tier-grid ${ViraButton} {
@@ -276,7 +276,7 @@ export const AreaWizardDialogElement = defineElement<{
         /* Time-of-day picker */
         .tod-grid {
             display: grid;
-            grid-template-columns: repeat(5, 1fr);
+            grid-template-columns: repeat(5, minmax(0, 1fr));
             gap: 6px;
         }
         .tod-grid ${ViraButton} {
@@ -285,13 +285,14 @@ export const AreaWizardDialogElement = defineElement<{
 
         .actions {
             display: flex;
+            flex-wrap: wrap;
             gap: 10px;
             margin-top: 20px;
             align-items: center;
         }
 
         .actions-grow {
-            flex: 1;
+            flex: 1 1 auto;
         }
 
     `,
