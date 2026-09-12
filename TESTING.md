@@ -5,10 +5,11 @@ Three layers:
 1. **Automated (data)** — pure data-layer tests via `node:test` + `@augment-vir/assert`.
    Run: `npm test` (no browser, no DOM).
 2. **Automated (e2e)** — real-browser tests via Playwright. Run: `npm run test:e2e`
-   (spins up the Vite dev server itself). Covers rendering/layout concerns that
-   can't be expressed as pure functions — currently: horizontal-overflow
-   regressions in the make/amend commitment dialog and area wizard at mobile
-   viewport width (see `e2e/dialog-overflow.spec.ts`, `e2e/helpers.ts`).
+   (spins up the Vite dev server itself). Covers rendering/layout/interaction
+   concerns that can't be expressed as pure functions: mobile overflow,
+   dialog field wiring, view-specific behavior (status transitions, linking,
+   drag-and-drop reordering), and UI wiring around already-unit-tested pure
+   logic. See the full spec list below.
 3. **Manual** — UI/UX flows that still need a human in a real browser. Use the
    checklist below.
 
@@ -84,13 +85,21 @@ E2E (Playwright, `e2e/`):
   brainstorm-to-configuration loop.
 - `bug-regressions.spec.ts` — skip fires no dialogue change; the streak=0
   header text.
+- `reordering.spec.ts` — drag-and-drop reordering of commitments (daily
+  view and area-detail) and areas (dashboard), via Playwright's native
+  `dragTo()`: drag-onto-target, the bottom drop-zone, persistence across
+  reload, and area-scoped isolation — verified against actual stored
+  array order.
 
-Converting the rest of the manual checklist below into Playwright specs
-(section by section, highest-churn areas first) is in progress — sections
-above have been removed as they were converted. `page.clock` (Playwright's
-clock-mocking API) is the intended approach for the date/rollover-dependent
-checks; true OS-level PWA-install chrome and subjective visual-design
-judgment calls are expected to stay manual permanently.
+The manual-checklist conversion (section by section, highest-churn areas
+first) is essentially complete — every section below has either been
+converted (and removed, replaced with a short pointer + any corrections
+found) or explicitly marked as staying manual with a reason. The only
+sections left below are ones that genuinely can't be Playwright specs yet:
+PWA/install (OS-level chrome) and a handful of individually-noted "still
+manual" items scattered through the converted sections' notes (mostly
+clock-dependent behavior — `page.clock` is the intended approach for a
+future pass — or purely cosmetic/visual judgment calls).
 
 ---
 
@@ -261,26 +270,25 @@ as a stale doc section — see above — so this can't currently be exercised
 via the dialog at all); the dialogue-line easter egg (unfalsifiable, low
 value to automate).
 
-### Reordering commitments
+### Reordering commitments / Reordering areas (dashboard)
 
-- [ ] Each commitment card in area-detail (active commitments) shows a `⠿` drag handle on the right
-- [ ] Each commitment card in daily view shows a `⠿` drag handle on the right
-- [ ] Dragging a commitment by its handle (or anywhere on the card) shows the card at reduced opacity
-- [ ] A blue line appears above the drop target as the dragged card hovers over it
-- [ ] Dropping onto another commitment inserts the dragged one before the target
-- [ ] A drop zone at the bottom of each list allows moving a commitment to the last position
-- [ ] Reorder persists after navigating away and back (saved to state)
-- [ ] Reordering in area-detail does not affect commitments in other areas
-- [ ] Reordering within a daily-view band does not affect commitments in other bands
-- [ ] Reordering within one time-slot group does not affect commitments in another slot group within the same band
+Converted to `e2e/reordering.spec.ts` (6 tests) using Playwright's native
+`dragTo()` (real HTML5 drag-and-drop events — these components use
+`draggable="true"` + dragstart/dragover/drop, not pointer-based dragging,
+so plain mouse-move simulation wouldn't trigger them). Covers: drag handle
+presence, drag-onto-another-card reordering (persists after reload), the
+bottom drop-zone moving an item to last position, and reordering in one
+area not disturbing another area's commitments — all verified by reading
+the actual `commitments`/`areas` array order in `bureau_v1`, not just
+visual position.
 
-### Reordering areas (dashboard)
-
-- [ ] Dragging an area card on the dashboard shows the card at reduced opacity
-- [ ] A blue line appears above the drop target as the dragged card hovers over it
-- [ ] Dropping onto another card inserts the dragged one before the target
-- [ ] A drop zone at the bottom of the list allows moving an area to the last position
-- [ ] Reorder persists after navigating away and back (saved to state)
+Still manual / not yet automated: the reduced-opacity dragging visual and
+the blue drop-target indicator line (purely cosmetic feedback); reordering
+scoped to one daily-view band or one time-of-day slot group specifically
+not disturbing others (the area-scoping case is covered as the
+representative example of "reorder handler only touches its own subset";
+same underlying `onCommitmentsReordered`/`onTasksReordered` pattern, not
+worth re-testing per band/slot).
 
 ### Filing commitments from the daily view / Area of Responsibility assignment / Commitment termination
 
