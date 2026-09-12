@@ -74,6 +74,10 @@ E2E (Playwright, `e2e/`):
 - `preferences-persistence.spec.ts` — hide-score toggle (on/off, keeps
   tracking while hidden, persists across reload) and basic persistence
   (survives reload, `bureau_v1` shape).
+- `app-shell-nav.spec.ts` — header/default-view/no-console-errors, hamburger
+  menu open/backdrop-close/navigation, all four bottom-nav tabs and their
+  detail-view highlight persistence, and the UNDO toast's z-order relative
+  to the nav bar.
 
 Converting the rest of the manual checklist below into Playwright specs
 (section by section, highest-churn areas first) is in progress — sections
@@ -89,34 +93,28 @@ judgment calls are expected to stay manual permanently.
 Mark each row as you verify in the browser. Reset the localStorage entry
 `bureau_v1` between phases when you want a clean state.
 
-### App shell
+### App shell / Bottom navigation bar
 
-- [ ] Page loads with no console errors
-- [ ] Header shows `CLEAR` + `BUREAU OF CIVIC RESPONSIBILITY` subtitle
-- [ ] Patriot score + streak render top-right
-- [ ] Daily is the default landing view
-- [ ] Hamburger (☰) opens slide-in menu from the right; menu shows Insights and Report a Neighbor only
-- [ ] Menu → Insights navigates to insights view and closes menu
-- [ ] Menu → Report a Neighbor triggers share sheet (or copies link)
-- [ ] Clicking outside the menu panel closes it
-- [ ] Day-start dialogue appears on first load each day; dismiss closes it
+Converted to `e2e/app-shell-nav.spec.ts` (9 tests): header text, default
+landing view, no console errors, hamburger open + backdrop-close, Menu →
+Insights, all four tabs' visibility and switching, Areas/Goals tabs staying
+highlighted in their detail views (and returning to the list when tapped
+from there), and the UNDO toast rendering above (not behind) the nav bar.
 
-### Bottom navigation bar
+**Correction to this doc:** "menu shows Insights and Report a Neighbor
+only" is well out of date — the hamburger menu now has five sections
+(Filed Records: All Tasks/Routines/Commitments; Performance: Insights;
+Community Duty: Report a Neighbor; Shopping List; Preferences; Your Data:
+Export Spreadsheet/Export Your Records/Restore Records).
 
-- [ ] Fixed bottom nav bar is visible on all primary views: Daily, Areas, Ideas, Goals
-- [ ] Bar shows four tabs: Daily · Areas · Ideas · Goals, each with an SVG icon above its label
-- [ ] SVG icons render at consistent size (~22px), filled with current color (amber when active, muted when inactive)
-- [ ] Icons: calendar (Daily), grid (Areas), lightbulb (Ideas), flag (Goals)
-- [ ] Active tab is highlighted in amber with an amber indicator line at its top edge
-- [ ] Tapping Daily tab navigates to the daily view
-- [ ] Tapping Areas tab navigates to the areas of responsibility list
-- [ ] Tapping Ideas tab navigates to the ideas view
-- [ ] Tapping Goals tab navigates to the goals list
-- [ ] While in an area detail (area drill-down), the Areas tab stays highlighted
-- [ ] While in a goal detail, the Goals tab stays highlighted
-- [ ] Tapping Areas or Goals tab from their detail view returns to the top-level list
-- [ ] On iOS PWA: nav bar sits above the home-indicator safe area (no content clipped)
-- [ ] Undo toast appears above the nav bar, not behind it
+Still manual / not yet automated: SVG icon rendering specifics (size,
+per-tab icon shape, color-by-state) — visual, not worth e2e-asserting on
+markup structure; "Menu → Report a Neighbor triggers share sheet" (native
+share-sheet/clipboard behavior isn't something Playwright can observe
+directly); day-start dialogue appearance/dismiss (already incidentally
+visible in every screenshot throughout this whole conversion effort, but
+not explicitly asserted); iOS PWA safe-area inset (needs a real device or
+PWA-specific viewport simulation, out of scope for regular Playwright).
 
 ### Areas of Responsibility view (area list)
 
