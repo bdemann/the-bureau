@@ -47,3 +47,22 @@ export async function openMakeCommitment(page: Page): Promise<void> {
 export async function fillTitle(page: Page, value: string): Promise<void> {
     await page.getByPlaceholder("Describe the commitment clearly.").fill(value);
 }
+
+export async function createGoal(page: Page, title: string): Promise<void> {
+    await page.getByText("Goals", { exact: true }).click();
+    await page.getByText("MAKE GOAL", { exact: false }).first().click();
+    await fillTitle(page, title);
+    await page.getByText("SET GOAL", { exact: true }).click();
+    await expect(page.getByText(title, { exact: true })).toBeVisible();
+}
+
+/** Opens a goal's detail view, adds a Task linked to it via "MAKE NEW COMMITMENT". */
+export async function addTaskLinkedToGoal(page: Page, goalTitle: string, taskTitle: string): Promise<void> {
+    await page.getByText("Goals", { exact: true }).click();
+    await page.getByText(goalTitle, { exact: true }).click();
+    await page.getByText("MAKE NEW COMMITMENT", { exact: false }).first().click();
+    await page.getByText("Task", { exact: true }).click();
+    await fillTitle(page, taskTitle);
+    await page.getByText("ADD TASK", { exact: true }).click();
+    await expect(page.getByText(taskTitle, { exact: true })).toBeVisible();
+}

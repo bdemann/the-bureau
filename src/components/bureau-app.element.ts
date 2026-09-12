@@ -1604,6 +1604,11 @@ export const BureauAppElement = defineElement()({
                         state.promotingIdea?.description ?? null,
                     defaultKind: state.newTaskDefaultKind,
                     defaultGoalId: state.spawningForGoalId,
+                    linkedCommitmentCount: state.editingGoal
+                        ? tasksOf(state.app.commitments).filter(
+                              (t) => t.goalId === state.editingGoal!.id,
+                          ).length
+                        : 0,
                     activeSkinId: state.activeSkinId,
                 })}
                     ${listen(AddTaskDialogElement.events.taskSubmitted, (e) =>

@@ -32,9 +32,18 @@ E2E (Playwright, `e2e/`):
   every recurrence cadence, flexible deadline, milestone toggle, the amend
   flow, and both area-wizard steps that have their own layout. Add a new case
   here whenever a new dialog field/section/grid is introduced.
+- `type-switcher.spec.ts` — type picker defaults/titles/submit labels for all
+  four kinds, title preservation across a kind switch, routine-forces-recurring
+  behavior, task→goal cross-type conversion, and the goal dissociation-warning
+  flow (warning text, Save disabled while pending, Cancel reverts, Proceed
+  completes the switch and actually dissociates the linked commitment).
 
-Not yet covered: general event-flow/interaction testing beyond overflow
-checks — most of that is still manual below.
+Converting the rest of the manual checklist below into Playwright specs
+(section by section, highest-churn areas first) is in progress — sections
+above have been removed as they were converted. `page.clock` (Playwright's
+clock-mocking API) is the intended approach for the date/rollover-dependent
+checks; true OS-level PWA-install chrome and subjective visual-design
+judgment calls are expected to stay manual permanently.
 
 ---
 
@@ -138,50 +147,25 @@ Mark each row as you verify in the browser. Reset the localStorage entry
 - [ ] Cancelling confirmation returns to normal view with no changes
 - [ ] Confirming decommission removes the area and all its commitments, then navigates back to Areas of Responsibility
 
-### Filing commitments — type picker
+### Filing commitments — type switcher, cross-type conversion, dissociation warning
 
-- [ ] `+ MAKE COMMITMENT` (daily view) and `+ MAKE NEW COMMITMENT` (area detail) both show a bottom-sheet type picker with 4 options: ROUTINE / TASK / GOAL / IDEA
-- [ ] Tapping the backdrop outside the panel dismisses the picker without creating anything
-- [ ] CANCEL button also dismisses
-- [ ] ROUTINE → opens the add-commitment sheet pre-set to Routine mode (recurring on, daily cadence)
-- [ ] TASK → opens the add-commitment sheet pre-set to Task mode (one-time, hard date)
-- [ ] GOAL → opens the add-commitment sheet pre-set to Goal mode (title = "FILE NEW GOAL")
-- [ ] IDEA → opens the add-commitment sheet pre-set to Idea mode (title = "FILE NEW IDEA")
+Converted to `e2e/type-switcher.spec.ts` (see Automated coverage above). Two
+things worth knowing if you're touching this area again:
 
-### Filing commitments — type switcher (create and edit)
+- The old "type picker" bottom sheet (backdrop dismiss, per-kind titles like
+  "FILE NEW GOAL") no longer exists — `+ MAKE COMMITMENT` / `+ MAKE NEW
+  COMMITMENT` opens the unified dialog directly (defaults to Task kind), with
+  the ROUTINE/TASK/GOAL/IDEA toggle inside it.
+- The goal dissociation warning ("switching a goal with linked commitments
+  shows a confirmation") had regressed to dead code (CSS defined, never
+  wired into the template) — it's been restored in `add-task-dialog.element.ts`
+  (`pendingKindSwitch` state + `linkedCommitmentCount` input computed in
+  `bureau-app.element.ts`) and is covered by the new spec.
 
-- [ ] Add dialog defaults to TASK kind selected
-- [ ] ROUTINE / TASK / GOAL / IDEA type toggle is visible in BOTH create and edit mode
-- [ ] Switching type in create mode shows the correct fields for each type
-- [ ] Switching type in edit mode shows the correct fields and preserves previously-entered data
-- [ ] Switching to ROUTINE forces recurring ON (if it was off); does not clobber other recurrence settings
-- [ ] Switching to TASK from ROUTINE preserves the isRecurring state (doesn't force it off)
-- [ ] Selecting ROUTINE changes sheet title to "MAKE NEW ROUTINE" / "AMEND ROUTINE" and submit to "COMMIT ROUTINE" / "SAVE ROUTINE"
-- [ ] Selecting TASK shows "MAKE NEW TASK" / "AMEND TASK" and "FILE TASK" / "SAVE TASK"
-- [ ] Selecting GOAL shows "NEW GOAL" / "AMEND GOAL" and "SET GOAL" / "SAVE GOAL"
-- [ ] Selecting IDEA shows "NEW IDEA" / "AMEND IDEA" and "FILE IDEA" / "SAVE IDEA"
-- [ ] Commitments with `kind=routine` show a ROUTINE chip in the task-item card
-
-### Cross-type conversion (edit mode)
-
-- [ ] Edit a task → switch to GOAL → save: original task is removed; a new goal appears in Goals view
-- [ ] Edit a routine → switch to IDEA → save: original routine is removed; idea appears in Ideas view
-- [ ] Edit a goal → switch to TASK → save: original goal is removed; new task appears in commitment lists
-- [ ] Edit an idea → switch to TASK → save: original idea is removed; new commitment appears
-- [ ] Linked goal picker is visible in edit mode for TASK/ROUTINE (shows current linked goal pre-selected)
-- [ ] Linked goal picker is visible even when an area is selected that has no goals — shows "— None —" only (regression: issue #28)
-- [ ] Changing the linked goal in edit mode and saving rewires the goal linkages correctly
-- [ ] Removing the linked goal in edit mode and saving removes the task from the old goal's linked list
-
-### Goal → other type conversion (dissociation warning)
-
-- [ ] Editing a goal that has linked commitments: switching to any other type shows a yellow warning banner
-- [ ] Warning reads "This goal has N linked commitment(s). Switching type will dissociate them." (text uses the skin's goal term)
-- [ ] Clicking CANCEL in the warning returns to goal edit mode; no type switch occurs
-- [ ] Clicking PROCEED dismisses the warning and switches to the new type
-- [ ] Save button is disabled while the warning is visible
-- [ ] After confirming PROCEED: saving removes the goal (its linked commitments are no longer under any goal)
-- [ ] Editing a goal with NO linked commitments: switching type immediately (no warning shown)
+Not yet automated: "removing the linked goal in edit mode removes the task
+from the old goal's linked list" and "changing the linked goal rewires
+linkages correctly" — both plausible from the code but not yet asserted
+end-to-end.
 
 ### Task commitment creation — one-time
 

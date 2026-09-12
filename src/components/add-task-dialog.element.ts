@@ -73,6 +73,8 @@ export const AddTaskDialogElement = defineElement<{
     goals?: ReadonlyArray<Goal>;
     /** Pre-selects a goal in the Linked Objective picker (for task/routine/idea forms). */
     defaultGoalId?: string | null;
+    /** Number of commitments currently linked to `editGoal` — drives the kind-switch dissociation warning. */
+    linkedCommitmentCount?: number;
     /** Re-render trigger — changes when the active skin changes. */
     activeSkinId: string;
 }>()({
@@ -156,6 +158,8 @@ export const AddTaskDialogElement = defineElement<{
         progressCadenceConfig: defaultCadenceConfig('daily'),
         // ── Skip days (daily cadence only) ──
         skipDays: [] as number[],
+        /** Kind the user clicked while a dissociation warning must be confirmed first; null = no pending switch. */
+        pendingKindSwitch: null as FormKind | null,
     }),
 
     styles: css`
@@ -506,6 +510,7 @@ export const AddTaskDialogElement = defineElement<{
         }
         .kind-switch-warning-actions {
             display: flex;
+            flex-wrap: wrap;
             gap: 8px;
         }
         .kind-switch-proceed {
@@ -619,6 +624,7 @@ export const AddTaskDialogElement = defineElement<{
                     ? cadenceConfigFromRecurrence({ ...t.progressCadence, scheduleMode: 'fixed', endMode: 'never' })
                     : defaultCadenceConfig('daily'),
                 skipDays: t.recurrence?.skipDays ?? [],
+                pendingKindSwitch: null,
             });
         }
 
@@ -641,6 +647,7 @@ export const AddTaskDialogElement = defineElement<{
                 linkedGoalId: null,
                 originalLinkedGoalId: null,
                 ideaLinkedGoalId: null,
+                pendingKindSwitch: null,
             });
         }
 
@@ -660,6 +667,7 @@ export const AddTaskDialogElement = defineElement<{
 
                 linkedGoalId: null,
                 originalLinkedGoalId: null,
+                pendingKindSwitch: null,
             });
         }
 
@@ -700,6 +708,7 @@ export const AddTaskDialogElement = defineElement<{
                 currentEditId: null,
                 hasProgressCadence: false,
                 progressCadenceConfig: defaultCadenceConfig('daily'),
+                pendingKindSwitch: null,
             });
         }
 
@@ -717,6 +726,7 @@ export const AddTaskDialogElement = defineElement<{
             (state.cadenceConfig.cadence === "daily" || state.cadenceConfig.cadence === "multiple_per_day");
 
         const canSubmit =
+            state.pendingKindSwitch === null &&
             state.titleValue.trim().length > 0 &&
             // Rigid tasks need a date — unless an anchor implies one.
             (!isTaskOrRoutine ||
@@ -731,6 +741,12 @@ export const AddTaskDialogElement = defineElement<{
 
         // ── Kind-switch helpers ─────────────────────────────────────────────────
 
+        // Switching a goal (that has linked commitments) to another type dissociates
+        // those commitments — confirm before doing it instead of switching silently.
+        const editingExistingGoal =
+            editGoal !== null && state.editGoalId === editGoal.id;
+        const linkedCommitmentCount = inputs.linkedCommitmentCount ?? 0;
+
         function doKindSwitch(newKind: FormKind): void {
             const updates: Parameters<typeof updateState>[0] = {kind: newKind};
             // Routines must be recurring; only force it if not already set.
@@ -739,7 +755,30 @@ export const AddTaskDialogElement = defineElement<{
             }
             updateState(updates);
         }
-        const onKindClick = doKindSwitch;
+
+        function onKindClick(newKind: FormKind): void {
+            if (newKind === state.kind) return;
+            if (
+                state.kind === "goal" &&
+                editingExistingGoal &&
+                linkedCommitmentCount > 0
+            ) {
+                updateState({ pendingKindSwitch: newKind });
+                return;
+            }
+            doKindSwitch(newKind);
+        }
+
+        function confirmKindSwitch(): void {
+            if (state.pendingKindSwitch !== null) {
+                doKindSwitch(state.pendingKindSwitch);
+            }
+            updateState({ pendingKindSwitch: null });
+        }
+
+        function cancelKindSwitch(): void {
+            updateState({ pendingKindSwitch: null });
+        }
 
         // ── Task builder (shared by add + edit task/routine paths) ───────────────
 
@@ -1107,6 +1146,35 @@ export const AddTaskDialogElement = defineElement<{
                             @click=${() => onKindClick("idea")}
                         ></${ViraButton}>
                     </div>
+
+                    ${
+                        state.pendingKindSwitch !== null
+                            ? html`
+                                  <div class="kind-switch-warning">
+                                      <p>
+                                          This ${skin.types.goal.toLowerCase()}
+                                          has ${linkedCommitmentCount} linked
+                                          commitment${linkedCommitmentCount === 1 ? "" : "s"}.
+                                          Switching type will dissociate them.
+                                      </p>
+                                      <div class="kind-switch-warning-actions">
+                                          <button
+                                              class="kind-switch-cancel"
+                                              @click=${cancelKindSwitch}
+                                          >
+                                              CANCEL
+                                          </button>
+                                          <button
+                                              class="kind-switch-proceed"
+                                              @click=${confirmKindSwitch}
+                                          >
+                                              PROCEED
+                                          </button>
+                                      </div>
+                                  </div>
+                              `
+                            : html``
+                    }
 
                     <!-- Title -->
                     <div class="field">
