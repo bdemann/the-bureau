@@ -71,6 +71,9 @@ E2E (Playwright, `e2e/`):
   Revive/Dismiss (and the recurring-miss count-only variant), and the
   activity sections (snoozed/skipped/completed/streaks/per-area overview)
   reflecting stored task counts.
+- `preferences-persistence.spec.ts` — hide-score toggle (on/off, keeps
+  tracking while hidden, persists across reload) and basic persistence
+  (survives reload, `bureau_v1` shape).
 
 Converting the rest of the manual checklist below into Playwright specs
 (section by section, highest-churn areas first) is in progress — sections
@@ -532,18 +535,27 @@ path is exercised here) — all cosmetic/low-risk for the upcoming redesign.
 
 ### Preferences — hide score
 
-- [ ] Preferences view shows a SCORE section with a "Hide score" toggle and a flavor note beneath it (BCR skin: text mentions reporting to BCR officials / becoming a true patriot)
-- [ ] Toggle "Hide score" on → header score number, rank/streak label, and progress bar all disappear; wordmark stays centered and layout is not broken
-- [ ] Toggle "Hide score" off → score number, rank/streak label, and progress bar reappear with the current score
-- [ ] Complete or skip a commitment while score is hidden, then toggle off → header score reflects the change (confirms score is still tracked while hidden)
-- [ ] Reload the page with "Hide score" on → header score stays hidden (DevTools → Local Storage key `bureau-hide-score` is `true`)
-- [ ] Switch skins with the toggle on → the SCORE section label and flavor note follow the active skin; score stays hidden
+Converted to `e2e/preferences-persistence.spec.ts`: toggling on/off hides/
+shows `.score-number`, score keeps updating while hidden (toggle off after
+completing a task to confirm), and the hidden state persists across reload
+(`bureau-hide-score` in localStorage is `"true"`). Note the toggle itself is
+a zero-size, opacity:0 checkbox behind a visible `.toggle-track` — clicking
+the input directly fails Playwright's actionability check; click the
+wrapping `<label class="toggle">` instead (there are two `.dark-mode-row`
+elements on the page — dark mode and hide-score both reuse the class — so
+scope by the row's text, not the bare class).
+
+Still manual / not yet automated: rank/streak label and progress bar
+hiding specifically (only the score number is asserted); wordmark staying
+centered / layout not breaking (visual); the flavor-note copy following
+the active skin.
 
 ### Persistence
 
-- [ ] Hard refresh: state survives
-- [ ] Close tab + reopen: state survives
-- [ ] DevTools → Application → Local Storage → key `bureau_v1` is JSON
+Converted to `e2e/preferences-persistence.spec.ts`: state survives a hard
+reload, and `bureau_v1` is well-formed JSON containing what was created.
+"Close tab + reopen" specifically isn't distinguished from reload in
+Playwright (both exercise the same load-from-localStorage path).
 
 ### PWA / install
 
