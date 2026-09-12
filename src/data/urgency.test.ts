@@ -96,8 +96,8 @@ describe('getDailyBand — Step 0 (visibility)', () => {
     test('brand-new recurring task whose first occurrence is in a future period is NOT hidden', () => {
         // Regression: a never-completed monthly/quarterly/etc. task can legitimately get
         // a future currentPeriodStart from initialiseRecurrence (e.g. created after this
-        // period's anchor day already passed) or from rolloverIfNeeded after a miss/skip
-        // (not a completion). Neither case should be mistaken for "already done."
+        // period's anchor day already passed) or from rolloverIfNeeded after a miss
+        // (not a completion or skip). Neither case should be mistaken for "already done."
         const today = date('2026-05-09');
         const future = date('2026-06-01');
         const t = makeTask({
@@ -108,6 +108,22 @@ describe('getDailyBand — Step 0 (visibility)', () => {
             taskCompletionStreak: 0,
         });
         assert.notStrictEquals(getDailyBand(t, today), 'hidden');
+    });
+
+    test('daily task is hidden immediately after being explicitly skipped', () => {
+        // Regression: onTaskSkipped calls advanceRecurrence (currentPeriodStart -> tomorrow)
+        // and resets taskCompletionStreak to 0 — the same shape as a brand-new task. Without
+        // also checking totalSkips, the fix above would leave a just-skipped task visible.
+        const today = date('2026-05-09');
+        const tomorrow = date('2026-05-10');
+        const t = makeTask({
+            recurrence: makeRecurrence({cadence: 'daily'}),
+            completedAt: null,
+            currentPeriodStart: tomorrow.getTime(),
+            taskCompletionStreak: 0,
+            totalSkips: 1,
+        });
+        assert.strictEquals(getDailyBand(t, today), 'hidden');
     });
 
     test('monthly multi-dom: hidden after completing the 1st when next occurrence is the 15th (same month)', () => {

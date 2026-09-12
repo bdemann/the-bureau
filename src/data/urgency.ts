@@ -81,19 +81,27 @@ function isCompletedForPeriod(task: Task, today: Date): boolean {
     if (task.recurrence && task.currentPeriodStart !== null) {
         const todayMs = startOfDay(today).getTime();
         // A future currentPeriodStart/suggestedDate is ambiguous on its own: it
-        // means either (a) the task was just completed and advanceRecurrence
-        // moved it into the next period, or (b) this is a brand-new task (or one
-        // that just rolled over from a miss/skip) whose *first* eligible
-        // occurrence naturally lands beyond today — e.g. a monthly task created
-        // after this month's anchor day already passed. Only (a) should hide the
-        // task; (b) hasn't happened yet and must stay visible (radar/backlog)
-        // until its date arrives. taskCompletionStreak is incremented as part of
-        // the same completion that calls advanceRecurrence, and is explicitly
-        // reset to 0 on every miss/skip rollover — so `> 0` reliably means "the
-        // most recent period transition was a genuine completion."
-        const justCompleted = task.taskCompletionStreak > 0;
+        // means either (a) the user actively resolved today's occurrence
+        // (completed or skipped it) and the period pointer moved forward, or
+        // (b) nothing has been resolved yet — this is a brand-new task, or one
+        // passively rolled forward by rolloverIfNeeded (e.g. at app startup)
+        // because it was missed — whose *pending* occurrence naturally lands
+        // beyond today, e.g. a monthly task created after this month's anchor
+        // day already passed. Only (a) should hide the task; (b) hasn't been
+        // dealt with and must stay visible (radar/backlog) until its date
+        // arrives. taskCompletionStreak > 0 precisely means "the most recent
+        // transition was a genuine completion" (skip and passive-miss rollover
+        // both reset it to 0). There's no equally precise per-transition signal
+        // for "was just explicitly skipped" (skipStreak increments on passive
+        // misses too, not skip alone) — totalSkips > 0 is a lifetime counter,
+        // not a "just now" flag, so a task with any skip in its history that
+        // later rolls into a future period via a later, unrelated passive miss
+        // will be (incorrectly) treated as resolved. Accepted as a narrower,
+        // pre-existing-style imprecision in exchange for correctly hiding a
+        // task immediately after the far more common case of an explicit skip.
+        const justResolved = task.taskCompletionStreak > 0 || task.totalSkips > 0;
         // Standard: period has been advanced past today → done for this period.
-        if (task.currentPeriodStart > todayMs) return justCompleted;
+        if (task.currentPeriodStart > todayMs) return justResolved;
         // Multi-day weekly tasks: each selected day is its own occurrence.
         // advanceRecurrence sets suggestedDate to the NEXT occurrence day but
         // keeps currentPeriodStart at the current week's Sunday, so the standard
@@ -111,7 +119,7 @@ function isCompletedForPeriod(task: Task, today: Date): boolean {
         if (isMultiOccurrenceWithinPeriod
                 && task.suggestedDate !== null
                 && task.suggestedDate > todayMs) {
-            return justCompleted;
+            return justResolved;
         }
         return false;
     }
