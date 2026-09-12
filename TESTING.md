@@ -78,6 +78,10 @@ E2E (Playwright, `e2e/`):
   menu open/backdrop-close/navigation, all four bottom-nav tabs and their
   detail-view highlight persistence, and the UNDO toast's z-order relative
   to the nav bar.
+- `areas.spec.ts` — area list empty state, wizard cancel with/without data,
+  the "✓ CLEARED" all-clear flag rules, area-detail (empty state, cleared-
+  tasks toggle, EDIT/DELETE AREA), and the wizard's step 2/3 multi-routine
+  brainstorm-to-configuration loop.
 
 Converting the rest of the manual checklist below into Playwright specs
 (section by section, highest-churn areas first) is in progress — sections
@@ -118,69 +122,73 @@ PWA-specific viewport simulation, out of scope for regular Playwright).
 
 ### Areas of Responsibility view (area list)
 
-- [ ] Empty: shows `NO AREAS OF RESPONSIBILITY` stamp
-- [ ] `+ NEW AREA OF RESPONSIBILITY` button opens the wizard
-- [ ] Wizard cancel (with no data entered) closes immediately without creating anything
-- [ ] Clicking outside the wizard with data entered shows "DISCARD CHANGES?" confirmation
-- [ ] Confirmation "Keep editing" returns to the wizard with all data intact
-- [ ] Confirmation "Discard" closes the wizard and clears all state
-- [ ] Click card → area-detail opens
-- [ ] Multiple areas render
-- [ ] A area where all `kind=task` commitments are completed shows "CLEARED" (regardless of routines)
-- [ ] A area with only routines (no tasks) never shows "CLEARED"
-- [ ] A area with a mix: CLEARED only when the task commitments are all done
+Converted to `e2e/areas.spec.ts` (9 tests, shared with Area-detail below):
+empty state, wizard cancel with/without data (DISCARD CHANGES?, Keep
+editing, Discard), and the "✓ CLEARED" all-clear flag (only when every
+`kind=task` commitment is done, regardless of routines; never for
+routine-only areas).
+
+**Bug found and fixed while writing these tests:** the wizard's discard-
+confirmation mini-dialog ("DISCARD CHANGES? / Keep editing / Discard")
+explicitly overrode its bottom padding to a plain `24px`, discarding the
+nav-bar clearance (`64px` + safe-area) the main wizard sheet uses. Since
+it and the fixed bottom nav share the same z-index (200) and nav wins
+DOM-order stacking, its buttons were genuinely covered by the nav bar on
+mobile — a real, reproducible instance of the "buttons hang off/under the
+edge" class of bug this whole conversion effort started from. Fixed in
+`area-wizard-dialog.element.ts`; confirmed by writing the test against the
+broken version first (real click failed, occlusion error), then against
+the fix (real click succeeds).
+
+Note: "CLEARED" as a bare word always appears in the per-card stat row too
+(`N CLEARED`, the completed-count) — the all-clear flag specifically reads
+"✓ CLEARED", and tests must match that exact string to avoid a false
+positive.
 
 ### Area of Responsibility creation wizard
 
-- [ ] On mobile: wizard sheet scrolls so all content (including bottom buttons) is visible above the nav bar — nav bar remains visible and on top (regression: issue #10)
-- [ ] Step 1: Continue disabled until area name is typed
-- [ ] Step 1: Description is optional (Continue works with empty description)
-- [ ] Step 1: Color picker selects a highlight color; swatch updates visually
-- [ ] Step 1: "Quick create (no commitments)" skips to area creation with no commitments
-- [ ] Step 2: Brainstorm textarea accepts free text; parsed names preview below (split on newlines and commas, empties stripped)
-- [ ] Step 2: "Create without commitments" creates the area immediately with no commitments
-- [ ] Step 2: "Configure N commitments →" advances to step 3 with the parsed list
-- [ ] Step 3: Commitment name pre-filled from brainstorm text; editable
-- [ ] Step 3: Tier T1–T4 grid selects consequence tier
-- [ ] Step 3: Default cadence is Daily
-- [ ] Step 3: Cadence grid (Daily / Weekly / Monthly / Quarterly / Annually) is selectable
-- [ ] Step 3 Annually: Season shortcuts (Spring/Summer/Fall/Winter) appear and select corresponding month
-- [ ] Step 3 Annually: Month grid (Jan–Dec, 4×3) appears; active month is highlighted
-- [ ] Step 3 Annually: Day-of-month field appears; anchor summary reads "Every Sep 1st." etc.
-- [ ] Step 3 Annually: Clicking a season shortcut and then checking the month grid shows the correct month highlighted
-- [ ] Step 3 Weekly: day-of-week multi-select appears; multiple days can be toggled
-- [ ] Step 3 Weekly: default day selected is today's day of the week
-- [ ] Step 3 Monthly: "Day of month" / "Nth weekday" toggle appears
-- [ ] Step 3 Monthly (day of month): numeric input accepts 1–31
-- [ ] Step 3 Monthly (Nth weekday): 1st/2nd/3rd/4th/5th\*/Last picker + day-of-week picker appear
-- [ ] Step 3 Monthly (Nth weekday): anchor summary reads "The 2nd Sunday of each month" etc.
-- [ ] Step 3 Monthly (Nth weekday): selecting 5th\* shows "(skips months without a 5th)" in summary
-- [ ] Step 3: Time-of-day grid (Anytime / Morning / Afternoon / Evening) is selectable
-- [ ] Step 3: "Create with commitments so far" creates the area using only configured commitments up to this point
-- [ ] Step 3: "Next Commitment →" advances to the next commitment without creating yet
-- [ ] Step 3: Last commitment shows "Create Area ✓" instead of Next
-- [ ] After wizard completes: area card appears in dashboard
-- [ ] After wizard completes: commitments appear with ROUTINE chip in area detail
+Step 3's tier/cadence/time-of-day pickers are the same `<cadence-picker>`
+element already exhaustively covered by `cadence-picker.spec.ts` against
+the main commitment dialog — not re-tested per cadence/season/ordinal here,
+since it's identical shared-component behavior. What's unique to the
+wizard — brainstorm-text parsing into multiple routines and the per-routine
+Next Commitment → / Create Area ✓ loop — is converted to `e2e/areas.spec.ts`
+("Area creation wizard — steps 2 and 3"): one routine created per
+brainstorm line, each configured and advanced in turn, and "Create without
+commitments" from step 2.
+
+Also converted (`e2e/areas.spec.ts` / `e2e/dialog-overflow.spec.ts`): step 1
+required-name gating (via the "wizard cancel with no data" test's implicit
+path), Quick create, and mobile overflow / nav-bar clearance (issue #10) —
+including a real bug found and fixed in this pass (see the note under
+"Areas of Responsibility view" above).
+
+Still manual / not yet automated: step 1's color picker (visual swatch
+selection); step 2's textarea comma-splitting specifically (only newline-
+splitting is exercised); step 3's "Create with commitments so far" (partial
+completion mid-loop) — the two ends of that loop (finish immediately, or
+go all the way through) are covered, but not stopping partway through.
 
 ### Area-detail
 
-- [ ] Header breadcrumb shows area name
-- [ ] Back button returns to Areas of Responsibility
-- [ ] Empty state shows "No active commitments in this area." + Whitaker quote
-- [ ] `+ MAKE NEW COMMITMENT` opens dialog
-- [ ] Active tasks list shows incomplete + un-snoozed (regardless of due date)
-- [ ] Snoozed list shows separately when applicable
-- [ ] Cleared tasks toggle (Show/Hide N cleared commitments) works
-- [ ] EDIT AREA and DECOMMISSION AREA buttons visible at bottom of area detail
-- [ ] Clicking EDIT AREA opens inline form pre-filled with current name, briefing, and color
-- [ ] Color swatch matching current area color is pre-selected
-- [ ] Changing name/description/color and clicking SAVE CHANGES persists the updates
-- [ ] Saved area name and color reflect immediately in the area-detail header
-- [ ] CANCEL in edit form closes the form with no changes
-- [ ] Cannot save with blank area name (SAVE CHANGES does nothing until name is non-empty)
-- [ ] Clicking DECOMMISSION AREA shows inline confirmation ("DECOMMISSION" / "CANCEL")
-- [ ] Cancelling confirmation returns to normal view with no changes
-- [ ] Confirming decommission removes the area and all its commitments, then navigates back to Areas of Responsibility
+Converted to `e2e/areas.spec.ts`: header/back button/empty state, the
+cleared-tasks Show/Hide toggle, EDIT AREA (pre-filled, save persists,
+cancel discards), the blank-name no-op behavior, and DELETE AREA (confirm/
+cancel/confirm-deletes-with-commitments).
+
+**Corrections to this doc:** the buttons are "EDIT AREA" / "DELETE AREA",
+not "DECOMMISSION AREA" — and its confirmation reads "PERMANENTLY DELETE
+THIS AREA AND ALL ITS COMMITMENTS?" / "DELETE" / "CANCEL", not
+"DECOMMISSION" / "CANCEL". Also, "Cannot save with blank area name" isn't
+an actual disabled state on the SAVE CHANGES button — the click handler
+itself no-ops when the trimmed name is empty.
+
+Still manual / not yet automated: color swatch pre-selection and saved-
+color reflecting in the header (cosmetic); "Active tasks list shows
+incomplete + un-snoozed regardless of due date" and "Snoozed list shows
+separately" specifically for area-detail's own rendering (snooze mechanics
+are covered elsewhere, in `commitment-lifecycle.spec.ts`, via a different
+view).
 
 ### Filing commitments — type switcher, cross-type conversion, dissociation warning
 

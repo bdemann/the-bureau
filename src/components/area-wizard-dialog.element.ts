@@ -304,7 +304,7 @@ export const AreaWizardDialogElement = defineElement<{
         if (state.confirmingCancel) {
             return html`
                 <div class="overlay">
-                    <div class="sheet" style="padding-bottom:24px">
+                    <div class="sheet" style="padding-bottom:calc(24px + 64px + env(safe-area-inset-bottom, 0px))">
                         <div class="sheet-title">${skin.wizard.discardTitle}</div>
                         <p style="font-family:var(--font-mono);font-size:0.85rem;color:var(--color-text);margin:0 0 20px">
                             ${skin.wizard.discardMessage}
