@@ -82,7 +82,8 @@ export function cadencePicker(page: Page) {
  * one at a time (checking after each) rather than assuming a fixed default,
  * since that default isn't reliably content-independent in practice.
  */
-export async function openCommitmentFromDailyView(page: Page, title: string): Promise<void> {
+/** Expands whichever Daily-view bands are needed until the named commitment is visible, without clicking it. */
+export async function revealCommitmentInDailyView(page: Page, title: string): Promise<void> {
     await page.getByText("Daily", { exact: true }).click();
     const item = page.getByText(title, { exact: true });
     for (const band of ["TODAY'S MANDATORY", "SUGGESTED FOR TODAY", "ON YOUR RADAR", "BACKLOG"]) {
@@ -90,5 +91,52 @@ export async function openCommitmentFromDailyView(page: Page, title: string): Pr
         await page.getByText(band, { exact: false }).click();
         await page.waitForTimeout(150);
     }
-    await item.click();
+}
+
+export async function openCommitmentFromDailyView(page: Page, title: string): Promise<void> {
+    await revealCommitmentInDailyView(page, title);
+    await page.getByText(title, { exact: true }).click();
+}
+
+export async function createArea(page: Page, name: string): Promise<void> {
+    await page.getByText("Areas", { exact: true }).click();
+    await page.getByText("NEW AREA OF RESPONSIBILITY").click();
+    await page.getByPlaceholder("Amateur Baker", { exact: false }).fill(name);
+    await page.getByText("Quick create", { exact: false }).click();
+    await page.waitForTimeout(200);
+}
+
+/**
+ * Patches fields directly on the commitment with the given title in
+ * localStorage, then reloads. Used to reach states (high skipStreak,
+ * remediationCount, etc.) that would otherwise require simulating many real
+ * days passing — the severity thresholds themselves are already covered by
+ * data-layer unit tests; this is for checking the app actually *wires* a
+ * stored field into the rendered badge/card.
+ */
+export async function patchCommitmentByTitle(
+    page: Page,
+    title: string,
+    updates: Record<string, unknown>,
+): Promise<void> {
+    await page.evaluate(
+        ({ title, updates }) => {
+            const raw = localStorage.getItem("bureau_v1");
+            if (!raw) throw new Error("bureau_v1 not found in localStorage");
+            const parsed = JSON.parse(raw);
+            const task = parsed.commitments.find((c: {title: string}) => c.title === title);
+            if (!task) throw new Error(`No commitment titled "${title}" found`);
+            Object.assign(task, updates);
+            localStorage.setItem("bureau_v1", JSON.stringify(parsed));
+        },
+        { title, updates },
+    );
+    await page.reload({ waitUntil: "networkidle" });
+    await page.waitForTimeout(200);
+}
+
+/** Reads the header's rounded Patriot Score. */
+export async function readScore(page: Page): Promise<number> {
+    const text = await page.locator(".score-number").first().textContent();
+    return Number(text);
 }

@@ -55,6 +55,10 @@ E2E (Playwright, `e2e/`):
   to the old "Radar lead days" number field): per-mode/per-kind help text
   (rigid/flexible/milestone/none/custom, singular vs plural day wording),
   hidden for daily-like cadences, and edit-mode round-trip.
+- `commitment-lifecycle.spec.ts` — completion (one-time + recurring), snooze/
+  un-snooze, skip-indicator and remediation badge wiring (using localStorage
+  patches to reach states many real days would otherwise be needed for), and
+  the UNDO toast.
 
 Converting the rest of the manual checklist below into Playwright specs
 (section by section, highest-churn areas first) is in progress — sections
@@ -224,13 +228,15 @@ not a regression to fix.
 
 ### Commitment completion
 
-- [ ] One-time task: ✓ → commitment moves to "cleared" (collapsed)
-- [ ] Standard recurring: ✓ → suggestedDate updates to next period
-- [ ] Multi-per-period: ✓ → progress chip increments
-- [ ] When multi-per count reaches target: commitment hides until next period
-- [ ] Score goes up by tier-weighted amount
-- [ ] Streak increments
-- [ ] Sometimes Whitaker (or Briggs) speaks; Dir Briggs may deliver "The only good Commie is a Commi-tment."
+Converted to `e2e/commitment-lifecycle.spec.ts`: one-time task completion
+(hides, score increases) and recurring task completion (hides today,
+taskCompletionStreak increments).
+
+Still manual / not yet automated: multi-per-period progress chip increment
+and target-reached hiding (the `multiple-per-period` UI itself was removed
+as a stale doc section — see above — so this can't currently be exercised
+via the dialog at all); the dialogue-line easter egg (unfalsifiable, low
+value to automate).
 
 ### Reordering commitments
 
@@ -268,74 +274,41 @@ Still manual / not yet automated:
   (covered more loosely as "disappears from search by title" globally, not
   asserted against an area-detail view directly).
 
-### Snooze
+### Snooze / Un-snooze / Skip indicator / Remediation
 
-- [ ] Daily routines (kind=routine, cadence=daily or multiple-per-day) show no snooze button — only Skip
-- [ ] Snooze button → snoozedUntil = +24h, badge appears
-- [ ] Commitment moves to Snoozed section
-- [ ] Snooze count escalates color (yellow → orange → red)
-- [ ] Score decreases on snooze (tier-weighted, N-scaled by active task count)
-- [ ] Score decreases on skip (penalty > snooze penalty; N-scaled)
-- [ ] Reopening the app after missing tasks decreases the score (auto-skip penalty; auto-skip > skip > snooze)
-- [ ] With fewer active tasks each action has a larger per-task score impact; with more tasks each action has a smaller per-task impact
-- [ ] Hard-date commitment whose date is today: button reads "Cannot snooze" and is disabled
-- [ ] Mon–Sat routine (hardDaysOfWeek [1–6]) on a weekday (Mon–Fri): button reads "Cannot snooze" (next occurrence is tomorrow)
-- [ ] Same routine on Saturday: snooze IS allowed (Sunday is not a committed day)
-- [ ] At 6 snoozes (any tier), Briggs takes over
-- [ ] Whitaker dialogue escalates with count
+Converted to `e2e/commitment-lifecycle.spec.ts`. The exact severity-text
+thresholds (skipStreak → badge copy, remediationCount → badge copy,
+computeRemediationOnComplete's grace period) were already fully unit-tested
+in `scoring.test.ts` / `remediation.test.ts`, so these e2e tests check the
+*wiring* — does the app actually reflect stored task state in what renders —
+using direct localStorage patches (`patchCommitmentByTitle`) to reach states
+that would otherwise need many real days to simulate:
+- Skip badge escalation (1 → 3 → 5 → 8), in both the daily view and area-detail.
+- Remediation entering (skipStreak at/above threshold + complete), NOT
+  entering (below threshold + complete → clean reset), badge escalation
+  (1/3/5), and relapse mid-remediation (skip while remediating restarts
+  skipStreak at the remediation level, not 1).
+- Snooze shows a "Wake up" button and SNOOZED-section membership; Wake Up
+  removes it while `totalSnoozes` stays incremented (retained, not reset);
+  a rigid task due today shows a disabled "Cannot snooze".
+- Also fixed a real regression found while writing these tests: skipping a
+  task no longer hid it (see git history) — the prior fix for the
+  isCompletedForPeriod bug had over-corrected.
 
-### Multi-day weekly routines (hardDaysOfWeek) — completion dismissal
+**Correction to this doc:** "Basic remediation flow" said skipStreak ≥ 1
+triggers remediation on completion — the actual grace-period threshold is
+`SKIP_ESCALATION_THRESHOLD` (5), confirmed in `remediation.ts` and by the
+new tests. Below 5, completing resets cleanly with no remediation.
 
-- [ ] Mon–Sat routine completed on Monday: card disappears from the daily view immediately
-- [ ] Same routine: card reappears as mandatory on Tuesday
-- [ ] Skip button works on Mon–Sat routine (advances to Tuesday's occurrence, card hides)
-- [ ] Completing every day Mon–Sat: card is hidden on Sunday (no committed day) and reappears Monday of the following week
-- [ ] "Disable snooze" toggle is NOT shown in the create/edit form (B2 — removed)
-
-### Un-snooze
-
-- [ ] In Snoozed list → "Wake up" moves commitment back to Active
-- [ ] Snooze count _retained_ (un-snooze ≠ reset)
-
-### Skip indicator
-
-- [ ] After the first skip, a grey "↷ Skipped ×1" badge appears on the commitment card (warning)
-- [ ] After 2–3 skips, badge turns olive and reads "↷ Skipped ×N — Pattern noted" (caution)
-- [ ] After 4–5 skips, badge turns dark and reads "↷ FLAGGED — Skipped ×N" (danger)
-- [ ] At 6+ skips, badge becomes a pulsing navy stamp "CHRONIC AVOIDANCE ×N" (critical)
-- [ ] Completing a commitment replaces the skip badge with the remediation badge (skip → recovery)
-- [ ] Skip badge is visible on commitment cards in both the daily view and area-detail
-
-### Remediation (recovery after skip/snooze streak)
-
-Remediation fires whenever a commitment that had a skip streak OR high snooze count is completed for the first time. The agent must demonstrate consecutive completions to clear the record.
-
-**Basic remediation flow**
-
-- [ ] Complete a routine that had skipStreak ≥ 1 → skip badge disappears and a teal "↺ Recovering — N left" badge appears (remediationCount = previous skipStreak)
-- [ ] Complete it again → badge counts down (N − 1 left)
-- [ ] Complete it enough times → badge disappears entirely (fully cleared)
-- [ ] Completing a routine with NO prior streak or remediation → no remediation badge appears
-
-**Snooze-triggered remediation**
-
-- [ ] Complete a routine that had snoozeCount ≥ 1 → snooze badge disappears and remediation badge appears (remediationCount = previous snoozeCount)
-- [ ] When both skipStreak and snoozeCount are > 0, remediationCount = max(skipStreak, snoozeCount)
-
-**Severity escalation**
-
-- [ ] remediationCount 1–2 → teal low-severity badge "↺ Recovering — N left"
-- [ ] remediationCount 3–4 → amber medium-severity badge "↺ Remediation — N needed"
-- [ ] remediationCount 5+ → pulsing rust badge "↺ INTEGRITY AUDIT ×N"
-
-**Relapse mid-remediation**
-
-- [ ] While remediation badge is showing (e.g. remediationCount = 3), skip the routine → skip badge reappears with skipStreak = 3 (starts at the remediation level, NOT at 1); remediation badge gone
-- [ ] While remediation badge is showing (e.g. remediationCount = 3), snooze the routine → snooze badge reappears with snoozeCount = 3 (starts at remediation level); remediation badge gone
-
-**Score / penalty**
-
-- [ ] A snooze while in remediation applies the same score penalty as a regular snooze at the resulting count level
+Still manual / not yet automated: snooze/skip score-penalty *amounts*
+(tier-weighted, N-scaled by active task count) — this is `scoring.ts`
+territory and would fit better as data-layer tests than e2e; the
+auto-skip-on-reopen penalty path (needs simulating app reopen after time
+passes); Mon–Sat multi-day routine dismissal specifics (card hides Monday,
+reappears Tuesday, hidden Sunday) — same-day-only e2e can't exercise this
+without clock mocking, though the underlying date logic is in
+`recurrence.test.ts`; Whitaker/Briggs dialogue escalation (cosmetic,
+low-value to assert exact copy).
 
 ### Daily view
 
