@@ -59,6 +59,10 @@ E2E (Playwright, `e2e/`):
   un-snooze, skip-indicator and remediation badge wiring (using localStorage
   patches to reach states many real days would otherwise be needed for), and
   the UNDO toast.
+- `daily-view.spec.ts` — band collapse/expand persistence (including the E1
+  auto-collapse quirk documented below), empty states, area name tags,
+  "Not Today", band-placement wiring for C1/C2 rules, and the
+  docket-cleared bonus.
 
 Converting the rest of the manual checklist below into Playwright specs
 (section by section, highest-churn areas first) is in progress — sections
@@ -312,38 +316,43 @@ low-value to assert exact copy).
 
 ### Daily view
 
-- [ ] Mandatory: commitments due today / hard-overdue / cadence=daily / weekly with hardDaysOfWeek on a configured day
-- [ ] Suggested: flexible commitments past suggestedDate but inside window (regression: suggestedDate = today shows "Due today", not "Suggested [date]")
-- [ ] Radar: commitments ≤ 3 days from hard date, or window % low
-- [ ] Backlog: everything else
-- [ ] All four bands (Mandatory, Suggested, Radar, Backlog) start with a chevron ▾/▸ in the header
-- [ ] Clicking a band header collapses/expands it; Mandatory and Suggested start expanded, Radar and Backlog start collapsed
-- [ ] When a band is collapsed only the header + count are visible; tasks are hidden
-- [ ] Empty Mandatory: "No mandatory tasks today. Agent Whitaker approves."
-- [ ] Each card shows area name above title (cross-area context)
-- [ ] When commitments span multiple time-of-day slots within a band, each slot has a collapsible header (label · count · chevron)
-- [ ] The slot matching the current time of day starts expanded; others start collapsed
-- [ ] Tapping a slot header toggles it open/closed
-- [ ] Switching to background and returning after the time slot changes resets the default to the new slot
-- [ ] Active use (app stays open through a slot transition) does NOT collapse open sections
-- [ ] Complete/snooze actions work from daily view
-- [ ] Completing the last mandatory task: score jumps by the docket-cleared bonus (5 pts at N=10) on top of the normal task reward (#39)
-- [ ] Docket-cleared bonus only fires when mandatory band was non-empty before the completion
-- [ ] Days with no mandatory tasks: completing suggested/radar/backlog tasks does NOT trigger the docket bonus
-- [ ] T1 daily routine appears in MANDATORY band; T2/T3/T4 daily routines appear in SUGGESTED band (C2)
-- [ ] T2 daily routine with skipStreak ≥ 5 escalates to MANDATORY band (C2 skip escalation)
-- [ ] T4 task never appears in MANDATORY band even on its due date (C1)
-- [ ] Completing all mandatory tasks → mandatory band auto-collapses and suggested band auto-expands (E1)
-- [ ] After E1 auto-collapse the user can still manually toggle mandatory open/closed
-- [ ] Radar and backlog task cards show a "Not Today" button (E2)
-- [ ] Mandatory and suggested task cards do NOT show "Not Today" button (E2)
-- [ ] Pressing "Not Today" hides the card for the rest of today — no score change, no snoozeCount increment (E2)
-- [ ] After midnight the "Not Today" card reappears normally (E2)
-- [ ] Snoozing a commitment shows an UNDO toast at the bottom of the screen
-- [ ] Skipping a commitment shows an UNDO toast at the bottom of the screen
-- [ ] Clicking UNDO on the toast reverses the skip/snooze (task returns to its pre-action state, score is restored)
-- [ ] The UNDO toast disappears automatically after ~3 seconds
-- [ ] Performing a second skip/snooze replaces the previous UNDO toast
+Band-assignment *rules* (which band a task lands in given tier/date/skip
+state/etc.) are exhaustively unit-tested in `urgency.test.ts` already. The
+surrounding UI (collapse/expand, empty states, "Not Today", docket bonus) is
+converted to `e2e/daily-view.spec.ts`.
+
+**Correction to this doc — real behavior found while writing these tests:**
+"Mandatory and Suggested start expanded" is not quite right. E1's
+auto-collapse ("if Mandatory is empty and currently expanded, collapse it")
+fires on *any* render where Mandatory is empty, not just "after clearing
+it" — including a brand-new session with zero tasks, and again immediately
+if you manually re-expand it while it's still empty. Net effect: **the
+"No mandatory tasks today. Agent Whitaker approves." empty-state message is
+currently unreachable** — the section that would show it collapses itself
+first. Nothing re-expands Mandatory automatically when it goes from empty
+to non-empty either; a manual expand only *sticks* once there's something
+in it. This is a real, current bug/design-gap worth a product decision, not
+fixed here per the project's guard on changing daily-view behavior without
+consulting the vision docs first. `e2e/daily-view.spec.ts`'s
+"empty Mandatory auto-collapses instead of showing the approval message"
+test documents current behavior precisely so it flags itself if anyone
+changes this later.
+
+Covered by the new spec: Radar/Backlog default collapsed; a manual expand
+of Mandatory sticks once non-empty; toggle state persists across reload;
+area name tag on cards; "Not Today" absent on Mandatory, hides a Radar/
+Backlog card for today with no score or snoozeCount change; T1 daily →
+Mandatory and T4 → never Mandatory (C1); T2 skipStreak ≥ 5 escalation to
+Mandatory (C2); docket-cleared bonus produces a bigger score jump than a
+non-clearing completion, and Mandatory auto-collapses once cleared (E1).
+
+Still manual / not yet automated: exact band boundary rules restated above
+(redundant with `urgency.test.ts`, intentionally not re-tested here);
+time-of-day sub-slot collapse/expand behavior and its "resets on
+background/return" nuance (needs control over the current time of day —
+would need `page.clock` or a similar override, not attempted here);
+"docket bonus doesn't fire when Mandatory was already empty before the
+completion" (only the positive case — clearing it — is tested).
 
 ### Pausing commitments
 
