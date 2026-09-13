@@ -1,5 +1,5 @@
 import { expect, test } from "@playwright/test";
-import { createGoal, fillTitle, openSection } from "./helpers";
+import { createGoal, fillTitle } from "./helpers";
 
 // Mirrors TESTING.md's "App shell" and "Bottom navigation bar" sections.
 
@@ -107,7 +107,6 @@ test.describe("Bottom navigation bar", () => {
         await page.goto("/");
         await page.getByText("MAKE COMMITMENT", { exact: false }).first().click();
         await fillTitle(page, "Something");
-        await openSection(page, "Window & Deadline");
         await page.getByText("Flexible", { exact: true }).click();
         await page.getByText("ADD TASK", { exact: true }).click();
         await page.waitForTimeout(300);

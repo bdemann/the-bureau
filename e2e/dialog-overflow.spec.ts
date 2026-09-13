@@ -1,5 +1,5 @@
 import { test } from "@playwright/test";
-import { expectNoHorizontalOverflow, fillTitle, openMakeCommitment, openSection } from "./helpers";
+import { expectNoHorizontalOverflow, fillTitle, openMakeCommitment } from "./helpers";
 
 test.describe("Make/Amend commitment dialog — no horizontal overflow at mobile width", () => {
     for (const type of ["Routine", "Task", "Goal", "Idea"] as const) {
@@ -28,7 +28,6 @@ test.describe("Make/Amend commitment dialog — no horizontal overflow at mobile
         await page.goto("/");
         await openMakeCommitment(page);
         await page.getByText("Task", { exact: true }).click();
-        await openSection(page, "Window & Deadline");
         await page.getByText("Flexible", { exact: true }).click();
         await expectNoHorizontalOverflow(page, "flexible deadline");
     });
@@ -37,7 +36,6 @@ test.describe("Make/Amend commitment dialog — no horizontal overflow at mobile
         await page.goto("/");
         await openMakeCommitment(page);
         await page.getByText("Task", { exact: true }).click();
-        await openSection(page, "Milestone");
         await page.getByText("Milestone (track progress", { exact: false }).click();
         await expectNoHorizontalOverflow(page, "milestone toggled");
     });

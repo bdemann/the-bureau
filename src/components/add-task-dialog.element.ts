@@ -160,14 +160,6 @@ export const AddTaskDialogElement = defineElement<{
         skipDays: [] as number[],
         /** Kind the user clicked while a dissociation warning must be confirmed first; null = no pending switch. */
         pendingKindSwitch: null as FormKind | null,
-        /**
-         * Explicit user override for each collapsible section's open state.
-         * null = follow the auto-open rule (open when that section already
-         * has something configured); true/false = user clicked the header.
-         */
-        sectionWindowOverride: null as boolean | null,
-        sectionLifecycleOverride: null as boolean | null,
-        sectionMilestoneOverride: null as boolean | null,
     }),
 
     styles: css`
@@ -548,25 +540,13 @@ export const AddTaskDialogElement = defineElement<{
             background: rgba(184, 134, 11, 0.08);
         }
 
-        /* ── Form sections — group related fields behind a shared border and
-           heading. "open" sections (Basics/Priority/Schedule/Organize) render
-           unconditionally; collapsible ones toggle .collapsed via click. ── */
+        /* ── Form sections — group related fields behind a shared border and heading. ── */
         .form-section {
             border: 1px solid var(--color-border);
             margin-bottom: 14px;
         }
         .form-section-header {
-            display: flex;
-            align-items: baseline;
-            justify-content: space-between;
-            gap: 10px;
             padding: 8px 10px;
-        }
-        .form-section-header.collapsible {
-            cursor: pointer;
-        }
-        .form-section-header.collapsible:hover {
-            background: var(--color-surface-tint);
         }
         .form-section-title {
             font-family: var(--font-display);
@@ -574,22 +554,8 @@ export const AddTaskDialogElement = defineElement<{
             font-size: 0.85rem;
             color: var(--color-primary);
         }
-        .form-section-toggle {
-            display: inline-block;
-            font-family: var(--font-mono);
-            margin-right: 6px;
-        }
-        .form-section-hint {
-            font-family: var(--font-mono);
-            font-size: 0.68rem;
-            color: var(--color-text-muted);
-            text-align: right;
-        }
         .form-section-body {
             padding: 4px 12px 14px;
-        }
-        .form-section.collapsed .form-section-body {
-            display: none;
         }
     `,
 
@@ -677,9 +643,6 @@ export const AddTaskDialogElement = defineElement<{
                     : defaultCadenceConfig('daily'),
                 skipDays: t.recurrence?.skipDays ?? [],
                 pendingKindSwitch: null,
-                sectionWindowOverride: null,
-                sectionLifecycleOverride: null,
-                sectionMilestoneOverride: null,
             });
         }
 
@@ -703,9 +666,6 @@ export const AddTaskDialogElement = defineElement<{
                 originalLinkedGoalId: null,
                 ideaLinkedGoalId: null,
                 pendingKindSwitch: null,
-                sectionWindowOverride: null,
-                sectionLifecycleOverride: null,
-                sectionMilestoneOverride: null,
             });
         }
 
@@ -726,9 +686,6 @@ export const AddTaskDialogElement = defineElement<{
                 linkedGoalId: null,
                 originalLinkedGoalId: null,
                 pendingKindSwitch: null,
-                sectionWindowOverride: null,
-                sectionLifecycleOverride: null,
-                sectionMilestoneOverride: null,
             });
         }
 
@@ -770,9 +727,6 @@ export const AddTaskDialogElement = defineElement<{
                 hasProgressCadence: false,
                 progressCadenceConfig: defaultCadenceConfig('daily'),
                 pendingKindSwitch: null,
-                sectionWindowOverride: null,
-                sectionLifecycleOverride: null,
-                sectionMilestoneOverride: null,
             });
         }
 
@@ -788,50 +742,6 @@ export const AddTaskDialogElement = defineElement<{
         const isDailyLikeCadence =
             state.isRecurring &&
             (state.cadenceConfig.cadence === "daily" || state.cadenceConfig.cadence === "multiple_per_day");
-
-        // ── Collapsible section open-state ──────────────────────────────────
-        // Each section auto-opens once the commitment already has something
-        // configured there; otherwise it starts collapsed. A user click always
-        // wins over the auto rule until the dialog is next opened fresh.
-        const autoOpenWindow =
-            state.deadlineType === "flexible" || state.leadTimeMode !== "default";
-        const autoOpenLifecycle =
-            state.hasStartDate || state.hasEndCondition || state.pauseMode !== "none";
-        const autoOpenMilestone = state.isMilestone;
-
-        const windowOpen = state.sectionWindowOverride ?? autoOpenWindow;
-        const lifecycleOpen = state.sectionLifecycleOverride ?? autoOpenLifecycle;
-        const milestoneOpen = state.sectionMilestoneOverride ?? autoOpenMilestone;
-
-        function toggleSection(key: "window" | "lifecycle" | "milestone"): void {
-            if (key === "window") updateState({ sectionWindowOverride: !windowOpen });
-            else if (key === "lifecycle") updateState({ sectionLifecycleOverride: !lifecycleOpen });
-            else updateState({ sectionMilestoneOverride: !milestoneOpen });
-        }
-
-        function windowDeadlineHint(): string {
-            const deadline = state.deadlineType === "rigid" ? "A rigid deadline" : "A flexible deadline";
-            const lead =
-                state.leadTimeMode === "none"
-                    ? "hidden until it's due"
-                    : state.leadTimeMode === "custom"
-                      ? `visible ${state.leadTimeCustomDays} day${state.leadTimeCustomDays === 1 ? "" : "s"} early`
-                      : "using the default lead time";
-            return `${deadline}, ${lead}.`;
-        }
-
-        function lifecycleHint(): string {
-            const bits = [
-                state.hasStartDate ? "Has a start date" : "No start date",
-                state.hasEndCondition ? "ends eventually" : "no end condition",
-            ];
-            if (isEditMode && state.pauseMode !== "none") bits.push("currently paused");
-            return bits.join(", ") + ".";
-        }
-
-        function milestoneHint(): string {
-            return state.isMilestone ? "Tracked as a milestone." : "Not a milestone.";
-        }
 
         function renderAreaField() {
             return html`
@@ -1240,7 +1150,7 @@ export const AddTaskDialogElement = defineElement<{
                         }
                     </div>
 
-                    <div class="form-section open">
+                    <div class="form-section">
                         <div class="form-section-header">
                             <span class="form-section-title">Basics</span>
                         </div>
@@ -1355,9 +1265,9 @@ export const AddTaskDialogElement = defineElement<{
                     ${
                         isTaskOrRoutine
                             ? html`
-                                  <div class="form-section open">
+                                  <div class="form-section">
                                       <div class="form-section-header">
-                                          <span class="form-section-title">Priority</span>
+                                          <span class="form-section-title">Priority &amp; Timing</span>
                                       </div>
                                       <div class="form-section-body">
                                           <!-- Consequence tier -->
@@ -1418,9 +1328,9 @@ export const AddTaskDialogElement = defineElement<{
                                       </div>
                                   </div>
 
-                                  <div class="form-section open">
+                                  <div class="form-section">
                                       <div class="form-section-header">
-                                          <span class="form-section-title">Schedule</span>
+                                          <span class="form-section-title">Recurrence</span>
                                       </div>
                                       <div class="form-section-body">
                                           <!-- Recurring toggle — hidden for routines (always recurring) -->
@@ -1488,16 +1398,9 @@ export const AddTaskDialogElement = defineElement<{
 
                                   ${state.isRecurring
                                       ? html`
-                                  <div class="form-section ${lifecycleOpen ? "open" : "collapsed"}">
-                                      <div
-                                          class="form-section-header collapsible"
-                                          @click=${() => toggleSection("lifecycle")}
-                                      >
-                                          <span class="form-section-title">
-                                              <span class="form-section-toggle">${lifecycleOpen ? "[−]" : "[+]"}</span>
-                                              Lifecycle
-                                          </span>
-                                          <span class="form-section-hint">${lifecycleHint()}</span>
+                                  <div class="form-section">
+                                      <div class="form-section-header">
+                                          <span class="form-section-title">Lifecycle</span>
                                       </div>
                                       <div class="form-section-body">
                                           <!-- Start date -->
@@ -1758,16 +1661,9 @@ export const AddTaskDialogElement = defineElement<{
 
                                   ${!isDailyLikeCadence
                                       ? html`
-                                  <div class="form-section ${windowOpen ? "open" : "collapsed"}">
-                                      <div
-                                          class="form-section-header collapsible"
-                                          @click=${() => toggleSection("window")}
-                                      >
-                                          <span class="form-section-title">
-                                              <span class="form-section-toggle">${windowOpen ? "[−]" : "[+]"}</span>
-                                              Window &amp; Deadline
-                                          </span>
-                                          <span class="form-section-hint">${windowDeadlineHint()}</span>
+                                  <div class="form-section">
+                                      <div class="form-section-header">
+                                          <span class="form-section-title">Window &amp; Deadline</span>
                                       </div>
                                       <div class="form-section-body">
                                           <!-- Deadline type -->
@@ -1924,16 +1820,9 @@ export const AddTaskDialogElement = defineElement<{
 
                                   ${!isDailyLikeCadence
                                       ? html`
-                                  <div class="form-section ${milestoneOpen ? "open" : "collapsed"}">
-                                      <div
-                                          class="form-section-header collapsible"
-                                          @click=${() => toggleSection("milestone")}
-                                      >
-                                          <span class="form-section-title">
-                                              <span class="form-section-toggle">${milestoneOpen ? "[−]" : "[+]"}</span>
-                                              Milestone
-                                          </span>
-                                          <span class="form-section-hint">${milestoneHint()}</span>
+                                  <div class="form-section">
+                                      <div class="form-section-header">
+                                          <span class="form-section-title">Milestone</span>
                                       </div>
                                       <div class="form-section-body">
                                           <div class="recurring-row">
@@ -2068,7 +1957,7 @@ export const AddTaskDialogElement = defineElement<{
                     ${
                         isTaskOrRoutine
                             ? html`
-                                  <div class="form-section open">
+                                  <div class="form-section">
                                       <div class="form-section-header">
                                           <span class="form-section-title">Organize</span>
                                       </div>

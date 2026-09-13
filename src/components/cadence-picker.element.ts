@@ -296,11 +296,17 @@ export const CadencePickerElement = defineElement<{ config: CadenceConfig }>()({
             text-transform: uppercase;
         }
 
-        /* 5-column cadence row */
+        /* Cadence row — wraps instead of squeezing "Quarterly"/"Annually" into
+           equal fifths, which overflowed their buttons at mobile width. */
         .cadence-grid {
-            display: grid;
-            grid-template-columns: repeat(5, minmax(0, 1fr));
+            display: flex;
+            flex-wrap: wrap;
             gap: 6px;
+        }
+        .cadence-grid ${ViraButton} {
+            flex: 1 1 calc(33% - 6px);
+            min-width: 80px;
+            min-height: 44px;
         }
 
         /* Re-usable 2- and 3-column variants */
@@ -340,9 +346,7 @@ export const CadencePickerElement = defineElement<{ config: CadenceConfig }>()({
         }
 
         /* All buttons in grids get 44 px touch target */
-        .cadence-grid
-            ${ViraButton},
-            .grid-2
+        .grid-2
             ${ViraButton},
             .grid-3
             ${ViraButton},
