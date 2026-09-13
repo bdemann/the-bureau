@@ -3,6 +3,7 @@ import {
     createArea,
     fillTitle,
     openMakeCommitment,
+    openSection,
     patchCommitmentByTitle,
     readScore,
     revealCommitmentInDailyView,
@@ -178,6 +179,7 @@ test.describe("Snooze / Un-snooze", () => {
         await page.getByText("Wellness", { exact: true }).click();
         await page.getByText("MAKE NEW COMMITMENT", { exact: false }).first().click();
         await fillTitle(page, title);
+        await openSection(page, "Window & Deadline");
         await page.getByText("Flexible", { exact: true }).click();
         await page.getByText("ADD TASK", { exact: true }).click();
         await page.waitForTimeout(300);

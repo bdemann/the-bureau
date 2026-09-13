@@ -33,6 +33,15 @@ E2E (Playwright, `e2e/`):
   every recurrence cadence, flexible deadline, milestone toggle, the amend
   flow, and both area-wizard steps that have their own layout. Add a new case
   here whenever a new dialog field/section/grid is introduced.
+- `dialog-sections.spec.ts` — the grouped-section redesign of the add/edit
+  dialog: Basics/Priority/Schedule/Organize always show their fields with no
+  expand step; Window & Deadline/Lifecycle/Milestone start collapsed (or
+  don't render at all, for Lifecycle on a one-off task) and expand on a
+  header click; and the auto-open rule that expands a collapsed section on
+  edit once the commitment already has something configured there (a
+  non-default deadline/lead time, a milestone, or a recurring task with a
+  start date/end condition/pause) — verified both that it fires and that it
+  stays collapsed when nothing is configured.
 - `type-switcher.spec.ts` — type picker defaults/titles/submit labels for all
   four kinds, title preservation across a kind switch, routine-forces-recurring
   behavior, task→goal cross-type conversion, and the goal dissociation-warning

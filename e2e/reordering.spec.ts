@@ -1,5 +1,5 @@
 import { expect, test } from "@playwright/test";
-import { createArea, fillTitle, revealCommitmentInDailyView } from "./helpers";
+import { createArea, fillTitle, openSection, revealCommitmentInDailyView } from "./helpers";
 
 // Mirrors TESTING.md's "Reordering commitments" and "Reordering areas
 // (dashboard)" sections. Uses Playwright's native dragTo (real HTML5
@@ -40,6 +40,7 @@ test.describe("Reordering commitments", () => {
         for (const title of ["Task A", "Task B"]) {
             await page.getByText("MAKE NEW COMMITMENT", { exact: false }).first().click();
             await fillTitle(page, title);
+            await openSection(page, "Window & Deadline");
             await page.getByText("Flexible", { exact: true }).click();
             await page.getByText("ADD TASK", { exact: true }).click();
             await page.waitForTimeout(300);
@@ -71,6 +72,7 @@ test.describe("Reordering commitments", () => {
         for (const title of ["Task A", "Task B"]) {
             await page.getByText("MAKE NEW COMMITMENT", { exact: false }).first().click();
             await fillTitle(page, title);
+            await openSection(page, "Window & Deadline");
             await page.getByText("Flexible", { exact: true }).click();
             await page.getByText("ADD TASK", { exact: true }).click();
             await page.waitForTimeout(300);
@@ -93,6 +95,7 @@ test.describe("Reordering commitments", () => {
         for (const title of ["Fit A", "Fit B"]) {
             await page.getByText("MAKE NEW COMMITMENT", { exact: false }).first().click();
             await fillTitle(page, title);
+            await openSection(page, "Window & Deadline");
             await page.getByText("Flexible", { exact: true }).click();
             await page.getByText("ADD TASK", { exact: true }).click();
             await page.waitForTimeout(300);
@@ -104,6 +107,7 @@ test.describe("Reordering commitments", () => {
         for (const title of ["Fin A", "Fin B"]) {
             await page.getByText("MAKE NEW COMMITMENT", { exact: false }).first().click();
             await fillTitle(page, title);
+            await openSection(page, "Window & Deadline");
             await page.getByText("Flexible", { exact: true }).click();
             await page.getByText("ADD TASK", { exact: true }).click();
             await page.waitForTimeout(300);

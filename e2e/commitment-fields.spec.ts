@@ -1,5 +1,5 @@
 import { expect, test } from "@playwright/test";
-import { fillTitle, openCommitmentFromDailyView, openMakeCommitment } from "./helpers";
+import { fillTitle, openCommitmentFromDailyView, openMakeCommitment, openSection } from "./helpers";
 
 // Mirrors TESTING.md's "Filing commitments from the daily view", "Area of
 // Responsibility assignment on commitments", "Commitment termination", and
@@ -159,6 +159,7 @@ test.describe("Pausing commitments", () => {
         await page.goto("/");
         await addRecurringTask(page, "Take vitamins");
         await openCommitmentFromDailyView(page, "Take vitamins");
+        await openSection(page, "Lifecycle");
         await expect(page.getByText("Pause Commitment", { exact: true })).toBeVisible();
         await expect(page.getByText("No", { exact: true })).toBeVisible();
         await expect(page.getByText("Indefinitely", { exact: true })).toBeVisible();
@@ -172,6 +173,7 @@ test.describe("Pausing commitments", () => {
         const scoreBefore = await page.getByText("100", { exact: true }).first().textContent();
 
         await openCommitmentFromDailyView(page, "Take vitamins");
+        await openSection(page, "Lifecycle");
         await page.getByText("Indefinitely", { exact: true }).click();
         await page.getByText("SAVE TASK", { exact: true }).click();
         await page.waitForTimeout(300);
@@ -186,6 +188,7 @@ test.describe("Pausing commitments", () => {
         await addRecurringTask(page, "Take vitamins");
 
         await openCommitmentFromDailyView(page, "Take vitamins");
+        await openSection(page, "Lifecycle");
         await page.getByText("Until date", { exact: true }).click();
         await expect(page.getByText("Pause Until", { exact: true })).toBeVisible();
         await page.locator(".field", { hasText: "Pause Until" }).locator('input[type="date"]').fill("2027-01-01");
@@ -199,6 +202,7 @@ test.describe("Pausing commitments", () => {
         await addRecurringTask(page, "Take vitamins");
 
         await openCommitmentFromDailyView(page, "Take vitamins");
+        await openSection(page, "Lifecycle");
         await page.getByText("For N days", { exact: true }).click();
         await expect(page.getByText("Pause For (days)", { exact: true })).toBeVisible();
         await page.getByText("SAVE TASK", { exact: true }).click();
@@ -223,6 +227,7 @@ test.describe("Pausing commitments", () => {
         await page.waitForTimeout(300);
 
         await page.getByText("Take vitamins", { exact: true }).click();
+        await openSection(page, "Lifecycle");
         await page.getByText("Indefinitely", { exact: true }).click();
         await page.getByText("SAVE TASK", { exact: true }).click();
         await page.waitForTimeout(300);

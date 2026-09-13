@@ -1,5 +1,5 @@
 import { expect, test, type Page } from "@playwright/test";
-import { cadencePicker, fillTitle, openCommitmentFromDailyView, openMakeCommitment } from "./helpers";
+import { cadencePicker, fillTitle, openCommitmentFromDailyView, openMakeCommitment, openSection } from "./helpers";
 
 // Mirrors TESTING.md's "Task commitment creation — one-time / recurring
 // (daily / weekly / monthly / quarterly / annually)", "Milestone commitment
@@ -19,6 +19,7 @@ test.describe("One-time task", () => {
         await page.goto("/");
         await openMakeCommitment(page);
         await expect(page.getByText("Recurring commitment", { exact: false })).not.toBeChecked();
+        await openSection(page, "Window & Deadline");
         await expect(page.locator('input[type="date"]').first()).toBeVisible();
     });
 
@@ -35,6 +36,7 @@ test.describe("One-time task", () => {
         await openMakeCommitment(page);
         await fillTitle(page, "Renew library card");
         await expect(page.getByText("ADD TASK", { exact: true })).toBeEnabled();
+        await openSection(page, "Window & Deadline");
         await page.getByText("Flexible", { exact: true }).click();
         await expect(page.getByText("ADD TASK", { exact: true })).toBeEnabled();
     });
@@ -319,6 +321,7 @@ test.describe("Milestone — progress cadence", () => {
     test("milestone checkbox reveals a progress-cadence picker defaulting to 'Once per day'", async ({ page }) => {
         await page.goto("/");
         await openMakeCommitment(page);
+        await openSection(page, "Milestone");
         await page.getByText("Milestone (track progress", { exact: false }).click();
         await expect(page.getByText("Progress Cadence", { exact: true })).toBeVisible();
         await expect(progressCadenceField(page).getByText("Once per day", { exact: true })).toBeVisible();
@@ -327,6 +330,7 @@ test.describe("Milestone — progress cadence", () => {
     test("'Custom' reveals a nested cadence picker; unchecking milestone hides the section", async ({ page }) => {
         await page.goto("/");
         await openMakeCommitment(page);
+        await openSection(page, "Milestone");
         await page.getByText("Milestone (track progress", { exact: false }).click();
         await progressCadenceField(page).getByText("Custom", { exact: true }).click();
         await expect(cadencePicker(page)).toBeVisible();
@@ -343,6 +347,7 @@ test.describe("Recurring start date", () => {
         await expect(page.getByLabel("Has a start date (don't show until then)")).toHaveCount(0);
 
         await page.getByText("Recurring commitment", { exact: false }).click();
+        await openSection(page, "Lifecycle");
         await page.getByLabel("Has a start date (don't show until then)").check();
         await expect(page.getByText("Start Date", { exact: true })).toBeVisible();
     });
@@ -352,6 +357,7 @@ test.describe("Recurring start date", () => {
         await openMakeCommitment(page);
         await fillTitle(page, "Start new habit");
         await page.getByText("Recurring commitment", { exact: false }).click();
+        await openSection(page, "Lifecycle");
         await page.getByLabel("Has a start date (don't show until then)").check();
         await page.locator('input[type="date"]').first().fill("2027-01-01");
         await page.getByText("ADD TASK", { exact: true }).click();
@@ -371,6 +377,7 @@ test.describe("Recurring end conditions", () => {
         await expect(page.getByLabel("Has an end condition")).toHaveCount(0);
 
         await page.getByText("Recurring commitment", { exact: false }).click();
+        await openSection(page, "Lifecycle");
         await expect(page.getByLabel("Has an end condition")).toBeVisible();
 
         await page.getByText("Routine", { exact: true }).click();
@@ -381,6 +388,7 @@ test.describe("Recurring end conditions", () => {
         await page.goto("/");
         await openMakeCommitment(page);
         await page.getByText("Recurring commitment", { exact: false }).click();
+        await openSection(page, "Lifecycle");
         await page.getByLabel("Has an end condition").check();
         await expect(page.getByText("N completions", { exact: true })).toBeVisible();
         await expect(page.getByText("A date", { exact: true })).toBeVisible();
@@ -395,6 +403,7 @@ test.describe("Recurring end conditions", () => {
         await openMakeCommitment(page);
         await fillTitle(page, "Read 10 books this year");
         await page.getByText("Recurring commitment", { exact: false }).click();
+        await openSection(page, "Lifecycle");
         await page.getByLabel("Has an end condition").check();
         await page.getByText("ADD TASK", { exact: true }).click();
         await page.waitForTimeout(300);

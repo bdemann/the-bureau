@@ -160,6 +160,14 @@ export const AddTaskDialogElement = defineElement<{
         skipDays: [] as number[],
         /** Kind the user clicked while a dissociation warning must be confirmed first; null = no pending switch. */
         pendingKindSwitch: null as FormKind | null,
+        /**
+         * Explicit user override for each collapsible section's open state.
+         * null = follow the auto-open rule (open when that section already
+         * has something configured); true/false = user clicked the header.
+         */
+        sectionWindowOverride: null as boolean | null,
+        sectionLifecycleOverride: null as boolean | null,
+        sectionMilestoneOverride: null as boolean | null,
     }),
 
     styles: css`
@@ -539,6 +547,50 @@ export const AddTaskDialogElement = defineElement<{
         .kind-switch-cancel:hover {
             background: rgba(184, 134, 11, 0.08);
         }
+
+        /* ── Form sections — group related fields behind a shared border and
+           heading. "open" sections (Basics/Priority/Schedule/Organize) render
+           unconditionally; collapsible ones toggle .collapsed via click. ── */
+        .form-section {
+            border: 1px solid var(--color-border);
+            margin-bottom: 14px;
+        }
+        .form-section-header {
+            display: flex;
+            align-items: baseline;
+            justify-content: space-between;
+            gap: 10px;
+            padding: 8px 10px;
+        }
+        .form-section-header.collapsible {
+            cursor: pointer;
+        }
+        .form-section-header.collapsible:hover {
+            background: var(--color-surface-tint);
+        }
+        .form-section-title {
+            font-family: var(--font-display);
+            letter-spacing: 0.14em;
+            font-size: 0.85rem;
+            color: var(--color-primary);
+        }
+        .form-section-toggle {
+            display: inline-block;
+            font-family: var(--font-mono);
+            margin-right: 6px;
+        }
+        .form-section-hint {
+            font-family: var(--font-mono);
+            font-size: 0.68rem;
+            color: var(--color-text-muted);
+            text-align: right;
+        }
+        .form-section-body {
+            padding: 4px 12px 14px;
+        }
+        .form-section.collapsed .form-section-body {
+            display: none;
+        }
     `,
 
     render({ inputs, state, updateState, dispatch, events }) {
@@ -625,6 +677,9 @@ export const AddTaskDialogElement = defineElement<{
                     : defaultCadenceConfig('daily'),
                 skipDays: t.recurrence?.skipDays ?? [],
                 pendingKindSwitch: null,
+                sectionWindowOverride: null,
+                sectionLifecycleOverride: null,
+                sectionMilestoneOverride: null,
             });
         }
 
@@ -648,6 +703,9 @@ export const AddTaskDialogElement = defineElement<{
                 originalLinkedGoalId: null,
                 ideaLinkedGoalId: null,
                 pendingKindSwitch: null,
+                sectionWindowOverride: null,
+                sectionLifecycleOverride: null,
+                sectionMilestoneOverride: null,
             });
         }
 
@@ -668,6 +726,9 @@ export const AddTaskDialogElement = defineElement<{
                 linkedGoalId: null,
                 originalLinkedGoalId: null,
                 pendingKindSwitch: null,
+                sectionWindowOverride: null,
+                sectionLifecycleOverride: null,
+                sectionMilestoneOverride: null,
             });
         }
 
@@ -709,6 +770,9 @@ export const AddTaskDialogElement = defineElement<{
                 hasProgressCadence: false,
                 progressCadenceConfig: defaultCadenceConfig('daily'),
                 pendingKindSwitch: null,
+                sectionWindowOverride: null,
+                sectionLifecycleOverride: null,
+                sectionMilestoneOverride: null,
             });
         }
 
@@ -724,6 +788,83 @@ export const AddTaskDialogElement = defineElement<{
         const isDailyLikeCadence =
             state.isRecurring &&
             (state.cadenceConfig.cadence === "daily" || state.cadenceConfig.cadence === "multiple_per_day");
+
+        // ── Collapsible section open-state ──────────────────────────────────
+        // Each section auto-opens once the commitment already has something
+        // configured there; otherwise it starts collapsed. A user click always
+        // wins over the auto rule until the dialog is next opened fresh.
+        const autoOpenWindow =
+            state.deadlineType === "flexible" || state.leadTimeMode !== "default";
+        const autoOpenLifecycle =
+            state.hasStartDate || state.hasEndCondition || state.pauseMode !== "none";
+        const autoOpenMilestone = state.isMilestone;
+
+        const windowOpen = state.sectionWindowOverride ?? autoOpenWindow;
+        const lifecycleOpen = state.sectionLifecycleOverride ?? autoOpenLifecycle;
+        const milestoneOpen = state.sectionMilestoneOverride ?? autoOpenMilestone;
+
+        function toggleSection(key: "window" | "lifecycle" | "milestone"): void {
+            if (key === "window") updateState({ sectionWindowOverride: !windowOpen });
+            else if (key === "lifecycle") updateState({ sectionLifecycleOverride: !lifecycleOpen });
+            else updateState({ sectionMilestoneOverride: !milestoneOpen });
+        }
+
+        function windowDeadlineHint(): string {
+            const deadline = state.deadlineType === "rigid" ? "A rigid deadline" : "A flexible deadline";
+            const lead =
+                state.leadTimeMode === "none"
+                    ? "hidden until it's due"
+                    : state.leadTimeMode === "custom"
+                      ? `visible ${state.leadTimeCustomDays} day${state.leadTimeCustomDays === 1 ? "" : "s"} early`
+                      : "using the default lead time";
+            return `${deadline}, ${lead}.`;
+        }
+
+        function lifecycleHint(): string {
+            const bits = [
+                state.hasStartDate ? "Has a start date" : "No start date",
+                state.hasEndCondition ? "ends eventually" : "no end condition",
+            ];
+            if (isEditMode && state.pauseMode !== "none") bits.push("currently paused");
+            return bits.join(", ") + ".";
+        }
+
+        function milestoneHint(): string {
+            return state.isMilestone ? "Tracked as a milestone." : "Not a milestone.";
+        }
+
+        function renderAreaField() {
+            return html`
+                <div class="field">
+                    <label class="field-label">Area of Responsibility</label>
+                    <select
+                        class="area-select"
+                        .value=${state.selectedAreaId ?? ""}
+                        @change=${(e: Event) => {
+                            const val = (e.target as HTMLSelectElement).value;
+                            // Changing area clears both goal links (goals are area-scoped)
+                            updateState({
+                                selectedAreaId: val === "" ? null : val,
+                                linkedGoalId: null,
+                                ideaLinkedGoalId: null,
+                            });
+                        }}
+                    >
+                        <option value="">No area</option>
+                        ${(inputs.areas ?? []).map(
+                            (p) => html`
+                                <option
+                                    value="${p.id}"
+                                    .selected=${state.selectedAreaId === p.id}
+                                >
+                                    ${p.name}
+                                </option>
+                            `,
+                        )}
+                    </select>
+                </div>
+            `;
+        }
 
         const canSubmit =
             state.pendingKindSwitch === null &&
@@ -1099,6 +1240,11 @@ export const AddTaskDialogElement = defineElement<{
                         }
                     </div>
 
+                    <div class="form-section open">
+                        <div class="form-section-header">
+                            <span class="form-section-title">Basics</span>
+                        </div>
+                        <div class="form-section-body">
                     <!-- Kind toggle — always visible (create and edit mode) -->
                     <div class="kind-toggle">
                         <${ViraButton.assign({
@@ -1203,20 +1349,25 @@ export const AddTaskDialogElement = defineElement<{
                             )}
                         ></${ViraTextArea}>
                     </div>
+                        </div>
+                    </div>
 
                     ${
                         isTaskOrRoutine
                             ? html`
-                                  <!-- Consequence tier -->
-                                  <div class="field">
-                                      <span class="field-label"
-                                          >Consequence Tier</span
-                                      >
-                                      <div class="tier-grid">
-                                          ${(
-                                              [1, 2, 3, 4] as ConsequenceTier[]
-                                          ).map(
-                                              (t) => html`
+                                  <div class="form-section open">
+                                      <div class="form-section-header">
+                                          <span class="form-section-title">Priority</span>
+                                      </div>
+                                      <div class="form-section-body">
+                                          <!-- Consequence tier -->
+                                          <div class="field">
+                                              <span class="field-label">Consequence Tier</span>
+                                              <div class="tier-grid">
+                                                  ${(
+                                                      [1, 2, 3, 4] as ConsequenceTier[]
+                                                  ).map(
+                                                      (t) => html`
                                 <${ViraButton.assign({
                                     text: `T${t}`,
                                     color: tierColor(t),
@@ -1229,28 +1380,26 @@ export const AddTaskDialogElement = defineElement<{
                                     @click=${() => updateState({ consequenceTier: t })}
                                 ></${ViraButton}>
                             `,
-                                          )}
-                                      </div>
-                                      <div class="tier-help">
-                                          <strong
-                                              >${tierLabel(
-                                                  state.consequenceTier,
-                                              )}.</strong
-                                          >
-                                          ${tierDescription(
-                                              state.consequenceTier,
-                                          )}
-                                      </div>
-                                  </div>
+                                                  )}
+                                              </div>
+                                              <div class="tier-help">
+                                                  <strong
+                                                      >${tierLabel(
+                                                          state.consequenceTier,
+                                                      )}.</strong
+                                                  >
+                                                  ${tierDescription(
+                                                      state.consequenceTier,
+                                                  )}
+                                              </div>
+                                          </div>
 
-                                  <!-- Time of day -->
-                                  <div class="field">
-                                      <span class="field-label"
-                                          >Time of Day</span
-                                      >
-                                      <div class="tod-grid">
-                                          ${TIME_OF_DAY_SLOTS.map(
-                                              (slot) => html`
+                                          <!-- Time of day -->
+                                          <div class="field">
+                                              <span class="field-label">Time of Day</span>
+                                              <div class="tod-grid">
+                                                  ${TIME_OF_DAY_SLOTS.map(
+                                                      (slot) => html`
                                 <${ViraButton.assign({
                                     text: timeOfDayLabel(slot),
                                     color: ViraColorVariant.Info,
@@ -1263,130 +1412,155 @@ export const AddTaskDialogElement = defineElement<{
                                     @click=${() => updateState({ timeOfDay: slot })}
                                 ></${ViraButton}>
                             `,
-                                          )}
+                                                  )}
+                                              </div>
+                                          </div>
                                       </div>
                                   </div>
 
-                                  <!-- Recurring toggle — hidden for routines (always recurring) -->
-                                  ${state.kind === "routine"
-                                      ? html``
-                                      : html`
-                                            <div class="recurring-row">
-                                                <input
-                                                    id="recurring-toggle"
-                                                    type="checkbox"
-                                                    .checked=${state.isRecurring}
-                                                    @change=${(e: Event) =>
-                                                        updateState({
-                                                            isRecurring: (
-                                                                e.target as HTMLInputElement
-                                                            ).checked,
-                                                        })}
-                                                />
-                                                <label for="recurring-toggle"
-                                                    >Recurring commitment</label
-                                                >
-                                            </div>
-                                        `}
+                                  <div class="form-section open">
+                                      <div class="form-section-header">
+                                          <span class="form-section-title">Schedule</span>
+                                      </div>
+                                      <div class="form-section-body">
+                                          <!-- Recurring toggle — hidden for routines (always recurring) -->
+                                          ${state.kind === "routine"
+                                              ? html``
+                                              : html`
+                                                    <div class="recurring-row">
+                                                        <input
+                                                            id="recurring-toggle"
+                                                            type="checkbox"
+                                                            .checked=${state.isRecurring}
+                                                            @change=${(e: Event) =>
+                                                                updateState({
+                                                                    isRecurring: (
+                                                                        e.target as HTMLInputElement
+                                                                    ).checked,
+                                                                })}
+                                                        />
+                                                        <label for="recurring-toggle"
+                                                            >Recurring commitment</label
+                                                        >
+                                                    </div>
+                                                `}
+
+                                          ${state.isRecurring
+                                              ? html`
+                                                  <${CadencePickerElement.assign({
+                                                      config: state.cadenceConfig,
+                                                  })}
+                                                      ${listen(CadencePickerElement.events.cadenceChange, (e) =>
+                                                          updateState({ cadenceConfig: e.detail }),
+                                                      )}
+                                                  ></${CadencePickerElement}>
+
+                                                  <!-- Skip days — daily cadence only -->
+                                                  ${isDailyLikeCadence ? html`
+                                                      <div class="field">
+                                                          <span class="field-label">Skip Days (optional)</span>
+                                                          <div class="seg" style="grid-template-columns: repeat(7, minmax(0, 1fr));">
+                                                              ${(['Sun','Mon','Tue','Wed','Thu','Fri','Sat'] as const).map((label, dow) => {
+                                                                  const active = state.skipDays.includes(dow);
+                                                                  return html`
+                                                                      <${ViraButton.assign({
+                                                                          text: label,
+                                                                          color: ViraColorVariant.Neutral,
+                                                                          buttonEmphasis: active ? ViraEmphasis.Standard : ViraEmphasis.Subtle,
+                                                                          buttonSize: ViraSize.Small,
+                                                                      })}
+                                                                          @click=${() => {
+                                                                              const next = active
+                                                                                  ? state.skipDays.filter(d => d !== dow)
+                                                                                  : [...state.skipDays, dow];
+                                                                              updateState({ skipDays: next });
+                                                                          }}
+                                                                      ></${ViraButton}>
+                                                                  `;
+                                                              })}
+                                                          </div>
+                                                      </div>
+                                                  ` : html``}
+                                              `
+                                              : html``}
+                                      </div>
+                                  </div>
 
                                   ${state.isRecurring
                                       ? html`
-                                          <${CadencePickerElement.assign({
-                                              config: state.cadenceConfig,
-                                          })}
-                                              ${listen(CadencePickerElement.events.cadenceChange, (e) =>
-                                                  updateState({ cadenceConfig: e.detail }),
-                                              )}
-                                          ></${CadencePickerElement}>
-
-                                          <!-- Skip days — daily cadence only -->
-                                          ${isDailyLikeCadence ? html`
-                                              <div class="field">
-                                                  <span class="field-label">Skip Days (optional)</span>
-                                                  <div class="seg" style="grid-template-columns: repeat(7, minmax(0, 1fr));">
-                                                      ${(['Sun','Mon','Tue','Wed','Thu','Fri','Sat'] as const).map((label, dow) => {
-                                                          const active = state.skipDays.includes(dow);
-                                                          return html`
-                                                              <${ViraButton.assign({
-                                                                  text: label,
-                                                                  color: ViraColorVariant.Neutral,
-                                                                  buttonEmphasis: active ? ViraEmphasis.Standard : ViraEmphasis.Subtle,
-                                                                  buttonSize: ViraSize.Small,
-                                                              })}
-                                                                  @click=${() => {
-                                                                      const next = active
-                                                                          ? state.skipDays.filter(d => d !== dow)
-                                                                          : [...state.skipDays, dow];
-                                                                      updateState({ skipDays: next });
-                                                                  }}
-                                                              ></${ViraButton}>
-                                                          `;
-                                                      })}
-                                                  </div>
+                                  <div class="form-section ${lifecycleOpen ? "open" : "collapsed"}">
+                                      <div
+                                          class="form-section-header collapsible"
+                                          @click=${() => toggleSection("lifecycle")}
+                                      >
+                                          <span class="form-section-title">
+                                              <span class="form-section-toggle">${lifecycleOpen ? "[−]" : "[+]"}</span>
+                                              Lifecycle
+                                          </span>
+                                          <span class="form-section-hint">${lifecycleHint()}</span>
+                                      </div>
+                                      <div class="form-section-body">
+                                          <!-- Start date -->
+                                          <div class="end-condition-section">
+                                              <div class="recurring-row">
+                                                  <input
+                                                      id="start-date-toggle"
+                                                      type="checkbox"
+                                                      .checked=${state.hasStartDate}
+                                                      @change=${(e: Event) =>
+                                                          updateState({
+                                                              hasStartDate: (
+                                                                  e.target as HTMLInputElement
+                                                              ).checked,
+                                                          })}
+                                                  />
+                                                  <label for="start-date-toggle">Has a start date (don't show until then)</label>
                                               </div>
-                                          ` : html``}
-
-                        <!-- Start date -->
-                        <div class="end-condition-section">
-                            <div class="recurring-row">
-                                <input
-                                    id="start-date-toggle"
-                                    type="checkbox"
-                                    .checked=${state.hasStartDate}
-                                    @change=${(e: Event) =>
-                                        updateState({
-                                            hasStartDate: (
-                                                e.target as HTMLInputElement
-                                            ).checked,
-                                        })}
-                                />
-                                <label for="start-date-toggle">Has a start date (don't show until then)</label>
-                            </div>
-                            ${
-                                state.hasStartDate
-                                    ? html`
-                                          <div class="field">
-                                              <span class="field-label"
-                                                  >Start Date</span
-                                              >
-                                              <input
-                                                  type="date"
-                                                  .value=${state.startDate}
-                                                  @input=${(e: Event) =>
-                                                      updateState({
-                                                          startDate: (
-                                                              e.target as HTMLInputElement
-                                                          ).value,
-                                                      })}
-                                              />
+                                              ${
+                                                  state.hasStartDate
+                                                      ? html`
+                                                            <div class="field">
+                                                                <span class="field-label"
+                                                                    >Start Date</span
+                                                                >
+                                                                <input
+                                                                    type="date"
+                                                                    .value=${state.startDate}
+                                                                    @input=${(e: Event) =>
+                                                                        updateState({
+                                                                            startDate: (
+                                                                                e.target as HTMLInputElement
+                                                                            ).value,
+                                                                        })}
+                                                                />
+                                                            </div>
+                                                        `
+                                                      : html``
+                                              }
                                           </div>
-                                      `
-                                    : html``
-                            }
-                        </div>
 
-                        <!-- Pause — edit mode only -->
-                        ${
-                            isEditMode
-                                ? html`
-                                      <div class="end-condition-section">
-                                          <div class="field">
-                                              <span class="field-label"
-                                                  >Pause Commitment</span
-                                              >
-                                              <div
-                                                  class="seg"
-                                                  style="grid-template-columns: repeat(4, minmax(0, 1fr));"
-                                              >
-                                                  ${(
-                                                      [
-                                                          "none",
-                                                          "indefinite",
-                                                          "until_date",
-                                                          "for_days",
-                                                      ] as const
-                                                  ).map(
-                                                      (m) => html`
+                                          <!-- Pause — edit mode only -->
+                                          ${
+                                              isEditMode
+                                                  ? html`
+                                                        <div class="end-condition-section">
+                                                            <div class="field">
+                                                                <span class="field-label"
+                                                                    >Pause Commitment</span
+                                                                >
+                                                                <div
+                                                                    class="seg"
+                                                                    style="grid-template-columns: repeat(4, minmax(0, 1fr));"
+                                                                >
+                                                                    ${(
+                                                                        [
+                                                                            "none",
+                                                                            "indefinite",
+                                                                            "until_date",
+                                                                            "for_days",
+                                                                        ] as const
+                                                                    ).map(
+                                                                        (m) => html`
                                         <${ViraButton.assign({
                                             text:
                                                 m === "none"
@@ -1409,33 +1583,33 @@ export const AddTaskDialogElement = defineElement<{
                                             @click=${() => updateState({ pauseMode: m })}
                                         ></${ViraButton}>
                                     `,
-                                                  )}
-                                              </div>
-                                          </div>
-                                          ${state.pauseMode === "until_date"
-                                              ? html`
-                                                    <div class="field">
-                                                        <span
-                                                            class="field-label"
-                                                            >Pause Until</span
-                                                        >
-                                                        <input
-                                                            type="date"
-                                                            .value=${state.pauseUntilDate}
-                                                            @input=${(
-                                                                e: Event,
-                                                            ) =>
-                                                                updateState({
-                                                                    pauseUntilDate:
-                                                                        (
-                                                                            e.target as HTMLInputElement
-                                                                        ).value,
-                                                                })}
-                                                        />
-                                                    </div>
-                                                `
-                                              : state.pauseMode === "for_days"
-                                                ? html`
+                                                                    )}
+                                                                </div>
+                                                            </div>
+                                                            ${state.pauseMode === "until_date"
+                                                                ? html`
+                                                                      <div class="field">
+                                                                          <span
+                                                                              class="field-label"
+                                                                              >Pause Until</span
+                                                                          >
+                                                                          <input
+                                                                              type="date"
+                                                                              .value=${state.pauseUntilDate}
+                                                                              @input=${(
+                                                                                  e: Event,
+                                                                              ) =>
+                                                                                  updateState({
+                                                                                      pauseUntilDate:
+                                                                                          (
+                                                                                              e.target as HTMLInputElement
+                                                                                          ).value,
+                                                                                  })}
+                                                                          />
+                                                                      </div>
+                                                                  `
+                                                                : state.pauseMode === "for_days"
+                                                                  ? html`
                                 <div class="field">
                                     <span class="field-label">Pause For (days)</span>
                                     <span class="dom-input">
@@ -1464,37 +1638,37 @@ export const AddTaskDialogElement = defineElement<{
                                     </span>
                                 </div>
                             `
-                                                : html``}
-                                      </div>
-                                  `
-                                : html``
-                        }
+                                                                  : html``}
+                                                        </div>
+                                                    `
+                                                  : html``
+                                          }
 
-                        <!-- End condition — hidden for routines (they never end) -->
-                        ${
-                            state.kind === "routine"
-                                ? html``
-                                : html`
-                                      <div class="end-condition-section">
-                                          <div class="recurring-row">
-                                              <input
-                                                  id="end-condition-toggle"
-                                                  type="checkbox"
-                                                  .checked=${state.hasEndCondition}
-                                                  @change=${(e: Event) =>
-                                                      updateState({
-                                                          hasEndCondition: (
-                                                              e.target as HTMLInputElement
-                                                          ).checked,
-                                                      })}
-                                              />
-                                              <label for="end-condition-toggle"
-                                                  >Has an end condition</label
-                                              >
-                                          </div>
+                                          <!-- End condition — hidden for routines (they never end) -->
+                                          ${
+                                              state.kind === "routine"
+                                                  ? html``
+                                                  : html`
+                                                        <div class="end-condition-section">
+                                                            <div class="recurring-row">
+                                                                <input
+                                                                    id="end-condition-toggle"
+                                                                    type="checkbox"
+                                                                    .checked=${state.hasEndCondition}
+                                                                    @change=${(e: Event) =>
+                                                                        updateState({
+                                                                            hasEndCondition: (
+                                                                                e.target as HTMLInputElement
+                                                                            ).checked,
+                                                                        })}
+                                                                />
+                                                                <label for="end-condition-toggle"
+                                                                    >Has an end condition</label
+                                                                >
+                                                            </div>
 
-                                          ${state.hasEndCondition
-                                              ? html`
+                                                            ${state.hasEndCondition
+                                                                ? html`
                                 <div class="field">
                                     <span class="field-label">End After</span>
                                     <div class="seg">
@@ -1573,225 +1747,248 @@ export const AddTaskDialogElement = defineElement<{
                                           `
                                 }
                             `
+                                                                : html``}
+                                                        </div>
+                                                    `
+                                          }
+                                      </div>
+                                  </div>
+                                  `
+                                      : html``}
+
+                                  ${!isDailyLikeCadence
+                                      ? html`
+                                  <div class="form-section ${windowOpen ? "open" : "collapsed"}">
+                                      <div
+                                          class="form-section-header collapsible"
+                                          @click=${() => toggleSection("window")}
+                                      >
+                                          <span class="form-section-title">
+                                              <span class="form-section-toggle">${windowOpen ? "[−]" : "[+]"}</span>
+                                              Window &amp; Deadline
+                                          </span>
+                                          <span class="form-section-hint">${windowDeadlineHint()}</span>
+                                      </div>
+                                      <div class="form-section-body">
+                                          <!-- Deadline type -->
+                                          <div class="field">
+                                              <span class="field-label">${skin.taskForm.deadlineTypeLabel}</span>
+                                              <div class="seg">
+                                                  <${ViraButton.assign({
+                                                      text: skin.taskForm.deadlineTypeFlexible,
+                                                      color: ViraColorVariant.Info,
+                                                      buttonEmphasis:
+                                                          state.deadlineType === "flexible"
+                                                              ? ViraEmphasis.Standard
+                                                              : ViraEmphasis.Subtle,
+                                                      buttonSize: ViraSize.Small,
+                                                  })}
+                                                      @click=${() => updateState({ deadlineType: "flexible" })}
+                                                  ></${ViraButton}>
+                                                  <${ViraButton.assign({
+                                                      text: skin.taskForm.deadlineTypeRigid,
+                                                      color: ViraColorVariant.Warning,
+                                                      buttonEmphasis:
+                                                          state.deadlineType === "rigid"
+                                                              ? ViraEmphasis.Standard
+                                                              : ViraEmphasis.Subtle,
+                                                      buttonSize: ViraSize.Small,
+                                                  })}
+                                                      @click=${() => updateState({ deadlineType: "rigid" })}
+                                                  ></${ViraButton}>
+                                              </div>
+                                          </div>
+
+                                          <!-- Date fields — only for one-time (non-recurring) tasks -->
+                                          ${!state.isRecurring
+                                              ? html`
+                                                    ${!state.isMilestone
+                                                        ? html`
+                                                              <div class="field">
+                                                                  <span
+                                                                      class="field-label"
+                                                                  >
+                                                                      ${state.deadlineType ===
+                                                                      "rigid"
+                                                                          ? "Date *"
+                                                                          : "Suggested Date (optional)"}
+                                                                  </span>
+                                                                  <input
+                                                                      type="date"
+                                                                      .value=${state.suggestedDate}
+                                                                      @input=${(
+                                                                          e: Event,
+                                                                      ) =>
+                                                                          updateState({
+                                                                              suggestedDate:
+                                                                                  (
+                                                                                      e.target as HTMLInputElement
+                                                                                  )
+                                                                                      .value,
+                                                                          })}
+                                                                  />
+                                                              </div>
+                                                          `
+                                                        : html``}
+                                                `
+                                              : html``}
+
+                                          <!-- Lead time -->
+                                          <div class="field">
+                                              <span class="field-label">Lead Time</span>
+                                              <div class="seg" style="grid-template-columns: repeat(3, minmax(0, 1fr));">
+                                                  <${ViraButton.assign({
+                                                      text: "Default",
+                                                      color: ViraColorVariant.Info,
+                                                      buttonEmphasis:
+                                                          state.leadTimeMode === "default"
+                                                              ? ViraEmphasis.Standard
+                                                              : ViraEmphasis.Subtle,
+                                                      buttonSize: ViraSize.Small,
+                                                  })}
+                                                      @click=${() => updateState({ leadTimeMode: "default" })}
+                                                  ></${ViraButton}>
+                                                  <${ViraButton.assign({
+                                                      text: "None",
+                                                      color: ViraColorVariant.Neutral,
+                                                      buttonEmphasis:
+                                                          state.leadTimeMode === "none"
+                                                              ? ViraEmphasis.Standard
+                                                              : ViraEmphasis.Subtle,
+                                                      buttonSize: ViraSize.Small,
+                                                  })}
+                                                      @click=${() => updateState({ leadTimeMode: "none" })}
+                                                  ></${ViraButton}>
+                                                  <${ViraButton.assign({
+                                                      text: "Custom",
+                                                      color: ViraColorVariant.Info,
+                                                      buttonEmphasis:
+                                                          state.leadTimeMode === "custom"
+                                                              ? ViraEmphasis.Standard
+                                                              : ViraEmphasis.Subtle,
+                                                      buttonSize: ViraSize.Small,
+                                                  })}
+                                                      @click=${() => updateState({ leadTimeMode: "custom" })}
+                                                  ></${ViraButton}>
+                                              </div>
+                                              <div class="tier-help">
+                                                  ${
+                                                      state.leadTimeMode === "none"
+                                                          ? "Hidden until due — only appears the day it's needed."
+                                                          : state.leadTimeMode === "custom"
+                                                            ? `Shows up ${state.leadTimeCustomDays} day${state.leadTimeCustomDays !== 1 ? "s" : ""} before due.`
+                                                            : state.isMilestone
+                                                              ? "Appears in radar 30 days before deadline (default)."
+                                                              : state.deadlineType === "rigid"
+                                                                ? "Appears in radar 3 days before due date (default)."
+                                                                : "Visibility scales with window % remaining (default)."
+                                                  }
+                                              </div>
+                                          </div>
+                                          ${
+                                              state.leadTimeMode === "custom"
+                                                  ? html`
+                                          <div class="field">
+                                              <span class="field-label">Days before due</span>
+                                              <span class="dom-input">
+                                                  <${ViraInput.assign({
+                                                      value: String(state.leadTimeCustomDays),
+                                                      type: ViraInputType.Number,
+                                                      placeholder: "7",
+                                                  })}
+                                                      ${listen(
+                                                          ViraInput.events.valueChange,
+                                                          (e) => {
+                                                              const n = parseInt(e.detail, 10);
+                                                              if (
+                                                                  !Number.isNaN(n) &&
+                                                                  n >= 0 &&
+                                                                  n <= 365
+                                                              ) {
+                                                                  updateState({
+                                                                      leadTimeCustomDays: n,
+                                                                  });
+                                                              }
+                                                          },
+                                                      )}
+                                                  ></${ViraInput}>
+                                              </span>
+                                          </div>
+                                          `
+                                                  : html``
+                                          }
+                                      </div>
+                                  </div>
+                                  `
+                                      : html``}
+
+                                  ${!isDailyLikeCadence
+                                      ? html`
+                                  <div class="form-section ${milestoneOpen ? "open" : "collapsed"}">
+                                      <div
+                                          class="form-section-header collapsible"
+                                          @click=${() => toggleSection("milestone")}
+                                      >
+                                          <span class="form-section-title">
+                                              <span class="form-section-toggle">${milestoneOpen ? "[−]" : "[+]"}</span>
+                                              Milestone
+                                          </span>
+                                          <span class="form-section-hint">${milestoneHint()}</span>
+                                      </div>
+                                      <div class="form-section-body">
+                                          <div class="recurring-row">
+                                              <input
+                                                  type="checkbox"
+                                                  id="milestone-toggle"
+                                                  .checked=${state.isMilestone}
+                                                  @change=${(e: Event) =>
+                                                      updateState({ isMilestone: (e.target as HTMLInputElement).checked })}
+                                              />
+                                              <label for="milestone-toggle">${skin.taskForm.milestoneLabel}</label>
+                                          </div>
+
+                                          <!-- Progress cadence — only for milestones -->
+                                          ${state.isMilestone
+                                              ? html`
+                                                    <div class="field">
+                                                        <span class="field-label">Progress Cadence</span>
+                                                        <div class="seg" style="grid-template-columns: repeat(2, minmax(0, 1fr));">
+                                                            <${ViraButton.assign({
+                                                                text: "Once per day",
+                                                                color: ViraColorVariant.Info,
+                                                                buttonEmphasis: !state.hasProgressCadence
+                                                                    ? ViraEmphasis.Standard
+                                                                    : ViraEmphasis.Subtle,
+                                                                buttonSize: ViraSize.Small,
+                                                            })}
+                                                                @click=${() => updateState({ hasProgressCadence: false })}
+                                                            ></${ViraButton}>
+                                                            <${ViraButton.assign({
+                                                                text: "Custom",
+                                                                color: ViraColorVariant.Neutral,
+                                                                buttonEmphasis: state.hasProgressCadence
+                                                                    ? ViraEmphasis.Standard
+                                                                    : ViraEmphasis.Subtle,
+                                                                buttonSize: ViraSize.Small,
+                                                            })}
+                                                                @click=${() => updateState({ hasProgressCadence: true })}
+                                                            ></${ViraButton}>
+                                                        </div>
+                                                        ${state.hasProgressCadence ? html`
+                                                            <${CadencePickerElement.assign({
+                                                                config: state.progressCadenceConfig,
+                                                            })}
+                                                                ${listen(CadencePickerElement.events.cadenceChange, (e) =>
+                                                                    updateState({ progressCadenceConfig: e.detail }),
+                                                                )}
+                                                            ></${CadencePickerElement}>
+                                                        ` : html``}
+                                                    </div>
+                                                `
                                               : html``}
                                       </div>
+                                  </div>
                                   `
-                        }
-                                      `
-                                      : html``}
-
-                                  <!-- Deadline type — hidden for daily/multiple_per_day -->
-                                  ${!isDailyLikeCadence
-                                      ? html`
-                        <div class="field">
-                            <span class="field-label">${skin.taskForm.deadlineTypeLabel}</span>
-                            <div class="seg">
-                                <${ViraButton.assign({
-                                    text: skin.taskForm.deadlineTypeFlexible,
-                                    color: ViraColorVariant.Info,
-                                    buttonEmphasis:
-                                        state.deadlineType === "flexible"
-                                            ? ViraEmphasis.Standard
-                                            : ViraEmphasis.Subtle,
-                                    buttonSize: ViraSize.Small,
-                                })}
-                                    @click=${() => updateState({ deadlineType: "flexible" })}
-                                ></${ViraButton}>
-                                <${ViraButton.assign({
-                                    text: skin.taskForm.deadlineTypeRigid,
-                                    color: ViraColorVariant.Warning,
-                                    buttonEmphasis:
-                                        state.deadlineType === "rigid"
-                                            ? ViraEmphasis.Standard
-                                            : ViraEmphasis.Subtle,
-                                    buttonSize: ViraSize.Small,
-                                })}
-                                    @click=${() => updateState({ deadlineType: "rigid" })}
-                                ></${ViraButton}>
-                            </div>
-                        </div>
-                    `
-                                      : html``}
-
-                                  <!-- Date fields — only for one-time (non-recurring) tasks -->
-                                  ${!state.isRecurring
-                                      ? html`
-                                            ${!state.isMilestone
-                                                ? html`
-                                                      <div class="field">
-                                                          <span
-                                                              class="field-label"
-                                                          >
-                                                              ${state.deadlineType ===
-                                                              "rigid"
-                                                                  ? "Date *"
-                                                                  : "Suggested Date (optional)"}
-                                                          </span>
-                                                          <input
-                                                              type="date"
-                                                              .value=${state.suggestedDate}
-                                                              @input=${(
-                                                                  e: Event,
-                                                              ) =>
-                                                                  updateState({
-                                                                      suggestedDate:
-                                                                          (
-                                                                              e.target as HTMLInputElement
-                                                                          )
-                                                                              .value,
-                                                                  })}
-                                                          />
-                                                      </div>
-                                                  `
-                                                : html``}
-                                        `
-                                      : html``}
-
-                                  <!-- Lead time — hidden for daily/multiple_per_day -->
-                                  ${!isDailyLikeCadence
-                                      ? html`
-                        <div class="field">
-                            <span class="field-label">Lead Time</span>
-                            <div class="seg" style="grid-template-columns: repeat(3, minmax(0, 1fr));">
-                                <${ViraButton.assign({
-                                    text: "Default",
-                                    color: ViraColorVariant.Info,
-                                    buttonEmphasis:
-                                        state.leadTimeMode === "default"
-                                            ? ViraEmphasis.Standard
-                                            : ViraEmphasis.Subtle,
-                                    buttonSize: ViraSize.Small,
-                                })}
-                                    @click=${() => updateState({ leadTimeMode: "default" })}
-                                ></${ViraButton}>
-                                <${ViraButton.assign({
-                                    text: "None",
-                                    color: ViraColorVariant.Neutral,
-                                    buttonEmphasis:
-                                        state.leadTimeMode === "none"
-                                            ? ViraEmphasis.Standard
-                                            : ViraEmphasis.Subtle,
-                                    buttonSize: ViraSize.Small,
-                                })}
-                                    @click=${() => updateState({ leadTimeMode: "none" })}
-                                ></${ViraButton}>
-                                <${ViraButton.assign({
-                                    text: "Custom",
-                                    color: ViraColorVariant.Info,
-                                    buttonEmphasis:
-                                        state.leadTimeMode === "custom"
-                                            ? ViraEmphasis.Standard
-                                            : ViraEmphasis.Subtle,
-                                    buttonSize: ViraSize.Small,
-                                })}
-                                    @click=${() => updateState({ leadTimeMode: "custom" })}
-                                ></${ViraButton}>
-                            </div>
-                            <div class="tier-help">
-                                ${
-                                    state.leadTimeMode === "none"
-                                        ? "Hidden until due — only appears the day it's needed."
-                                        : state.leadTimeMode === "custom"
-                                          ? `Shows up ${state.leadTimeCustomDays} day${state.leadTimeCustomDays !== 1 ? "s" : ""} before due.`
-                                          : state.isMilestone
-                                            ? "Appears in radar 30 days before deadline (default)."
-                                            : state.deadlineType === "rigid"
-                                              ? "Appears in radar 3 days before due date (default)."
-                                              : "Visibility scales with window % remaining (default)."
-                                }
-                            </div>
-                        </div>
-                        ${
-                            state.leadTimeMode === "custom"
-                                ? html`
-                        <div class="field">
-                            <span class="field-label">Days before due</span>
-                            <span class="dom-input">
-                                <${ViraInput.assign({
-                                    value: String(state.leadTimeCustomDays),
-                                    type: ViraInputType.Number,
-                                    placeholder: "7",
-                                })}
-                                    ${listen(
-                                        ViraInput.events.valueChange,
-                                        (e) => {
-                                            const n = parseInt(e.detail, 10);
-                                            if (
-                                                !Number.isNaN(n) &&
-                                                n >= 0 &&
-                                                n <= 365
-                                            ) {
-                                                updateState({
-                                                    leadTimeCustomDays: n,
-                                                });
-                                            }
-                                        },
-                                    )}
-                                ></${ViraInput}>
-                            </span>
-                        </div>
-                        `
-                                : html``
-                        }
-                    `
-                                      : html``}
-
-                                  <!-- Milestone — hidden for daily/multiple_per_day -->
-                                  ${!isDailyLikeCadence
-                                      ? html`
-                        <div class="field">
-                            <div class="toggle-row">
-                                <input
-                                    type="checkbox"
-                                    id="milestone-toggle"
-                                    .checked=${state.isMilestone}
-                                    @change=${(e: Event) =>
-                                        updateState({ isMilestone: (e.target as HTMLInputElement).checked })}
-                                />
-                                <label for="milestone-toggle">${skin.taskForm.milestoneLabel}</label>
-                            </div>
-                        </div>
-                    `
-                                      : html``}
-
-                                  <!-- Progress cadence — only for milestones -->
-                                  ${state.isMilestone && !isDailyLikeCadence
-                                      ? html`
-                                            <div class="field">
-                                                <span class="field-label">Progress Cadence</span>
-                                                <div class="seg" style="grid-template-columns: repeat(2, minmax(0, 1fr));">
-                                                    <${ViraButton.assign({
-                                                        text: "Once per day",
-                                                        color: ViraColorVariant.Info,
-                                                        buttonEmphasis: !state.hasProgressCadence
-                                                            ? ViraEmphasis.Standard
-                                                            : ViraEmphasis.Subtle,
-                                                        buttonSize: ViraSize.Small,
-                                                    })}
-                                                        @click=${() => updateState({ hasProgressCadence: false })}
-                                                    ></${ViraButton}>
-                                                    <${ViraButton.assign({
-                                                        text: "Custom",
-                                                        color: ViraColorVariant.Neutral,
-                                                        buttonEmphasis: state.hasProgressCadence
-                                                            ? ViraEmphasis.Standard
-                                                            : ViraEmphasis.Subtle,
-                                                        buttonSize: ViraSize.Small,
-                                                    })}
-                                                        @click=${() => updateState({ hasProgressCadence: true })}
-                                                    ></${ViraButton}>
-                                                </div>
-                                                ${state.hasProgressCadence ? html`
-                                                    <${CadencePickerElement.assign({
-                                                        config: state.progressCadenceConfig,
-                                                    })}
-                                                        ${listen(CadencePickerElement.events.cadenceChange, (e) =>
-                                                            updateState({ progressCadenceConfig: e.detail }),
-                                                        )}
-                                                    ></${CadencePickerElement}>
-                                                ` : html``}
-                                            </div>
-                                        `
                                       : html``}
                               `
                             : html``}
@@ -1867,86 +2064,62 @@ export const AddTaskDialogElement = defineElement<{
                             : html``
                     }
 
-                    <!-- Task / Routine: optional linked goal -->
+                    <!-- Task / Routine: organize (linked goal + area) -->
                     ${
                         isTaskOrRoutine
                             ? html`
-                                  <div class="field">
-                                      <label class="field-label"
-                                          >Linked ${skin.types.goal}
-                                          (optional)</label
-                                      >
-                                      <select
-                                          class="area-select"
-                                          .value=${state.linkedGoalId ?? ""}
-                                          @change=${(e: Event) => {
-                                              const val = (
-                                                  e.target as HTMLSelectElement
-                                              ).value;
-                                              updateState({
-                                                  linkedGoalId:
-                                                      val === "" ? null : val,
-                                              });
-                                          }}
-                                      >
-                                          <option value="">— None —</option>
-                                          ${(inputs.goals ?? [])
-                                              .filter(
-                                                  (g) =>
-                                                      g.status === "active" &&
-                                                      (state.selectedAreaId ===
-                                                          null ||
-                                                          g.areaId ===
-                                                              state.selectedAreaId),
-                                              )
-                                              .map(
-                                                  (g) => html`
-                                                      <option
-                                                          value="${g.id}"
-                                                          .selected=${state.linkedGoalId ===
-                                                          g.id}
-                                                      >
-                                                          ${g.title}
-                                                      </option>
-                                                  `,
-                                              )}
-                                      </select>
+                                  <div class="form-section open">
+                                      <div class="form-section-header">
+                                          <span class="form-section-title">Organize</span>
+                                      </div>
+                                      <div class="form-section-body">
+                                          <div class="field">
+                                              <label class="field-label"
+                                                  >Linked ${skin.types.goal}
+                                                  (optional)</label
+                                              >
+                                              <select
+                                                  class="area-select"
+                                                  .value=${state.linkedGoalId ?? ""}
+                                                  @change=${(e: Event) => {
+                                                      const val = (
+                                                          e.target as HTMLSelectElement
+                                                      ).value;
+                                                      updateState({
+                                                          linkedGoalId:
+                                                              val === "" ? null : val,
+                                                      });
+                                                  }}
+                                              >
+                                                  <option value="">— None —</option>
+                                                  ${(inputs.goals ?? [])
+                                                      .filter(
+                                                          (g) =>
+                                                              g.status === "active" &&
+                                                              (state.selectedAreaId ===
+                                                                  null ||
+                                                                  g.areaId ===
+                                                                      state.selectedAreaId),
+                                                      )
+                                                      .map(
+                                                          (g) => html`
+                                                              <option
+                                                                  value="${g.id}"
+                                                                  .selected=${state.linkedGoalId ===
+                                                                  g.id}
+                                                              >
+                                                                  ${g.title}
+                                                              </option>
+                                                          `,
+                                                      )}
+                                              </select>
+                                          </div>
+                                          ${renderAreaField()}
+                                      </div>
                                   </div>
                               `
-                            : html``
+                            : renderAreaField()
                     }
-
-                    <!-- Area of Responsibility assignment — always last, always visible -->
-                    <div class="field">
-                        <label class="field-label">Area of Responsibility</label>
-                        <select
-                            class="area-select"
-                            .value=${state.selectedAreaId ?? ""}
-                            @change=${(e: Event) => {
-                                const val = (e.target as HTMLSelectElement)
-                                    .value;
-                                // Changing area clears both goal links (goals are area-scoped)
-                                updateState({
-                                    selectedAreaId: val === "" ? null : val,
-                                    linkedGoalId: null,
-                                    ideaLinkedGoalId: null,
-                                });
-                            }}
-                        >
-                            <option value="">No area</option>
-                            ${(inputs.areas ?? []).map(
-                                (p) => html`
-                                    <option
-                                        value="${p.id}"
-                                        .selected=${state.selectedAreaId ===
-                                        p.id}
-                                    >
-                                        ${p.name}
-                                    </option>
-                                `,
-                            )}
-                        </select>
-                    </div>
 
                     ${
                         isEditMode

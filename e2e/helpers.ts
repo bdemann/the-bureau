@@ -98,6 +98,21 @@ export async function openCommitmentFromDailyView(page: Page, title: string): Pr
     await page.getByText(title, { exact: true }).click();
 }
 
+/**
+ * Expands one of the add/edit dialog's collapsible sections ("Window &
+ * Deadline", "Lifecycle", "Milestone") if it isn't already open — those
+ * sections auto-open when the commitment already has something configured
+ * there, so this is a no-op in that case rather than accidentally closing it.
+ */
+export async function openSection(page: Page, name: "Window & Deadline" | "Lifecycle" | "Milestone"): Promise<void> {
+    const section = page.locator(".form-section", { has: page.getByText(name, { exact: false }) }).first();
+    const isCollapsed = await section.evaluate((el) => el.classList.contains("collapsed"));
+    if (isCollapsed) {
+        await section.locator(".form-section-header").click();
+        await page.waitForTimeout(150);
+    }
+}
+
 export async function createArea(page: Page, name: string): Promise<void> {
     await page.getByText("Areas", { exact: true }).click();
     await page.getByText("NEW AREA OF RESPONSIBILITY").click();

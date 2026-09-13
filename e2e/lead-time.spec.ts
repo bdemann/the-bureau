@@ -1,5 +1,5 @@
 import { expect, test } from "@playwright/test";
-import { fillTitle, openCommitmentFromDailyView, openMakeCommitment } from "./helpers";
+import { fillTitle, openCommitmentFromDailyView, openMakeCommitment, openSection } from "./helpers";
 
 // Mirrors TESTING.md's "Radar lead days (per-commitment)" section. The
 // feature evolved from a plain "Radar lead (days)" number field into a
@@ -10,6 +10,7 @@ test.describe("Lead Time field", () => {
     test("defaults to 'Default' with rigid-task help text; hidden for daily cadence", async ({ page }) => {
         await page.goto("/");
         await openMakeCommitment(page);
+        await openSection(page, "Window & Deadline");
         await expect(page.getByText("Lead Time", { exact: true })).toBeVisible();
         await expect(page.getByText("Appears in radar 3 days before due date (default).", { exact: true })).toBeVisible();
 
@@ -22,13 +23,16 @@ test.describe("Lead Time field", () => {
     test("shows a 30-day default help text for milestones instead of 3", async ({ page }) => {
         await page.goto("/");
         await openMakeCommitment(page);
+        await openSection(page, "Milestone");
         await page.getByText("Milestone (track progress", { exact: false }).click();
+        await openSection(page, "Window & Deadline");
         await expect(page.getByText("Appears in radar 30 days before deadline (default).", { exact: true })).toBeVisible();
     });
 
     test("flexible deadline shows window-based help text instead of a fixed day count", async ({ page }) => {
         await page.goto("/");
         await openMakeCommitment(page);
+        await openSection(page, "Window & Deadline");
         await page.getByText("Flexible", { exact: true }).click();
         await expect(page.getByText("Visibility scales with window % remaining (default).", { exact: true })).toBeVisible();
     });
@@ -36,6 +40,7 @@ test.describe("Lead Time field", () => {
     test("'None' and 'Custom' show their own help text; Custom reveals a days-before-due input", async ({ page }) => {
         await page.goto("/");
         await openMakeCommitment(page);
+        await openSection(page, "Window & Deadline");
         await page.getByText("None", { exact: true }).click();
         await expect(page.getByText("Hidden until due — only appears the day it's needed.", { exact: true })).toBeVisible();
 
@@ -51,6 +56,7 @@ test.describe("Lead Time field", () => {
     test("singular day-count wording for a custom value of 1", async ({ page }) => {
         await page.goto("/");
         await openMakeCommitment(page);
+        await openSection(page, "Window & Deadline");
         await page.getByText("Custom", { exact: true }).click();
         const input = page.locator(".field", { hasText: "Days before due" }).getByRole("spinbutton");
         await input.fill("1");
@@ -61,6 +67,7 @@ test.describe("Lead Time field", () => {
         await page.goto("/");
         await openMakeCommitment(page);
         await fillTitle(page, "Submit expense report");
+        await openSection(page, "Window & Deadline");
         await page.getByText("Custom", { exact: true }).click();
         const input = page.locator(".field", { hasText: "Days before due" }).getByRole("spinbutton");
         await input.fill("14");
