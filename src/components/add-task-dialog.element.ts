@@ -44,6 +44,7 @@ import {
 import { generateId, startOfDay } from "../data/storage.js";
 import { initialiseRecurrence } from "../data/recurrence.js";
 import { getActiveSkin } from "../skins/active-skin.js";
+import { pushModalHistoryGuard, releaseModalHistoryGuard } from "../modal-history-guard.js";
 import {
     CadencePickerElement,
     buildRecurrenceAnchors,
@@ -563,8 +564,14 @@ export const AddTaskDialogElement = defineElement<{
         const skin = getActiveSkin();
         // Reset wasOpen when dialog closes so the next open is treated as fresh.
         if (!inputs.open) {
+            releaseModalHistoryGuard();
             if (state.wasOpen) updateState({ wasOpen: false });
             return html``;
+        }
+        // First render since opening: make the back button close this dialog
+        // instead of leaving the app.
+        if (!state.wasOpen) {
+            pushModalHistoryGuard(() => dispatch(new events.cancelled()));
         }
 
         const editTask = inputs.editTask ?? null;

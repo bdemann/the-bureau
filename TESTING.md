@@ -79,6 +79,13 @@ E2E (Playwright, `e2e/`):
   menu open/backdrop-close/navigation, all four bottom-nav tabs and their
   detail-view highlight persistence, and the UNDO toast's z-order relative
   to the nav bar.
+- `back-button.spec.ts` — the add/edit dialog's history-guard (see
+  `src/modal-history-guard.ts`): the back button closes the dialog instead of
+  leaving the app, and every close path (back button, Cancel, submit) leaves
+  `history.state` exactly where it was before the dialog opened — no stale
+  entry that would eat an extra back press later. Currently wired into the
+  add/edit commitment dialog only; the area wizard and hamburger menu don't
+  have this yet.
 - `areas.spec.ts` — area list empty state, wizard cancel with/without data,
   the "✓ CLEARED" all-clear flag rules, area-detail (empty state, cleared-
   tasks toggle, EDIT/DELETE AREA), and the wizard's step 2/3 multi-routine
