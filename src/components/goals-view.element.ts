@@ -335,7 +335,7 @@ export const GoalsViewElement = defineElement<{
 
         function setStatus(goal: Goal, status: GoalStatus, e: Event): void {
             e.stopPropagation();
-            dispatch(new events.goalUpdated({ ...goal, status }));
+            dispatch(new events.goalUpdated({detail: { ...goal, status }}));
         }
 
         const active = sortByTargetDate(
@@ -357,7 +357,7 @@ export const GoalsViewElement = defineElement<{
             return html`
                 <div
                     class=${"goal-card " + goal.status}
-                    @click=${() => dispatch(new events.goalSelected(goal.id))}
+                    @click=${() => dispatch(new events.goalSelected({detail: goal.id}))}
                 >
                     <div class="card-top">
                         <div class="goal-title">${goal.title}</div>
@@ -467,7 +467,7 @@ export const GoalsViewElement = defineElement<{
                         const fromId = e.dataTransfer?.getData("text/plain") ?? state.draggedId;
                         if (fromId && fromId !== goal.id) {
                             dispatch(new events.goalsReordered(
-                                reorderBefore(visibleGoals, fromId, goal.id).map((g) => g.id),
+                                {detail: reorderBefore(visibleGoals, fromId, goal.id).map((g) => g.id)},
                             ));
                         }
                         updateState({ draggedId: null, dragOverId: null });
@@ -494,7 +494,7 @@ export const GoalsViewElement = defineElement<{
                         const fromId = e.dataTransfer?.getData("text/plain") ?? state.draggedId;
                         if (fromId) {
                             dispatch(new events.goalsReordered(
-                                moveToEnd(visibleGoals, fromId).map((g) => g.id),
+                                {detail: moveToEnd(visibleGoals, fromId).map((g) => g.id)},
                             ));
                         }
                         updateState({ draggedId: null, dragOverId: null });
@@ -516,7 +516,7 @@ export const GoalsViewElement = defineElement<{
             <button
                 class="file-btn"
                 @click=${() =>
-                    dispatch(new events.makeCommitmentRequested("goal"))}
+                    dispatch(new events.makeCommitmentRequested({detail: "goal"}))}
             >
                 + MAKE GOAL
             </button>

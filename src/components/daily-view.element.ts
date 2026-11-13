@@ -110,7 +110,7 @@ export const DailyViewElement = defineElement<{
         taskNotToday: defineElementEvent<string>(),
         taskProgressLogged: defineElementEvent<string>(),
         taskEditRequested: defineElementEvent<string>(),
-        newTaskRequested: defineElementEvent<void>(),
+        newTaskRequested: defineElementEvent<unknown>(),
         tasksReordered: defineElementEvent<ReadonlyArray<string>>(), // ordered task ids
     },
 
@@ -506,9 +506,9 @@ export const DailyViewElement = defineElement<{
                             ) {
                                 dispatch(
                                     new events.tasksReordered(
-                                        reorderBefore(tasks, fromId, t.id).map(
+                                        {detail: reorderBefore(tasks, fromId, t.id).map(
                                             (x) => x.id,
-                                        ),
+                                        )},
                                     ),
                                 );
                             }
@@ -526,32 +526,32 @@ export const DailyViewElement = defineElement<{
                             band,
                         })}
                             ${listen(TaskItemElement.events.completed, (e) =>
-                                dispatch(new events.taskCompleted(e.detail)),
+                                dispatch(new events.taskCompleted({detail: e.detail})),
                             )}
                             ${listen(TaskItemElement.events.snoozed, (e) =>
-                                dispatch(new events.taskSnoozed(e.detail)),
+                                dispatch(new events.taskSnoozed({detail: e.detail})),
                             )}
                             ${listen(TaskItemElement.events.unSnoozed, (e) =>
-                                dispatch(new events.taskUnSnoozed(e.detail)),
+                                dispatch(new events.taskUnSnoozed({detail: e.detail})),
                             )}
                             ${listen(TaskItemElement.events.skipped, (e) =>
-                                dispatch(new events.taskSkipped(e.detail)),
+                                dispatch(new events.taskSkipped({detail: e.detail})),
                             )}
                             ${listen(TaskItemElement.events.notToday, (e) =>
-                                dispatch(new events.taskNotToday(e.detail)),
+                                dispatch(new events.taskNotToday({detail: e.detail})),
                             )}
                             ${listen(
                                 TaskItemElement.events.progressLogged,
                                 (e) =>
                                     dispatch(
-                                        new events.taskProgressLogged(e.detail),
+                                        new events.taskProgressLogged({detail: e.detail}),
                                     ),
                             )}
                             ${listen(
                                 TaskItemElement.events.editRequested,
                                 (e) =>
                                     dispatch(
-                                        new events.taskEditRequested(e.detail),
+                                        new events.taskEditRequested({detail: e.detail}),
                                     ),
                             )}
                         ></${TaskItemElement}>
@@ -584,7 +584,7 @@ export const DailyViewElement = defineElement<{
                         if (fromId && tasks.some((x) => x.id === fromId)) {
                             dispatch(
                                 new events.tasksReordered(
-                                    moveToEnd(tasks, fromId).map((x) => x.id),
+                                    {detail: moveToEnd(tasks, fromId).map((x) => x.id)},
                                 ),
                             );
                         }
@@ -765,7 +765,7 @@ export const DailyViewElement = defineElement<{
 
             <button
                 class="file-directive-btn"
-                @click=${() => dispatch(new events.newTaskRequested())}
+                @click=${() => dispatch(new events.newTaskRequested({detail: undefined}))}
             >
                 ${skin.actions.makeCommitmentCta}
             </button>

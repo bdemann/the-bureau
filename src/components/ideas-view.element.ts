@@ -290,7 +290,7 @@ export const IdeasViewElement = defineElement<{
             <button
                 class="file-btn"
                 @click=${() =>
-                    dispatch(new events.makeCommitmentRequested("idea"))}
+                    dispatch(new events.makeCommitmentRequested({detail: "idea"}))}
             >
                 + MAKE IDEA
             </button>
@@ -324,7 +324,7 @@ export const IdeasViewElement = defineElement<{
                             const fromId = e.dataTransfer?.getData("text/plain") ?? state.draggedId;
                             if (fromId && fromId !== idea.id) {
                                 dispatch(new events.ideasReordered(
-                                    reorderBefore(sortedIdeas, fromId, idea.id).map((i) => i.id),
+                                    {detail: reorderBefore(sortedIdeas, fromId, idea.id).map((i) => i.id)},
                                 ));
                             }
                             updateState({ draggedId: null, dragOverId: null, confirmDeleteId: null });
@@ -340,7 +340,7 @@ export const IdeasViewElement = defineElement<{
                                 target.closest(".confirm-delete")
                             )
                                 return;
-                            dispatch(new events.ideaEditRequested(idea));
+                            dispatch(new events.ideaEditRequested({detail: idea}));
                         }}
                     >
                         <div class="idea-title">${idea.title}</div>
@@ -370,7 +370,7 @@ export const IdeasViewElement = defineElement<{
                                 class="action-btn action-promote"
                                 @click=${(e: Event) => {
                                     e.stopPropagation();
-                                    dispatch(new events.promoteRequested(idea));
+                                    dispatch(new events.promoteRequested({detail: idea}));
                                 }}
                             >
                                 PROMOTE TO COMMITMENT
@@ -380,7 +380,7 @@ export const IdeasViewElement = defineElement<{
                                 @click=${(e: Event) => {
                                     e.stopPropagation();
                                     dispatch(
-                                        new events.ideaEditRequested(idea),
+                                        new events.ideaEditRequested({detail: idea}),
                                     );
                                 }}
                             >
@@ -407,7 +407,7 @@ export const IdeasViewElement = defineElement<{
                                               e.stopPropagation();
                                               dispatch(
                                                   new events.ideaDeleted(
-                                                      idea.id,
+                                                      {detail: idea.id},
                                                   ),
                                               );
                                               updateState({
@@ -452,7 +452,7 @@ export const IdeasViewElement = defineElement<{
                               const fromId = e.dataTransfer?.getData("text/plain") ?? state.draggedId;
                               if (fromId) {
                                   dispatch(new events.ideasReordered(
-                                      moveToEnd(sortedIdeas, fromId).map((i) => i.id),
+                                      {detail: moveToEnd(sortedIdeas, fromId).map((i) => i.id)},
                                   ));
                               }
                               updateState({ draggedId: null, dragOverId: null });

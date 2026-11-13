@@ -186,12 +186,12 @@ export const AreaCardElement = defineElement<{
             <div
                 class="card"
                 style="--area-color:${color}"
-                @click=${() => dispatch(new events.selected(area.id))}
+                @click=${() => dispatch(new events.selected({detail: area.id}))}
                 role="button"
                 tabindex="0"
                 @keydown=${(e: KeyboardEvent) => {
                     if (e.key === "Enter" || e.key === " ") {
-                        dispatch(new events.selected(area.id));
+                        dispatch(new events.selected({detail: area.id}));
                     }
                 }}
             >

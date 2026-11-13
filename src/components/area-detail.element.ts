@@ -64,7 +64,7 @@ export const AreaDetailElement = defineElement<{
             kind: FormKind;
         }>(),
         tasksReordered: defineElementEvent<ReadonlyArray<string>>(),
-        back: defineElementEvent<void>(),
+        back: defineElementEvent<unknown>(),
         areaDeleted: defineElementEvent<string>(),
         areaUpdated: defineElementEvent<Area>(),
         goalUpdated: defineElementEvent<Goal>(),
@@ -464,11 +464,11 @@ export const AreaDetailElement = defineElement<{
                                         if (fromId && fromId !== task.id) {
                                             dispatch(
                                                 new events.tasksReordered(
-                                                    reorderBefore(
+                                                    {detail: reorderBefore(
                                                         activeTasks,
                                                         fromId,
                                                         task.id,
-                                                    ).map((t) => t.id),
+                                                    ).map((t) => t.id)},
                                                 ),
                                             );
                                         }
@@ -485,7 +485,7 @@ export const AreaDetailElement = defineElement<{
                                         (e) =>
                                             dispatch(
                                                 new events.taskCompleted(
-                                                    e.detail,
+                                                    {detail: e.detail},
                                                 ),
                                             ),
                                     )}
@@ -494,7 +494,7 @@ export const AreaDetailElement = defineElement<{
                                         (e) =>
                                             dispatch(
                                                 new events.taskSnoozed(
-                                                    e.detail,
+                                                    {detail: e.detail},
                                                 ),
                                             ),
                                     )}
@@ -503,7 +503,7 @@ export const AreaDetailElement = defineElement<{
                                         (e) =>
                                             dispatch(
                                                 new events.taskUnSnoozed(
-                                                    e.detail,
+                                                    {detail: e.detail},
                                                 ),
                                             ),
                                     )}
@@ -512,7 +512,7 @@ export const AreaDetailElement = defineElement<{
                                         (e) =>
                                             dispatch(
                                                 new events.taskSkipped(
-                                                    e.detail,
+                                                    {detail: e.detail},
                                                 ),
                                             ),
                                     )}
@@ -521,7 +521,7 @@ export const AreaDetailElement = defineElement<{
                                         (e) =>
                                             dispatch(
                                                 new events.taskProgressLogged(
-                                                    e.detail,
+                                                    {detail: e.detail},
                                                 ),
                                             ),
                                     )}
@@ -530,7 +530,7 @@ export const AreaDetailElement = defineElement<{
                                         (e) =>
                                             dispatch(
                                                 new events.taskEditRequested(
-                                                    e.detail,
+                                                    {detail: e.detail},
                                                 ),
                                             ),
                                     )}
@@ -560,10 +560,10 @@ export const AreaDetailElement = defineElement<{
                                       if (fromId) {
                                           dispatch(
                                               new events.tasksReordered(
-                                                  moveToEnd(
+                                                  {detail: moveToEnd(
                                                       activeTasks,
                                                       fromId,
-                                                  ).map((t) => t.id),
+                                                  ).map((t) => t.id)},
                                               ),
                                           );
                                       }
@@ -596,7 +596,7 @@ export const AreaDetailElement = defineElement<{
                                             (e) =>
                                                 dispatch(
                                                     new events.taskEditRequested(
-                                                        e.detail,
+                                                        {detail: e.detail},
                                                     ),
                                                 ),
                                         )}
@@ -626,7 +626,7 @@ export const AreaDetailElement = defineElement<{
                                             (e) =>
                                                 dispatch(
                                                     new events.taskCompleted(
-                                                        e.detail,
+                                                        {detail: e.detail},
                                                     ),
                                                 ),
                                         )}
@@ -635,7 +635,7 @@ export const AreaDetailElement = defineElement<{
                                             (e) =>
                                                 dispatch(
                                                     new events.taskSnoozed(
-                                                        e.detail,
+                                                        {detail: e.detail},
                                                     ),
                                                 ),
                                         )}
@@ -644,7 +644,7 @@ export const AreaDetailElement = defineElement<{
                                             (e) =>
                                                 dispatch(
                                                     new events.taskUnSnoozed(
-                                                        e.detail,
+                                                        {detail: e.detail},
                                                     ),
                                                 ),
                                         )}
@@ -654,7 +654,7 @@ export const AreaDetailElement = defineElement<{
                                             (e) =>
                                                 dispatch(
                                                     new events.taskEditRequested(
-                                                        e.detail,
+                                                        {detail: e.detail},
                                                     ),
                                                 ),
                                         )}
@@ -670,7 +670,7 @@ export const AreaDetailElement = defineElement<{
             <!-- Add task button -->
             <button
                 class="add-btn"
-                @click=${() => dispatch(new events.newTaskRequested(area.id))}
+                @click=${() => dispatch(new events.newTaskRequested({detail: area.id}))}
             >
                 ${skin.commitmentList.newCommitmentCta}
             </button>
@@ -705,7 +705,7 @@ export const AreaDetailElement = defineElement<{
                                                     (e) =>
                                                         dispatch(
                                                             new events.taskCompleted(
-                                                                e.detail,
+                                                                {detail: e.detail},
                                                             ),
                                                         ),
                                                 )}
@@ -715,7 +715,7 @@ export const AreaDetailElement = defineElement<{
                                                     (e) =>
                                                         dispatch(
                                                             new events.taskSnoozed(
-                                                                e.detail,
+                                                                {detail: e.detail},
                                                             ),
                                                         ),
                                                 )}
@@ -725,7 +725,7 @@ export const AreaDetailElement = defineElement<{
                                                     (e) =>
                                                         dispatch(
                                                             new events.taskUnSnoozed(
-                                                                e.detail,
+                                                                {detail: e.detail},
                                                             ),
                                                         ),
                                                 )}
@@ -735,7 +735,7 @@ export const AreaDetailElement = defineElement<{
                                                     (e) =>
                                                         dispatch(
                                                             new events.taskEditRequested(
-                                                                e.detail,
+                                                                {detail: e.detail},
                                                             ),
                                                         ),
                                                 )}
@@ -764,17 +764,17 @@ export const AreaDetailElement = defineElement<{
                         GoalsViewElement.events.makeCommitmentRequested,
                         (e) =>
                             dispatch(
-                                new events.newCommitmentRequested({
+                                new events.newCommitmentRequested({detail: {
                                     areaId: area.id,
                                     kind: e.detail,
-                                }),
+                                }}),
                             ),
                     )}
                     ${listen(GoalsViewElement.events.goalUpdated, (e) =>
-                        dispatch(new events.goalUpdated(e.detail)),
+                        dispatch(new events.goalUpdated({detail: e.detail})),
                     )}
                     ${listen(GoalsViewElement.events.goalSelected, (e) =>
-                        dispatch(new events.goalSelected(e.detail)),
+                        dispatch(new events.goalSelected({detail: e.detail})),
                     )}
                 ></${GoalsViewElement}>
             </div>
@@ -793,20 +793,20 @@ export const AreaDetailElement = defineElement<{
                         IdeasViewElement.events.makeCommitmentRequested,
                         (e) =>
                             dispatch(
-                                new events.newCommitmentRequested({
+                                new events.newCommitmentRequested({detail: {
                                     areaId: area.id,
                                     kind: e.detail,
-                                }),
+                                }}),
                             ),
                     )}
                     ${listen(IdeasViewElement.events.ideaUpdated, (e) =>
-                        dispatch(new events.ideaUpdated(e.detail)),
+                        dispatch(new events.ideaUpdated({detail: e.detail})),
                     )}
                     ${listen(IdeasViewElement.events.ideaDeleted, (e) =>
-                        dispatch(new events.ideaDeleted(e.detail)),
+                        dispatch(new events.ideaDeleted({detail: e.detail})),
                     )}
                     ${listen(IdeasViewElement.events.promoteRequested, (e) =>
-                        dispatch(new events.ideaPromoteRequested(e.detail)),
+                        dispatch(new events.ideaPromoteRequested({detail: e.detail})),
                     )}
                 ></${IdeasViewElement}>
             </div>
@@ -889,13 +889,13 @@ export const AreaDetailElement = defineElement<{
                                                   state.editName.trim();
                                               if (!trimmed) return;
                                               dispatch(
-                                                  new events.areaUpdated({
+                                                  new events.areaUpdated({detail: {
                                                       ...area,
                                                       name: trimmed,
                                                       description:
                                                           state.editDescription.trim(),
                                                       colorKey: state.editColor,
-                                                  }),
+                                                  }}),
                                               );
                                               updateState({
                                                   editingArea: false,
@@ -926,7 +926,7 @@ export const AreaDetailElement = defineElement<{
                                             @click=${() =>
                                                 dispatch(
                                                     new events.areaDeleted(
-                                                        area.id,
+                                                        {detail: area.id},
                                                     ),
                                                 )}
                                         >

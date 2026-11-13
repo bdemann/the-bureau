@@ -199,7 +199,7 @@ export const CommitmentCardElement = defineElement<{
             <div
                 class="card"
                 style="--kind-color:${kindColor}"
-                @click=${() => dispatch(new events.editRequested(commitment))}
+                @click=${() => dispatch(new events.editRequested({detail: commitment}))}
             >
                 <div class="card-body">
                     <div class="card-title">${commitment.title}</div>

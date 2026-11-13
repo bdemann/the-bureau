@@ -56,7 +56,7 @@ export const AreaWizardDialogElement = defineElement<{
             area: Area;
             routines: ReadonlyArray<Task>;
         }>(),
-        cancelled: defineElementEvent<void>(),
+        cancelled: defineElementEvent<unknown>(),
     },
 
     state: () => ({
@@ -353,7 +353,7 @@ export const AreaWizardDialogElement = defineElement<{
         }
 
         function cancel(): void {
-            dispatch(new events.cancelled());
+            dispatch(new events.cancelled({detail: undefined}));
             reset();
         }
 
@@ -433,7 +433,7 @@ export const AreaWizardDialogElement = defineElement<{
 
         function createArea(routines: ReadonlyArray<Task>): void {
             const area = buildArea();
-            dispatch(new events.areaCreated({ area, routines }));
+            dispatch(new events.areaCreated({detail: { area, routines }}));
             reset();
         }
 

@@ -374,7 +374,7 @@ export const CadencePickerElement = defineElement<{ config: CadenceConfig }>()({
         const { config } = inputs;
 
         function update(partial: Partial<CadenceConfig>): void {
-            dispatch(new events.cadenceChange({ ...config, ...partial }));
+            dispatch(new events.cadenceChange({detail: { ...config, ...partial }}));
         }
 
         function toggleDay(day: number): void {
