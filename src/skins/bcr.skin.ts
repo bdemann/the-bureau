@@ -132,6 +132,8 @@ export const bcrSkin: Skin = {
 
         aboutLabel: "Bureau Particulars",
         aboutSub: "Edition, revision & file status",
+        feedbackLabel: "File a Complaint",
+        feedbackSub: "Report a problem or propose an idea to the Bureau",
     },
 
     pages: {

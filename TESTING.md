@@ -628,3 +628,28 @@ the dev server cannot observe):
       no error is shown
 - [ ] About page in each skin (BCR, Default, Trestle Board, Dresden) in light and
       dark mode: all text and the buttons are readable
+
+### Feedback page (Menu → Submit feedback)
+
+Automated in `e2e/feedback.spec.ts` with `/api/feedback` mocked: Menu → Submit
+feedback shows the page; sending shows success and posts the draft with
+diagnostics; a 502 and a network failure show an error; an invalid email blocks
+sending; an unsent draft survives a reload; the back button returns to the
+origin view, including after switching About ↔ Feedback from the menu. The
+diagnostics builder (counts only, no titles or notes) is covered in
+`src/data/feedback-diagnostics.test.ts`.
+
+Manual (needs a real deploy with `GITHUB_FEEDBACK_TOKEN` set):
+
+- [ ] On a Netlify deploy preview with the token set: Menu → Submit feedback,
+      pick Problem, type a message, Send → "Thank you" appears and a new issue
+      on bdemann/the-bureau has the `feedback` and `bug` labels, the message,
+      and a collapsed diagnostics section with counts only (no task, area, goal
+      or idea text)
+- [ ] Pick Idea and send → the issue has `feedback` and `enhancement`
+- [ ] With the token unset (a deploy without `GITHUB_FEEDBACK_TOKEN`): Send →
+      the page shows the failure message (the function answers 503) and the
+      Retry button; the typed message is kept
+- [ ] Feedback page in each skin (BCR, Default, Trestle Board, Dresden) in light
+      and dark mode: text fields, the diagnostics checkbox row, the Send button
+      and the error message are all readable

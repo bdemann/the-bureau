@@ -17,7 +17,8 @@ export type AppView =
     | "all-commitments"
     | "unlinked"
     | "preferences"
-    | "about";
+    | "about"
+    | "feedback";
 export type Character = "director" | "agent";
 
 export const SCHEMA_VERSION = 6;

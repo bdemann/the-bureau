@@ -1,6 +1,7 @@
 import { css, defineElement, html } from "element-vir";
 import { AboutPage } from "@bdemann/app-kit/ui";
 import { fetchLatestCommit } from "../data/version-info.js";
+import { kitThemeVars } from "./kit-theme.js";
 
 const REPO_URL = "https://github.com/bdemann/the-bureau";
 
@@ -20,18 +21,7 @@ export const AboutViewElement = defineElement<{
             padding: 16px 16px 80px;
             color: var(--color-text);
 
-            /* Buttons / accents: the chrome pair is always a readable fg/bg
-               combination in every skin, light and dark. */
-            --kit-accent: var(--color-chrome);
-            --kit-on-accent: var(--color-chrome-text);
-            --kit-text: var(--color-text);
-            --kit-muted-text: var(--color-text-muted);
-            --kit-surface: var(--color-surface);
-            /* Not used by About; set now so the Feedback page inherits it. */
-            --kit-field: var(--color-input-bg);
-            --kit-border: var(--color-border-strong);
-            --kit-focus: var(--color-primary);
-            --kit-error: var(--color-danger);
+            ${kitThemeVars}
         }
     `,
 

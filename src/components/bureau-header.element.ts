@@ -610,6 +610,16 @@ export const BureauHeaderElement = defineElement<{
                                       <span class="menu-item-label">${skin.menu.aboutLabel}</span>
                                       <span class="menu-item-sub">${skin.menu.aboutSub}</span>
                                   </button>
+                                  <button
+                                      class="menu-item"
+                                      @click=${() => {
+                                          dispatch(new events.viewRequested({detail: 'feedback'}));
+                                          closeMenu();
+                                      }}
+                                  >
+                                      <span class="menu-item-label">${skin.menu.feedbackLabel}</span>
+                                      <span class="menu-item-sub">${skin.menu.feedbackSub}</span>
+                                  </button>
                               </div>
                           </div>
                       </div>

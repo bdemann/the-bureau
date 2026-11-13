@@ -154,6 +154,8 @@ export const defaultSkin: Skin = {
 
         aboutLabel: "About",
         aboutSub: "Version & updates",
+        feedbackLabel: "Submit feedback",
+        feedbackSub: "Report a problem or suggest an idea",
     },
 
     pages: {

@@ -165,6 +165,8 @@ export const freemasonSkin: Skin = {
 
         aboutLabel: "About the Trestle Board",
         aboutSub: "Edition & whether the Lodge copy is current",
+        feedbackLabel: "Petition the Lodge",
+        feedbackSub: "Report a fault or propose an improvement",
     },
 
     actions: {

@@ -179,6 +179,8 @@ export const dresdenSkin: Skin = {
 
         aboutLabel: "About the Docket",
         aboutSub: "Edition & whether the wards are current",
+        feedbackLabel: "Leave a Note at the Door",
+        feedbackSub: "Report a problem or pass along an idea",
     },
 
     actions: {
