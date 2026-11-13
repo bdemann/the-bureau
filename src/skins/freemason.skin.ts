@@ -162,6 +162,9 @@ export const freemasonSkin: Skin = {
         exportCsvSub: "Download all labors as CSV",
         importLabel: "Import Backup",
         importSub: "Restore from a previous JSON backup",
+
+        aboutLabel: "About the Trestle Board",
+        aboutSub: "Edition & whether the Lodge copy is current",
     },
 
     actions: {

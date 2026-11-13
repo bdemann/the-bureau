@@ -215,6 +215,10 @@ export interface SkinMenu {
     exportCsvSub: string;
     importLabel: string;
     importSub: string;
+
+    /** Hamburger menu item label for the About screen (version & updates). */
+    aboutLabel: string;
+    aboutSub: string;
 }
 
 // ── Characters ────────────────────────────────────────────────────────────────

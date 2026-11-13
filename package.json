@@ -12,6 +12,7 @@
     "test:e2e": "playwright test"
   },
   "dependencies": {
+    "@bdemann/app-kit": "^0.2.2",
     "date-vir": "npm:@bdemann/date-vir@^8.4.1",
     "element-book": "^27.0.4",
     "element-vir": "^27.0.2",

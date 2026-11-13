@@ -46,7 +46,7 @@ import {
     computeRemediationOnSnooze,
 } from "../data/remediation.js";
 import { getDialogueFor } from "../data/dialogues.js";
-import { setActiveSkin } from "../skins/active-skin.js";
+import { getActiveSkin, setActiveSkin } from "../skins/active-skin.js";
 import { getSkinById, loadSkinId, saveSkinId } from "../skins/all-skins.js";
 import { applyDarkMode, loadDarkMode, saveDarkMode } from "../dark-mode.js";
 import { loadHideScore, saveHideScore } from "../score-visibility.js";
@@ -63,6 +63,8 @@ import { GoalsViewElement } from "./goals-view.element.js";
 import { AreaDetailElement } from "./area-detail.element.js";
 import { CommitmentsViewElement } from "./commitments-view.element.js";
 import { PreferencesViewElement } from "./preferences-view.element.js";
+import { AboutViewElement } from "./about-view.element.js";
+import { pushModalHistoryGuard, releaseModalHistoryGuard } from "../modal-history-guard.js";
 import {
     buildCsvExport,
     buildJsonExport,
@@ -77,6 +79,9 @@ import {
 // All state changes flow through here. Children communicate via events up.
 // Top-level routing: Daily view / Area detail / Goals / Ideas / Insights.
 // ─────────────────────────────────────────────────────────────────────────────
+
+/** The view About was opened from, so the back button can return to it. */
+let viewBeforeAbout: AppView = "daily";
 
 function bootstrap(): AppState {
     const loaded = loadState();
@@ -1031,6 +1036,9 @@ export const BureauAppElement = defineElement()({
         }
 
         function setView(next: AppView): void {
+            if (next === "about" && view !== "about") {
+                viewBeforeAbout = view;
+            }
             commit({ view: next, selectedAreaId: null });
             // Clear any sub-detail state so the target view shows its top level.
             updateState({ selectedGoalId: null });
@@ -1051,6 +1059,15 @@ export const BureauAppElement = defineElement()({
                 d.id === target.id ? { ...d, dismissed: true } : d,
             );
             commit({ dialogueQueue });
+        }
+
+        // The About page is a pushed screen: the browser back button returns to
+        // the view it was opened from instead of leaving the app. Done here (not
+        // only in setView) so it also holds when About is restored after a reload.
+        if (view === "about") {
+            pushModalHistoryGuard(() => commit({ view: viewBeforeAbout, selectedAreaId: null }), "about");
+        } else {
+            releaseModalHistoryGuard("about");
         }
 
         // ── Render ─────────────────────────────────────────────────────────────
@@ -1093,7 +1110,7 @@ export const BureauAppElement = defineElement()({
                 ></${BureauHeaderElement}>
 
                 ${
-                    currentDialogue && view !== "preferences"
+                    currentDialogue && view !== "preferences" && view !== "about"
                         ? html`
                         <${CharacterDialogueElement.assign({ dialogue: currentDialogue, activeSkinId: state.activeSkinId })}
                             ${listen(CharacterDialogueElement.events.dismissed, onDismissDialogue)}
@@ -1236,6 +1253,8 @@ export const BureauAppElement = defineElement()({
                             )}
                         ></${IdeasViewElement}>
                       `
+                            : view === "about"
+                              ? html`<${AboutViewElement.assign({ appName: getActiveSkin().identity.appName })}></${AboutViewElement}>`
                             : view === "preferences"
                               ? html`
                         <${PreferencesViewElement.assign({

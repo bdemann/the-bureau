@@ -151,6 +151,9 @@ export const defaultSkin: Skin = {
         exportCsvSub: "Download all tasks & routines as CSV",
         importLabel: "Import Backup",
         importSub: "Restore from a previous JSON backup",
+
+        aboutLabel: "About",
+        aboutSub: "Version & updates",
     },
 
     pages: {

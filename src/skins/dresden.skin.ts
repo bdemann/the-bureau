@@ -176,6 +176,9 @@ export const dresdenSkin: Skin = {
         exportCsvSub: "Download all obligations as CSV",
         importLabel: "Import Backup",
         importSub: "Restore from a previous JSON backup",
+
+        aboutLabel: "About the Docket",
+        aboutSub: "Edition & whether the wards are current",
     },
 
     actions: {

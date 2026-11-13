@@ -605,3 +605,26 @@ Playwright (both exercise the same load-from-localStorage path).
 - [ ] Offline (DevTools → Network → Offline): app still loads + works
 - [ ] Home screen icon: white eagle on navy, no halo (uninstall + reinstall after icon changes)
 - [ ] Install dialog text: "BCR Clear" / Home screen label: "BCR Clear"
+
+### About page (Menu → About)
+
+Automated in `e2e/about.spec.ts`: Menu → About shows the page with version and
+commit, the browser back button returns to the previous view, and leaving via
+the bottom nav pops the extra history entry. The pure `/version.json` helpers
+are covered in `src/data/version-info.test.ts`.
+
+Manual (needs two real deploys and a service worker, which Playwright against
+the dev server cannot observe):
+
+- [ ] On the deployed site (Netlify), open Menu → About: Version, Commit (7-char
+      link to the GitHub commit), Built, "Latest deployed: Up to date" and
+      "App updates: Up to date." all read correctly
+- [ ] With the app open on About, deploy a new commit. Tap "Check for update" →
+      "Latest deployed" says "A newer version is live", "App updates" says
+      "A new version is ready. Reload to use it.", and a Reload button appears
+- [ ] Tap Reload → button shows "Reloading..." then the page reloads; About now
+      shows the new commit and "Up to date" (the new version is running)
+- [ ] Offline: "Latest deployed" says "Could not tell which version is live" and
+      no error is shown
+- [ ] About page in each skin (BCR, Default, Trestle Board, Dresden) in light and
+      dark mode: all text and the buttons are readable

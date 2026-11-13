@@ -129,6 +129,9 @@ export const bcrSkin: Skin = {
         exportCsvSub: "Download all commitments as CSV",
         importLabel: "Restore Records",
         importSub: "Restore your data from a JSON backup",
+
+        aboutLabel: "Bureau Particulars",
+        aboutSub: "Edition, revision & file status",
     },
 
     pages: {
