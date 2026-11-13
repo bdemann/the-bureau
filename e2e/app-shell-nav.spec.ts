@@ -48,7 +48,7 @@ test.describe("App shell", () => {
         await expect(page.getByText("Performance", { exact: true })).toBeVisible();
         await expect(page.getByText("Community Duty", { exact: true })).toBeVisible();
         await expect(page.getByText("Report a Neighbor", { exact: false })).toBeVisible();
-        await expect(page.getByText("Shopping List", { exact: false })).toBeVisible();
+        await expect(page.getByText("Shopping List", { exact: false })).toHaveCount(0);
         await expect(page.getByText("Preferences", { exact: false })).toBeVisible();
         await expect(page.getByText("Your Data", { exact: true })).toBeVisible();
         await expect(page.getByText("Export Spreadsheet", { exact: false })).toBeVisible();

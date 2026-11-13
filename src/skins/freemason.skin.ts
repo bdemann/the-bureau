@@ -146,8 +146,6 @@ export const freemasonSkin: Skin = {
         shareSectionLabel: "Spread the Light",
         shareItemLabel: "Hail a Fellow Craftsman",
         shareItemSub: "Invite a brother to the lodge",
-        shoppingListLabel: "Provision List",
-        shoppingListSub: "Lodge supplies & household needs",
 
         preferencesLabel: "Preferences",
         appearanceLabel: "Regalia",

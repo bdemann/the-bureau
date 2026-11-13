@@ -282,6 +282,30 @@ describe("migrateState", () => {
         assert.strictEquals(task!.suggestedDate, due);
     });
 
+    test('retired "shopping" view → "daily"', () => {
+        const stored = {
+            ...DEFAULT_STATE,
+            view: "shopping" as unknown as AppState["view"],
+        };
+        assert.strictEquals(migrateState(stored).view, "daily");
+        const old = { ...stored, schemaVersion: 1 };
+        assert.strictEquals(migrateState(old).view, "daily");
+    });
+
+    test("stored state still carrying a shoppingList loads and keeps areas and commitments", () => {
+        const task = makeTask({ id: "keep-me" });
+        const stored = {
+            ...DEFAULT_STATE,
+            areas: [{ id: "a1", name: "Home" }],
+            commitments: [task],
+            shoppingList: [{ id: "s1", name: "milk", checked: false }],
+        } as unknown as AppState;
+        const out = migrateState(stored);
+        assert.strictEquals(out.areas.length, 1);
+        assert.strictEquals(out.commitments.length, 1);
+        assert.strictEquals(out.commitments[0]!.id, "keep-me");
+    });
+
     test('legacy "dashboard" view → "daily"', () => {
         const v1 = {
             ...DEFAULT_STATE,

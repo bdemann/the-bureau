@@ -16,7 +16,6 @@ export type AppView =
     | "all-routines"
     | "all-commitments"
     | "unlinked"
-    | "shopping"
     | "preferences";
 export type Character = "director" | "agent";
 
@@ -515,12 +514,6 @@ export interface DialogueEntry {
     dismissed: boolean;
 }
 
-export interface ShoppingItem {
-    readonly id: string;
-    readonly name: string;
-    readonly checked: boolean;
-}
-
 export interface AppState {
     readonly schemaVersion: number;
     readonly areas: ReadonlyArray<Area>;
@@ -535,6 +528,5 @@ export interface AppState {
     readonly docketClearedDate: string;
     /** ms timestamp of last dismissal; null = never dismissed (show on first load). */
     readonly reportNoticeDismissedAt: number | null;
-    readonly shoppingList: ReadonlyArray<ShoppingItem>;
     readonly timeSettings: TimeSettings;
 }

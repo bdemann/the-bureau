@@ -126,7 +126,7 @@ from there), and the UNDO toast rendering above (not behind) the nav bar.
 **Correction to this doc:** "menu shows Insights and Report a Neighbor
 only" is well out of date — the hamburger menu now has five sections
 (Filed Records: All Tasks/Routines/Commitments; Performance: Insights;
-Community Duty: Report a Neighbor; Shopping List; Preferences; Your Data:
+Community Duty: Report a Neighbor; Preferences; Your Data:
 Export Spreadsheet/Export Your Records/Restore Records).
 
 Still manual / not yet automated: SVG icon rendering specifics (size,

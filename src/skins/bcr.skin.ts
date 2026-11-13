@@ -113,8 +113,6 @@ export const bcrSkin: Skin = {
         shareSectionLabel: "Community Duty",
         shareItemLabel: "Report a Neighbor",
         shareItemSub: "Refer a civic non-compliant to CLEAR",
-        shoppingListLabel: "Shopping List",
-        shoppingListSub: "Household needs · Patriot preparedness",
 
         preferencesLabel: "Preferences",
         appearanceLabel: "Appearance",
