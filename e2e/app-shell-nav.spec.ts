@@ -54,7 +54,7 @@ test.describe("App shell", () => {
         await expect(page.getByText("Export Spreadsheet", { exact: false })).toBeVisible();
         await expect(page.getByText("Export Your Records", { exact: false })).toBeVisible();
         await expect(page.getByText("Restore Records", { exact: false })).toBeVisible();
-        await expect(page.getByText("Bureau Particulars", { exact: true })).toBeVisible();
+        await expect(page.getByText("About", { exact: true })).toBeVisible();
     });
 });
 

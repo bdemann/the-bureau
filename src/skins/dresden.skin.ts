@@ -177,10 +177,6 @@ export const dresdenSkin: Skin = {
         importLabel: "Import Backup",
         importSub: "Restore from a previous JSON backup",
 
-        aboutLabel: "About the Docket",
-        aboutSub: "Edition & whether the wards are current",
-        feedbackLabel: "Leave a Note at the Door",
-        feedbackSub: "Report a problem or pass along an idea",
     },
 
     actions: {

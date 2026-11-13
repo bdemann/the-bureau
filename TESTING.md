@@ -629,7 +629,7 @@ the dev server cannot observe):
 - [ ] About page in each skin (BCR, Default, Trestle Board, Dresden) in light and
       dark mode: all text and the buttons are readable
 
-### Feedback page (Menu → Submit feedback)
+### Feedback page (Menu → Feedback)
 
 Automated in `e2e/feedback.spec.ts` with `/api/feedback` mocked: Menu → Submit
 feedback shows the page; sending shows success and posts the draft with
@@ -641,7 +641,7 @@ diagnostics builder (counts only, no titles or notes) is covered in
 
 Manual (needs a real deploy with `GITHUB_FEEDBACK_TOKEN` set):
 
-- [ ] On a Netlify deploy preview with the token set: Menu → Submit feedback,
+- [ ] On a Netlify deploy preview with the token set: Menu → Feedback,
       pick Problem, type a message, Send → "Thank you" appears and a new issue
       on bdemann/the-bureau has the `feedback` and `bug` labels, the message,
       and a collapsed diagnostics section with counts only (no task, area, goal

@@ -607,8 +607,8 @@ export const BureauHeaderElement = defineElement<{
                                           closeMenu();
                                       }}
                                   >
-                                      <span class="menu-item-label">${skin.menu.aboutLabel}</span>
-                                      <span class="menu-item-sub">${skin.menu.aboutSub}</span>
+                                      <span class="menu-item-label">About</span>
+                                      <span class="menu-item-sub">Version &amp; updates</span>
                                   </button>
                                   <button
                                       class="menu-item"
@@ -617,8 +617,8 @@ export const BureauHeaderElement = defineElement<{
                                           closeMenu();
                                       }}
                                   >
-                                      <span class="menu-item-label">${skin.menu.feedbackLabel}</span>
-                                      <span class="menu-item-sub">${skin.menu.feedbackSub}</span>
+                                      <span class="menu-item-label">Feedback</span>
+                                      <span class="menu-item-sub">Report a problem or suggest an idea</span>
                                   </button>
                               </div>
                           </div>

@@ -216,13 +216,6 @@ export interface SkinMenu {
     importLabel: string;
     importSub: string;
 
-    /** Hamburger menu item label for the About screen (version & updates). */
-    aboutLabel: string;
-    aboutSub: string;
-
-    /** Hamburger menu item for the Submit feedback screen. */
-    feedbackLabel: string;
-    feedbackSub: string;
 }
 
 // ── Characters ────────────────────────────────────────────────────────────────

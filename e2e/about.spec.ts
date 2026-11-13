@@ -6,7 +6,7 @@ import { expect, test, type Page } from "@playwright/test";
 
 async function openAbout(page: Page) {
     await page.getByTitle("Menu", { exact: true }).click();
-    await page.getByText("Bureau Particulars", { exact: true }).click();
+    await page.getByText("About", { exact: true }).click();
 }
 
 test.describe("About page", () => {
@@ -51,10 +51,11 @@ test.describe("About page", () => {
         expect(await page.evaluate(() => history.state)).toEqual(stateBefore);
     });
 
-    test("the menu entry is labelled in the active skin's voice", async ({ page }) => {
+    test("the menu entries are plain 'About' and 'Feedback', not skin-voiced", async ({ page }) => {
         await page.goto("/");
         await page.getByTitle("Menu", { exact: true }).click();
-        await expect(page.getByText("Bureau Particulars", { exact: true })).toBeVisible();
-        await expect(page.getByText("Edition, revision & file status", { exact: true })).toBeVisible();
+        await expect(page.getByText("About", { exact: true })).toBeVisible();
+        await expect(page.getByText("Version & updates", { exact: true })).toBeVisible();
+        await expect(page.getByText("Feedback", { exact: true })).toBeVisible();
     });
 });

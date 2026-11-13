@@ -130,10 +130,6 @@ export const bcrSkin: Skin = {
         importLabel: "Restore Records",
         importSub: "Restore your data from a JSON backup",
 
-        aboutLabel: "Bureau Particulars",
-        aboutSub: "Edition, revision & file status",
-        feedbackLabel: "File a Complaint",
-        feedbackSub: "Report a problem or propose an idea to the Bureau",
     },
 
     pages: {

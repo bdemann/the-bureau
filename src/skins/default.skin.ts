@@ -152,10 +152,6 @@ export const defaultSkin: Skin = {
         importLabel: "Import Backup",
         importSub: "Restore from a previous JSON backup",
 
-        aboutLabel: "About",
-        aboutSub: "Version & updates",
-        feedbackLabel: "Submit feedback",
-        feedbackSub: "Report a problem or suggest an idea",
     },
 
     pages: {

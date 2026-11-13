@@ -1,6 +1,6 @@
 import { expect, test, type Page } from "@playwright/test";
 
-// Menu → Submit feedback: the shared @bdemann/app-kit Feedback page posting to
+// Menu → Feedback: the shared @bdemann/app-kit Feedback page posting to
 // /api/feedback (mocked here; the real function needs a GitHub token, see
 // TESTING.md). Back-button behavior is shared with About (modal-history-guard).
 
@@ -8,20 +8,20 @@ async function openFromMenu(page: Page, label: string) {
     await page.getByTitle("Menu", { exact: true }).click();
     await page.getByText(label, { exact: true }).click();
 }
-const openFeedback = (page: Page) => openFromMenu(page, "File a Complaint");
-const openAbout = (page: Page) => openFromMenu(page, "Bureau Particulars");
+const openFeedback = (page: Page) => openFromMenu(page, "Feedback");
+const openAbout = (page: Page) => openFromMenu(page, "About");
 
 const feedbackHeading = (page: Page) => page.getByRole("heading", { name: "Send feedback" });
 const aboutHeading = (page: Page) => page.getByRole("heading", { name: "About BCR Clear" });
 
 test.describe("Feedback page", () => {
-    test("Menu → Submit feedback shows the page, in the skin's voice", async ({ page }) => {
+    test("Menu → Feedback shows the page", async ({ page }) => {
         await page.goto("/");
         await page.getByTitle("Menu", { exact: true }).click();
         await expect(
-            page.getByText("Report a problem or propose an idea to the Bureau", { exact: true }),
+            page.getByText("Report a problem or suggest an idea", { exact: true }),
         ).toBeVisible();
-        await page.getByText("File a Complaint", { exact: true }).click();
+        await page.getByText("Feedback", { exact: true }).click();
 
         await expect(page.getByText("Bureau Menu", { exact: true })).toHaveCount(0);
         await expect(feedbackHeading(page)).toBeVisible();
