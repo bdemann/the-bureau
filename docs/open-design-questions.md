@@ -45,9 +45,9 @@ The default is 5 (`SKIP_ESCALATION_THRESHOLD` const). Some T2 tasks may warrant 
 
 ### Flexible Windows & Snooze → "Not Today" Model
 
-**Resolved:** "Not Today" exists only for tasks in backlog/radar (before suggestedDate). It hides the card for the day with zero score consequence. Once the task enters suggested band, "Not Today" is gone — replaced by Snooze (50% penalty) and Skip (full penalty).
+**Resolved:** "Not Today" exists only for tasks in backlog/radar (before suggestedDate). It hides the card for the day with zero score consequence. Once the task enters suggested band, "Not Today" is gone — replaced by Snooze (loss ratio 0.5 suggested / 1 mandatory) and Skip (loss ratio 2.5).
 
-Non-interaction before suggestedDate is free (same as "Not Today"). Non-interaction after suggestedDate is a miss (50% penalty in suggested, full in mandatory).
+Non-interaction before suggestedDate is free (same as "Not Today"). Non-interaction after suggestedDate is a miss (loss ratio 2.5 in suggested, 5 in mandatory).
 
 See `scoring-redesign.md` for full penalty table.
 
@@ -56,11 +56,11 @@ See `scoring-redesign.md` for full penalty table.
 ### Scoring: Band-Aware Penalties
 
 **Resolved:**
-- Miss: 0 in backlog/radar, 50% in suggested, 100% in mandatory
-- Snooze: not available pre-suggestedDate, 50% in suggested, 100% in mandatory
-- Skip: **full penalty always**, regardless of band — skip is a period-level forfeit
-- Complete from radar/backlog: 1.5× tier reward bonus
-- `SUGGESTED_BAND_PENALTY_FACTOR = 0.5` as a named const
+- Miss: 0 in backlog/radar, loss ratio 2.5 in suggested, 5 in mandatory
+- Snooze: not available pre-suggestedDate, loss ratio 0.5 in suggested, 1 in mandatory
+- Skip: **loss ratio 2.5 always**, regardless of band — skip is a period-level forfeit
+- Complete from radar/backlog: 1.5× gain bonus
+- The old `SUGGESTED_BAND_PENALTY_FACTOR` const is gone; the band picks the loss ratio directly (settling score, #58)
 
 See `scoring-redesign.md`.
 
@@ -68,7 +68,7 @@ See `scoring-redesign.md`.
 
 ### T3 Snooze Escalation Ceiling
 
-**Resolved:** T3 stays in suggested permanently. Never reaches mandatory. "Quality consequence" doesn't meet the bar for mandatory — things degrade but nothing breaks. T3 consequences still apply (50% penalties in suggested, full in mandatory if deadline arrives).
+**Resolved:** T3 stays in suggested permanently. Never reaches mandatory. "Quality consequence" doesn't meet the bar for mandatory — things degrade but nothing breaks. T3 consequences still apply (loss ratios halved in suggested, full in mandatory if deadline arrives).
 
 ---
 

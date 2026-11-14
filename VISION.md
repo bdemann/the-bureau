@@ -252,7 +252,7 @@ The key insight: **a successful day means completing everything in mandatory**, 
 ├─────────────────────────────────────────────────────┤
 │  SUGGESTED FOR TODAY                                 │
 │  Recommended today. Has teeth — but not urgent.     │
-│  Miss/snooze here costs 50% of mandatory penalty.  │
+│  Miss/snooze here costs half of mandatory.        │
 ├─────────────────────────────────────────────────────┤
 │  ON YOUR RADAR                                       │
 │  Coming up soon. Awareness only — no pressure yet. │
@@ -292,18 +292,18 @@ The key insight: **a successful day means completing everything in mandatory**, 
 
 Before a flexible task's suggestedDate arrives (while it's in radar/backlog), a "Not Today" action is available. It hides the card for the day with zero score consequence. Non-interaction before the suggestedDate is also free. This is the grace zone — the task is visible for awareness, not action.
 
-Once the suggestedDate arrives and the task enters suggested, "Not Today" disappears. From that point, deferring costs something (50% penalties). Completing from radar/backlog before the suggested window opens earns a 1.5× bonus reward.
+Once the suggestedDate arrives and the task enters suggested, "Not Today" disappears. From that point, deferring costs something (half the mandatory loss ratio for a miss or snooze). Completing from radar/backlog before the suggested window opens earns a 1.5× bonus reward.
 
 ### Scoring by band
 
 | Action | Backlog/Radar | Suggested | Mandatory |
 |--------|--------------|-----------|-----------|
-| Miss (no interaction) | 0 | 50% | 100% |
-| Snooze | — | 50% | 100% |
-| Skip | 100% | 100% | 100% |
+| Miss (no interaction) | 0 | 2.5 | 5 |
+| Snooze | — | 0.5 | 1 |
+| Skip | 2.5 | 2.5 | 2.5 |
 | Complete | 1.5× bonus | 1× reward | 1× reward |
 
-**Skip always carries the full penalty** regardless of band — skip is a period-level forfeit decision. T4 has 0 consequence in all directions.
+The numbers are loss ratios in the settling score model (`docs/scoring-redesign.md`): the score converges to a level set by your completion rate rather than drifting to 0 or 200. **Skip carries the same loss ratio** regardless of band — skip is a period-level forfeit decision. T4 has 0 consequence in all directions.
 
 ---
 

@@ -61,7 +61,6 @@ Each item gets automated tests (urgency.test.ts, scoring.test.ts, scoring-scenar
 
 **A1. Add constants to `src/data/scoring.ts`**
 ```typescript
-const SUGGESTED_BAND_PENALTY_FACTOR = 0.5;
 const SKIP_ESCALATION_THRESHOLD = 5;
 const REMEDIATION_CAP = 5;
 ```
@@ -111,16 +110,16 @@ Three changes (see `scoring-redesign.md` for full spec):
 Tests: update `remediation.test.ts`
 
 **D2. Backlog/radar completion bonus — `src/components/bureau-app.element.ts`**
-In completion handler: check `getDailyBand(task, today)` before marking complete. If `radar` or `backlog`, multiply reward by 1.5.
+In completion handler: check `getDailyBand(task, today)` before marking complete. If `radar` or `backlog`, multiply the gain by 1.5.
 Tests: new scenario in `scoring-scenarios.test.ts`
 
 **D3. Band-aware snooze penalty**
-In snooze handler: check `getDailyBand(task, today)`. If `suggested`, multiply penalty by `SUGGESTED_BAND_PENALTY_FACTOR`.
+In snooze handler: check `getDailyBand(task, today)`. The band picks the loss ratio (mandatory 1, suggested 0.5).
 File: `src/components/bureau-app.element.ts`
 Tests: new unit test in `scoring.test.ts`
 
 **D4. Band-aware miss penalty — the scoring bug fix**
-In `bootstrap()`: before applying miss penalty, compute what band the task was in for the day it rolled over from. If `suggested` → multiply by `SUGGESTED_BAND_PENALTY_FACTOR`. If `radar` or `backlog` → no penalty.
+In `bootstrap()`: before applying miss penalty, compute what band the task was in for the day it rolled over from. The band picks the loss ratio (mandatory 5, suggested 2.5, radar/backlog 0 = no penalty).
 File: `src/components/bureau-app.element.ts`
 Tests: new scenario in `scoring-scenarios.test.ts` — "cleared mandatory, ignored suggested → healthy score"
 
@@ -146,6 +145,10 @@ Tests: TESTING.md entry
 - Yearly ordinal weekday — GitHub #35
 - Ordinal offset — GitHub #36
 - Remove `disableSnooze` from `types.ts` — follow-up after confirming zero active usage
+
+#### Group F — Settling score (GitHub #58, 2026-11-13)
+
+Replaces the accumulating tier-value / N-scaling model with a score that converges to a level set by completion rate. Spec and constants in `scoring-redesign.md`; all values are exported constants in `src/data/scoring.ts` so they can be tuned.
 
 ### Phase 5 — Website Update
 

@@ -339,8 +339,9 @@ triggers remediation on completion — the actual grace-period threshold is
 new tests. Below 5, completing resets cleanly with no remediation.
 
 Still manual / not yet automated: snooze/skip score-penalty *amounts*
-(tier-weighted, N-scaled by active task count) — this is `scoring.ts`
-territory and would fit better as data-layer tests than e2e; the
+(settling-score model: share x loss ratio x streak multiplier) — covered by
+the data-layer tests in `scoring.test.ts` and `scoring-scenarios.test.ts`,
+not e2e; the
 auto-skip-on-reopen penalty path (needs simulating app reopen after time
 passes); Mon–Sat multi-day routine dismissal specifics (card hides Monday,
 reappears Tuesday, hidden Sunday) — same-day-only e2e can't exercise this
@@ -378,7 +379,7 @@ area name tag on cards; "Not Today" absent on Mandatory, hides a Radar/
 Backlog card for today with no score or snoozeCount change; T1 daily →
 Mandatory and T4 → never Mandatory (C1); T2 skipStreak ≥ 5 escalation to
 Mandatory (C2); docket-cleared bonus produces a bigger score jump than a
-non-clearing completion, and Mandatory auto-collapses once cleared (E1).
+non-clearing completion (settling model: the bonus is 20% of a perfect day's gap-closing), and Mandatory auto-collapses once cleared (E1).
 
 Still manual / not yet automated: exact band boundary rules restated above
 (redundant with `urgency.test.ts`, intentionally not re-tested here);
