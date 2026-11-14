@@ -6,21 +6,23 @@
   "scripts": {
     "dev": "vite",
     "book": "vite --open /book/",
-    "build": "tsc && vite build",
+    "build": "tsc && tsc -p netlify/tsconfig.json && vite build",
     "preview": "vite preview",
     "test": "tsx --test 'src/data/*.test.ts'",
     "test:e2e": "playwright test"
   },
   "dependencies": {
+    "@bdemann/app-kit": "^0.2.2",
     "date-vir": "npm:@bdemann/date-vir@^8.4.1",
-    "element-book": "^26.17.3",
-    "element-vir": "^26.0.0",
+    "element-book": "^27.0.4",
+    "element-vir": "^27.0.2",
     "lucide-static": "^0.460.0",
-    "theme-vir": "^28.0.0",
-    "vira": "^31.0.0"
+    "theme-vir": "^29.0.3",
+    "vira": "^33.18.0"
   },
   "devDependencies": {
     "@augment-vir/assert": "^31.69.0",
+    "@netlify/functions": "^6.1.1",
     "@playwright/test": "^1.63.0",
     "@types/node": "^20.0.0",
     "tsx": "^4.21.0",

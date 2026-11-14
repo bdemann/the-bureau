@@ -376,7 +376,7 @@ export const InsightsViewElement = defineElement<{
                                   title="Restore to active — clear missed status"
                                   @click=${() =>
                                       dispatch(
-                                          new events.missedTaskRevived(task.id),
+                                          new events.missedTaskRevived({detail: task.id}),
                                       )}
                               >
                                   Revive
@@ -387,7 +387,7 @@ export const InsightsViewElement = defineElement<{
                                   @click=${() =>
                                       dispatch(
                                           new events.missedTaskDismissed(
-                                              task.id,
+                                              {detail: task.id},
                                           ),
                                       )}
                               >

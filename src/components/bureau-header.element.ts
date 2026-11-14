@@ -25,13 +25,13 @@ export const BureauHeaderElement = defineElement<{
 
     events: {
         /** Fired when the user taps Insights in the hamburger menu. */
-        insightsRequested: defineElementEvent<void>(),
+        insightsRequested: defineElementEvent<unknown>(),
         /** Fired for any view navigation from the hamburger menu. */
         viewRequested: defineElementEvent<AppView>(),
         /** Fired when the user requests a JSON backup download. */
-        exportJsonRequested: defineElementEvent<void>(),
+        exportJsonRequested: defineElementEvent<unknown>(),
         /** Fired when the user requests a CSV task-list download. */
-        exportCsvRequested: defineElementEvent<void>(),
+        exportCsvRequested: defineElementEvent<unknown>(),
         /** Fired when the user has selected a backup file; payload is the raw file text. */
         importFileSelected: defineElementEvent<string>(),
     },
@@ -371,7 +371,7 @@ export const BureauHeaderElement = defineElement<{
 
         function onInsights(): void {
             closeMenu();
-            dispatch(new events.insightsRequested());
+            dispatch(new events.insightsRequested({detail: undefined}));
         }
 
         async function onReportNeighbor(): Promise<void> {
@@ -493,21 +493,21 @@ export const BureauHeaderElement = defineElement<{
                                   </div>
                                   <button
                                       class="menu-item"
-                                      @click=${() => { dispatch(new events.viewRequested("all-tasks")); closeMenu(); }}
+                                      @click=${() => { dispatch(new events.viewRequested({detail: "all-tasks"})); closeMenu(); }}
                                   >
                                       ${skin.menu.allTasksLabel}
                                       <span class="menu-item-sub">${skin.menu.allTasksSub}</span>
                                   </button>
                                   <button
                                       class="menu-item"
-                                      @click=${() => { dispatch(new events.viewRequested("all-routines")); closeMenu(); }}
+                                      @click=${() => { dispatch(new events.viewRequested({detail: "all-routines"})); closeMenu(); }}
                                   >
                                       ${skin.menu.allRoutinesLabel}
                                       <span class="menu-item-sub">${skin.menu.allRoutinesSub}</span>
                                   </button>
                                   <button
                                       class="menu-item"
-                                      @click=${() => { dispatch(new events.viewRequested("all-commitments")); closeMenu(); }}
+                                      @click=${() => { dispatch(new events.viewRequested({detail: "all-commitments"})); closeMenu(); }}
                                   >
                                       ${skin.menu.allCommitmentsLabel}
                                       <span class="menu-item-sub">${skin.menu.allCommitmentsSub}</span>
@@ -546,20 +546,7 @@ export const BureauHeaderElement = defineElement<{
                                   <button
                                       class="menu-item"
                                       @click=${() => {
-                                          dispatch(new events.viewRequested('shopping'));
-                                          closeMenu();
-                                      }}
-                                  >
-                                      <span class="menu-item-label">${skin.menu.shoppingListLabel}</span>
-                                      <span class="menu-item-sub">${skin.menu.shoppingListSub}</span>
-                                  </button>
-                              </div>
-
-                              <div class="menu-section">
-                                  <button
-                                      class="menu-item"
-                                      @click=${() => {
-                                          dispatch(new events.viewRequested('preferences'));
+                                          dispatch(new events.viewRequested({detail: 'preferences'}));
                                           closeMenu();
                                       }}
                                   >
@@ -575,7 +562,7 @@ export const BureauHeaderElement = defineElement<{
                                   <button
                                       class="menu-item"
                                       @click=${() => {
-                                          dispatch(new events.exportCsvRequested());
+                                          dispatch(new events.exportCsvRequested({detail: undefined}));
                                           closeMenu();
                                       }}
                                   >
@@ -585,7 +572,7 @@ export const BureauHeaderElement = defineElement<{
                                   <button
                                       class="menu-item"
                                       @click=${() => {
-                                          dispatch(new events.exportJsonRequested());
+                                          dispatch(new events.exportJsonRequested({detail: undefined}));
                                           closeMenu();
                                       }}
                                   >
@@ -606,10 +593,33 @@ export const BureauHeaderElement = defineElement<{
                                               const text = await file.text();
                                               input.value = '';
                                               closeMenu();
-                                              dispatch(new events.importFileSelected(text));
+                                              dispatch(new events.importFileSelected({detail: text}));
                                           }}
                                       />
                                   </label>
+                              </div>
+
+                              <div class="menu-section">
+                                  <button
+                                      class="menu-item"
+                                      @click=${() => {
+                                          dispatch(new events.viewRequested({detail: 'about'}));
+                                          closeMenu();
+                                      }}
+                                  >
+                                      <span class="menu-item-label">About</span>
+                                      <span class="menu-item-sub">Version &amp; updates</span>
+                                  </button>
+                                  <button
+                                      class="menu-item"
+                                      @click=${() => {
+                                          dispatch(new events.viewRequested({detail: 'feedback'}));
+                                          closeMenu();
+                                      }}
+                                  >
+                                      <span class="menu-item-label">Feedback</span>
+                                      <span class="menu-item-sub">Report a problem or suggest an idea</span>
+                                  </button>
                               </div>
                           </div>
                       </div>

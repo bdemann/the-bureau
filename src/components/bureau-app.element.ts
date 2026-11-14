@@ -46,13 +46,14 @@ import {
     computeRemediationOnSnooze,
 } from "../data/remediation.js";
 import { getDialogueFor } from "../data/dialogues.js";
-import { setActiveSkin } from "../skins/active-skin.js";
+import { getActiveSkin, setActiveSkin } from "../skins/active-skin.js";
 import { getSkinById, loadSkinId, saveSkinId } from "../skins/all-skins.js";
 import { applyDarkMode, loadDarkMode, saveDarkMode } from "../dark-mode.js";
 import { loadHideScore, saveHideScore } from "../score-visibility.js";
 import { AddTaskDialogElement } from "./add-task-dialog.element.js";
 import { BureauBottomNavElement } from "./bureau-bottom-nav.element.js";
 import { BureauHeaderElement } from "./bureau-header.element.js";
+import { FeedbackViewElement } from "./feedback-view.element.js";
 import { CharacterDialogueElement } from "./character-dialogue.element.js";
 import { DailyViewElement } from "./daily-view.element.js";
 import { DashboardViewElement } from "./dashboard-view.element.js";
@@ -62,8 +63,9 @@ import { GoalDetailElement } from "./goal-detail.element.js";
 import { GoalsViewElement } from "./goals-view.element.js";
 import { AreaDetailElement } from "./area-detail.element.js";
 import { CommitmentsViewElement } from "./commitments-view.element.js";
-import { ShoppingListElement } from "./shopping-list.element.js";
 import { PreferencesViewElement } from "./preferences-view.element.js";
+import { AboutViewElement } from "./about-view.element.js";
+import { pushModalHistoryGuard, releaseModalHistoryGuard } from "../modal-history-guard.js";
 import {
     buildCsvExport,
     buildJsonExport,
@@ -78,6 +80,14 @@ import {
 // All state changes flow through here. Children communicate via events up.
 // Top-level routing: Daily view / Area detail / Goals / Ideas / Insights.
 // ─────────────────────────────────────────────────────────────────────────────
+
+/**
+ * The view About or Feedback was opened from, so the back button can return to
+ * it. Switching straight between the two keeps the original origin.
+ */
+let viewBeforePushed: AppView = "daily";
+
+const isPushedView = (v: AppView): boolean => v === "about" || v === "feedback";
 
 function bootstrap(): AppState {
     const loaded = loadState();
@@ -1032,6 +1042,9 @@ export const BureauAppElement = defineElement()({
         }
 
         function setView(next: AppView): void {
+            if (isPushedView(next) && !isPushedView(view)) {
+                viewBeforePushed = view;
+            }
             commit({ view: next, selectedAreaId: null });
             // Clear any sub-detail state so the target view shows its top level.
             updateState({ selectedGoalId: null });
@@ -1052,6 +1065,20 @@ export const BureauAppElement = defineElement()({
                 d.id === target.id ? { ...d, dismissed: true } : d,
             );
             commit({ dialogueQueue });
+        }
+
+        // About and Feedback are pushed screens: the browser back button returns
+        // to the view they were opened from instead of leaving the app. Done here
+        // (not only in setView) so it also holds when restored after a reload.
+        // The guard is a single slot shared under one owner, so switching
+        // directly between the two keeps one history entry.
+        if (isPushedView(view)) {
+            pushModalHistoryGuard(
+                () => commit({ view: viewBeforePushed, selectedAreaId: null }),
+                "pushed-view",
+            );
+        } else {
+            releaseModalHistoryGuard("pushed-view");
         }
 
         // ── Render ─────────────────────────────────────────────────────────────
@@ -1094,7 +1121,7 @@ export const BureauAppElement = defineElement()({
                 ></${BureauHeaderElement}>
 
                 ${
-                    currentDialogue && view !== "preferences" && view !== "shopping"
+                    currentDialogue && view !== "preferences" && !isPushedView(view)
                         ? html`
                         <${CharacterDialogueElement.assign({ dialogue: currentDialogue, activeSkinId: state.activeSkinId })}
                             ${listen(CharacterDialogueElement.events.dismissed, onDismissDialogue)}
@@ -1237,33 +1264,10 @@ export const BureauAppElement = defineElement()({
                             )}
                         ></${IdeasViewElement}>
                       `
-                            : view === "shopping"
-                              ? html`
-                        <${ShoppingListElement.assign({
-                            items: state.app.shoppingList,
-                        })}
-                            ${listen(ShoppingListElement.events.itemAdded, (e) => {
-                                commit({ shoppingList: [...state.app.shoppingList, e.detail] });
-                            })}
-                            ${listen(ShoppingListElement.events.itemToggled, (e) => {
-                                commit({
-                                    shoppingList: state.app.shoppingList.map((i) =>
-                                        i.id === e.detail ? {...i, checked: !i.checked} : i,
-                                    ),
-                                });
-                            })}
-                            ${listen(ShoppingListElement.events.itemRemoved, (e) => {
-                                commit({
-                                    shoppingList: state.app.shoppingList.filter((i) => i.id !== e.detail),
-                                });
-                            })}
-                            ${listen(ShoppingListElement.events.checkedCleared, () => {
-                                commit({
-                                    shoppingList: state.app.shoppingList.filter((i) => !i.checked),
-                                });
-                            })}
-                        ></${ShoppingListElement}>
-                      `
+                            : view === "about"
+                              ? html`<${AboutViewElement.assign({ appName: getActiveSkin().identity.appName })}></${AboutViewElement}>`
+                            : view === "feedback"
+                              ? html`<${FeedbackViewElement.assign({ app: state.app, skinId: state.activeSkinId, darkMode: state.darkMode })}></${FeedbackViewElement}>`
                             : view === "preferences"
                               ? html`
                         <${PreferencesViewElement.assign({

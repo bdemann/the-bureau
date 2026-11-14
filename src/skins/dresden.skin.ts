@@ -160,8 +160,6 @@ export const dresdenSkin: Skin = {
         shareSectionLabel: "Spread the Word",
         shareItemLabel: "Recommend a Wizard",
         shareItemSub: "Tell a friend about the docket",
-        shoppingListLabel: "Supply Run",
-        shoppingListSub: "Groceries, potions, and sundries",
 
         preferencesLabel: "Preferences",
         appearanceLabel: "Wardrobe",
@@ -178,6 +176,7 @@ export const dresdenSkin: Skin = {
         exportCsvSub: "Download all obligations as CSV",
         importLabel: "Import Backup",
         importSub: "Restore from a previous JSON backup",
+
     },
 
     actions: {

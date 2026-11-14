@@ -159,7 +159,7 @@ export const BureauBottomNavElement = defineElement<{
                             aria-label=${tab.label}
                             @click=${() =>
                                 dispatch(
-                                    new events.viewChangeRequested(tab.view),
+                                    new events.viewChangeRequested({detail: tab.view}),
                                 )}
                         >
                             <span class="tab-icon" aria-hidden="true">

@@ -32,7 +32,6 @@ export const DEFAULT_STATE: AppState = {
     lastActiveDate: "",
     docketClearedDate: "",
     reportNoticeDismissedAt: null,
-    shoppingList: [],
     timeSettings: DEFAULT_TIME_SETTINGS,
 };
 
@@ -78,7 +77,8 @@ export function migrateState(state: AppState): AppState {
 
     // Normalize the view value — Phase 1 used 'dashboard' for the area grid.
     const normalizedView =
-        state.view === ("dashboard" as unknown as AppState["view"])
+        // 'shopping' view was retired (issue #52); its stored data is left alone.
+        (state.view as string) === "dashboard" || (state.view as string) === "shopping"
             ? "daily"
             : (state.view ?? "daily");
 

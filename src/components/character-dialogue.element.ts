@@ -16,7 +16,7 @@ export const CharacterDialogueElement = defineElement<{
     tagName: 'character-dialogue',
 
     events: {
-        dismissed: defineElementEvent<void>(),
+        dismissed: defineElementEvent<unknown>(),
     },
 
     styles: css`
@@ -157,7 +157,7 @@ export const CharacterDialogueElement = defineElement<{
                     <button
                         class="dismiss-btn"
                         title="Dismiss"
-                        @click=${() => dispatch(new events.dismissed())}
+                        @click=${() => dispatch(new events.dismissed({detail: undefined}))}
                     >
                         [CLOSE]
                     </button>

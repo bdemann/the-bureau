@@ -18,9 +18,11 @@
  */
 
 let activePopStateHandler: (() => void) | null = null;
+let activeOwner: string | undefined;
 
-export function pushModalHistoryGuard(onBack: () => void): void {
+export function pushModalHistoryGuard(onBack: () => void, owner?: string): void {
     if (activePopStateHandler !== null) return;
+    activeOwner = owner;
     history.pushState({ modalGuard: true }, "");
     activePopStateHandler = () => {
         window.removeEventListener("popstate", activePopStateHandler!);
@@ -30,8 +32,13 @@ export function pushModalHistoryGuard(onBack: () => void): void {
     window.addEventListener("popstate", activePopStateHandler);
 }
 
-export function releaseModalHistoryGuard(): void {
-    if (activePopStateHandler === null) return;
+/**
+ * Pass the same `owner` that was given to `pushModalHistoryGuard`: a release for
+ * a different owner is a no-op, so one component's unconditional "now closed"
+ * render can't pop another component's guard.
+ */
+export function releaseModalHistoryGuard(owner?: string): void {
+    if (activePopStateHandler === null || owner !== activeOwner) return;
     window.removeEventListener("popstate", activePopStateHandler);
     activePopStateHandler = null;
     history.back();

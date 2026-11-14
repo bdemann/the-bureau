@@ -584,7 +584,7 @@ export const GoalDetailElement = defineElement<{
             goal.targetDate !== null && goal.targetDate < now && isActive;
 
         function setStatus(status: GoalStatus): void {
-            dispatch(new events.goalUpdated({ ...goal, status }));
+            dispatch(new events.goalUpdated({detail: { ...goal, status }}));
         }
 
         function renderTaskWithUnlink(task: Task, showManageActions: boolean) {
@@ -599,7 +599,7 @@ export const GoalDetailElement = defineElement<{
                                           (e) =>
                                               dispatch(
                                                   new events.taskCompleted(
-                                                      e.detail,
+                                                      {detail: e.detail},
                                                   ),
                                               ),
                                       )}
@@ -608,7 +608,7 @@ export const GoalDetailElement = defineElement<{
                                           (e) =>
                                               dispatch(
                                                   new events.taskSnoozed(
-                                                      e.detail,
+                                                      {detail: e.detail},
                                                   ),
                                               ),
                                       )}
@@ -617,7 +617,7 @@ export const GoalDetailElement = defineElement<{
                                           (e) =>
                                               dispatch(
                                                   new events.taskUnSnoozed(
-                                                      e.detail,
+                                                      {detail: e.detail},
                                                   ),
                                               ),
                                       )}
@@ -626,7 +626,7 @@ export const GoalDetailElement = defineElement<{
                                           (e) =>
                                               dispatch(
                                                   new events.taskSkipped(
-                                                      e.detail,
+                                                      {detail: e.detail},
                                                   ),
                                               ),
                                       )}
@@ -635,7 +635,7 @@ export const GoalDetailElement = defineElement<{
                                           (e) =>
                                               dispatch(
                                                   new events.taskProgressLogged(
-                                                      e.detail,
+                                                      {detail: e.detail},
                                                   ),
                                               ),
                                       )}
@@ -643,13 +643,13 @@ export const GoalDetailElement = defineElement<{
                                 : html``
                         }
                         ${listen(TaskItemElement.events.editRequested, (e) =>
-                            dispatch(new events.taskEditRequested(e.detail)),
+                            dispatch(new events.taskEditRequested({detail: e.detail})),
                         )}
                     ></${TaskItemElement}>
                     <div class="task-unlink-row">
                         <button
                             class="unlink-task-btn"
-                            @click=${() => dispatch(new events.taskUnlinked({ goalId: goal.id, taskId: task.id }))}
+                            @click=${() => dispatch(new events.taskUnlinked({detail: { goalId: goal.id, taskId: task.id }}))}
                         >⊗ unlink from objective</button>
                     </div>
                 </div>
@@ -718,7 +718,7 @@ export const GoalDetailElement = defineElement<{
                     }
                     <button
                         class="action-btn action-edit"
-                        @click=${() => dispatch(new events.goalEditRequested(goal))}
+                        @click=${() => dispatch(new events.goalEditRequested({detail: goal}))}
                     >EDIT</button>
                     ${
                         linkableTasks.length > 0
@@ -740,7 +740,7 @@ export const GoalDetailElement = defineElement<{
             <!-- Add commitment button -->
             <button
                 class="add-btn"
-                @click=${() => dispatch(new events.makeCommitmentRequested("task"))}
+                @click=${() => dispatch(new events.makeCommitmentRequested({detail: "task"}))}
             >+ MAKE NEW COMMITMENT</button>
 
             <!-- Empty state -->
@@ -806,7 +806,7 @@ export const GoalDetailElement = defineElement<{
                                             (e) =>
                                                 dispatch(
                                                     new events.taskCompleted(
-                                                        e.detail,
+                                                        {detail: e.detail},
                                                     ),
                                                 ),
                                         )}
@@ -815,7 +815,7 @@ export const GoalDetailElement = defineElement<{
                                             (e) =>
                                                 dispatch(
                                                     new events.taskSnoozed(
-                                                        e.detail,
+                                                        {detail: e.detail},
                                                     ),
                                                 ),
                                         )}
@@ -824,7 +824,7 @@ export const GoalDetailElement = defineElement<{
                                             (e) =>
                                                 dispatch(
                                                     new events.taskUnSnoozed(
-                                                        e.detail,
+                                                        {detail: e.detail},
                                                     ),
                                                 ),
                                         )}
@@ -834,7 +834,7 @@ export const GoalDetailElement = defineElement<{
                                             (e) =>
                                                 dispatch(
                                                     new events.taskEditRequested(
-                                                        e.detail,
+                                                        {detail: e.detail},
                                                     ),
                                                 ),
                                         )}
@@ -842,7 +842,7 @@ export const GoalDetailElement = defineElement<{
                                     <div class="task-unlink-row">
                                         <button
                                             class="unlink-task-btn"
-                                            @click=${() => dispatch(new events.taskUnlinked({ goalId: goal.id, taskId: task.id }))}
+                                            @click=${() => dispatch(new events.taskUnlinked({detail: { goalId: goal.id, taskId: task.id }}))}
                                         >⊗ unlink from objective</button>
                                     </div>
                                 </div>
@@ -969,10 +969,10 @@ export const GoalDetailElement = defineElement<{
                                                       @click=${() => {
                                                           dispatch(
                                                               new events.taskLinked(
-                                                                  {
+                                                                  {detail: {
                                                                       goalId: goal.id,
                                                                       taskId: t.id,
-                                                                  },
+                                                                  }},
                                                               ),
                                                           );
                                                           updateState({
@@ -1023,19 +1023,19 @@ export const GoalDetailElement = defineElement<{
                 activeSkinId: inputs.activeSkinId,
             })} data-embedded=${""}
                 ${listen(IdeasViewElement.events.makeCommitmentRequested, (e) =>
-                    dispatch(new events.makeCommitmentRequested(e.detail)),
+                    dispatch(new events.makeCommitmentRequested({detail: e.detail})),
                 )}
                 ${listen(IdeasViewElement.events.ideaUpdated, (e) =>
-                    dispatch(new events.ideaUpdated(e.detail)),
+                    dispatch(new events.ideaUpdated({detail: e.detail})),
                 )}
                 ${listen(IdeasViewElement.events.ideaDeleted, (e) =>
-                    dispatch(new events.ideaDeleted(e.detail)),
+                    dispatch(new events.ideaDeleted({detail: e.detail})),
                 )}
                 ${listen(IdeasViewElement.events.ideaEditRequested, (e) =>
-                    dispatch(new events.ideaEditRequested(e.detail)),
+                    dispatch(new events.ideaEditRequested({detail: e.detail})),
                 )}
                 ${listen(IdeasViewElement.events.promoteRequested, (e) =>
-                    dispatch(new events.ideaPromoteRequested(e.detail)),
+                    dispatch(new events.ideaPromoteRequested({detail: e.detail})),
                 )}
             ></${IdeasViewElement}>
 
@@ -1052,7 +1052,7 @@ export const GoalDetailElement = defineElement<{
                                           @click=${() =>
                                               dispatch(
                                                   new events.goalDeleted(
-                                                      goal.id,
+                                                      {detail: goal.id},
                                                   ),
                                               )}
                                       >

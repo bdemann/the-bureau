@@ -196,7 +196,7 @@ export const CommitmentsViewElement = defineElement<{
                         const fromId = e.dataTransfer?.getData("text/plain") ?? state.draggedId;
                         if (fromId && fromId !== c.id) {
                             dispatch(new events.commitmentsReordered(
-                                reorderBefore(commitments, fromId, c.id).map((x) => x.id),
+                                {detail: reorderBefore(commitments, fromId, c.id).map((x) => x.id)},
                             ));
                         }
                         updateState({ draggedId: null, dragOverId: null });
@@ -205,7 +205,7 @@ export const CommitmentsViewElement = defineElement<{
                 >
                     <${CommitmentCardElement.assign({ commitment: c, areas, goals, activeSkinId: inputs.activeSkinId })}
                         ${listen(CommitmentCardElement.events.editRequested, (e) =>
-                            dispatch(new events.commitmentEditRequested(e.detail)),
+                            dispatch(new events.commitmentEditRequested({detail: e.detail})),
                         )}
                     ></${CommitmentCardElement}>
                 </div>
@@ -216,7 +216,7 @@ export const CommitmentsViewElement = defineElement<{
             return html`
                 <${CommitmentCardElement.assign({ commitment: c, areas, goals, activeSkinId: inputs.activeSkinId })}
                     ${listen(CommitmentCardElement.events.editRequested, (e) =>
-                        dispatch(new events.commitmentEditRequested(e.detail)),
+                        dispatch(new events.commitmentEditRequested({detail: e.detail})),
                     )}
                 ></${CommitmentCardElement}>
             `;
@@ -269,7 +269,7 @@ export const CommitmentsViewElement = defineElement<{
                                   const fromId = e.dataTransfer?.getData("text/plain") ?? state.draggedId;
                                   if (fromId) {
                                       dispatch(new events.commitmentsReordered(
-                                          moveToEnd(commitments, fromId).map((x) => x.id),
+                                          {detail: moveToEnd(commitments, fromId).map((x) => x.id)},
                                       ));
                                   }
                                   updateState({ draggedId: null, dragOverId: null });
@@ -300,7 +300,7 @@ export const CommitmentsViewElement = defineElement<{
                           @click=${() =>
                               dispatch(
                                   new events.makeCommitmentRequested(
-                                      defaultKindForAdd,
+                                      {detail: defaultKindForAdd},
                                   ),
                               )}
                       >

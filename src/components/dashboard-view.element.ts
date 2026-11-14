@@ -36,7 +36,7 @@ export const DashboardViewElement = defineElement<{
         }>(),
         areasReordered: defineElementEvent<ReadonlyArray<string>>(), // ordered area ids
         /** Fired when user clicks the unlinked commitments card. */
-        unlinkedRequested: defineElementEvent<void>(),
+        unlinkedRequested: defineElementEvent<unknown>(),
     },
 
     state: () => ({
@@ -268,7 +268,7 @@ export const DashboardViewElement = defineElement<{
                 ? html`
                       <button
                           class="unlinked-card"
-                          @click=${() => dispatch(new events.unlinkedRequested())}
+                          @click=${() => dispatch(new events.unlinkedRequested({detail: undefined}))}
                       >
                           <div>
                               <div class="unlinked-card-label">UNLINKED COMMITMENTS</div>
@@ -335,11 +335,11 @@ export const DashboardViewElement = defineElement<{
                                         if (fromId && fromId !== area.id) {
                                             dispatch(
                                                 new events.areasReordered(
-                                                    reorderBefore(
+                                                    {detail: reorderBefore(
                                                         areas,
                                                         fromId,
                                                         area.id,
-                                                    ).map((p) => p.id),
+                                                    ).map((p) => p.id)},
                                                 ),
                                             );
                                         }
@@ -362,7 +362,7 @@ export const DashboardViewElement = defineElement<{
                                             (e) =>
                                                 dispatch(
                                                     new events.areaSelected(
-                                                        e.detail,
+                                                        {detail: e.detail},
                                                     ),
                                                 ),
                                         )}
@@ -395,9 +395,9 @@ export const DashboardViewElement = defineElement<{
                                       if (fromId) {
                                           dispatch(
                                               new events.areasReordered(
-                                                  moveToEnd(areas, fromId).map(
+                                                  {detail: moveToEnd(areas, fromId).map(
                                                       (p) => p.id,
-                                                  ),
+                                                  )},
                                               ),
                                           );
                                       }
@@ -421,7 +421,7 @@ export const DashboardViewElement = defineElement<{
             <!-- Area wizard dialog -->
             <${AreaWizardDialogElement.assign({ open: state.wizardOpen, activeSkinId: inputs.activeSkinId })}
                 ${listen(AreaWizardDialogElement.events.areaCreated, (e) => {
-                    dispatch(new events.areaCreated(e.detail));
+                    dispatch(new events.areaCreated({detail: e.detail}));
                     updateState({ wizardOpen: false });
                 })}
                 ${listen(AreaWizardDialogElement.events.cancelled, () =>

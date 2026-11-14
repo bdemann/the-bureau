@@ -206,9 +206,6 @@ export interface SkinMenu {
     /** Flavor note shown beneath the hide-score toggle. Empty string = hidden. */
     hideScoreNote: string;
 
-    /** Shopping list menu entry label. */
-    shoppingListLabel: string;
-    shoppingListSub: string;
 
     /** Section heading above the data export / import controls. */
     dataSectionLabel: string;
@@ -218,6 +215,7 @@ export interface SkinMenu {
     exportCsvSub: string;
     importLabel: string;
     importSub: string;
+
 }
 
 // ── Characters ────────────────────────────────────────────────────────────────

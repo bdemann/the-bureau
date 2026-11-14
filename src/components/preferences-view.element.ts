@@ -225,7 +225,7 @@ export const PreferencesViewElement = defineElement<{
                             @change=${(e: Event) =>
                                 dispatch(
                                     new events.darkModeChanged(
-                                        (e.target as HTMLInputElement).checked,
+                                        {detail: (e.target as HTMLInputElement).checked},
                                     ),
                                 )}
                         />
@@ -241,7 +241,7 @@ export const PreferencesViewElement = defineElement<{
                                     (s.id === activeSkinId ? " active" : "")}
                                 @click=${() =>
                                     dispatch(
-                                        new events.skinChangeRequested(s.id),
+                                        new events.skinChangeRequested({detail: s.id}),
                                     )}
                             >
                                 <span class="skin-dot"></span>
@@ -264,7 +264,7 @@ export const PreferencesViewElement = defineElement<{
                             @change=${(e: Event) =>
                                 dispatch(
                                     new events.hideScoreChanged(
-                                        (e.target as HTMLInputElement).checked,
+                                        {detail: (e.target as HTMLInputElement).checked},
                                     ),
                                 )}
                         />
@@ -299,10 +299,10 @@ export const PreferencesViewElement = defineElement<{
                                         10,
                                     );
                                     dispatch(
-                                        new events.timeSettingsChanged({
+                                        new events.timeSettingsChanged({detail: {
                                             ...timeSettings,
                                             [key]: val,
-                                        }),
+                                        }}),
                                     );
                                 }}
                             >

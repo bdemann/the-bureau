@@ -25,7 +25,7 @@ export const AddAreaDialogElement = defineElement<{
 
     events: {
         areaSubmitted: defineElementEvent<Area>(),
-        cancelled: defineElementEvent<void>(),
+        cancelled: defineElementEvent<unknown>(),
     },
 
     state: () => ({
@@ -217,7 +217,7 @@ export const AddAreaDialogElement = defineElement<{
                 colorKey: state.colorKey,
                 createdAt: Date.now(),
             };
-            dispatch(new events.areaSubmitted(area));
+            dispatch(new events.areaSubmitted({detail: area}));
             updateState({ name: "", description: "", colorKey: "navy" });
         }
 
@@ -226,7 +226,7 @@ export const AddAreaDialogElement = defineElement<{
                 class="overlay"
                 @click=${(e: Event) => {
                     if (e.target === e.currentTarget)
-                        dispatch(new events.cancelled());
+                        dispatch(new events.cancelled({detail: undefined}));
                 }}
             >
                 <div class="sheet">
@@ -298,7 +298,7 @@ export const AddAreaDialogElement = defineElement<{
                     <div class="actions">
                         <button
                             class="btn-cancel"
-                            @click=${() => dispatch(new events.cancelled())}
+                            @click=${() => dispatch(new events.cancelled({detail: undefined}))}
                         >
                             ${s.cancelBtn}
                         </button>

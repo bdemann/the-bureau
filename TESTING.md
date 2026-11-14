@@ -126,7 +126,7 @@ from there), and the UNDO toast rendering above (not behind) the nav bar.
 **Correction to this doc:** "menu shows Insights and Report a Neighbor
 only" is well out of date — the hamburger menu now has five sections
 (Filed Records: All Tasks/Routines/Commitments; Performance: Insights;
-Community Duty: Report a Neighbor; Shopping List; Preferences; Your Data:
+Community Duty: Report a Neighbor; Preferences; Your Data:
 Export Spreadsheet/Export Your Records/Restore Records).
 
 Still manual / not yet automated: SVG icon rendering specifics (size,
@@ -605,3 +605,51 @@ Playwright (both exercise the same load-from-localStorage path).
 - [ ] Offline (DevTools → Network → Offline): app still loads + works
 - [ ] Home screen icon: white eagle on navy, no halo (uninstall + reinstall after icon changes)
 - [ ] Install dialog text: "BCR Clear" / Home screen label: "BCR Clear"
+
+### About page (Menu → About)
+
+Automated in `e2e/about.spec.ts`: Menu → About shows the page with version and
+commit, the browser back button returns to the previous view, and leaving via
+the bottom nav pops the extra history entry. The pure `/version.json` helpers
+are covered in `src/data/version-info.test.ts`.
+
+Manual (needs two real deploys and a service worker, which Playwright against
+the dev server cannot observe):
+
+- [ ] On the deployed site (Netlify), open Menu → About: Version, Commit (7-char
+      link to the GitHub commit), Built, "Latest deployed: Up to date" and
+      "App updates: Up to date." all read correctly
+- [ ] With the app open on About, deploy a new commit. Tap "Check for update" →
+      "Latest deployed" says "A newer version is live", "App updates" says
+      "A new version is ready. Reload to use it.", and a Reload button appears
+- [ ] Tap Reload → button shows "Reloading..." then the page reloads; About now
+      shows the new commit and "Up to date" (the new version is running)
+- [ ] Offline: "Latest deployed" says "Could not tell which version is live" and
+      no error is shown
+- [ ] About page in each skin (BCR, Default, Trestle Board, Dresden) in light and
+      dark mode: all text and the buttons are readable
+
+### Feedback page (Menu → Feedback)
+
+Automated in `e2e/feedback.spec.ts` with `/api/feedback` mocked: Menu → Submit
+feedback shows the page; sending shows success and posts the draft with
+diagnostics; a 502 and a network failure show an error; an invalid email blocks
+sending; an unsent draft survives a reload; the back button returns to the
+origin view, including after switching About ↔ Feedback from the menu. The
+diagnostics builder (counts only, no titles or notes) is covered in
+`src/data/feedback-diagnostics.test.ts`.
+
+Manual (needs a real deploy with `GITHUB_FEEDBACK_TOKEN` set):
+
+- [ ] On a Netlify deploy preview with the token set: Menu → Feedback,
+      pick Problem, type a message, Send → "Thank you" appears and a new issue
+      on bdemann/the-bureau has the `feedback` and `bug` labels, the message,
+      and a collapsed diagnostics section with counts only (no task, area, goal
+      or idea text)
+- [ ] Pick Idea and send → the issue has `feedback` and `enhancement`
+- [ ] With the token unset (a deploy without `GITHUB_FEEDBACK_TOKEN`): Send →
+      the page shows the failure message (the function answers 503) and the
+      Retry button; the typed message is kept
+- [ ] Feedback page in each skin (BCR, Default, Trestle Board, Dresden) in light
+      and dark mode: text fields, the diagnostics checkbox row, the Send button
+      and the error message are all readable

@@ -11,7 +11,6 @@ import {
     ViraEmphasis,
     ViraInput,
     ViraInputType,
-    ViraSelect,
     ViraSize,
     ViraTextArea,
 } from "vira";
@@ -102,7 +101,7 @@ export const AddTaskDialogElement = defineElement<{
             oldGoalId: string | null;
             newGoalId: string | null;
         }>(),
-        cancelled: defineElementEvent<void>(),
+        cancelled: defineElementEvent<unknown>(),
     },
 
     state: () => ({
@@ -244,7 +243,7 @@ export const AddTaskDialogElement = defineElement<{
         }
 
         /* Vira inputs are inline-flex by default; expand them to full width inside our sheet */
-        ${ViraInput}, ${ViraTextArea}, ${ViraSelect} {
+        ${ViraInput}, ${ViraTextArea} {
             width: 100%;
         }
 
@@ -571,7 +570,7 @@ export const AddTaskDialogElement = defineElement<{
         // First render since opening: make the back button close this dialog
         // instead of leaving the app.
         if (!state.wasOpen) {
-            pushModalHistoryGuard(() => dispatch(new events.cancelled()));
+            pushModalHistoryGuard(() => dispatch(new events.cancelled({detail: undefined})));
         }
 
         const editTask = inputs.editTask ?? null;
@@ -1061,13 +1060,13 @@ export const AddTaskDialogElement = defineElement<{
             if (newKind === "goal") {
                 const goal = buildGoal(origKind === "goal" ? editGoal : null);
                 if (origKind === "goal") {
-                    dispatch(new events.goalUpdated(goal));
+                    dispatch(new events.goalUpdated({detail: goal}));
                 } else {
-                    dispatch(new events.goalSubmitted(goal));
+                    dispatch(new events.goalSubmitted({detail: goal}));
                     if (origKind === "task" || origKind === "routine")
-                        dispatch(new events.taskDeleted(editTask!.id));
+                        dispatch(new events.taskDeleted({detail: editTask!.id}));
                     if (origKind === "idea")
-                        dispatch(new events.ideaDeleted(editIdea!.id));
+                        dispatch(new events.ideaDeleted({detail: editIdea!.id}));
                 }
                 resetForm();
                 return;
@@ -1077,13 +1076,13 @@ export const AddTaskDialogElement = defineElement<{
             if (newKind === "idea") {
                 const idea = buildIdea(origKind === "idea" ? editIdea : null);
                 if (origKind === "idea") {
-                    dispatch(new events.ideaUpdated(idea));
+                    dispatch(new events.ideaUpdated({detail: idea}));
                 } else {
-                    dispatch(new events.ideaSubmitted(idea));
+                    dispatch(new events.ideaSubmitted({detail: idea}));
                     if (origKind === "task" || origKind === "routine")
-                        dispatch(new events.taskDeleted(editTask!.id));
+                        dispatch(new events.taskDeleted({detail: editTask!.id}));
                     if (origKind === "goal")
-                        dispatch(new events.goalDeleted(editGoal!.id));
+                        dispatch(new events.goalDeleted({detail: editGoal!.id}));
                 }
                 resetForm();
                 return;
@@ -1094,31 +1093,31 @@ export const AddTaskDialogElement = defineElement<{
             const task = buildTask(isInKindEdit ? editTask : null);
 
             if (isInKindEdit) {
-                dispatch(new events.taskUpdated(task));
+                dispatch(new events.taskUpdated({detail: task}));
                 // If the linked goal changed, notify parent to rewire links.
                 if (state.linkedGoalId !== state.originalLinkedGoalId) {
                     dispatch(
-                        new events.linkedGoalChanged({
+                        new events.linkedGoalChanged({detail: {
                             taskId: task.id,
                             oldGoalId: state.originalLinkedGoalId,
                             newGoalId: state.linkedGoalId,
-                        }),
+                        }}),
                     );
                 }
             } else {
                 // Converting from goal/idea to task/routine (or brand-new add).
-                dispatch(new events.taskSubmitted(task));
+                dispatch(new events.taskSubmitted({detail: task}));
                 if (origKind === "goal")
-                    dispatch(new events.goalDeleted(editGoal!.id));
+                    dispatch(new events.goalDeleted({detail: editGoal!.id}));
                 if (origKind === "idea")
-                    dispatch(new events.ideaDeleted(editIdea!.id));
+                    dispatch(new events.ideaDeleted({detail: editIdea!.id}));
                 // Link to goal if selected.
                 if (state.linkedGoalId) {
                     dispatch(
-                        new events.taskGoalLinked({
+                        new events.taskGoalLinked({detail: {
                             taskId: task.id,
                             goalId: state.linkedGoalId,
-                        }),
+                        }}),
                     );
                 }
             }
@@ -1131,7 +1130,7 @@ export const AddTaskDialogElement = defineElement<{
                 class="overlay"
                 @click=${(e: Event) => {
                     if (e.target === e.currentTarget) {
-                        dispatch(new events.cancelled());
+                        dispatch(new events.cancelled({detail: undefined}));
                         updateState({ currentEditId: null });
                     }
                 }}
@@ -2051,7 +2050,7 @@ export const AddTaskDialogElement = defineElement<{
                                                             ) {
                                                                 dispatch(
                                                                     new events.goalDeleted(
-                                                                        editGoal.id,
+                                                                        {detail: editGoal.id},
                                                                     ),
                                                                 );
                                                             } else if (
@@ -2061,7 +2060,7 @@ export const AddTaskDialogElement = defineElement<{
                                                             ) {
                                                                 dispatch(
                                                                     new events.ideaDeleted(
-                                                                        editIdea.id,
+                                                                        {detail: editIdea.id},
                                                                     ),
                                                                 );
                                                             } else if (
@@ -2069,7 +2068,7 @@ export const AddTaskDialogElement = defineElement<{
                                                             ) {
                                                                 dispatch(
                                                                     new events.taskDeleted(
-                                                                        editTask.id,
+                                                                        {detail: editTask.id},
                                                                     ),
                                                                 );
                                                             }
@@ -2139,7 +2138,7 @@ export const AddTaskDialogElement = defineElement<{
                             buttonEmphasis: ViraEmphasis.Subtle,
                         })}
                             @click=${() => {
-                                dispatch(new events.cancelled());
+                                dispatch(new events.cancelled({detail: undefined}));
                                 updateState({
                                     currentEditId: null,
                                     confirmingDelete: false,
