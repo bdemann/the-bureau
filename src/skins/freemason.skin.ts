@@ -165,6 +165,22 @@ export const freemasonSkin: Skin = {
 
     },
 
+    leave: {
+        menuLabel: "Seek Recess",
+        menuSub: "A leave of absence from the lodge",
+        dialogTitle: "Leave of Absence",
+        dialogIntro: "The lodge will excuse your labors for a time. Neither censure nor reward.",
+        presetLabel: (days) => `${days} days`,
+        returnLine: (date) => `Return on ${date}`,
+        unavailableLabel: (n) =>
+            n <= 0 ? "No absence may be granted" : `Only ${n} day${n === 1 ? "" : "s"} may be granted`,
+        allowanceLine: (n) => `${n} of 14 days of absence remain in any 90 days`,
+        cancelBtn: "Withdraw",
+        stripLabel: (date) => `Excused from labor until ${date}`,
+        endNowBtn: "Resume labor",
+        dailyNotice: "The lodge is in recess. Your labors are excused.",
+    },
+
     actions: {
         newRoutineTitle: "INSTITUTE NEW RITUAL",
         newTaskTitle: "ASSIGN NEW LABOR",

@@ -64,6 +64,17 @@ import { AreaDetailElement } from "./area-detail.element.js";
 import { CommitmentsViewElement } from "./commitments-view.element.js";
 import { PreferencesViewElement } from "./preferences-view.element.js";
 import { AboutViewElement } from "./about-view.element.js";
+import { LeaveDialogElement } from "./leave-dialog.element.js";
+import {
+    endLeaveNow,
+    formatLeaveDay,
+    gapCoveredByLeave,
+    isOnLeave,
+    leaveContextFor,
+    normalizeLeave,
+    startLeave,
+    tasksForDisplay,
+} from "../data/leave.js";
 import { pushModalHistoryGuard, releaseModalHistoryGuard } from "../modal-history-guard.js";
 import {
     buildCsvExport,
@@ -91,6 +102,12 @@ const isPushedView = (v: AppView): boolean => v === "about" || v === "feedback";
 function bootstrap(): AppState {
     const loaded = loadState();
 
+    // Authorized Leave: clear an expired leave and prune old history, then build
+    // the context rollover uses to treat every commitment as paused.
+    const todayStr = getAppDayString(loaded.timeSettings.dayResetHour);
+    const leaveFields = normalizeLeave(loaded, todayStr);
+    const leave = leaveContextFor(leaveFields, todayStr);
+
     // Roll any recurring tasks forward whose period elapsed while we were away.
     const today = new Date();
     const todayMidnight = startOfDay(today).getTime();
@@ -100,11 +117,11 @@ function bootstrap(): AppState {
     // applied one at a time in task-list order, since each depends on the
     // running score.
     const loadedTasks = tasksOf(loaded.commitments);
-    const load = dailyLoad(loadedTasks);
+    const load = dailyLoad(loadedTasks, leave.active);
     let runningScore = loaded.patriotScore;
 
     const updatedTasks = loadedTasks.map((t) => {
-        const rolled = rolloverIfNeeded(t, today);
+        const rolled = rolloverIfNeeded(t, today, leave);
 
         // Recurring: period rolled over without completion — charge a miss penalty.
         // Band-aware: mandatory → loss ratio 5; suggested → 2.5; radar/backlog → none.
@@ -114,7 +131,7 @@ function bootstrap(): AppState {
             runningScore = applyRolloverMisses(
                 runningScore,
                 share(t, load),
-                getDailyBand(t, missDay),
+                getDailyBand(t, missDay, leave.active),
                 rolled.totalMisses - t.totalMisses,
                 t.skipStreak,
             );
@@ -134,7 +151,7 @@ function bootstrap(): AppState {
             runningScore = applyRolloverMisses(
                 runningScore,
                 share(t, load),
-                getDailyBand(t, dueDay),
+                getDailyBand(t, dueDay, leave.active),
                 1,
                 t.skipStreak,
             );
@@ -148,7 +165,6 @@ function bootstrap(): AppState {
     });
 
     // Detect a new day → push the day-start dialogue and update streak.
-    const todayStr = getAppDayString(loaded.timeSettings.dayResetHour);
     let dialogueQueue = loaded.dialogueQueue;
     let lastActiveDate = loaded.lastActiveDate;
     let completionStreak = loaded.completionStreak;
@@ -167,9 +183,16 @@ function bootstrap(): AppState {
         // Increment streak if consecutive (prev day was yesterday), otherwise reset.
         if (loaded.lastActiveDate === "") {
             completionStreak = 1;
+        } else if (leave.active) {
+            // On leave: the streak neither grows nor resets.
+            completionStreak = loaded.completionStreak;
         } else {
             const gap = daysBetween(new Date(loaded.lastActiveDate), new Date(todayStr));
-            completionStreak = gap === 1 ? loaded.completionStreak + 1 : 1;
+            // A gap made up entirely of leave days does not break the streak.
+            completionStreak =
+                gap === 1 || gapCoveredByLeave(leave.spans, loaded.lastActiveDate, todayStr)
+                    ? loaded.completionStreak + 1
+                    : 1;
         }
     }
 
@@ -182,6 +205,8 @@ function bootstrap(): AppState {
         dialogueQueue,
         lastActiveDate,
         patriotScore,
+        leaveUntil: leaveFields.leaveUntil,
+        leaveHistory: leaveFields.leaveHistory,
     };
     saveState(next);
     return next;
@@ -215,6 +240,47 @@ export const BureauAppElement = defineElement()({
             padding-bottom: calc(
                 64px + max(16px, env(safe-area-inset-bottom, 0px))
             );
+        }
+
+        .leave-strip {
+            box-sizing: border-box;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            width: 100%;
+            padding: 4px 16px;
+            min-height: 52px;
+            background: var(--color-chrome);
+            color: var(--color-chrome-text);
+            border-top: 3px solid var(--color-warning);
+            font-family: var(--font-mono);
+            font-size: 0.78rem;
+            letter-spacing: 0.04em;
+        }
+
+        .leave-strip-text {
+            min-width: 0;
+            overflow-wrap: anywhere;
+        }
+
+        .leave-strip-end {
+            min-height: 44px;
+            min-width: 44px;
+            padding: 0 12px;
+            background: none;
+            border: 1px solid currentColor;
+            color: inherit;
+            font-family: var(--font-display);
+            font-size: 0.75rem;
+            letter-spacing: 0.08em;
+            white-space: nowrap;
+            cursor: pointer;
+            flex-shrink: 0;
+        }
+
+        .leave-strip-end:hover {
+            background: rgba(var(--color-chrome-text-rgb), 0.12);
         }
 
         .empty-msg {
@@ -294,6 +360,7 @@ export const BureauAppElement = defineElement()({
             editingGoal: null as Goal | null,
             editingIdea: null as Idea | null,
             addingTask: false,
+            leaveDialogOpen: false,
             newTaskAreaId: null as string | null,
             newTaskDefaultKind: "task" as FormKind,
             promotingIdea: null as Idea | null,
@@ -322,6 +389,12 @@ export const BureauAppElement = defineElement()({
             patriotScore,
             completionStreak,
         } = state.app;
+
+        // Authorized Leave: derived from the app day on every render, so the
+        // strip and the hidden cards end by themselves on the return day.
+        const todayDay = getAppDayString(state.app.timeSettings.dayResetHour);
+        const onLeave = isOnLeave(state.app.leaveUntil, todayDay);
+        const displayTasks = tasksForDisplay(tasksOf(state.app.commitments), onLeave);
 
         const currentDialogue = dialogueQueue.find((d) => !d.dismissed) ?? null;
         const selectedArea = selectedAreaId
@@ -1032,6 +1105,18 @@ export const BureauAppElement = defineElement()({
             }
         }
 
+        function onLeaveStarted(days: number): void {
+            const day = getAppDayString(state.app.timeSettings.dayResetHour);
+            const next = startLeave(state.app, days, day);
+            updateState({ leaveDialogOpen: false });
+            if (next) commit(next);
+        }
+
+        function onLeaveEnded(): void {
+            const day = getAppDayString(state.app.timeSettings.dayResetHour);
+            commit(endLeaveNow(state.app, day));
+        }
+
         function onDismissDialogue(): void {
             const target = state.app.dialogueQueue.find((d) => !d.dismissed);
             if (!target) return;
@@ -1076,6 +1161,9 @@ export const BureauAppElement = defineElement()({
                     ${listen(BureauHeaderElement.events.viewRequested, (e) =>
                         setView(e.detail),
                     )}
+                    ${listen(BureauHeaderElement.events.leaveRequested, () =>
+                        updateState({ leaveDialogOpen: true }),
+                    )}
                     ${listen(BureauHeaderElement.events.exportCsvRequested, () => {
                         triggerDownload(buildCsvExport(state.app), csvFilename(), 'text/csv');
                     })}
@@ -1095,6 +1183,27 @@ export const BureauAppElement = defineElement()({
                 ></${BureauHeaderElement}>
 
                 ${
+                    onLeave && state.app.leaveUntil
+                        ? html`
+                        <div class="leave-strip" data-testid="leave-strip">
+                            <span class="leave-strip-text"
+                                >${getActiveSkin().leave.stripLabel(
+                                    formatLeaveDay(state.app.leaveUntil),
+                                )}</span
+                            >
+                            <button
+                                class="leave-strip-end"
+                                data-testid="leave-end-now"
+                                @click=${onLeaveEnded}
+                            >
+                                ${getActiveSkin().leave.endNowBtn}
+                            </button>
+                        </div>
+                      `
+                        : html``
+                }
+
+                ${
                     currentDialogue && view !== "preferences" && !isPushedView(view)
                         ? html`
                         <${CharacterDialogueElement.assign({ dialogue: currentDialogue, activeSkinId: state.activeSkinId })}
@@ -1109,7 +1218,7 @@ export const BureauAppElement = defineElement()({
                         ? html`
                         <${GoalDetailElement.assign({
                             goal: selectedGoal,
-                            tasks: tasksOf(state.app.commitments),
+                            tasks: displayTasks,
                             areas: state.app.areas,
                             ideas: ideasOf(state.app.commitments),
                             activeSkinId: state.activeSkinId,
@@ -1187,7 +1296,7 @@ export const BureauAppElement = defineElement()({
                           ? html`
                         <${GoalsViewElement.assign({
                             goals: goalsOf(state.app.commitments),
-                            tasks: tasksOf(state.app.commitments),
+                            tasks: displayTasks,
                             areas: state.app.areas,
                             activeSkinId: state.activeSkinId,
                         })}
@@ -1306,6 +1415,7 @@ export const BureauAppElement = defineElement()({
                                 ? html`
                         <${DailyViewElement.assign({
                             tasks: tasksOf(state.app.commitments),
+                            onLeave,
                             areas: state.app.areas,
                             timeSettings: state.app.timeSettings,
                             activeSkinId: state.activeSkinId,
@@ -1349,7 +1459,7 @@ export const BureauAppElement = defineElement()({
                                   ? html`
                         <${DashboardViewElement.assign({
                             areas: state.app.areas,
-                            tasks: tasksOf(state.app.commitments),
+                            tasks: displayTasks,
                             unlinkedCount: state.app.commitments.filter(c => (c as any).areaId === null).length,
                             activeSkinId: state.activeSkinId,
                         })}
@@ -1472,7 +1582,7 @@ export const BureauAppElement = defineElement()({
                                             ? html`
                         <${AreaDetailElement.assign({
                             area: selectedArea,
-                            tasks: tasksOf(state.app.commitments).filter(
+                            tasks: displayTasks.filter(
                                 (t) => t.areaId === selectedArea.id,
                             ),
                             goals: goalsOf(state.app.commitments).filter(
@@ -1635,6 +1745,20 @@ export const BureauAppElement = defineElement()({
                         }),
                     )}
                 ></${AddTaskDialogElement}>
+
+                <${LeaveDialogElement.assign({
+                    open: state.leaveDialogOpen,
+                    today: todayDay,
+                    leaveHistory: state.app.leaveHistory,
+                    activeSkinId: state.activeSkinId,
+                })}
+                    ${listen(LeaveDialogElement.events.leaveStarted, (e) =>
+                        onLeaveStarted(e.detail),
+                    )}
+                    ${listen(LeaveDialogElement.events.cancelled, () =>
+                        updateState({ leaveDialogOpen: false }),
+                    )}
+                ></${LeaveDialogElement}>
 
                 ${
                     state.undoAction

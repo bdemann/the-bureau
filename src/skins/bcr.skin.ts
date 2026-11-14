@@ -146,6 +146,22 @@ export const bcrSkin: Skin = {
             "The score can be fun to see go up and we still may deport you if it goes too low, but don't forget the real prize and goal is becoming a better patriot. Your patriotism is not a game; it's serious.",
     },
 
+    leave: {
+        menuLabel: "Request Leave",
+        menuSub: "Authorized absence, no penalty",
+        dialogTitle: "Request Authorized Leave",
+        dialogIntro: "The Bureau will suspend all obligations. No penalties. No commendations.",
+        presetLabel: (days) => `${days} days`,
+        returnLine: (date) => `Report back ${date}`,
+        unavailableLabel: (n) =>
+            n <= 0 ? "No leave remains" : `Only ${n} day${n === 1 ? "" : "s"} of leave remain`,
+        allowanceLine: (n) => `${n} of 14 days of leave remain in any 90-day period`,
+        cancelBtn: "Withdraw request",
+        stripLabel: (date) => `Authorized Leave until ${date}`,
+        endNowBtn: "Return to duty",
+        dailyNotice: "All obligations are suspended under Authorized Leave.",
+    },
+
     actions: {
         ...defaultSkin.actions,
         newRoutineTitle: "MAKE NEW ROUTINE",

@@ -166,21 +166,27 @@ test.describe("Docket-cleared bonus (E1 + score)", () => {
         await addRoutine(page, "First mandatory", "T1");
         await addRoutine(page, "Second mandatory", "T1");
 
-        const start = await readScore(page);
+        // Read the stored (unrounded) score: under the settling model the docket
+        // bonus is a fraction of a day's gain, which the header's rounded number
+        // can hide (e.g. +3.5 and +4.7 both display as +4).
+        const exactScore = () =>
+            page.evaluate(
+                () => JSON.parse(localStorage.getItem("bureau_v1")!).patriotScore as number,
+            );
+        const start = await exactScore();
         await revealCommitmentInDailyView(page, "First mandatory");
         await page.locator(".task-drag-wrapper", { hasText: "First mandatory" }).locator("button", { hasText: "✓" }).click();
         await page.waitForTimeout(300);
-        const afterFirst = await readScore(page);
+        const afterFirst = await exactScore();
         const firstDelta = afterFirst - start;
 
         await page.locator(".task-drag-wrapper", { hasText: "Second mandatory" }).locator("button", { hasText: "✓" }).click();
         await page.waitForTimeout(300);
-        const afterSecond = await readScore(page);
+        const afterSecond = await exactScore();
         const secondDelta = afterSecond - afterFirst;
 
         // Second completion clears the docket (mandatory band -> empty): its
-        // delta includes the docket bonus on top of a (already larger, due to
-        // fewer active tasks) per-task reward.
+        // delta is the per-task gain plus the docket-cleared bonus.
         expect(secondDelta).toBeGreaterThan(firstDelta);
 
         // E1: mandatory band is now empty -> auto-collapses; suggested auto-expands.

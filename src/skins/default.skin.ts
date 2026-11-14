@@ -167,6 +167,22 @@ export const defaultSkin: Skin = {
         scoreDisclaimer: "",
     },
 
+    leave: {
+        menuLabel: "Pause everything",
+        menuSub: "Sick or travelling? No penalties",
+        dialogTitle: "Pause everything",
+        dialogIntro: "Pause every commitment for a few days. No penalties and no rewards.",
+        presetLabel: (days) => `${days} days`,
+        returnLine: (date) => `Back on ${date}`,
+        unavailableLabel: (n) =>
+            n <= 0 ? "No leave days left" : `Only ${n} day${n === 1 ? "" : "s"} left`,
+        allowanceLine: (n) => `${n} of 14 leave days left in any 90 days`,
+        cancelBtn: "Cancel",
+        stripLabel: (date) => `On leave until ${date}`,
+        endNowBtn: "End now",
+        dailyNotice: "Everything is paused while you are on leave.",
+    },
+
     actions: {
         newRoutineTitle: "NEW ROUTINE",
         newTaskTitle: "NEW TASK",

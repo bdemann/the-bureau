@@ -21,7 +21,7 @@ export type AppView =
     | "feedback";
 export type Character = "director" | "agent";
 
-export const SCHEMA_VERSION = 6;
+export const SCHEMA_VERSION = 7;
 
 // ── Goal ─────────────────────────────────────────────────────────────────────
 
@@ -531,4 +531,12 @@ export interface AppState {
     /** ms timestamp of last dismissal; null = never dismissed (show on first load). */
     readonly reportNoticeDismissedAt: number | null;
     readonly timeSettings: TimeSettings;
+    /**
+     * Authorized Leave: the last app day (YYYY-MM-DD) of the current leave, or
+     * null when not on leave. While today <= leaveUntil, every commitment is
+     * treated as paused. See docs/open-design-questions.md.
+     */
+    readonly leaveUntil: string | null;
+    /** Leave spans (inclusive app days), kept for the rolling 14-in-90-days limit. Pruned after 90 days. */
+    readonly leaveHistory: ReadonlyArray<{ readonly start: string; readonly end: string }>;
 }

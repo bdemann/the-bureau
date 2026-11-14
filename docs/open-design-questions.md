@@ -43,6 +43,28 @@ The default is 5 (`SKIP_ESCALATION_THRESHOLD` const). Some T2 tasks may warrant 
 
 ## RESOLVED
 
+### Authorized Leave (GitHub #60, decided 2026-11-13)
+
+**Use case:** illness or travel, when no commitment can be met. Per-commitment pause (`pausedUntil` / `pausedIndefinitely`) exists, but pausing ~90 commitments one by one and restoring them afterwards is impractical.
+
+**Philosophy check:** this is not a new commitment type, tier, window type or cadence, and it adds no field to any commitment. It is an **app-level state** layered over the existing pause behaviour: while on leave, every commitment is treated as paused, and no commitment is written to.
+
+**Resolved rules:**
+- State: `AppState.leaveUntil` (last app day of leave, `YYYY-MM-DD`, or `null`) and `AppState.leaveHistory` (`{start, end}` spans, pruned after 90 days). Schema v7.
+- While active, rollover, bands, daily load and the daily view all treat every commitment as paused (`isCurrentlyPaused(task, onLeave)`). No penalties, no rewards, and no change to miss/skip/snooze/remediation counts or streaks.
+- Periods that end during a leave are forgiven when rollover next runs, through the same path a skip day uses (period advances, no miss, no streak change).
+- Limits: presets of 3 and 7 days; at most 7 days per leave; at most 14 leave days in any rolling 90-day window. A preset larger than the remaining allowance is disabled and the dialog states how many days are left.
+- Leave starts today (the current app day, respecting `dayResetHour`). **No retroactive leave.**
+- "End now" ends leave immediately. The leave then covers the days before today, so only days actually taken count; ending on the day it started removes the leave entirely and uses 0 days.
+- The app-day streak (`completionStreak`) is held during leave, and a gap fully covered by leave does not reset it.
+
+**Existing per-commitment pause behaviour that leave inherits unchanged (not new rules):**
+- A **one-time hard-date task** whose date passes while paused is still marked missed by the startup check (`bootstrap`), because that check does not look at pause. If the app is open on leave, the miss carries no score penalty (the band is `hidden`); if the app is first opened after leave ended, the task is charged as an ordinary mandatory miss. Leave does not forgive this.
+- A commitment already paused individually stays paused after leave ends (leave never touches `pausedUntil` / `pausedIndefinitely`).
+- Tasks whose period did NOT end during leave simply resume where they were (a weekly task keeps its current week).
+
+---
+
 ### Flexible Windows & Snooze → "Not Today" Model
 
 **Resolved:** "Not Today" exists only for tasks in backlog/radar (before suggestedDate). It hides the card for the day with zero score consequence. Once the task enters suggested band, "Not Today" is gone — replaced by Snooze (loss ratio 0.5 suggested / 1 mandatory) and Skip (loss ratio 2.5).

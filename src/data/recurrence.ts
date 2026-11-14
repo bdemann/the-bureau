@@ -8,9 +8,11 @@ import {
     calculateRelativeDate,
     createFullDateInUserTimezone,
     toJsDate,
+    toSimpleDatePartString,
 } from 'date-vir';
 import type {RecurrenceCadence, RecurrenceConfig, Task} from './types.js';
 import {isCurrentlyPaused, startOfDay} from './storage.js';
+import {isDayOnLeave, NO_LEAVE, type LeaveContext} from './leave.js';
 
 // ── Period boundary computation ─────────────────────────────────────────────
 
@@ -228,7 +230,7 @@ export function advanceRecurrence(task: Task, completedAt: Date): Task {
  * If the task is one-time, returns it unchanged.
  * If the task already has currentPeriodStart in or after today's period, returns unchanged.
  */
-export function rolloverIfNeeded(task: Task, today: Date): Task {
+export function rolloverIfNeeded(task: Task, today: Date, leave: LeaveContext = NO_LEAVE): Task {
     // Progress-period rollover for milestones — runs regardless of outer recurrence.
     if (task.isMilestone && task.progressCadence != null && task.currentProgressPeriodStart != null) {
         const progressPeriod = getCurrentPeriod(task.progressCadence.cadence, today);
@@ -262,7 +264,8 @@ export function rolloverIfNeeded(task: Task, today: Date): Task {
     }
 
     // Paused — don't roll over, don't count a miss.
-    if (isCurrentlyPaused(task)) return task;
+    // Authorized Leave counts as paused for every commitment.
+    if (isCurrentlyPaused(task, leave.active)) return task;
 
     const todayPeriod = getCurrentPeriod(task.recurrence.cadence, today);
 
@@ -304,12 +307,20 @@ export function rolloverIfNeeded(task: Task, today: Date): Task {
 
     // Don't count a miss if the stale period was a skip day.
     const staleDay = new Date(task.currentPeriodStart!);
-    const wasStaleDayASkipDay = isSkipDay(task, staleDay);
+    // A period that ended during Authorized Leave is forgiven the same way a
+    // skip day is: the period advances, with no miss, skip or streak change.
+    const stalePeriodEnd = getCurrentPeriod(cfg.cadence, staleDay).end;
+    const endedOnLeave = isDayOnLeave(
+        leave.spans,
+        toSimpleDatePartString(createFullDateInUserTimezone(stalePeriodEnd)),
+    );
+    const wasStaleDayASkipDay = isSkipDay(task, staleDay) || endedOnLeave;
 
     return {
         ...task,
         completionsThisPeriod: 0,
-        snoozeCount: 0,
+        // Leave must not change the snooze count; every other rollover resets it.
+        snoozeCount: endedOnLeave ? task.snoozeCount : 0,
         snoozedUntil: null,
         completedAt: null,
         currentPeriodStart: nextOccurrencePeriod.start,

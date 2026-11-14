@@ -78,7 +78,7 @@ Bands are computed at render time from task state + today's date. They are never
 **Step 0 — Hidden check (never shown):**
 - Completed for this period
 - Currently snoozed
-- Currently paused
+- Currently paused (individually, or the whole app is on Authorized Leave: every commitment is hidden and the daily view says so)
 - Marked as missed (`missedAt` is set)
 - Start date hasn't arrived yet
 
