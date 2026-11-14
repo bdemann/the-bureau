@@ -5,7 +5,9 @@ Three layers:
 1. **Automated (data)** — pure data-layer tests via `node:test` + `@augment-vir/assert`.
    Run: `npm test` (no browser, no DOM).
 2. **Automated (e2e)** — real-browser tests via Playwright. Run: `npm run test:e2e`
-   (spins up the Vite dev server itself). Covers rendering/layout/interaction
+   (spins up the Vite dev server itself, never reusing an existing one). The
+   port defaults to 5173; set `PLAYWRIGHT_PORT=<port>` to use another (e.g. when
+   another git worktree has a dev server running). A busy port fails the run. Covers rendering/layout/interaction
    concerns that can't be expressed as pure functions: mobile overflow,
    dialog field wiring, view-specific behavior (status transitions, linking,
    drag-and-drop reordering), and UI wiring around already-unit-tested pure
