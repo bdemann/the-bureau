@@ -95,6 +95,8 @@ let _onSlotChange: ((slot: TimeOfDay) => void) | null = null;
 
 export const DailyViewElement = defineElement<{
     tasks: ReadonlyArray<Task>;
+    /** Authorized Leave is active: every commitment counts as paused. */
+    onLeave: boolean;
     areas: ReadonlyArray<Area>;
     timeSettings: TimeSettings;
     /** Re-render trigger — changes when the active skin changes. */
@@ -221,6 +223,17 @@ export const DailyViewElement = defineElement<{
             padding: 14px 8px;
             background: rgba(255, 253, 247, 0.6);
             border: 1px dashed var(--color-border);
+            text-align: center;
+        }
+
+        /* Authorized Leave notice: theme-aware (band-empty hardcodes a light fill). */
+        .leave-notice {
+            font-family: var(--font-accent);
+            font-size: 0.9rem;
+            color: var(--color-text);
+            padding: 14px 8px;
+            margin: 16px 0 12px;
+            border: 1px dashed var(--color-border-strong);
             text-align: center;
         }
 
@@ -460,7 +473,7 @@ export const DailyViewElement = defineElement<{
             hidden: [],
         };
         for (const task of inputs.tasks) {
-            const band = getDailyBand(task, today);
+            const band = getDailyBand(task, today, inputs.onLeave);
             bands[band].push(task);
         }
 
@@ -703,6 +716,20 @@ export const DailyViewElement = defineElement<{
         };
 
         const mergedTasks = [...bands.mandatory, ...bands.suggested];
+
+        if (inputs.onLeave) {
+            return html`
+                <div class="leave-notice" data-testid="leave-daily-notice">
+                    ${skin.leave.dailyNotice}
+                </div>
+                <button
+                    class="file-directive-btn"
+                    @click=${() => dispatch(new events.newTaskRequested({detail: undefined}))}
+                >
+                    ${skin.actions.makeCommitmentCta}
+                </button>
+            `;
+        }
 
         return html`
             <div class="view-controls">

@@ -218,6 +218,23 @@ export interface SkinMenu {
 
 }
 
+// ── Authorized Leave ──────────────────────────────────────────────────────────
+
+export interface SkinLeave {
+    menuLabel: string;                         // hamburger menu entry
+    menuSub: string;                           // sub-line under the menu entry
+    dialogTitle: string;
+    dialogIntro: string;                       // one line: what leave does
+    presetLabel: (days: number) => string;     // e.g. "3 days"
+    returnLine: (date: string) => string;      // e.g. "Back on Jun 12"
+    unavailableLabel: (daysLeft: number) => string; // on a disabled preset
+    allowanceLine: (daysLeft: number) => string;    // remaining rolling allowance
+    cancelBtn: string;
+    stripLabel: (date: string) => string;      // strip under the header, e.g. "On leave until Jun 12"
+    endNowBtn: string;
+    dailyNotice: string;                       // one line on the daily view while on leave
+}
+
 // ── Characters ────────────────────────────────────────────────────────────────
 
 export interface SkinCharacter {
@@ -356,6 +373,7 @@ export interface Skin {
     nav: SkinNav;
     pages: SkinPages;
     menu: SkinMenu;
+    leave: SkinLeave;
     actions: SkinActions;
     areaCard: SkinAreaCard;
     commitmentList: SkinCommitmentList;

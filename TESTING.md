@@ -25,6 +25,7 @@ Data layer:
   vs rolling advance, rollover semantics.
 - `urgency.ts` — every band-decision path including snooze escalation.
 - `storage.ts` — date helpers, visibility/overdue, Phase 1 → Phase 2 migration.
+- `leave.ts` — Authorized Leave: is-on-leave (incl. day-reset hour), rolling 14-in-90 allowance, end-early, pruning, migration, export/import, 5-day no-op scenario.
 - `dialogues.ts` — trigger coverage, character preference, defensive fallback.
 
 E2E (Playwright, `e2e/`):
@@ -408,6 +409,26 @@ dependent; "clicking the task card for a paused commitment opens edit mode
 where pause can be removed" isn't separately asserted (implied by the fact
 every pause test above reopens the dialog to set the pause, but removing an
 existing pause isn't explicitly tested).
+
+### Authorized Leave (Menu → Pause everything / Request Leave)
+
+Automated in `e2e/leave.spec.ts` (clock-controlled): dialog presets and
+return dates, strip + hidden cards, reload persistence, End now, automatic
+end after the return date with the score unchanged, exhausted allowance,
+ending early counting only days taken, back button closes the dialog.
+Manual (visual or not observable by Playwright):
+
+| Action | Expect |
+|---|---|
+| Start a leave in each skin, light and dark | Strip sits directly under the header, full width, text readable, End button fully on screen and at least 44px tall; no horizontal scroll at 390px |
+| Open the dialog in each skin, light and dark | Sheet sits above the bottom nav; both presets and Cancel are reachable; copy matches the skin |
+| While on leave, open an area and a goal | Every commitment is listed as paused; none can be completed or snoozed |
+| While on leave, open Insights and Preferences | They still work; the strip stays visible on every view |
+| Edit a commitment during leave | Its Pause row is unchanged (leave never writes pause fields) |
+| Set a commitment's own pause, take a leave, end it | The commitment is still paused afterwards |
+| Leave a one-time hard-date task whose date falls inside the leave | Documented existing pause behaviour: it is marked missed (see docs/open-design-questions.md) |
+| Export JSON during leave, wipe storage, import | Leave strip and remaining allowance are restored |
+| Phone: hardware Back with the dialog open | Dialog closes, app does not exit |
 
 ### Monthly/quarterly/annually anchors, ordinal offset, start date, end conditions
 

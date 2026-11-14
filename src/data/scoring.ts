@@ -121,15 +121,15 @@ export function occurrencesPerDay(
 }
 
 /** Whether the task counts toward today's load: not finished, missed or paused. */
-export function isActiveForScoring(task: Task): boolean {
-    return task.completedAt === null && task.missedAt === null && !isCurrentlyPaused(task);
+export function isActiveForScoring(task: Task, onLeave = false): boolean {
+    return task.completedAt === null && task.missedAt === null && !isCurrentlyPaused(task, onLeave);
 }
 
 /** Sum of `tierWeight x occurrencesPerDay` over active, unpaused tasks. */
-export function dailyLoad(tasks: ReadonlyArray<Task>): number {
+export function dailyLoad(tasks: ReadonlyArray<Task>, onLeave = false): number {
     let load = 0;
     for (const t of tasks) {
-        if (!isActiveForScoring(t)) continue;
+        if (!isActiveForScoring(t, onLeave)) continue;
         load += tierWeight(t.consequenceTier) * occurrencesPerDay(t);
     }
     return load;

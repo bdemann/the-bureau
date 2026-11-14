@@ -28,11 +28,11 @@ export function maxBand(a: DailyBand, b: DailyBand): DailyBand {
  * Determine which daily-band a task should appear in for the given "today."
  * Returns 'hidden' if the task should not appear in the daily view at all.
  */
-export function getDailyBand(task: Task, today: Date = new Date()): DailyBand {
+export function getDailyBand(task: Task, today: Date = new Date(), onLeave = false): DailyBand {
     // Step 0 — Visibility
     if (isCompletedForPeriod(task, today)) return 'hidden';
     if (isCurrentlySnoozed(task))          return 'hidden';
-    if (isCurrentlyPaused(task))           return 'hidden';
+    if (isCurrentlyPaused(task, onLeave))  return 'hidden';
     if (task.missedAt !== null)            return 'hidden';
     // Skip day — task is hidden, no miss, no period advance.
     if (isSkipDay(task, today))            return 'hidden';

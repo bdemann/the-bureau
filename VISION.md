@@ -307,6 +307,18 @@ The numbers are loss ratios in the settling score model (`docs/scoring-redesign.
 
 ---
 
+## Authorized Leave
+
+Sometimes nothing can be met: illness, travel. **Authorized Leave** pauses every commitment at once, for a few days, with no penalties and no rewards. It is an app-level state, not a commitment type: no commitment is edited, so there is nothing to restore afterwards.
+
+- Presets of 3 or 7 days, starting today, never retroactive. At most 7 days per leave and 14 days in any rolling 90 days. "End now" returns early, and only the days actually taken count.
+- While on leave a strip under the header shows the return date and "End now", and the daily view shows no commitment cards.
+- Periods that end during leave are forgiven (no miss, skip or streak change). Individual per-commitment pause is unchanged and remains independent; where a commitment's own pause has quirks (for example a one-time hard-date task passing while paused), leave inherits them rather than inventing a new rule.
+
+Full rules and the decision record: `docs/open-design-questions.md` (resolved), `docs/scoring-redesign.md`.
+
+---
+
 ## The Identity Accountability Score
 
 The current "Patriot Score" is a global number. Eventually it should reflect **are you showing up in each area of your life, or just the easy ones?**

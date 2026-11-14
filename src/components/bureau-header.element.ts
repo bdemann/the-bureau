@@ -28,6 +28,8 @@ export const BureauHeaderElement = defineElement<{
         insightsRequested: defineElementEvent<unknown>(),
         /** Fired for any view navigation from the hamburger menu. */
         viewRequested: defineElementEvent<AppView>(),
+        /** Fired when the user taps the Authorized Leave entry in the hamburger menu. */
+        leaveRequested: defineElementEvent<unknown>(),
         /** Fired when the user requests a JSON backup download. */
         exportJsonRequested: defineElementEvent<unknown>(),
         /** Fired when the user requests a CSV task-list download. */
@@ -543,6 +545,17 @@ export const BureauHeaderElement = defineElement<{
                               </div>
 
                               <div class="menu-section">
+                                  <button
+                                      class="menu-item"
+                                      data-testid="menu-leave"
+                                      @click=${() => {
+                                          dispatch(new events.leaveRequested({detail: undefined}));
+                                          closeMenu();
+                                      }}
+                                  >
+                                      <span class="menu-item-label">${skin.leave.menuLabel}</span>
+                                      <span class="menu-item-sub">${skin.leave.menuSub}</span>
+                                  </button>
                                   <button
                                       class="menu-item"
                                       @click=${() => {

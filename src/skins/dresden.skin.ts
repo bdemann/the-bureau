@@ -179,6 +179,22 @@ export const dresdenSkin: Skin = {
 
     },
 
+    leave: {
+        menuLabel: "Lie Low",
+        menuSub: "Go to ground for a few days, no penalty",
+        dialogTitle: "Lie Low",
+        dialogIntro: "Even a wizard needs to go to ground. No penalties and no gains while you do.",
+        presetLabel: (days) => `${days} days`,
+        returnLine: (date) => `Back on ${date}`,
+        unavailableLabel: (n) =>
+            n <= 0 ? "No cover left" : `Only ${n} day${n === 1 ? "" : "s"} of cover left`,
+        allowanceLine: (n) => `${n} of 14 days to go to ground left in any 90 days`,
+        cancelBtn: "Never mind",
+        stripLabel: (date) => `Lying low until ${date}`,
+        endNowBtn: "Back in the game",
+        dailyNotice: "You are lying low. The docket will keep.",
+    },
+
     actions: {
         newRoutineTitle: "NEW RITUAL",
         newTaskTitle: "NEW OBLIGATION",

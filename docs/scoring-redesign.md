@@ -100,6 +100,16 @@ For a typical mix of misses and skips, `k` is about 3: about 85% completion hold
 
 No migration: the stored score carries over as is and starts settling from there.
 
+### Authorized Leave (GitHub #60)
+
+Leave is an app-level state that treats every commitment as paused, the same way an individual pause does, without writing to any commitment.
+
+- **Rollover:** `rolloverIfNeeded(task, today, leave)` returns the task unchanged while leave is active (the existing paused branch). `dailyLoad(tasks, onLeave)` is 0 on leave. `getDailyBand(task, today, onLeave)` is `hidden` on leave.
+- **No penalty, no reward:** nothing is shown, so nothing can be completed, snoozed or skipped; no rollover miss is charged while leave is active.
+- **First day back:** a recurring commitment whose period ended during leave rolls forward with no miss, skip, streak or completion change (the same path as a skip day), and its snooze count is kept rather than reset. A period still in progress continues unchanged. An individual pause that ends, by contrast, charges a miss for a lapsed period; leave deliberately does not, because the leave spec requires no penalties.
+- **Inherited pause behaviour:** a one-time hard-date task whose date passes during leave is marked missed exactly as for an individual pause (see `open-design-questions.md`).
+- **Limits** (7 days per leave, 14 days per rolling 90 days) and the **app-day streak** handling are in `open-design-questions.md`. No scoring constant changes.
+
 ### Judgement calls on cases the spec did not list
 
 - Daily with `skipDays`: scaled by the fraction of days the task is actually scheduled.

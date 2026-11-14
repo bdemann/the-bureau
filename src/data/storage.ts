@@ -33,6 +33,8 @@ export const DEFAULT_STATE: AppState = {
     docketClearedDate: "",
     reportNoticeDismissedAt: null,
     timeSettings: DEFAULT_TIME_SETTINGS,
+    leaveUntil: null,
+    leaveHistory: [],
 };
 
 // ── Load / save ─────────────────────────────────────────────────────────────
@@ -92,12 +94,24 @@ export function migrateState(state: AppState): AppState {
             ...state,
             areas,
             view: normalizedView,
+            leaveUntil: state.leaveUntil ?? null,
+            leaveHistory: state.leaveHistory ?? [],
             commitments: state.commitments.map((c) =>
                 c.kind === "routine" || c.kind === "task"
                     ? ensureTaskShape(c)
                     : c,
             ) as AnyCommitment[],
         };
+    }
+
+    // v6 → v7: Authorized Leave (app-level; no per-commitment fields).
+    if (version === 6) {
+        return migrateState({
+            ...state,
+            schemaVersion: 7,
+            leaveUntil: null,
+            leaveHistory: [],
+        });
     }
 
     // v5 → v6: add timeSettings with defaults.
@@ -345,9 +359,15 @@ export function isCurrentlySnoozed(task: Pick<Task, "snoozedUntil">): boolean {
     return task.snoozedUntil !== null && task.snoozedUntil > Date.now();
 }
 
+/**
+ * `onLeave`: the app is on Authorized Leave, so every commitment counts as
+ * paused (without anything being written to the commitment).
+ */
 export function isCurrentlyPaused(
     task: Pick<Task, "pausedUntil" | "pausedIndefinitely">,
+    onLeave = false,
 ): boolean {
+    if (onLeave) return true;
     if (task.pausedIndefinitely) return true;
     return task.pausedUntil !== null && task.pausedUntil > Date.now();
 }
