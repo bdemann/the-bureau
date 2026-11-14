@@ -1,18 +1,28 @@
 import { assert } from "@augment-vir/assert";
 import { describe, test } from "node:test";
 import {
-    countActiveTasks,
-    missPenalty,
+    applyCompletion,
+    applyDocketCleared,
+    applyMilestoneProgress,
+    applyPenalty,
+    applyRolloverMisses,
+    capMissedPeriods,
+    DAILY_RATE,
+    dailyLoad,
+    EARLY_COMPLETION_BONUS,
+    lossRatioFor,
+    MAX_MISSED_PERIODS_CHARGED,
+    MAX_SCORE,
+    MIN_SCORE,
+    occurrencesPerDay,
     REMEDIATION_CAP,
+    share,
     SKIP_ESCALATION_THRESHOLD,
-    SUGGESTED_BAND_PENALTY_FACTOR,
-    skipPenalty,
-    snoozePenalty,
-    taskScaleMultiplier,
-    tierCompletionReward,
+    streakMultiplier,
+    tierWeight,
 } from "./scoring.js";
 import { getSkipSeverity } from "./types.js";
-import type { Task } from "./types.js";
+import type { RecurrenceConfig, Task } from "./types.js";
 
 // Minimal task stub for tests.
 function makeTask(overrides: Partial<Task> = {}): Task {
@@ -52,58 +62,217 @@ function makeTask(overrides: Partial<Task> = {}): Task {
     };
 }
 
-describe("miss-to-reward ratio: one bad day cannot be undone by one perfect day", () => {
-    // miss(tier) > reward(tier); with N-scaling both normalize to 10× base,
-    // so the per-tier comparison fully captures the day-level asymmetry.
-    // Tier 4 is excluded — it is consequence-free in both directions.
-    test("tier 1", () =>
-        assert.isAbove(missPenalty(1) / tierCompletionReward(1), 10));
-    test("tier 2", () =>
-        assert.isAbove(missPenalty(2) / tierCompletionReward(2), 10));
-    test("tier 3", () =>
-        assert.isAbove(missPenalty(3) / tierCompletionReward(3), 10));
+
+function routine(cfg: Partial<RecurrenceConfig>, overrides: Partial<Task> = {}): Task {
+    return makeTask({
+        kind: "routine",
+        recurrence: {
+            cadence: "daily",
+            frequencyPerPeriod: 1,
+            scheduleMode: "fixed",
+            ...cfg,
+        },
+        ...overrides,
+    });
+}
+
+const near = (a: number, b: number, eps = 1e-9) =>
+    assert.isTrue(Math.abs(a - b) < eps, `${a} !~ ${b}`);
+
+describe("tierWeight", () => {
+    test("T1=3, T2=2, T3=1, T4=0", () => {
+        assert.strictEquals(tierWeight(1), 3);
+        assert.strictEquals(tierWeight(2), 2);
+        assert.strictEquals(tierWeight(3), 1);
+        assert.strictEquals(tierWeight(4), 0);
+    });
 });
 
-describe("penalty ordering: miss > skip > snooze (first snooze)", () => {
-    // Tier 4 is excluded — all tier-4 values are 0 (aspirational / consequence-free).
-    test("tier 1", () => {
-        assert.isAbove(missPenalty(1), skipPenalty(1));
-        assert.isAbove(skipPenalty(1), snoozePenalty(1));
+describe("occurrencesPerDay", () => {
+    test("daily = frequency per day", () => {
+        near(occurrencesPerDay(routine({ cadence: "daily" })), 1);
+        near(occurrencesPerDay(routine({ cadence: "multiple_per_day", frequencyPerPeriod: 3 })), 3);
     });
-    test("tier 2", () => {
-        assert.isAbove(missPenalty(2), skipPenalty(2));
-        assert.isAbove(skipPenalty(2), snoozePenalty(2));
+    test("daily with skipDays is scaled by scheduled days", () => {
+        near(occurrencesPerDay(routine({ cadence: "daily", skipDays: [0] })), 6 / 7);
     });
-    test("tier 3", () => {
-        assert.isAbove(missPenalty(3), skipPenalty(3));
-        assert.isAbove(skipPenalty(3), snoozePenalty(3));
+    test("weekly = occurrences per week / 7; multi-day counts each day", () => {
+        near(occurrencesPerDay(routine({ cadence: "weekly" })), 1 / 7);
+        near(occurrencesPerDay(routine({ cadence: "weekly", hardDaysOfWeek: [1, 3, 5] })), 3 / 7);
+    });
+    test("monthly / 30, quarterly / 91, yearly / 365", () => {
+        near(occurrencesPerDay(routine({ cadence: "monthly" })), 1 / 30);
+        near(occurrencesPerDay(routine({ cadence: "monthly", hardDaysOfMonth: [1, 15] })), 2 / 30);
+        near(occurrencesPerDay(routine({ cadence: "quarterly" })), 1 / 91);
+        near(occurrencesPerDay(routine({ cadence: "annually" })), 1 / 365);
+    });
+    test("one-time tasks are 0", () => {
+        assert.strictEquals(occurrencesPerDay(makeTask()), 0);
+    });
+    test("milestone with a progress cadence uses that rate", () => {
+        near(
+            occurrencesPerDay(
+                makeTask({
+                    isMilestone: true,
+                    progressCadence: { cadence: "weekly", frequencyPerPeriod: 2 },
+                }),
+            ),
+            2 / 7,
+        );
     });
 });
 
-describe("tier 4: aspirational — consequence-free in all directions", () => {
-    test("completion reward is 0", () =>
-        assert.strictEquals(tierCompletionReward(4), 0));
-    test("miss penalty is 0", () => assert.strictEquals(missPenalty(4), 0));
-    test("skip penalty is 0", () => assert.strictEquals(skipPenalty(4), 0));
-    test("snooze penalty is 0", () => assert.strictEquals(snoozePenalty(4), 0));
+describe("dailyLoad", () => {
+    test("sums tierWeight x occurrencesPerDay over active tasks", () => {
+        const tasks = [
+            routine({ cadence: "daily" }, { id: "a", consequenceTier: 1 }),
+            routine({ cadence: "weekly" }, { id: "b", consequenceTier: 2 }),
+            makeTask({ id: "c" }),
+        ];
+        near(dailyLoad(tasks), 3 + 2 / 7);
+    });
+    test("excludes completed, missed and paused tasks; T4 adds nothing", () => {
+        const tasks = [
+            routine({}, { id: "a", completedAt: Date.now() }),
+            routine({}, { id: "b", missedAt: Date.now() }),
+            routine({}, { id: "c", pausedIndefinitely: true }),
+            routine({}, { id: "d", pausedUntil: Date.now() + 86_400_000 }),
+            routine({}, { id: "e", consequenceTier: 4 }),
+        ];
+        assert.strictEquals(dailyLoad(tasks), 0);
+    });
 });
 
-describe("penalty ordering: higher tier = higher values (tiers 1–3)", () => {
-    test("completion reward", () => {
-        assert.isAbove(tierCompletionReward(1), tierCompletionReward(2));
-        assert.isAbove(tierCompletionReward(2), tierCompletionReward(3));
+describe("share", () => {
+    const day = [
+        routine({}, { id: "a", consequenceTier: 1 }),
+        routine({}, { id: "b", consequenceTier: 2 }),
+        routine({}, { id: "c", consequenceTier: 3 }),
+        routine({}, { id: "d", consequenceTier: 3 }),
+    ];
+    test("shares across a day's occurrences sum to ~1", () => {
+        const load = dailyLoad(day);
+        near(day.reduce((n, t) => n + share(t, load), 0), 1);
     });
-    test("miss penalty", () => {
-        assert.isAbove(missPenalty(1), missPenalty(2));
-        assert.isAbove(missPenalty(2), missPenalty(3));
+    test("a single event's share is capped at 1", () => {
+        const lone = makeTask({ consequenceTier: 1 });
+        assert.strictEquals(share(lone, 0), 1);
+        assert.strictEquals(share(lone, 1), 1);
     });
-    test("skip penalty", () => {
-        assert.isAbove(skipPenalty(1), skipPenalty(2));
-        assert.isAbove(skipPenalty(2), skipPenalty(3));
+    test("T4 has zero share", () => {
+        assert.strictEquals(share(makeTask({ consequenceTier: 4 }), 10), 0);
     });
-    test("snooze penalty", () => {
-        assert.isAbove(snoozePenalty(1), snoozePenalty(2));
-        assert.isAbove(snoozePenalty(2), snoozePenalty(3));
+});
+
+describe("applyCompletion / applyDocketCleared / applyMilestoneProgress", () => {
+    test("a full share closes DAILY_RATE of the gap to 200", () => {
+        near(applyCompletion(100, 1), 100 + DAILY_RATE * 100);
+    });
+    test("early completion is 1.5x the gain", () => {
+        near(applyCompletion(100, 0.5, true) - 100, (applyCompletion(100, 0.5) - 100) * EARLY_COMPLETION_BONUS);
+    });
+    test("gains shrink near 200", () => {
+        assert.isBelow(applyCompletion(190, 1) - 190, applyCompletion(50, 1) - 50);
+    });
+    test("T4 (share 0) never changes the score, in any direction", () => {
+        assert.strictEquals(applyCompletion(80, 0), 80);
+        assert.strictEquals(applyCompletion(80, 0, true), 80);
+        assert.strictEquals(applyMilestoneProgress(80, 0), 80);
+        assert.strictEquals(applyPenalty(80, 0, 5, 3), 80);
+    });
+    test("docket cleared closes 20% of a perfect day's gap", () => {
+        near(applyDocketCleared(100), 100 + DAILY_RATE * 0.2 * 100);
+    });
+    test("milestone progress is a quarter of a completion", () => {
+        near(applyMilestoneProgress(100, 0.8) - 100, (applyCompletion(100, 0.8) - 100) / 4);
+    });
+    test("score never exceeds 200", () => {
+        assert.isTrue(applyCompletion(200, 1, true) <= MAX_SCORE);
+        assert.isTrue(applyDocketCleared(199.99) <= MAX_SCORE);
+        let s = 0;
+        for (let i = 0; i < 2000; i++) s = applyCompletion(s, 1, true);
+        assert.isTrue(s <= MAX_SCORE);
+    });
+});
+
+describe("applyPenalty", () => {
+    test("loss = DAILY_RATE x share x ratio x score", () => {
+        near(applyPenalty(100, 1, 5, 0), 100 - DAILY_RATE * 5 * 100);
+    });
+    test("losses shrink near 0", () => {
+        assert.isBelow(100 - applyPenalty(100, 1, 5), 100 - 100 + 100 * 1);
+        assert.isBelow(10 - applyPenalty(10, 1, 5), 100 - applyPenalty(100, 1, 5));
+    });
+    test("score never goes below 0, even with absurd inputs", () => {
+        assert.isTrue(applyPenalty(5, 1, 1000, 99) >= MIN_SCORE);
+        assert.strictEquals(applyPenalty(0, 1, 5, 5), 0);
+    });
+    test("deeper streaks cost more", () => {
+        assert.isBelow(applyPenalty(100, 1, 2.5, 5), applyPenalty(100, 1, 2.5, 1));
+    });
+});
+
+describe("streakMultiplier", () => {
+    test("1 + 0.1 x min(depth, 5), max 1.5", () => {
+        near(streakMultiplier(0), 1);
+        near(streakMultiplier(1), 1.1);
+        near(streakMultiplier(5), 1.5);
+        near(streakMultiplier(50), 1.5);
+    });
+});
+
+describe("lossRatioFor", () => {
+    test("miss: 5 mandatory, 2.5 suggested, 0 radar/backlog/hidden", () => {
+        assert.strictEquals(lossRatioFor("miss", "mandatory"), 5);
+        assert.strictEquals(lossRatioFor("miss", "suggested"), 2.5);
+        assert.strictEquals(lossRatioFor("miss", "radar"), 0);
+        assert.strictEquals(lossRatioFor("miss", "backlog"), 0);
+        assert.strictEquals(lossRatioFor("miss", "hidden"), 0);
+    });
+    test("skip: 2.5 in every band", () => {
+        for (const b of ["mandatory", "suggested", "radar", "backlog"] as const) {
+            assert.strictEquals(lossRatioFor("skip", b), 2.5);
+        }
+    });
+    test("snooze: 1 mandatory, 0.5 suggested", () => {
+        assert.strictEquals(lossRatioFor("snooze", "mandatory"), 1);
+        assert.strictEquals(lossRatioFor("snooze", "suggested"), 0.5);
+    });
+    test("penalty ordering: mandatory miss > skip > mandatory snooze", () => {
+        assert.isAbove(lossRatioFor("miss", "mandatory"), lossRatioFor("skip", "mandatory"));
+        assert.isAbove(lossRatioFor("skip", "mandatory"), lossRatioFor("snooze", "mandatory"));
+    });
+});
+
+describe("absence cap", () => {
+    test("capMissedPeriods caps at MAX_MISSED_PERIODS_CHARGED (2)", () => {
+        assert.strictEquals(MAX_MISSED_PERIODS_CHARGED, 2);
+        assert.strictEquals(capMissedPeriods(0), 0);
+        assert.strictEquals(capMissedPeriods(1), 1);
+        assert.strictEquals(capMissedPeriods(2), 2);
+        assert.strictEquals(capMissedPeriods(10), 2);
+    });
+    test("applyRolloverMisses charges no more for 10 missed periods than for 2", () => {
+        assert.strictEquals(
+            applyRolloverMisses(120, 0.3, "mandatory", 10, 0),
+            applyRolloverMisses(120, 0.3, "mandatory", 2, 0),
+        );
+    });
+    test("applyRolloverMisses applies penalties one at a time", () => {
+        const one = applyPenalty(120, 0.3, 5, 1);
+        near(applyRolloverMisses(120, 0.3, "mandatory", 2, 0), applyPenalty(one, 0.3, 5, 2));
+    });
+    test("radar/backlog misses are free", () => {
+        assert.strictEquals(applyRolloverMisses(120, 0.3, "backlog", 5, 0), 120);
+    });
+});
+
+describe("constants", () => {
+    test("SKIP_ESCALATION_THRESHOLD is 5 (T2 daily becomes mandatory after 5 skips)", () => {
+        assert.strictEquals(SKIP_ESCALATION_THRESHOLD, 5);
+    });
+    test("REMEDIATION_CAP is 5 (remediation never requires more than 5 completions)", () => {
+        assert.strictEquals(REMEDIATION_CAP, 5);
     });
 });
 
@@ -128,103 +297,3 @@ describe("getSkipSeverity", () => {
     });
 });
 
-describe("taskScaleMultiplier", () => {
-    test("1.0 at reference count (10)", () => {
-        assert.strictEquals(taskScaleMultiplier(10), 1);
-    });
-    test("> 1 with fewer than 10 tasks", () => {
-        assert.isAbove(taskScaleMultiplier(5), 1);
-        assert.isAbove(taskScaleMultiplier(1), 1);
-    });
-    test("< 1 with more than 10 tasks (within scaling range)", () => {
-        assert.isBelow(taskScaleMultiplier(20), 1);
-    });
-    test("floored at 0.5 — never drops below half baseline", () => {
-        assert.strictEquals(taskScaleMultiplier(20), 0.5);
-        assert.strictEquals(taskScaleMultiplier(50), 0.5);
-        assert.strictEquals(taskScaleMultiplier(100), 0.5);
-    });
-    test("total daily impact is constant up to 2× reference count", () => {
-        // N tasks × base × (10/N) = 10 × base for N ≤ 20 (where floor doesn't kick in).
-        const base = tierCompletionReward(3);
-        const impact5 = 5 * base * taskScaleMultiplier(5);
-        const impact10 = 10 * base * taskScaleMultiplier(10);
-        const impact20 = 20 * base * taskScaleMultiplier(20);
-        assert.strictEquals(
-            Math.round(impact5 * 100),
-            Math.round(impact10 * 100),
-        );
-        assert.strictEquals(
-            Math.round(impact10 * 100),
-            Math.round(impact20 * 100),
-        );
-    });
-    test("floors at 1 task (no divide-by-zero)", () => {
-        assert.strictEquals(taskScaleMultiplier(0), taskScaleMultiplier(1));
-    });
-});
-
-describe("band-aware scoring constants (D3)", () => {
-    test("SUGGESTED_BAND_PENALTY_FACTOR is 0.5 (half penalty in suggested band)", () => {
-        assert.strictEquals(SUGGESTED_BAND_PENALTY_FACTOR, 0.5);
-    });
-
-    test("SKIP_ESCALATION_THRESHOLD is 5 (T2 daily becomes mandatory after 5 skips)", () => {
-        assert.strictEquals(SKIP_ESCALATION_THRESHOLD, 5);
-    });
-
-    test("REMEDIATION_CAP is 5 (remediation never requires more than 5 completions)", () => {
-        assert.strictEquals(REMEDIATION_CAP, 5);
-    });
-
-    test("suggested band snooze penalty is half of mandatory (full) penalty", () => {
-        for (const tier of [1, 2, 3] as const) {
-            const full = snoozePenalty(tier);
-            const suggested = full * SUGGESTED_BAND_PENALTY_FACTOR;
-            assert.isBelow(suggested, full);
-            assert.strictEquals(suggested, full / 2);
-        }
-    });
-});
-
-describe("countActiveTasks", () => {
-    test("counts incomplete non-missed non-paused tasks", () => {
-        const tasks = [makeTask({ id: "a" }), makeTask({ id: "b" })];
-        assert.strictEquals(countActiveTasks(tasks), 2);
-    });
-    test("excludes completed tasks", () => {
-        const tasks = [
-            makeTask({ id: "a", completedAt: Date.now() }),
-            makeTask({ id: "b" }),
-        ];
-        assert.strictEquals(countActiveTasks(tasks), 1);
-    });
-    test("excludes missed tasks", () => {
-        const tasks = [
-            makeTask({ id: "a", missedAt: Date.now() }),
-            makeTask({ id: "b" }),
-        ];
-        assert.strictEquals(countActiveTasks(tasks), 1);
-    });
-    test("excludes indefinitely paused tasks", () => {
-        const tasks = [
-            makeTask({ id: "a", pausedIndefinitely: true }),
-            makeTask({ id: "b" }),
-        ];
-        assert.strictEquals(countActiveTasks(tasks), 1);
-    });
-    test("excludes timed-paused tasks", () => {
-        const tasks = [
-            makeTask({ id: "a", pausedUntil: Date.now() + 86_400_000 }),
-            makeTask({ id: "b" }),
-        ];
-        assert.strictEquals(countActiveTasks(tasks), 1);
-    });
-    test("minimum return value is 1", () => {
-        assert.strictEquals(countActiveTasks([]), 1);
-        assert.strictEquals(
-            countActiveTasks([makeTask({ completedAt: Date.now() })]),
-            1,
-        );
-    });
-});

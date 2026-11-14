@@ -29,15 +29,14 @@ import {
     rolloverIfNeeded,
 } from "../data/recurrence.js";
 import {
-    countActiveTasks,
-    DOCKET_CLEARED_BONUS,
-    missPenalty,
-    SUGGESTED_BAND_PENALTY_FACTOR,
-    skipPenalty,
-    snoozePenalty,
-    streakDepthMultiplier,
-    taskScaleMultiplier,
-    tierCompletionReward,
+    applyCompletion,
+    applyDocketCleared,
+    applyMilestoneProgress,
+    applyPenalty,
+    applyRolloverMisses,
+    dailyLoad,
+    lossRatioFor,
+    share,
 } from "../data/scoring.js";
 import { getDailyBand, isNextOccurrenceTomorrow } from "../data/urgency.js";
 import {
@@ -96,31 +95,29 @@ function bootstrap(): AppState {
     const today = new Date();
     const todayMidnight = startOfDay(today).getTime();
 
-    // Compute N-scaling from the pre-rollover active task count so missed tasks
-    // are penalised using the state they were missed in.
+    // Compute each task's share from the pre-rollover daily load so missed
+    // tasks are penalised using the state they were missed in. Penalties are
+    // applied one at a time in task-list order, since each depends on the
+    // running score.
     const loadedTasks = tasksOf(loaded.commitments);
-    const activeCount = countActiveTasks(loadedTasks);
-    const multiplier = taskScaleMultiplier(activeCount);
-    let scoreAdjustment = 0;
+    const load = dailyLoad(loadedTasks);
+    let runningScore = loaded.patriotScore;
 
     const updatedTasks = loadedTasks.map((t) => {
         const rolled = rolloverIfNeeded(t, today);
 
         // Recurring: period rolled over without completion — charge a miss penalty.
-        // Band-aware: mandatory → full penalty; suggested → half; radar/backlog → none.
+        // Band-aware: mandatory → loss ratio 5; suggested → 2.5; radar/backlog → none.
+        // At most MAX_MISSED_PERIODS_CHARGED periods are charged per task.
         if (rolled.totalMisses > t.totalMisses) {
             const missDay = new Date(t.suggestedDate ?? todayMidnight - 86_400_000);
-            const bandAtMiss = getDailyBand(t, missDay);
-            let bandFactor = 0; // radar/backlog → no penalty
-            if (bandAtMiss === 'mandatory') bandFactor = 1;
-            else if (bandAtMiss === 'suggested') bandFactor = SUGGESTED_BAND_PENALTY_FACTOR;
-            if (bandFactor > 0) {
-                scoreAdjustment -=
-                    missPenalty(t.consequenceTier as ConsequenceTier) *
-                    (rolled.totalMisses - t.totalMisses) *
-                    multiplier *
-                    bandFactor;
-            }
+            runningScore = applyRolloverMisses(
+                runningScore,
+                share(t, load),
+                getDailyBand(t, missDay),
+                rolled.totalMisses - t.totalMisses,
+                t.skipStreak,
+            );
         }
 
         // One-time hard-date tasks past their date can never be done — mark missed.
@@ -134,12 +131,13 @@ function bootstrap(): AppState {
         ) {
             // Band-aware: check what band the task was in on its due date.
             const dueDay = new Date(t.suggestedDate!);
-            const bandAtMiss = getDailyBand(t, dueDay);
-            let bandFactor = 0;
-            if (bandAtMiss === 'mandatory') bandFactor = 1;
-            else if (bandAtMiss === 'suggested') bandFactor = SUGGESTED_BAND_PENALTY_FACTOR;
-            scoreAdjustment -=
-                missPenalty(t.consequenceTier as ConsequenceTier) * multiplier * bandFactor;
+            runningScore = applyRolloverMisses(
+                runningScore,
+                share(t, load),
+                getDailyBand(t, dueDay),
+                1,
+                t.skipStreak,
+            );
             return {
                 ...rolled,
                 missedAt: rolled.suggestedDate,
@@ -175,7 +173,7 @@ function bootstrap(): AppState {
         }
     }
 
-    const patriotScore = Math.max(0, loaded.patriotScore + scoreAdjustment);
+    const patriotScore = runningScore;
     const commitments = rebuildWithTasks(loaded.commitments, updatedTasks);
     const next: AppState = {
         ...loaded,
@@ -511,12 +509,9 @@ export const BureauAppElement = defineElement()({
                 };
             });
 
-            const tier = (target.consequenceTier ?? 3) as ConsequenceTier;
-            const active = countActiveTasks(currentTasks);
             const band = getDailyBand(target, now);
-            const backlogBonus = (band === 'radar' || band === 'backlog') ? 1.5 : 1;
-            const reward =
-                tierCompletionReward(tier) * taskScaleMultiplier(active) * backlogBonus;
+            const early = band === 'radar' || band === 'backlog';
+            const taskShare = share(target, dailyLoad(currentTasks));
 
             // Docket-cleared bonus: fires once per day when the last mandatory task
             // is completed. The once-per-day guard prevents it retriggering if a
@@ -528,12 +523,12 @@ export const BureauAppElement = defineElement()({
             const alreadyClearedToday = state.app.docketClearedDate === todayStr;
             const docketCleared =
                 !alreadyClearedToday && mandatoryBefore > 0 && mandatoryAfter === 0;
-            const docketBonus = docketCleared
-                ? DOCKET_CLEARED_BONUS * taskScaleMultiplier(active)
-                : 0;
 
             const prevScore = state.app.patriotScore;
-            const newScore = Math.min(200, prevScore + reward + docketBonus);
+            const afterCompletion = applyCompletion(prevScore, taskShare, early);
+            const newScore = docketCleared
+                ? applyDocketCleared(afterCompletion)
+                : afterCompletion;
             const currentStreak = state.app.completionStreak;
 
             commit({
@@ -589,27 +584,15 @@ export const BureauAppElement = defineElement()({
             }
 
             const tier = task.consequenceTier as ConsequenceTier;
-            const active = countActiveTasks(tasksOf(state.app.commitments));
-            const snoozeNow = new Date();
-            const snoozeBandFactor =
-                getDailyBand(task, snoozeNow) === 'suggested'
-                    ? SUGGESTED_BAND_PENALTY_FACTOR
-                    : 1;
-            const rawPenalty = Math.min(
-                snoozePenalty(tier) *
-                    newSnoozeCount *
-                    streakDepthMultiplier(newSnoozeCount) *
-                    snoozeBandFactor,
-                30,
-            );
-            // Floor at 1 so a snooze always produces a visible score change,
-            // even when taskScaleMultiplier is tiny (many tasks).
-            const penalty = Math.max(
-                1,
-                rawPenalty * taskScaleMultiplier(active),
-            );
+            const allTasks = tasksOf(state.app.commitments);
+            const snoozeBand = getDailyBand(task, new Date());
             const prevScore = state.app.patriotScore;
-            const newScore = Math.max(0, prevScore - penalty);
+            const newScore = applyPenalty(
+                prevScore,
+                share(task, dailyLoad(allTasks)),
+                lossRatioFor('snooze', snoozeBand),
+                newSnoozeCount,
+            );
 
             const commitments = state.app.commitments.map((c) =>
                 c.id === taskId && (c.kind === 'task' || c.kind === 'routine')
@@ -684,14 +667,10 @@ export const BureauAppElement = defineElement()({
                     ...progressPeriodUpdates,
                 };
             });
-            const active = countActiveTasks(currentTasks);
-            const reward =
-                (tierCompletionReward(
-                    target.consequenceTier as ConsequenceTier,
-                ) *
-                    taskScaleMultiplier(active)) /
-                4;
-            const newScore = Math.min(200, state.app.patriotScore + reward);
+            const newScore = applyMilestoneProgress(
+                state.app.patriotScore,
+                share(target, dailyLoad(currentTasks)),
+            );
             commit({ commitments: rebuildWithTasks(state.app.commitments, tasks), patriotScore: newScore });
         }
 
@@ -717,20 +696,15 @@ export const BureauAppElement = defineElement()({
                 };
             });
 
-            const tier = target.consequenceTier as ConsequenceTier;
-            const active = countActiveTasks(currentTasks);
             const newSkipStreak =
                 tasks.find((t) => t.id === taskId)?.skipStreak ?? 1;
-            // Floor at 1 so a skip always produces a visible score change,
-            // even when taskScaleMultiplier is tiny (many tasks).
-            const penalty = Math.max(
-                1,
-                skipPenalty(tier) *
-                    streakDepthMultiplier(newSkipStreak) *
-                    taskScaleMultiplier(active),
-            );
             const prevScore = state.app.patriotScore;
-            const newScore = Math.max(0, prevScore - penalty);
+            const newScore = applyPenalty(
+                prevScore,
+                share(target, dailyLoad(currentTasks)),
+                lossRatioFor('skip', getDailyBand(target, now)),
+                newSkipStreak,
+            );
 
             commit({ commitments: rebuildWithTasks(state.app.commitments, tasks), patriotScore: newScore });
             offerUndo(target, prevScore, `Skipped "${target.title}"`);

@@ -1,30 +1,69 @@
 // ─────────────────────────────────────────────────────────────────────────────
-// Scoring — pure functions, no I/O.
+// Scoring — the "settling score" model (GitHub #58). Pure functions, no I/O.
+// See docs/scoring-redesign.md for the full spec and rationale.
 //
-// All per-task score changes are multiplied by a task-count scaling factor so
-// that each task's impact is inversely proportional to how many tasks you have:
-// with fewer tasks each one matters more; with more tasks each one matters less.
+// The score S lives in [MIN_SCORE, MAX_SCORE]. Gains pull toward the top
+// (S += DAILY_RATE * share * (200 - S)), losses pull toward the bottom
+// (S -= DAILY_RATE * share * lossRatio * streakMultiplier * S), so the score
+// converges to a level set by the completion rate rather than drifting to a
+// wall. With completion rate p and blended loss ratio k it settles near
+//   200p / (p + k(1 - p)).
 //
-// Penalty ordering (worst → least severe):
-//   auto-skip (missed without interaction) > skip > snooze > completing
-//
-// Design targets (tier 3, N=10 reference tasks):
-//   Perfect day:      +5  pts   (10 × 0.5)
-//   All-snooze day:  −15  pts   (10 × 1.5)
-//   All-skip day:    −30  pts   (10 × 3.0)
-//   Day of nothing:  −75  pts   (10 × 7.5)
-//
-// Asymmetry is intentional: one bad day requires ~15 perfect days to recover.
+// Every scored event is weighted by `share`: the commitment's slice of a
+// normal day's load, so a full day always sums to about one day no matter how
+// long the task list is.
 // ─────────────────────────────────────────────────────────────────────────────
 
-import type {ConsequenceTier, Task} from './types.js';
+import type {ConsequenceTier, RecurrenceConfig, Task} from './types.js';
 import {isCurrentlyPaused} from './storage.js';
 
-/** Baseline task count. At this count, multiplier = 1 and base values apply as-is. */
-const REFERENCE_TASK_COUNT = 10;
+/** Lowest possible score. */
+export const MIN_SCORE = 0;
 
-/** Penalty factor applied when the task was in the suggested band (not mandatory). */
-export const SUGGESTED_BAND_PENALTY_FACTOR = 0.5;
+/** Highest possible score. */
+export const MAX_SCORE = 200;
+
+/** A perfect day closes this fraction of the gap to MAX_SCORE. */
+export const DAILY_RATE = 0.07;
+
+/** Docket-cleared bonus, as a fraction of a perfect day's gap-closing. */
+export const DOCKET_CLEARED_FRACTION = 0.2;
+
+/** Gain multiplier for completing from the radar or backlog band. */
+export const EARLY_COMPLETION_BONUS = 1.5;
+
+/** Milestone progress is worth this fraction of a completion. */
+export const MILESTONE_PROGRESS_FRACTION = 0.25;
+
+/** Each level of skip/snooze streak depth adds this to the penalty multiplier. */
+export const STREAK_MULTIPLIER_STEP = 0.1;
+
+/** Streak depth beyond this adds nothing more (multiplier tops out at 1.5). */
+export const STREAK_MULTIPLIER_MAX_DEPTH = 5;
+
+/** At startup rollover, at most this many missed periods are charged per task. */
+export const MAX_MISSED_PERIODS_CHARGED = 2;
+
+/** How much of a normal day each tier's events weigh. T4 is consequence-free. */
+export const TIER_WEIGHTS: Readonly<Record<ConsequenceTier, number>> = {
+    1: 3,
+    2: 2,
+    3: 1,
+    4: 0,
+};
+
+/** Loss ratios per action and band (multiplied into the penalty). */
+export const LOSS_RATIO_MISS_MANDATORY = 5;
+export const LOSS_RATIO_MISS_SUGGESTED = 2.5;
+export const LOSS_RATIO_SKIP = 2.5;
+export const LOSS_RATIO_SNOOZE_MANDATORY = 1;
+export const LOSS_RATIO_SNOOZE_SUGGESTED = 0.5;
+
+/** Days per period used to turn a cadence into occurrences per day. */
+export const DAYS_PER_WEEK = 7;
+export const DAYS_PER_MONTH = 30;
+export const DAYS_PER_QUARTER = 91;
+export const DAYS_PER_YEAR = 365;
 
 /** Default consecutive skips before a T2 daily/daily-like task escalates to mandatory. */
 export const SKIP_ESCALATION_THRESHOLD = 5;
@@ -32,101 +71,165 @@ export const SKIP_ESCALATION_THRESHOLD = 5;
 /** Maximum remediation count after a completion resets it from a streak. */
 export const REMEDIATION_CAP = 5;
 
-/**
- * Bonus awarded (before N-scaling) when the last mandatory task is completed
- * and the mandatory band empties for the day. Rewards consistent daily execution.
- */
-export const DOCKET_CLEARED_BONUS = 5;
+// ── Share ───────────────────────────────────────────────────────────────────
 
-/**
- * Count of tasks that are actionable (not completed, missed, or paused).
- * This is the N used for score scaling.
- */
-export function countActiveTasks(tasks: ReadonlyArray<Task>): number {
-    return Math.max(1, tasks.filter(t =>
-        t.completedAt === null &&
-        t.missedAt === null &&
-        !isCurrentlyPaused(t),
-    ).length);
+/** Weight of one event of this tier (T4 = 0). */
+export function tierWeight(tier: ConsequenceTier): number {
+    return TIER_WEIGHTS[tier] ?? 0;
 }
 
-/**
- * Multiplier applied to every score change.
- * < REFERENCE_TASK_COUNT tasks → multiplier > 1 (each task matters more).
- * > REFERENCE_TASK_COUNT tasks → multiplier < 1 (each task matters less).
- *
- * Floored at 0.5 so that individual actions remain meaningfully impactful
- * even when the task list is large. The "total daily impact is constant"
- * design goal holds up to 2× reference count (20 tasks); beyond that the
- * daily total grows proportionally, but each task never drops below half
- * the baseline weight.
- */
-export function taskScaleMultiplier(activeTasks: number): number {
-    return Math.max(0.5, REFERENCE_TASK_COUNT / Math.max(1, activeTasks));
-}
+type CadenceInput = Pick<RecurrenceConfig, 'cadence' | 'frequencyPerPeriod'> &
+    Partial<Pick<RecurrenceConfig, 'hardDaysOfWeek' | 'hardDaysOfMonth' | 'skipDays'>>;
 
-/** Score reward for completing a task. Designed so a week of perfect execution
- *  (10 tier-3 tasks/day, N=10) gains roughly 35 points: 7 × 10 × 0.5.
- *
- *  Tier 4 (Aspirational) returns 0 — it is tracked for self-awareness, not
- *  gamification. There is no score consequence in either direction. */
-export function tierCompletionReward(tier: ConsequenceTier): number {
-    switch (tier) {
-        case 1: return 1.5;
-        case 2: return 1.0;
-        case 3: return 0.5;
-        case 4: return 0;    // Aspirational: consequence-free
-    }
-}
-
-/** Penalty for a task that rolled over without any interaction (worst outcome).
- *  Tier 4 returns 0 — aspirational tasks have no score consequences. */
-export function missPenalty(tier: ConsequenceTier): number {
-    switch (tier) {
-        case 1: return 22.5;
-        case 2: return 15.0;
-        case 3: return 7.5;
-        case 4: return 0;    // Aspirational: consequence-free
-    }
-}
-
-/** Penalty for consciously skipping a period (worse than snooze, better than a miss).
- *  Tier 4 returns 0 — aspirational tasks have no score consequences. */
-export function skipPenalty(tier: ConsequenceTier): number {
-    switch (tier) {
-        case 1: return 9.0;
-        case 2: return 6.0;
-        case 3: return 3.0;
-        case 4: return 0;    // Aspirational: consequence-free
-    }
-}
-
-/** Per-snooze penalty base (multiplied by snooze count upstream).
- *  Tier 4 returns 0 — aspirational tasks have no score consequences. */
-export function snoozePenalty(tier: ConsequenceTier): number {
-    switch (tier) {
-        case 1: return 4.5;
-        case 2: return 3.0;
-        case 3: return 1.5;
-        case 4: return 0;    // Aspirational: consequence-free
+function occurrencesPerDayOf(cfg: CadenceInput): number {
+    const freq = Math.max(0, cfg.frequencyPerPeriod || 0);
+    switch (cfg.cadence) {
+        case 'daily':
+        case 'multiple_per_day': {
+            const skipped = new Set(cfg.skipDays ?? []).size;
+            const scheduledDays = Math.max(0, DAYS_PER_WEEK - skipped);
+            return (freq * scheduledDays) / DAYS_PER_WEEK;
+        }
+        case 'weekly': {
+            const days = cfg.hardDaysOfWeek?.length ?? 0;
+            return (days > 1 ? days : freq) / DAYS_PER_WEEK;
+        }
+        case 'monthly':
+        case 'quarterly': {
+            const doms = cfg.hardDaysOfMonth?.length ?? 0;
+            const perPeriod = doms > 1 ? doms : freq;
+            return perPeriod / (cfg.cadence === 'monthly' ? DAYS_PER_MONTH : DAYS_PER_QUARTER);
+        }
+        case 'annually':
+            return freq / DAYS_PER_YEAR;
     }
 }
 
 /**
- * Escalating multiplier applied to skip and snooze penalties based on the
- * current streak depth (the count AFTER the action is taken).
- *
- * Starts at ×1.25 on the first offence and rises by 0.25 every level,
- * capping at ×3.0 at depth 8+.  Streaks that start from a remediation
- * level already arrive at a higher depth, so they immediately pay more.
- *
- * depth 0 → ×1.0 (no streak)
- * depth 1 → ×1.25
- * depth 2 → ×1.5
- * depth 4 → ×2.0
- * depth 8+ → ×3.0 (cap)
+ * How often the commitment comes due, per day. One-time tasks are 0. A
+ * milestone with no recurrence but a progress cadence comes due at the
+ * progress cadence's rate.
  */
-export function streakDepthMultiplier(streakDepth: number): number {
-    if (streakDepth <= 0) return 1;
-    return 1 + 0.25 * Math.min(streakDepth, 8);
+export function occurrencesPerDay(
+    task: Pick<Task, 'recurrence' | 'isMilestone' | 'progressCadence'>,
+): number {
+    if (task.recurrence) return occurrencesPerDayOf(task.recurrence);
+    if (task.isMilestone && task.progressCadence) {
+        return occurrencesPerDayOf(task.progressCadence);
+    }
+    return 0;
+}
+
+/** Whether the task counts toward today's load: not finished, missed or paused. */
+export function isActiveForScoring(task: Task): boolean {
+    return task.completedAt === null && task.missedAt === null && !isCurrentlyPaused(task);
+}
+
+/** Sum of `tierWeight x occurrencesPerDay` over active, unpaused tasks. */
+export function dailyLoad(tasks: ReadonlyArray<Task>): number {
+    let load = 0;
+    for (const t of tasks) {
+        if (!isActiveForScoring(t)) continue;
+        load += tierWeight(t.consequenceTier) * occurrencesPerDay(t);
+    }
+    return load;
+}
+
+/**
+ * This task's share of a normal day, in [0, 1]:
+ * `tierWeight / max(dailyLoad, tierWeight)`. A single event can never count
+ * for more than a whole day. T4 is 0.
+ */
+export function share(task: Pick<Task, 'consequenceTier'>, load: number): number {
+    const weight = tierWeight(task.consequenceTier);
+    if (weight === 0) return 0;
+    return weight / Math.max(load, weight);
+}
+
+// ── Score changes ───────────────────────────────────────────────────────────
+
+function clampScore(score: number): number {
+    return Math.min(MAX_SCORE, Math.max(MIN_SCORE, score));
+}
+
+/** Gain from completing. `early` = completed from radar/backlog (1.5x). */
+export function applyCompletion(score: number, taskShare: number, early = false): number {
+    const bonus = early ? EARLY_COMPLETION_BONUS : 1;
+    return clampScore(score + DAILY_RATE * taskShare * (MAX_SCORE - score) * bonus);
+}
+
+/** Gain from logging milestone progress: a quarter of a completion. */
+export function applyMilestoneProgress(score: number, taskShare: number): number {
+    return clampScore(
+        score + DAILY_RATE * taskShare * MILESTONE_PROGRESS_FRACTION * (MAX_SCORE - score),
+    );
+}
+
+/** Gain from clearing the mandatory docket (callers allow it once a day). */
+export function applyDocketCleared(score: number): number {
+    return clampScore(score + DAILY_RATE * DOCKET_CLEARED_FRACTION * (MAX_SCORE - score));
+}
+
+/** 1 + 0.1 x min(depth, 5): x1.0 with no streak, x1.5 at depth 5+. */
+export function streakMultiplier(depth: number): number {
+    return 1 + STREAK_MULTIPLIER_STEP * Math.min(Math.max(depth, 0), STREAK_MULTIPLIER_MAX_DEPTH);
+}
+
+/** Loss from a miss, skip or snooze. */
+export function applyPenalty(
+    score: number,
+    taskShare: number,
+    lossRatio: number,
+    streakDepth = 0,
+): number {
+    return clampScore(
+        score - DAILY_RATE * taskShare * lossRatio * streakMultiplier(streakDepth) * score,
+    );
+}
+
+export type PenaltyAction = 'miss' | 'skip' | 'snooze';
+
+/** The band a penalty was incurred in ('hidden' carries no band-based loss). */
+export type PenaltyBand = 'mandatory' | 'suggested' | 'radar' | 'backlog' | 'hidden';
+
+/** Loss ratio for an action in a band (0 for radar/backlog misses and snoozes). */
+export function lossRatioFor(action: PenaltyAction, band: PenaltyBand): number {
+    switch (action) {
+        case 'skip':
+            return LOSS_RATIO_SKIP;
+        case 'miss':
+            if (band === 'mandatory') return LOSS_RATIO_MISS_MANDATORY;
+            if (band === 'suggested') return LOSS_RATIO_MISS_SUGGESTED;
+            return 0;
+        case 'snooze':
+            if (band === 'mandatory') return LOSS_RATIO_SNOOZE_MANDATORY;
+            if (band === 'suggested') return LOSS_RATIO_SNOOZE_SUGGESTED;
+            return 0;
+    }
+}
+
+/** Absence cap: how many of the elapsed missed periods are charged for one task. */
+export function capMissedPeriods(elapsedMissed: number): number {
+    return Math.min(Math.max(0, Math.floor(elapsedMissed)), MAX_MISSED_PERIODS_CHARGED);
+}
+
+/**
+ * Charge a task's missed periods against the running score, one at a time
+ * (each depends on the score before it). The count is capped and the streak
+ * depth rises by one per charged period.
+ */
+export function applyRolloverMisses(
+    score: number,
+    taskShare: number,
+    band: PenaltyBand,
+    elapsedMissed: number,
+    startingStreak: number,
+): number {
+    const ratio = lossRatioFor('miss', band);
+    let next = score;
+    const count = capMissedPeriods(elapsedMissed);
+    for (let i = 1; i <= count; i++) {
+        next = applyPenalty(next, taskShare, ratio, startingStreak + i);
+    }
+    return next;
 }
